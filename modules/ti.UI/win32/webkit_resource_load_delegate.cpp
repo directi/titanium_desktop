@@ -34,60 +34,6 @@ namespace ti
 		return result;
 	}
 	
-	bool Win32WebKitResourceLoadDelegate::CanPreprocess(Poco::URI& uri)
-	{
-		std::vector<std::string> pathSegments;
-		uri.getPathSegments(pathSegments);
-		if (pathSegments.size() == 0) return false;
-		
-		if (uri.getScheme() == "app" || uri.getScheme() == "ti" || uri.getScheme() == "file")
-		{
-			std::string& resource = pathSegments.at(pathSegments.size()-1);
-			if (resource.find(".php") == resource.size()-4)
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	std::string Win32WebKitResourceLoadDelegate::Preprocess(Poco::URI& uri, SharedKObject headers, std::string& method)
-	{
-		std::string path = URLUtils::URLToPath(uri.toString());
-		
-		ValueList args;
-		args.push_back(Value::NewString(uri.toString()));
-		args.push_back(Value::NewObject(headers));
-		args.push_back(Value::NewString(method));
-		args.push_back(Value::NewString(path));
-		
-		SharedValue preprocessed = Host::GetInstance()->GetGlobalObject()->CallNS("PHP.preprocess", args);
-		if (!preprocessed->IsNull() && !preprocessed->IsUndefined())
-		{
-			Poco::File tempFile(Poco::TemporaryFile::tempName()+".html");
-			Poco::TemporaryFile::registerForDeletion(tempFile.path());
-			tempFile.createFile();
-			
-			std::ofstream ostream(tempFile.path().c_str());
-			ostream << preprocessed->ToString();
-			ostream.close();
-			
-			return URLUtils::PathToFileURL(tempFile.path());
-			//const char *tempURLStr = strdup(tempURL.c_str());
-			/*return tempURL;
-			
-			_bstr_t url(tempURL.c_str());
-			
-			IWebMutableURLRequest *mutableRequest;
-			if (SUCCEEDED(request->QueryInterface(IID_IWebMutableURLRequest, (void **)&mutableRequest)))
-			{
-				Logger::Get("UI.Win32WebKitResourceLoadDelegate")->Debug("preprocessed %s into => %s", uri.toString().c_str(), tempURL.c_str());
-				mutableRequest->setURL(url.copy());
-			}*/
-		}
-		return "";
-	}
-	
 	HRESULT Win32WebKitResourceLoadDelegate::willSendRequest(
 			/*[in]*/ IWebView* webView,
 			/*[in]*/ unsigned long identifier,
@@ -103,8 +49,7 @@ namespace ti
 		}
 		
 		std::string urlStr = _bstr_t(urlBStr);
-		Poco::URI uri(urlStr);
-		if (!this->CanPreprocess(uri))
+		if (!Script::GetInstance()->CanPreprocess(urlStr.c_str()))
 		{
 			return S_OK;
 		}
@@ -120,14 +65,17 @@ namespace ti
 		{
 			return S_OK;
 		}
-		/*if (FAILED(request->HTTPBodyStream(&httpBodyStream))
+		/* TODO: implement HTTPBodyStream in win32
+		if (FAILED(request->HTTPBodyStream(&httpBodyStream))
 		{
 			return S_OK;
 		}*/
 		
 		std::string httpMethod = _bstr_t(httpMethodBStr);
+		SharedKObject scope = new StaticBoundObject();
 		SharedKObject headers = new StaticBoundObject();
-			
+		scope->Set("httpHeaders", Value::NewObject(headers));
+		
 		IPropertyBag2* httpHeaders2;
 		if (SUCCEEDED(httpHeaders->QueryInterface(IID_IPropertyBag2, (void **)&httpHeaders2)))
 		{
@@ -144,22 +92,26 @@ namespace ti
 						std::string name(nameWString.begin(), nameWString.end());
 						
 						std::string propertyValue = PropertyBagGetStringProperty(httpHeaders, propBag.pstrName);
-						
 						headers->Set(name.c_str(), Value::NewString(propertyValue));
 					}
 				}
 			}
 		}
 		
-		std::string newURL = this->Preprocess(uri, headers, httpMethod);
-		*newRequest = createWebURLRequest();
-		IWebMutableURLRequest *mutableRequest;
-		if (SUCCEEDED((*newRequest)->QueryInterface(IID_IWebMutableURLRequest, (void **)&mutableRequest)))
+		AutoPtr<PreprocessData> data =
+			Script::GetInstance()->Preprocess(urlStr.c_str(), scope);
+		//TODO: implement new preprocess stuff for win32
+		/*if (!newURL.isNull())
 		{
-			Logger::Get("UI.Win32WebKitResourceLoadDelegate")->Debug("preprocessed %s into => %s", uri.toString().c_str(), newURL.c_str());
-			_bstr_t newURLBStr(newURL.c_str());
-			mutableRequest->setURL(newURLBStr.copy());
-		}
+			*newRequest = createWebURLRequest();
+			IWebMutableURLRequest *mutableRequest;
+			if (SUCCEEDED((*newRequest)->QueryInterface(IID_IWebMutableURLRequest, (void **)&mutableRequest)))
+			{
+				Logger::Get("UI.Win32WebKitResourceLoadDelegate")->Debug("preprocessed %s into => %s", urlStr.c_str(), newURL->c_str());
+				_bstr_t newURLBStr(newURL->c_str());
+				mutableRequest->setURL(newURLBStr.copy());
+			}
+		}*/
 		
 		return S_OK;
 	}

@@ -489,11 +489,13 @@ void UserWindow::Open()
 
 void UserWindow::Close()
 {
-	// We want to fire the CLOSE event synchronously, because we
-	// want to ensure that listeners on the originating window get
-	// this event.
-	this->active = false; // prevent further modification
-	this->FireEvent(Event::CLOSE);
+	// If FireEvent returns true, stopPropagation or preventDefault
+	// was not called on the event -- and we should continue closing
+	// the window. Otherwise, we want to cancel the close.
+	if (this->FireEvent(Event::CLOSE))
+	{
+		this->active = false; // Prevent further modification.
+	}
 }
 
 void UserWindow::Closed()
@@ -1699,6 +1701,8 @@ bool UserWindow::ShouldHaveTitaniumObject(
 	// Other URLs won't have access for security considerations.
 	JSStringRef docPropName = JSStringCreateWithUTF8CString("document");
 	JSValueRef docValue = JSObjectGetProperty(ctx, global, docPropName, NULL);
+	JSStringRelease(docPropName);
+
 	if (!docValue)
 	{
 		return false;
@@ -1712,6 +1716,8 @@ bool UserWindow::ShouldHaveTitaniumObject(
 
 	JSStringRef locPropName = JSStringCreateWithUTF8CString("location");
 	JSValueRef locValue = JSObjectGetProperty(ctx, docObject, locPropName, NULL);
+	JSStringRelease(locPropName);
+
 	if (!locValue)
 	{
 		return false;
@@ -1731,6 +1737,7 @@ bool UserWindow::ShouldHaveTitaniumObject(
 	return url.find("app://") == 0 || 
 		url.find("ti://") == 0 ||
 		url.find("file://") == 0;
+
 }
 
 bool UserWindow::IsMainFrame(JSGlobalContextRef ctx, JSObjectRef global)
@@ -1741,12 +1748,18 @@ bool UserWindow::IsMainFrame(JSGlobalContextRef ctx, JSObjectRef global)
 	// -dependent code and this should generally work cross-platform.
 	JSStringRef parentPropName = JSStringCreateWithUTF8CString("parent");
 	JSValueRef parentValue = JSObjectGetProperty(ctx, global, parentPropName, NULL);
+	JSStringRelease(parentPropName);
+
 	if (!parentValue)
+	{
 		return false;
+	}
 
 	JSObjectRef parentObject = JSValueToObject(ctx, parentValue, NULL);
 	if (!parentObject)
+	{
 		return false;
+	}
 
 	return parentObject == global;
 }

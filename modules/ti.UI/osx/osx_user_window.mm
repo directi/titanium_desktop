@@ -221,8 +221,16 @@ namespace ti
 
 	void OSXUserWindow::Close()
 	{
-		if (active && nativeWindow) { // Do not re-close
+		// Guard against re-closing a window
+		if (active && nativeWindow)
+		{
 			UserWindow::Close();
+
+			// If the window is still active at this point, it
+			// indicates an event listener has cancelled this close event.
+			if (this->active)
+				return;
+
 			this->Closed();
 
 			// Actually close the native window and mark
@@ -573,7 +581,7 @@ namespace ti
 
 	void OSXUserWindow::SetMaximizable(bool maximizable)
 	{
-		if (active && nativeWindow != nil)
+		if (nativeWindow != nil)
 		{
 			[[nativeWindow standardWindowButton:NSWindowZoomButton] setHidden:!maximizable];
 		}
@@ -586,7 +594,7 @@ namespace ti
 
 	void OSXUserWindow::SetMinimizable(bool minimizable)
 	{
-		if (active && nativeWindow != nil)
+		if (nativeWindow != nil)
 		{
 			[[nativeWindow standardWindowButton:NSWindowMiniaturizeButton] setHidden:!minimizable];
 		}
@@ -599,7 +607,7 @@ namespace ti
 
 	void OSXUserWindow::SetCloseable(bool closeable)
 	{
-		if (active && nativeWindow != nil)
+		if (nativeWindow != nil)
 		{
 			[[nativeWindow standardWindowButton:NSWindowCloseButton] setHidden:!closeable];
 		}
@@ -617,7 +625,7 @@ namespace ti
 
 	void OSXUserWindow::SetTransparency(double transparency)
 	{
-		if (active && nativeWindow != nil)
+		if (nativeWindow != nil)
 		{
 			[nativeWindow setTransparency:transparency];
 		}
@@ -625,7 +633,7 @@ namespace ti
 
 	void OSXUserWindow::SetFullscreen(bool fullscreen)
 	{
-		if (active && nativeWindow != nil)
+		if (nativeWindow != nil)
 		{
 			[nativeWindow setFullscreen:fullscreen];
 		}
@@ -690,7 +698,7 @@ namespace ti
 
 	void OSXUserWindow::SetTopMost(bool topmost)
 	{
-		if (active && nativeWindow != nil)
+		if (nativeWindow != nil)
 		{
 			if (topmost)
 			{
