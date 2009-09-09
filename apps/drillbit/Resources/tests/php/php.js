@@ -132,6 +132,7 @@ describe("php tests",
 				var window = w.getDOMWindow();
 				var a = window.document.getElementById("a").innerHTML;
 				value_of(a).should_be("101");
+				callback.passed();
 			}
 			catch(e)
 			{
@@ -142,5 +143,10 @@ describe("php tests",
 			callback.failed("Timed out waiting for preprocess");
 		}, 3000);
 		w.open();
+	},
+	test_across_script_tags: function()
+	{
+		var result = across_script_tags();
+		value_of(result).should_be(24);
 	}
 });
