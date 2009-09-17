@@ -168,23 +168,19 @@ namespace ti
 		catch(ValueException& e)
 		{
 			std::cerr << eprefix << *(e.GetValue()->DisplayString()) << std::endl;
-			ValueList args;
-			args.push_back(Value::NewString(*(e.GetValue()->DisplayString())));
+			ValueList args(Value::NewString(e.ToString()));
 			ti_host->InvokeMethodOnMainThread(this->onError, args, false);
-			
 		}
 		catch(Poco::Exception &e)
 		{
 			std::cerr << eprefix << e.displayText() << std::endl;
-			ValueList args;
-			args.push_back(Value::NewString(e.displayText()));
+			ValueList args(Value::NewString(e.displayText()));
 			ti_host->InvokeMethodOnMainThread(this->onError, args, false);
 		}
 		catch(...)
 		{
 			std::cerr << eprefix << "Unknown exception" << std::endl;
-			ValueList args;
-			args.push_back(Value::NewString("Unknown exception"));
+			ValueList args(Value::NewString("Unknown exception"));
 			ti_host->InvokeMethodOnMainThread(this->onError, args, false);
 		}
 	}
