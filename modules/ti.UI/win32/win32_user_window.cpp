@@ -175,8 +175,13 @@ void Win32UserWindow::InitWindow()
 	Win32UserWindow::RegisterWindowClass(win32Host->GetInstanceHandle());
 
 	std::wstring titleW = UTF8ToWide(config->GetTitle());
+	DWORD style = WS_EX_APPWINDOW /*WS_EX_LAYERED*/;
+	if(!config->IsTaskbarTab())
+	{
+		style = WS_EX_TOOLWINDOW;
+	}
 	this->windowHandle = CreateWindowExW(
-		WS_EX_APPWINDOW /*WS_EX_LAYERED*/, 
+		style, 
 		USERWINDOW_WINDOW_CLASS,
 		titleW.c_str(),
 		WS_CLIPCHILDREN, CW_USEDEFAULT,
@@ -411,7 +416,13 @@ Win32UserWindow::Win32UserWindow(WindowConfig* config, AutoUserWindow& parent) :
 
 	if (config->GetTransparency() < 1.0)
 	{
-		SetWindowLong( this->windowHandle, GWL_EXSTYLE, WS_EX_LAYERED);
+		DWORD style = WS_EX_LAYERED;
+		if(!config->IsTaskbarTab())
+		{
+			style |= WS_EX_TOOLWINDOW;
+		}
+
+		SetWindowLong( this->windowHandle, GWL_EXSTYLE, style);
 		SetLayeredWindowAttributes(this->windowHandle, 0, (BYTE) floor(
 				config->GetTransparency() * 255), LWA_ALPHA);
 		SetLayeredWindowAttributes(this->windowHandle, transparencyColor, 0,
@@ -750,7 +761,7 @@ void Win32UserWindow::SetURL(std::string& url_)
 		goto exit;
 
 	logger->Debug("set focus");
-	SetFocus(viewWindowHandle);
+	//SetFocus(viewWindowHandle);
 
 exit:
 	if (request)
@@ -794,13 +805,24 @@ void Win32UserWindow::SetTransparency(double transparency)
 {
 	if (config->GetTransparency() < 1.0)
 	{
-		SetWindowLong(this->windowHandle, GWL_EXSTYLE, WS_EX_LAYERED);
+		DWORD style = WS_EX_LAYERED;
+		if(!config->IsTaskbarTab())
+		{
+			style |= WS_EX_TOOLWINDOW;
+		}
+
+		SetWindowLong(this->windowHandle, GWL_EXSTYLE, style);
 		SetLayeredWindowAttributes(this->windowHandle, 0, (BYTE) floor(
 		config->GetTransparency() * 255), LWA_ALPHA);
 	}
 	else
 	{
-		SetWindowLong( this->windowHandle, GWL_EXSTYLE, WS_EX_APPWINDOW);
+		DWORD style = WS_EX_APPWINDOW /*WS_EX_LAYERED*/;
+		if(!config->IsTaskbarTab())
+		{
+			style = WS_EX_TOOLWINDOW;
+		}
+		SetWindowLong( this->windowHandle, GWL_EXSTYLE, style);
 	}
 }
 
@@ -980,13 +1002,23 @@ void Win32UserWindow::ReloadTiWindowConfig()
 
 	if (config->GetTransparency() < 1.0)
 	{
-		SetWindowLong( this->windowHandle, GWL_EXSTYLE, WS_EX_LAYERED);
+		DWORD style = WS_EX_LAYERED;
+		if(!config->IsTaskbarTab())
+		{
+			style |= WS_EX_TOOLWINDOW;
+		}
+		SetWindowLong( this->windowHandle, GWL_EXSTYLE, style);
 		SetLayeredWindowAttributes(this->windowHandle, 0, (BYTE) floor(
 				config->GetTransparency() * 255), LWA_ALPHA);
 	}
 	else
 	{
-		SetWindowLong( this->windowHandle, GWL_EXSTYLE, WS_EX_APPWINDOW);
+		DWORD style = WS_EX_APPWINDOW /*WS_EX_LAYERED*/;
+		if(!config->IsTaskbarTab())
+		{
+			style = WS_EX_TOOLWINDOW;
+		}
+		SetWindowLong( this->windowHandle, GWL_EXSTYLE, style);
 	}
 	
 	SetLayeredWindowAttributes(this->windowHandle, transparencyColor, 0,

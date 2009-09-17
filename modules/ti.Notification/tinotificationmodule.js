@@ -18,7 +18,8 @@ function TitaniumNotification(window)
 		id:myid,
 		visible:false,
 		topMost:true,
-		url:'app://blank'
+		url:'app://blank',
+		taskbarTab: false
 	});
 	var self = this;
 	var title = '', message = '', icon = '';

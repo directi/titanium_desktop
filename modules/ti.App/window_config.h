@@ -42,6 +42,7 @@ class TITANIUM_APP_API WindowConfig
 	bool usingChrome;
 	bool usingScrollbars;
 	bool topMost;
+	bool taskbarTab;
 
 	void SetDefaults();
 
@@ -108,6 +109,9 @@ class TITANIUM_APP_API WindowConfig
 	void SetUsingScrollbars(bool usingScrollbars_) { usingScrollbars = usingScrollbars_; }
 	bool IsTopMost() { return topMost; }
 	void SetTopMost(bool topmost_) { topMost = topmost_; }
+	bool IsTaskbarTab() { return taskbarTab; }
+	void SetTaskbarTab(bool taskbarTab_) { taskbarTab = taskbarTab_; }
+	
 };
 
 }

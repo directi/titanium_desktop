@@ -91,6 +91,7 @@ void WindowConfig::SetDefaults ()
 	this->minimized = false;
 	this->visible = true;
 	this->topMost = false;
+	this->taskbarTab = true;
 
 	this->transparency = 1.0;
 	this->width = 800;
@@ -135,6 +136,7 @@ void WindowConfig::UseProperties(SharedKObject properties)
 	SET_BOOL(usingChrome, usingChrome);
 	SET_BOOL(usingScrollbars, usingScrollbars);
 	SET_BOOL(topMost, topMost);
+	SET_BOOL(taskbarTab, taskbarTab);
 	SET_DOUBLE(transparency, transparency);
 }
 
@@ -168,6 +170,7 @@ WindowConfig::WindowConfig(WindowConfig *config, std::string& url)
 	this->usingScrollbars = config->IsUsingScrollbars();
 	this->topMost = config->IsTopMost();
 	this->transparency = config->GetTransparency();
+	this->taskbarTab = config->IsTaskbarTab();
 
 }
 
@@ -285,6 +288,10 @@ WindowConfig::WindowConfig(void* data)
 		else if (nodeNameEquals(child, "top-most"))
 		{
 			topMost = ConfigUtils::GetNodeValueAsBool(child);
+		}
+		else if (nodeNameEquals(child, "taskbar-tab"))
+		{
+			taskbarTab = ConfigUtils::GetNodeValueAsBool(child);
 		}
 		child = child->next;
 	}
