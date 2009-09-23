@@ -1749,7 +1749,9 @@ bool UserWindow::ShouldHaveTitaniumObject(
 	transform(url.begin(), url.end(), url.begin(), tolower);
 	return url.find("app://") == 0 || 
 		url.find("ti://") == 0 ||
-		url.find("file://") == 0;
+		url.find("file://") == 0 || 
+		url == "about:blank" ||       // about blank is local and we should be able to open a write to document object w/ Titanium
+		url.find("data:text/html;") == 0;  // data uris can be considered local
 }
 
 bool UserWindow::IsMainFrame(JSGlobalContextRef ctx, JSObjectRef global)
@@ -1821,12 +1823,15 @@ void UserWindow::RegisterJSContext(JSGlobalContextRef context)
 	// that loads on a page will follow this same code path.
 	if (IsMainFrame(context, globalObject))
 		this->domWindow = frameGlobal->GetObject("window", 0);
+		
+	bool sameDomain = false;
 
 	// Only certain pages should get the Titanium object. This is to prevent
 	// malicious sites from always getting access to the user's system. This
 	// can be overridden by any other API that calls InsertAPI on this DOM window.
 	if (this->ShouldHaveTitaniumObject(context, globalObject))
 	{
+		sameDomain = true;
 		this->InsertAPI(frameGlobal);
 		UserWindow::LoadUIJavaScript(context);
 	}
@@ -1834,6 +1839,7 @@ void UserWindow::RegisterJSContext(JSGlobalContextRef context)
 	AutoPtr<Event> event = new Event(this->GetAutoPtr(), Event::PAGE_INITIALIZED);
 	event->SetObject("scope", frameGlobal);
 	event->SetString("url", config->GetURL());
+	event->SetBool("sameDomain",sameDomain);
 	this->FireEvent(event);
 }
 
