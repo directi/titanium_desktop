@@ -116,7 +116,9 @@ namespace ti
 			void _IsTopMost(const kroll::ValueList&, kroll::SharedValue);
 			void _SetTopMost(const kroll::ValueList&, kroll::SharedValue);
 			virtual void _ShowInspector(const ValueList& args, SharedValue result);
-
+#ifdef OS_WIN32
+			void _Flash(const kroll::ValueList&, kroll::SharedValue);
+#endif
 			virtual void OpenFileChooserDialog(
 				SharedKMethod callback,
 				bool multiple,
@@ -208,6 +210,9 @@ namespace ti
 			virtual bool IsTopMost() = 0;
 			virtual void SetTopMost(bool topmost) = 0;
 			virtual void ShowInspector(bool console=false) = 0;
+#ifdef OS_WIN32
+			virtual void Flash(int timesToFlash) = 0;
+#endif
 			virtual void RegisterJSContext(JSGlobalContextRef);
 			virtual void InsertAPI(SharedKObject frameGlobal);
 			virtual void PageLoaded(

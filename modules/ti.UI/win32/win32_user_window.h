@@ -88,6 +88,8 @@ namespace ti
 
 		void FrameLoaded();
 		void ShowInspector(bool console);
+		void Flash(int timesToFlash);
+
 		static void RegisterWindowClass(HINSTANCE hInstance);
 		static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 		static Win32UserWindow* FromWindow(HWND hWnd);
@@ -98,7 +100,7 @@ namespace ti
 		virtual void AppMenuChanged();
 		IWebView* GetWebView() { return webView; };
 	
-		protected:
+		private:
 		kroll::Win32Host *win32Host;
 		Win32WebKitFrameLoadDelegate *frameLoadDelegate;
 		Win32WebKitUIDelegate *uiDelegate;
@@ -120,15 +122,16 @@ namespace ti
 		AutoPtr<Win32Menu> contextMenu; // This window-specific context menu
 		std::string iconPath; // The path to this window's icon
 		HICON defaultIcon;
-	
+
 		void RemoveOldMenu();
-		void ReloadTiWindowConfig();
+		DWORD getStyleFromConfig() const;
 		void InitWindow();
 		void InitWebKit();
 		void SetupBounds();
 		void SetupPosition();
 		void SetupSize();
 		void SetupDecorations(bool showHide = true);
+		void SetupState();
 		void SetupMenu();
 		void SetupIcon();
 		SharedKList SelectFile(

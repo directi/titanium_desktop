@@ -455,6 +455,13 @@ UserWindow::UserWindow(WindowConfig *config, AutoUserWindow& parent) :
 	 */
 	this->SetMethod("showInspector", &UserWindow::_ShowInspector);
 
+	/**
+	 * @tiapi(method=True,name=UI.UserWindow.flash,since=0.7) 
+	 * Show the web inspector (currently only supported on windows)
+	 * @tiarg[Integer] number of times the window should flash
+	 */
+	this->SetMethod("flash", &UserWindow::_Flash);
+	
 	this->FireEvent(Event::CREATED);
 }
 
@@ -1682,6 +1689,21 @@ void UserWindow::_ShowInspector(const ValueList& args, SharedValue result)
 		this->ShowInspector();
 	}
 }
+
+#ifdef OS_WIN32
+void UserWindow::_Flash(const ValueList& args, SharedValue result)
+{
+	if (!this->active)
+		return;
+
+	int timesToFlash = 3;
+	if (args.size() > 0 && args.at(0)->IsNumber())
+	{
+		timesToFlash = args.at(0)->ToNumber();
+	}
+	this->Flash(timesToFlash);
+}
+#endif
 
 AutoUserWindow UserWindow::GetParent()
 {

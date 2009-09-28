@@ -170,18 +170,32 @@ Win32UserWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
+DWORD Win32UserWindow::getStyleFromConfig() const
+{
+	DWORD style = WS_EX_APPWINDOW;
+	if (config->GetTransparency() < 1.0)
+	{
+		style = WS_EX_LAYERED;
+		if(!config->IsTaskbarTab())
+		{
+			style |= WS_EX_TOOLWINDOW;
+		}
+	}
+	else if(!config->IsTaskbarTab())
+	{
+		style = WS_EX_TOOLWINDOW;
+	}
+
+	return style;
+}
+
 void Win32UserWindow::InitWindow()
 {
 	Win32UserWindow::RegisterWindowClass(win32Host->GetInstanceHandle());
 
 	std::wstring titleW = UTF8ToWide(config->GetTitle());
-	DWORD style = WS_EX_APPWINDOW /*WS_EX_LAYERED*/;
-	if(!config->IsTaskbarTab())
-	{
-		style = WS_EX_TOOLWINDOW;
-	}
-	this->windowHandle = CreateWindowExW(
-		style, 
+ 	this->windowHandle = CreateWindowExW(
+		getStyleFromConfig(), 
 		USERWINDOW_WINDOW_CLASS,
 		titleW.c_str(),
 		WS_CLIPCHILDREN, CW_USEDEFAULT,
@@ -361,19 +375,14 @@ Win32UserWindow::Win32UserWindow(WindowConfig* config, AutoUserWindow& parent) :
 	win32Host = static_cast<kroll::Win32Host*>(binding->GetHost());
 	this->InitWindow();
 
-	this->ReloadTiWindowConfig();
+	SetTransparency(config->GetTransparency());	
 	this->SetupDecorations(false);
+	SetupPosition();
+	SetupState();
+	SetTopMost(config->IsTopMost() && config->IsVisible());
 
-	Bounds b;
-	b.x = config->GetX();
-	b.y = config->GetY();
-	b.width = config->GetWidth();
-	b.height = config->GetHeight();
-	SetBounds(b);
+	InitWebKit();
 
-	this->InitWebKit();
-	
-	//webView = WebView::createInstance();
 	logger->Debug("resize subviews");
 	ResizeSubViews();
 
@@ -381,28 +390,10 @@ Win32UserWindow::Win32UserWindow(WindowConfig* config, AutoUserWindow& parent) :
 	restoreBounds = GetBounds();
 	restoreStyles = GetWindowLong(windowHandle, GWL_STYLE);
 
-	if (this->config->IsFullscreen())
-	{
-		this->SetFullscreen(true);
-	}
-	else if (this->config->IsMaximized())
-	{
-		this->Maximize();
-	}
-	else if (this->config->IsMinimized())
-	{
-		this->Minimize();
-	}
-
-	if (this->config->IsTopMost() && this->config->IsVisible())
-	{
-		this->SetTopMost(true);
-	}
-
 	// set this flag to indicate that when the frame is loaded
 	// we want to show the window - we do this to prevent white screen
 	// while the URL is being fetched
-	this->requiresDisplay = true;
+	requiresDisplay = true;
 
 	// set initial window icon to icon associated with exe file
 	char exePath[MAX_PATH];
@@ -410,23 +401,7 @@ Win32UserWindow::Win32UserWindow(WindowConfig* config, AutoUserWindow& parent) :
 	defaultIcon = ExtractIconA(win32Host->GetInstanceHandle(), exePath, 0);
 	if (defaultIcon)
 	{
-		SendMessageA(windowHandle, (UINT) WM_SETICON, ICON_BIG,
-				(LPARAM) defaultIcon);
-	}
-
-	if (config->GetTransparency() < 1.0)
-	{
-		DWORD style = WS_EX_LAYERED;
-		if(!config->IsTaskbarTab())
-		{
-			style |= WS_EX_TOOLWINDOW;
-		}
-
-		SetWindowLong( this->windowHandle, GWL_EXSTYLE, style);
-		SetLayeredWindowAttributes(this->windowHandle, 0, (BYTE) floor(
-				config->GetTransparency() * 255), LWA_ALPHA);
-		SetLayeredWindowAttributes(this->windowHandle, transparencyColor, 0,
-			LWA_COLORKEY);
+		SendMessageA(windowHandle, (UINT) WM_SETICON, ICON_BIG, (LPARAM) defaultIcon);
 	}
 }
 
@@ -530,21 +505,15 @@ void Win32UserWindow::Open()
 	ResizeSubViews();
 
 	UserWindow::Open();
-	SetURL(this->config->GetURL());
+	SetURL(config->GetURL());
 	if (!this->requiresDisplay)
 	{
-		ShowWindow(windowHandle, SW_SHOW);
+		Show();
 		ShowWindow(viewWindowHandle, SW_SHOW);
 	}
 	
-	this->SetupBounds();
-	if (this->config->IsMaximized()) {
-		this->Maximize();
-	}
-	else if (this->config->IsMinimized()) {
-		this->Minimize();
-	}
-	
+	SetupBounds();
+	SetupState();	
 	FireEvent(Event::OPENED);
 }
 
@@ -768,32 +737,25 @@ exit:
 		request->Release();
 }
 
-#define SetFlag(x,flag,b) ((b) ? x |= flag : x &= ~flag)
-#define UnsetFlag(x,flag) (x &= ~flag)=
-
-#define SetGWLFlag(wnd,flag,b) long window_style = GetWindowLong(wnd, GWL_STYLE);\
-SetFlag(window_style, flag, b);\
-SetWindowLong(wnd, GWL_STYLE, window_style);
-
 void Win32UserWindow::SetResizable(bool resizable)
 {
-	SetGWLFlag(windowHandle, WS_SIZEBOX, this->config->IsUsingChrome() && resizable);
-	this->SetupSize();
+	SetupDecorations();
+	SetupSize();
 }
 
 void Win32UserWindow::SetMaximizable(bool maximizable)
 {
-	this->SetupDecorations();
+	SetupDecorations();
 }
 
 void Win32UserWindow::SetMinimizable(bool minimizable)
 {
-	this->SetupDecorations();
+	SetupDecorations();
 }
 
 void Win32UserWindow::SetCloseable(bool closeable)
 {
-	this->SetupDecorations();
+	SetupDecorations();
 }
 
 bool Win32UserWindow::IsVisible()
@@ -803,26 +765,10 @@ bool Win32UserWindow::IsVisible()
 
 void Win32UserWindow::SetTransparency(double transparency)
 {
+	SetWindowLong(windowHandle, GWL_EXSTYLE, getStyleFromConfig());
 	if (config->GetTransparency() < 1.0)
 	{
-		DWORD style = WS_EX_LAYERED;
-		if(!config->IsTaskbarTab())
-		{
-			style |= WS_EX_TOOLWINDOW;
-		}
-
-		SetWindowLong(this->windowHandle, GWL_EXSTYLE, style);
-		SetLayeredWindowAttributes(this->windowHandle, 0, (BYTE) floor(
-		config->GetTransparency() * 255), LWA_ALPHA);
-	}
-	else
-	{
-		DWORD style = WS_EX_APPWINDOW /*WS_EX_LAYERED*/;
-		if(!config->IsTaskbarTab())
-		{
-			style = WS_EX_TOOLWINDOW;
-		}
-		SetWindowLong( this->windowHandle, GWL_EXSTYLE, style);
+		SetLayeredWindowAttributes(windowHandle, 0, (BYTE) floor(config->GetTransparency() * 255), LWA_ALPHA);
 	}
 }
 
@@ -908,7 +854,7 @@ std::string& Win32UserWindow::GetIcon()
 
 void Win32UserWindow::SetUsingChrome(bool chrome)
 {
-	this->SetupDecorations();
+	SetupDecorations();
 }
 
 void Win32UserWindow::SetupDecorations(bool showHide)
@@ -916,8 +862,10 @@ void Win32UserWindow::SetupDecorations(bool showHide)
 	long windowStyle = GetWindowLong(this->windowHandle, GWL_STYLE);
 
 	SetFlag(windowStyle, WS_OVERLAPPED, config->IsUsingChrome());
-	SetFlag(windowStyle, WS_CAPTION, config->IsUsingChrome());
+	SetFlag(windowStyle, WS_SIZEBOX, config->IsUsingChrome() && config->IsResizable());
+	SetFlag(windowStyle, WS_OVERLAPPEDWINDOW, config->IsUsingChrome() && config->IsResizable());
 	SetFlag(windowStyle, WS_SYSMENU, config->IsUsingChrome() && config->IsCloseable());
+	SetFlag(windowStyle, WS_CAPTION, config->IsUsingChrome());
 	SetFlag(windowStyle, WS_BORDER, config->IsUsingChrome());
 
 	SetFlag(windowStyle, WS_MAXIMIZEBOX, config->IsMaximizable());
@@ -927,9 +875,26 @@ void Win32UserWindow::SetupDecorations(bool showHide)
 
 	if (showHide && config->IsVisible())
 	{
-		ShowWindow(windowHandle, SW_HIDE);
-		ShowWindow(windowHandle, SW_SHOW);
+		Hide();
+		Show();
 	}
+}
+
+void Win32UserWindow::SetupState()
+{
+	if (config->IsFullscreen())
+	{
+		this->SetFullscreen(true);
+	}
+	else if (config->IsMaximized())
+	{
+		this->Maximize();
+	}
+	else if (config->IsMinimized())
+	{
+		this->Minimize();
+	}	
+
 }
 
 void Win32UserWindow::AppMenuChanged()
@@ -942,7 +907,7 @@ void Win32UserWindow::AppMenuChanged()
 
 void Win32UserWindow::AppIconChanged()
 {
-	this->SetupIcon();
+	SetupIcon();
 }
 
 void Win32UserWindow::RemoveOldMenu()
@@ -985,53 +950,13 @@ void Win32UserWindow::SetupMenu()
 	}
 }
 
-void Win32UserWindow::ReloadTiWindowConfig()
-{
-	//host->webview()->GetMainFrame()->SetAllowsScrolling(tiWindowConfig->isUsingScrollbars());
-	//SetWindowText(hWnd, UTF8ToWide(tiWindowConfig->getTitle()).c_str());
-
-	long windowStyle = GetWindowLong(this->windowHandle, GWL_STYLE);
-
-	SetFlag(windowStyle, WS_MINIMIZEBOX, config->IsMinimizable());
-	SetFlag(windowStyle, WS_MAXIMIZEBOX, config->IsMaximizable());
-
-	SetFlag(windowStyle, WS_OVERLAPPEDWINDOW, config->IsUsingChrome() && config->IsResizable());
-	SetFlag(windowStyle, WS_CAPTION, config->IsUsingChrome());
-
-	SetWindowLong(this->windowHandle, GWL_STYLE, windowStyle);
-
-	if (config->GetTransparency() < 1.0)
-	{
-		DWORD style = WS_EX_LAYERED;
-		if(!config->IsTaskbarTab())
-		{
-			style |= WS_EX_TOOLWINDOW;
-		}
-		SetWindowLong( this->windowHandle, GWL_EXSTYLE, style);
-		SetLayeredWindowAttributes(this->windowHandle, 0, (BYTE) floor(
-				config->GetTransparency() * 255), LWA_ALPHA);
-	}
-	else
-	{
-		DWORD style = WS_EX_APPWINDOW /*WS_EX_LAYERED*/;
-		if(!config->IsTaskbarTab())
-		{
-			style = WS_EX_TOOLWINDOW;
-		}
-		SetWindowLong( this->windowHandle, GWL_EXSTYLE, style);
-	}
-	
-	SetLayeredWindowAttributes(this->windowHandle, transparencyColor, 0,
-			LWA_COLORKEY);
-}
-
 // called by frame load delegate to let the window know it's loaded
 void Win32UserWindow::FrameLoaded()
 {
 	if (this->requiresDisplay && this->config->IsVisible())
 	{
 		this->requiresDisplay = false;
-		ShowWindow(windowHandle, SW_SHOW);
+		Show();
 	}
 }
 
@@ -1059,7 +984,8 @@ void Win32UserWindow::SetupPosition()
 	Bounds b = GetBounds();
 	b.x = this->config->GetX();
 	b.y = this->config->GetY();
-	
+	b.width = config->GetWidth();
+	b.height = config->GetHeight();	
 	this->SetBounds(b);
 }
 
@@ -1086,6 +1012,18 @@ void Win32UserWindow::ShowInspector(bool console)
 			this->webInspector->show();
 		}
 	}
+}
+
+void Win32UserWindow::Flash(int timesToFlash)
+{
+	FLASHWINFO fwi;
+	ZeroMemory(&fwi, sizeof(FLASHWINFO));
+	fwi.cbSize = sizeof(FLASHWINFO);
+	fwi.hwnd = windowHandle;
+	fwi.dwFlags = FLASHW_ALL;
+	fwi.uCount = timesToFlash;
+	fwi.dwTimeout = 0;
+	FlashWindowEx(&fwi);
 }
 
 void Win32UserWindow::OpenFileChooserDialog(
