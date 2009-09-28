@@ -9,9 +9,11 @@
 
 @implementation SoundDelegate
 
--(void)setOSXSound:(OSXSound*)newSound
+-(id)initWithSound:(OSXSound*)s
 {
-	sound = newSound;
+	self = [super init];
+	sound = s;
+	return self;
 }
 
 -(void)dealloc
@@ -22,8 +24,7 @@
 
 -(void)completed:(NSNumber*)finished
 {
-	if (sound)
-		sound->SoundCompletedIteration();
+	sound->Complete([finished boolValue]);
 }
 
 -(void)sound:(NSSound*)s didFinishPlaying:(BOOL)finished

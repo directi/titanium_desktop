@@ -33,7 +33,7 @@
 				
 				if (str.indexOf(lastLine)+lastLine.length < str.length)
 				{
-					process.buffer = lines.pop();
+					buffer = lines.pop();
 				}
 				
 				for (var i = 0; i < lines.length; i++)

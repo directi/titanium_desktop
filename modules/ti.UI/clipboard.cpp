@@ -32,16 +32,8 @@ namespace ti
 		this->SetMethod("getData", &Clipboard::_GetData);
 
 		/**
-		 * @tiapi(method=True,name=UI.Clipboard.hasData,since=0.7)
-		 * @tiapi Return true if there is any content of the given mime-type on the clipboard.
-		 * @tiarg[String, type, optional=True] The mime-type of the data to check.
-		 * @tiresult[Boolean] True if there is text on the clipboard or false otherwise.
-		 */
-		this->SetMethod("hasData", &Clipboard::_HasData);
-
-		/**
 		 * @tiapi(method=True,name=UI.Clipboard.clearData,since=0.7)
-		 * @tiapi Clear data of the given mime-type from the clipboard. If no
+		 * @tiapi Clear data of the given mime-type from  the clipboard. If no
 		 * @tiapi mime-type is given, clear all data from the clipboard.
 		 * @tiarg[String, type, optional=True] The mime-type of the data to clear.
 		 */
@@ -146,7 +138,7 @@ namespace ti
 		}
 		else
 		{
-			throw ValueException::FromString("URI List requires an Array or a newline-delimited String");
+			throw ValueException::FromString("Need an Array or a newline-delimited String");
 		}
 		return uriList;
 	}
@@ -159,19 +151,7 @@ namespace ti
 		DataType type = MimeTypeToDataType(mimeType);
 		if (type == URI_LIST)
 		{
-			std::vector<std::string>& list = this->GetURIList();
-			if (mimeType == "url")
-			{
-				std::string url;
-				if (list.size() > 0)
-					url = list.at(0);
-
-				result->SetString(url.c_str());
-			}
-			else
-			{
-				result->SetList(StaticBoundList::FromStringVector(list));
-			}
+			result->SetList(StaticBoundList::FromStringVector(this->GetURIList()));
 		}
 		else if (type == IMAGE)
 		{
@@ -185,24 +165,18 @@ namespace ti
 
 	void Clipboard::_SetData(const ValueList& args, SharedValue result)
 	{
-		args.VerifyException("setData", "s s|o|l|0");
+		args.VerifyException("setData", "s s|o|a");
 
 		std::string mimeType(args.GetString(0));
 		DataType type = MimeTypeToDataType(mimeType);
-
-		if (args.at(1)->IsNull() ||
-			(args.at(1)->IsString() && !strcmp(args.at(1)->ToString(), "")))
+		if (type == URI_LIST)
 		{
-			this->ClearData(type);
-		}
-		else if (type == URI_LIST)
-		{
-			std::vector<std::string> uriList(ValueToURIList(args.at(1)));
+			std::vector<std::string> uriList(ValueToURIList(args.at(0)));
 			this->SetURIList(uriList);
 		}
 		else if (type == IMAGE)
 		{
-			AutoBlob imageBlob(ValueToBlob(args.at(1)));
+			AutoBlob imageBlob(ValueToBlob(args.at(0)));
 			this->SetImage(mimeType, imageBlob);
 		}
 		else
@@ -210,20 +184,6 @@ namespace ti
 			std::string newText(args.GetString(1, ""));
 			this->SetText(newText);
 		}
-	}
-
-	void Clipboard::_HasData(const ValueList& args, SharedValue result)
-	{
-		args.VerifyException("hasData", "?s");
-
-		DataType type = UNKNOWN;
-		if (args.size() > 0)
-		{
-			std::string mimeType(args.GetString(0));
-			type = MimeTypeToDataType(mimeType);
-		}
-
-		result->SetBool(this->HasData(type));
 	}
 
 	void Clipboard::_ClearData(const ValueList& args, SharedValue result)
@@ -260,26 +220,6 @@ namespace ti
 	void Clipboard::_HasText(const ValueList& args, SharedValue result)
 	{
 		result->SetBool(this->HasText());
-	}
-
-	bool Clipboard::HasData(DataType type)
-	{
-		if (type == TEXT)
-		{
-			return this->HasText();
-		}
-		else if (type == URI_LIST)
-		{
-			return this->HasURIList();
-		}
-		else if (type == IMAGE)
-		{
-			return this->HasImage();
-		}
-		else
-		{
-			return this->HasText() || this->HasURIList() || this->HasImage();
-		}
 	}
 
 	void Clipboard::ClearData(DataType type)

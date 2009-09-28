@@ -260,7 +260,7 @@ namespace ti
 
 	void AppBinding::StdErr(const ValueList& args, SharedValue result)
 	{
-		for (size_t c = 0; c < args.size(); c++)
+		for (size_t c=0; c < args.size(); c++)
 		{
 			SharedValue arg = args.at(c);
 			if (arg->IsString())
@@ -279,25 +279,53 @@ namespace ti
 
 	void AppBinding::GetStreamURL(const ValueList& args, SharedValue result)
 	{
+		const SharedApplication app = this->host->GetApplication();
+		std::string stream = app->stream;
 		
-		SharedApplication app = this->host->GetApplication();
-		std::string url(app->GetStreamURL("https"));
-
+		// environment should always override stream setting
+		if (EnvironmentUtils::Has("TITANIUM_STREAM"))
+		{
+			stream = EnvironmentUtils::Get("TITANIUM_STREAM");
+		}
+		
+		std::string url = "https://api.appcelerator.net/";
+		if (stream == "production" || stream == "p")
+		{
+			url+="p/v1";
+		}
+		else if (stream == "dev" || stream == "d")
+		{
+			url+="d/v1";
+		}
+		else if (stream == "test" || stream == "t")
+		{
+			url+="t/v1";
+		}
+		else if (stream == "local" || stream == "l")
+		{
+			// allow localhost testing
+			url = "http://localhost/v1";
+		}
+		else
+		{
+			url+=stream;
+			url+="/v1";
+		}
 		for (size_t c = 0; c < args.size(); c++)
 		{
 			SharedValue arg = args.at(c);
 			if (arg->IsString())
 			{
-				url.append("/");
-				url.append(arg->ToString());
+				url+="/";
+				url+=arg->ToString();
 			}
 		}
 		result->SetString(url);
 	}
-
+	
 	void AppBinding::GetIcon(const ValueList& args, SharedValue result)
 	{
-		SharedApplication app = this->host->GetApplication();
+		const SharedApplication app = this->host->GetApplication();
 		result->SetNull();	
 
 		if (app && !app->image.empty())

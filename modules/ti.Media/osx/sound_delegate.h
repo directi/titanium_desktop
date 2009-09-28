@@ -12,7 +12,7 @@ using namespace ti;
 {
 	OSXSound* sound;
 }
--(void)setOSXSound:(OSXSound*)sound;
+-(id)initWithSound:(OSXSound*)sound;
 -(void)dealloc;
 @end
 

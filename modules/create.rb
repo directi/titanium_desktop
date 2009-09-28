@@ -138,7 +138,7 @@ using namespace ti;
 
 namespace ti
 {
-	KROLL_MODULE(#{module_name}Module,STRING(MODULE_NAME), STRING(MODULE_VERSION));
+	KROLL_MODULE(#{module_name}Module);
 	
 	void #{module_name}Module::Initialize()
 	{

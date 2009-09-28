@@ -17,15 +17,10 @@
 
 namespace ti
 {
-	static void FireEvents();
-	static Poco::ThreadTarget eventsThreadTarget(&FireEvents);
-	static Poco::Thread eventsThread;
-	Poco::Mutex pipesNeedingReadEventsMutex;
-	std::queue<AutoPipe> pipesNeedingReadEvents;
-	Poco::Mutex pipesNeedingCloseEventsMutex;
-	std::queue<AutoPipe> pipesNeedingCloseEvents;
-	Poco::Mutex otherEventsMutex;
-	std::vector<AutoPtr<Event> > otherEvents;
+	Poco::Mutex Pipe::eventsMutex;
+	std::queue<AutoPtr<Event> > Pipe::events;
+	Poco::ThreadTarget Pipe::eventsThreadTarget(&Pipe::FireEvents);
+	Poco::Thread Pipe::eventsThread;
 
 	Pipe::Pipe(const char *type) :
 		KEventObject(type),
@@ -41,16 +36,15 @@ namespace ti
 		 * @tiapi(method=True,name=Process.Pipe.write,since=0.5)
 		 * @tiapi Write data to this pipe
 		 * @tiarg[Blob|String, data] a Blob object or String to write to this pipe
-		 * @tiresult[Number] The number of bytes actually written on this pipe
+		 * @tiresult[Number, bytesWritten] the number of bytes actually written on this pipe
 		 */
 		SetMethod("write", &Pipe::_Write);
 		
 		/**
 		 * @tiapi(method=True,name=Process.Pipe.attach,since=0.5)
 		 * @tiapi Attach an IO object to this pipe. An IO object is an object that
-		 * @tiapi implements a public "write(Blob)". In Titanium, this include
-		 * @tiapi FileStreams, and Pipes. You may also use your own custom IO implementation
-		 * @tiapi here.
+		 * @tiapi implements a public "write(Blob)". In Titanium, this include FileStreams, and Pipes.
+		 * @tiapi You may also use your own custom IO implementation here.
 		 */
 		SetMethod("attach", &Pipe::_Attach);
 		
@@ -62,10 +56,9 @@ namespace ti
 		
 		/**
 		 * @tiapi(method=True,name=Process.Pipe.isAttached,since=0.5)
-		 * @tiresult[bool] True if this pipe is attached to any IO objects, false otherwise.
+		 * @tiresult[bool, isAttached] returns whether or not this pipe is attached to 1 or more IO objects
 		 */
 		SetMethod("isAttached", &Pipe::_IsAttached);
-
 
 		if (!eventsThread.isRunning())
 		{
@@ -191,11 +184,10 @@ namespace ti
 	int Pipe::Write(AutoBlob blob)
 	{
 		{ // Start the callbacks
-			Poco::Mutex::ScopedLock lock(pipesNeedingReadEventsMutex);
-			readData.push_back(blob);
-
 			this->duplicate();
-			pipesNeedingReadEvents.push(this);
+			AutoPtr<Event> event = new ReadEvent(this, blob);
+			Poco::Mutex::ScopedLock lock(eventsMutex);
+			events.push(event);
 		}
 
 		// We want this to execute on the same thread and to make all
@@ -240,9 +232,14 @@ namespace ti
 	void Pipe::Close()
 	{
 		{
-			Poco::Mutex::ScopedLock lock(pipesNeedingCloseEventsMutex);
+			Poco::Mutex::ScopedLock lock(eventsMutex);
 			this->duplicate();
-			pipesNeedingCloseEvents.push(this);
+			this->duplicate();
+			AutoPtr<Event> closeEvent = new Event(this, Event::CLOSE);
+			AutoPtr<Event> closedEvent = new Event(this, Event::CLOSED);
+
+			events.push(closeEvent);
+			events.push(closedEvent);
 		}
 
 		// Call the close method on our attached objects
@@ -283,83 +280,23 @@ namespace ti
 	{
 	}
 
-	// TODO: This should eventually be a feature of the event handling system.
-	/*static*/
-	void Pipe::FireEventAsynchronously(AutoPtr<Event> event)
-	{
-		Poco::Mutex::ScopedLock lock(otherEventsMutex);
-		otherEvents.push_back(event);
-	}
-
-	static void FireEvents()
+	void Pipe::FireEvents()
 	{
 		while (true)
 		{
-
-			// We need to collect all the events in the reverse order
-			// that they should be fired. This avoid a race condition where
-			// a CLOSE or EXIT event happens before a READ event.
-			std::queue<AutoPtr<Event> > otherEventsCopy;
+			AutoPtr<Event> event = 0;
 			{
-				Poco::Mutex::ScopedLock lock(otherEventsMutex);
-				for (size_t i = 0; i < otherEvents.size(); i++)
-					otherEventsCopy.push(otherEvents[i]);
-
-				otherEvents.clear();
-			}
-
-			std::queue<AutoPtr<Event> > closeEvents;
-			{
-				Poco::Mutex::ScopedLock lock(pipesNeedingCloseEventsMutex);
-				while (pipesNeedingCloseEvents.size() > 0)
+				Poco::Mutex::ScopedLock lock(eventsMutex);
+				if (events.size() > 0)
 				{
-					AutoPipe pipe = pipesNeedingCloseEvents.front();
-					pipesNeedingCloseEvents.pop();
-
-					AutoPtr<Event> closeEvent = new Event(pipe, Event::CLOSE);
-					AutoPtr<Event> closedEvent = new Event(pipe, Event::CLOSED);
-					closeEvents.push(closeEvent);
-					closeEvents.push(closedEvent);
+					event = events.front();
+					events.pop();
 				}
 			}
 
-			std::queue<AutoPtr<Event> > readEvents;
+			if (!event.isNull())
 			{
-				Poco::Mutex::ScopedLock lock(pipesNeedingReadEventsMutex);
-				while (pipesNeedingReadEvents.size() > 0)
-				{
-					AutoPipe pipe = pipesNeedingReadEvents.front();
-					pipesNeedingReadEvents.pop();
-
-					if (pipe->readData.size() > 0)
-					{
-						AutoBlob glob(Blob::GlobBlobs(pipe->readData));
-						AutoPtr<Event> event = new ReadEvent(pipe, glob);
-						readEvents.push(event);
-						pipe->readData.clear();
-					}
-				}
-			}
-
-			while (readEvents.size() > 0)
-			{
-				AutoPtr<Event> event = readEvents.front();
 				event->target->FireEvent(event);
-				readEvents.pop();
-			}
-
-			while (closeEvents.size() > 0)
-			{
-				AutoPtr<Event> event = closeEvents.front();
-				event->target->FireEvent(event);
-				closeEvents.pop();
-			}
-
-			while (otherEventsCopy.size() > 0)
-			{
-				AutoPtr<Event> event = otherEventsCopy.front();
-				event->target->FireEvent(event);
-				otherEventsCopy.pop();
 			}
 
 			Poco::Thread::sleep(5);

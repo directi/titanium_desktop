@@ -18,8 +18,7 @@ modules = [
 	'ti.Monkey',
 	'ti.Analytics',
 	'ti.Database',
-	'ti.Worker',
-	'ti.Codec'
+	'ti.Worker'
 ]
 
 for module in modules:

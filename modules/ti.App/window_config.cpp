@@ -93,10 +93,6 @@ void WindowConfig::SetDefaults ()
 	this->topMost = false;
 	this->taskbarTab = true;
 
-#ifdef OS_OSX
-	this->texturedBackground = true;
-#endif
-
 	this->transparency = 1.0;
 	this->width = 800;
 	this->height = 600;
@@ -142,10 +138,6 @@ void WindowConfig::UseProperties(SharedKObject properties)
 	SET_BOOL(topMost, topMost);
 	SET_BOOL(taskbarTab, taskbarTab);
 	SET_DOUBLE(transparency, transparency);
-	
-#ifdef OS_OSX
-	SET_BOOL(texturedBackground,texturedBackground);
-#endif
 }
 
 WindowConfig::WindowConfig(WindowConfig *config, std::string& url)
@@ -180,9 +172,6 @@ WindowConfig::WindowConfig(WindowConfig *config, std::string& url)
 	this->transparency = config->GetTransparency();
 	this->taskbarTab = config->IsTaskbarTab();
 
-#ifdef OS_OSX
-	this->texturedBackground = config->IsTexturedBackground();
-#endif
 }
 
 WindowConfig::WindowConfig(void* data)
@@ -304,12 +293,6 @@ WindowConfig::WindowConfig(void* data)
 		{
 			taskbarTab = ConfigUtils::GetNodeValueAsBool(child);
 		}
-#ifdef OS_OSX
-		else if (nodeNameEquals(child, "texturedBackground"))
-		{
-		 	texturedBackground = ConfigUtils::GetNodeValueAsBool(child);
-		}
-#endif
 		child = child->next;
 	}
 
