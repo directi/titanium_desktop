@@ -69,7 +69,6 @@ using namespace ti;
 
 int WindowConfig::DEFAULT_POSITION = -404404404;
 int WindowConfig::windowCount = 0;
-std::string WindowConfig::blankPageURL("about:blank");
 
 void WindowConfig::SetDefaults ()
 {
@@ -109,7 +108,7 @@ void WindowConfig::SetDefaults ()
 	this->maxWidth = -1;
 	this->maxHeight = -1;
 
-	this->url = WindowConfig::blankPageURL;
+	this->url = URLUtils::BlankPageURL();
 	this->title = Host::GetInstance()->GetApplication()->name;
 }
 
