@@ -29,7 +29,7 @@ namespace ti
 		PROMPT
 	};
 
-	static gboolean DestroyCallback(GtkWidget*, GdkEvent*, gpointer);
+	static gboolean DeleteCallback(GtkWidget*, GdkEvent*, gpointer);
 	static gboolean EventCallback(GtkWidget*, GdkEvent*, gpointer);
 	static void WindowObjectClearedCallback(WebKitWebView*,
 		WebKitWebFrame*, JSGlobalContextRef, JSObjectRef, gpointer);
@@ -38,7 +38,7 @@ namespace ti
 		WebKitWebView*, WebKitWebFrame*, gpointer);
 	static gint NewWindowPolicyDecisionCallback(WebKitWebView*,
 		WebKitWebFrame*, WebKitNetworkRequest*, WebKitWebNavigationAction*,
-		WebKitWebPolicyDecision *, gchar*);
+		WebKitWebPolicyDecision *);
 	static void LoadFinishedCallback(WebKitWebView*, WebKitWebFrame*,
 		gpointer);
 	static void TitleChangedCallback(WebKitWebView*, WebKitWebFrame*,
@@ -136,7 +136,12 @@ namespace ti
 				const char* cUserAgent = 0;
 				g_object_get(G_OBJECT(settings), "user-agent", &cUserAgent, NULL);
 				userAgent.append(cUserAgent);
-				userAgent.append(" ");
+
+				// Force the inclusion of a version string. WebKit GTK does not do
+				// this by default and some misbehaving JavaScript code relies on it.
+				// https://appcelerator.lighthouseapp.com/projects/25719/tickets/
+				// 149-windownavigator-is-undefined-when-running-on-linux
+				userAgent.append(" Version/4.0 ");
 				userAgent.append(PRODUCT_NAME);
 				userAgent.append("/");
 				userAgent.append(STRING(PRODUCT_VERSION));
@@ -175,11 +180,18 @@ namespace ti
 
 			/* main window */
 			GtkWidget* window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+
+			if (this->IsToolWindow())
+			{
+				gtk_window_set_skip_taskbar_hint(GTK_WINDOW(window), TRUE);
+				gtk_window_set_skip_pager_hint(GTK_WINDOW(window), TRUE);
+			}
+
 			gtk_widget_set_name(window, this->config->GetTitle().c_str());
 			gtk_window_set_title(GTK_WINDOW(window), this->config->GetTitle().c_str());
 
-			this->destroyCallbackId = g_signal_connect(
-				G_OBJECT(window), "delete-event", G_CALLBACK(DestroyCallback), this);
+			this->deleteCallbackId = g_signal_connect(
+				G_OBJECT(window), "delete-event", G_CALLBACK(DeleteCallback), this);
 			g_signal_connect(
 				G_OBJECT(window), "event", G_CALLBACK(EventCallback), this);
 
@@ -231,16 +243,12 @@ namespace ti
 		}
 	}
 
-	static gboolean DestroyCallback(
-		GtkWidget* widget,
-		GdkEvent* event,
-		gpointer data)
+	static gboolean DeleteCallback(GtkWidget* widget, GdkEvent* event, gpointer data)
 	{
 		// Let the close handler actually destroy this window,
 		// as we want things to happen in a very particular order.
 		GtkUserWindow* userWindow = (GtkUserWindow*) data;
-		userWindow->Close();
-		return FALSE;
+		return !userWindow->Close();
 	}
 
 	bool GtkUserWindow::Close()
@@ -256,11 +264,11 @@ namespace ti
 		{
 			// Destroy the GTK bits, if we have them first, because
 			// we need to assume the GTK window is gone for  everything
-			// below (this method might be called by DestroyCallback)
+			// below (this method might be called by DeleteCallback)
 			if (this->gtkWindow != NULL)
 			{
 				// We don't want the destroy signal handler to fire after now.
-				g_signal_handler_disconnect(this->gtkWindow, this->destroyCallbackId);
+				g_signal_handler_disconnect(this->gtkWindow, this->deleteCallbackId);
 				gtk_widget_destroy(GTK_WIDGET(this->gtkWindow));
 
 				this->gtkWindow = NULL;
@@ -563,14 +571,12 @@ namespace ti
 		}
 	}
 
-	static gint NewWindowPolicyDecisionCallback(
-		WebKitWebView* webView,
-		WebKitWebFrame* frame,
-		WebKitNetworkRequest* request,
+	static gint NewWindowPolicyDecisionCallback(WebKitWebView* webView,
+		WebKitWebFrame* frame, WebKitNetworkRequest* request,
 		WebKitWebNavigationAction* navigationAction,
-		WebKitWebPolicyDecision *policyDecision,
-		gchar* frameName)
+		WebKitWebPolicyDecision *policyDecision)
 	{
+		const char* frameName = webkit_web_navigation_action_get_target_frame(navigationAction);
 		gchar* frame_name_case = g_utf8_casefold(frameName, g_utf8_strlen(frameName, -1));
 		if (g_utf8_collate(frame_name_case, "ti:systembrowser") == 0 ||
 			g_utf8_collate(frame_name_case, "_blank") == 0)
@@ -1428,7 +1434,7 @@ namespace ti
 	{
 
 		GtkWidget* dialog = NULL;
-		GtkWidget* field = NULL; 
+		GtkWidget* field = 0;
 
 		if (type == ALERT)
 		{
@@ -1459,22 +1465,12 @@ namespace ti
 			Host::GetInstance()->GetApplication()->name.c_str());
 
 		gint response = gtk_dialog_run(GTK_DIALOG(dialog));
-		bool toReturn = false;
-		if (response == GTK_RESPONSE_YES)
-		{
-			toReturn = true;
-		}
-		else if (GTK_RESPONSE_OK)
-		{
-			toReturn = true;
-			if (field)
-				*promptResponse = g_strdup(gtk_entry_get_text(GTK_ENTRY(field)));
-		}
-		else
-		{
-			toReturn = false;
-		}
-	
+		bool toReturn = ((type == PROMPT && response == GTK_RESPONSE_OK) ||
+			(type == CONFIRM && response == GTK_RESPONSE_YES));
+
+		if (toReturn && field)
+			*promptResponse = g_strdup(gtk_entry_get_text(GTK_ENTRY(field)));
+
 		gtk_widget_destroy(dialog);
 		return toReturn;
 	}

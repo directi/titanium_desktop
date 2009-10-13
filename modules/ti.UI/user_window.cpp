@@ -85,6 +85,22 @@ UserWindow::UserWindow(WindowConfig *config, AutoUserWindow& parent) :
 	this->SetMethod("setUsingChrome", &UserWindow::_SetUsingChrome);
 
 	/**
+	 * @tiapi(method=True,name=UI.UserWindow.isToolWindow,since=0.7)
+	 * @tiapi Checks whether a window is a tool window or not.
+	 * @tiresult[bool] True if this window is a tool window, false otherwise.
+	 */
+	this->SetMethod("isToolWindow", &UserWindow::_IsToolWindow);
+
+	/**
+	 * @tiapi(method=True,name=UI.UserWindow.setToolWindow,since=0.7)
+	 * @tiapi Set whether or not this window is a tool window. The behavior of
+	 * @tiapi changing this setting after a window has been opened is undefined
+	 * @tiapi and likely will have no effect.
+	 * @tiarg[bool, toolWindow] Whether or not this window should be a tool window.
+	 */
+	this->SetMethod("setToolWindow", &UserWindow::_SetToolWindow);
+
+	/**
 	 * @tiapi(method=True,name=UI.UserWindow.isFullscreen,since=0.5) Checks whether a window is in fullscreen
 	 * @tiarg(for=UI.UserWindow.isFullscreen,name=chrome,type=Boolean) true if the window is in fullscreen, false if otherwise
 	 */
@@ -473,12 +489,6 @@ UserWindow::~UserWindow()
 	}
 }
 
-AutoUserWindow UserWindow::GetAutoPtr()
-{
-	this->duplicate();
-	return this;
-}
-
 SharedString UserWindow::DisplayString(int level)
 {
 	std::string* displayString = new std::string();
@@ -489,9 +499,17 @@ SharedString UserWindow::DisplayString(int level)
 	return displayString;
 }
 
-Host* UserWindow::GetHost()
+static double Constrain(double value, double min, double max)
 {
-	return this->host;
+	if (min >= 0.0 && value < min)
+	{
+		value = min;
+	}
+	if (max >= 0.0 && value > max)
+	{
+		value = max;
+	}
+	return value;
 }
 
 void UserWindow::Open()
@@ -499,12 +517,12 @@ void UserWindow::Open()
 	this->FireEvent(Event::OPEN);
 
 	// We are now in the UI binding's open window list
-	this->binding->AddToOpenWindows(GetAutoPtr());
+	this->binding->AddToOpenWindows(AutoUserWindow(this, true));
 
 	// Tell the parent window that we are open for business
 	if (!parent.isNull())
 	{
-		parent->AddChild(GetAutoPtr());
+		parent->AddChild(AutoUserWindow(this, true));
 	}
 
 	this->initialized = true;
@@ -545,12 +563,12 @@ void UserWindow::Closed()
 	// Tell our parent that we are now closed
 	if (!this->parent.isNull())
 	{
-		this->parent->RemoveChild(GetAutoPtr());
+		this->parent->RemoveChild(AutoUserWindow(this, true));
 		this->parent->Focus(); // Focus the parent
 	}
 
 	// Tell the UIBinding that we are closed
-	this->binding->RemoveFromOpenWindows(GetAutoPtr());
+	this->binding->RemoveFromOpenWindows(AutoUserWindow(this, true));
 
 	// When we have no more open windows, we exit...
 	std::vector<AutoUserWindow> windows = this->binding->GetOpenWindows();
@@ -563,7 +581,7 @@ void UserWindow::Closed()
 
 void UserWindow::_GetCurrentWindow(const kroll::ValueList& args, kroll::SharedValue result)
 {
-	result->SetObject(GetAutoPtr());
+	result->SetObject(AutoUserWindow(this, true));
 }
 
 void UserWindow::_GetDOMWindow(const kroll::ValueList& args, kroll::SharedValue result)
@@ -688,6 +706,29 @@ void UserWindow::_IsUsingChrome(const kroll::ValueList& args, kroll::SharedValue
 	}
 }
 
+void UserWindow::_SetUsingChrome(const kroll::ValueList& args, kroll::SharedValue result)
+{
+	args.VerifyException("setUsingChrome", "b");
+	bool b = args.at(0)->ToBool();
+	this->config->SetUsingChrome(b);
+	if (this->active)
+	{
+		this->SetUsingChrome(b);
+	}
+}
+
+
+void UserWindow::_IsToolWindow(const kroll::ValueList& args, kroll::SharedValue result)
+{
+	result->SetBool(this->IsToolWindow());
+}
+
+void UserWindow::_SetToolWindow(const kroll::ValueList& args, kroll::SharedValue result)
+{
+	args.VerifyException("setToolWindow", "b");
+	config->SetToolWindow(args.GetBool(0));
+}
+
 void UserWindow::_SetTopMost(const kroll::ValueList& args, kroll::SharedValue result)
 {
 	args.VerifyException("setTopMost", "b");
@@ -711,16 +752,6 @@ void UserWindow::_IsTopMost(const kroll::ValueList& args, kroll::SharedValue res
 	}
 }
 
-void UserWindow::_SetUsingChrome(const kroll::ValueList& args, kroll::SharedValue result)
-{
-	args.VerifyException("setUsingChrome", "b");
-	bool b = args.at(0)->ToBool();
-	this->config->SetUsingChrome(b);
-	if (this->active)
-	{
-		this->SetUsingChrome(b);
-	}
-}
 
 void UserWindow::_IsUsingScrollbars(const kroll::ValueList& args, kroll::SharedValue result)
 {
@@ -888,7 +919,7 @@ void UserWindow::_SetWidth(double w)
 {
 	if (w > 0)
 	{
-		w = UserWindow::Constrain(w, config->GetMinWidth(), config->GetMaxWidth());
+		w = Constrain(w, config->GetMinWidth(), config->GetMaxWidth());
 		this->config->SetWidth(w);
 		if (this->active)
 		{
@@ -1004,7 +1035,7 @@ void UserWindow::_SetHeight(double h)
 {
 	if (h > 0)
 	{
-		h = UserWindow::Constrain(h, config->GetMinHeight(), config->GetMaxHeight());
+		h = Constrain(h, config->GetMinHeight(), config->GetMaxHeight());
 		this->config->SetHeight(h);
 		if (this->active)
 		{
@@ -1132,8 +1163,8 @@ void UserWindow::_SetBounds(const kroll::ValueList& args, kroll::SharedValue res
 	double y = o->Get("y")->ToNumber();
 	double w = o->Get("width")->ToNumber();
 	double h = o->Get("height")->ToNumber();
-	w = UserWindow::Constrain(w, config->GetMinWidth(), config->GetMaxWidth());
-	h = UserWindow::Constrain(h, config->GetMinHeight(), config->GetMaxHeight());
+	w = Constrain(w, config->GetMinWidth(), config->GetMaxWidth());
+	h = Constrain(h, config->GetMinHeight(), config->GetMaxHeight());
 
 	this->config->SetX(x);
 	this->config->SetY(y);
@@ -1356,7 +1387,7 @@ void UserWindow::_SetTransparency(const kroll::ValueList& args, kroll::SharedVal
 {
 	args.VerifyException("setTransparency", "n");
 	double t = args.at(0)->ToNumber();
-	t = UserWindow::Constrain(t, 0.0, 1.0);
+	t = Constrain(t, 0.0, 1.0);
 
 	this->config->SetTransparency(t);
 	if (this->active)
@@ -1516,7 +1547,7 @@ AutoUserWindow UserWindow::CreateWindow(std::string& url)
 
 AutoUserWindow UserWindow::CreateWindow(WindowConfig* newConfig)
 {
-	AutoUserWindow autothis = GetAutoPtr();
+	AutoUserWindow autothis = AutoUserWindow(this, true);
 	return this->binding->CreateWindow(newConfig, autothis);
 }
 
@@ -1741,8 +1772,7 @@ void UserWindow::RemoveChild(AutoUserWindow child)
 	}
 }
 
-bool UserWindow::ShouldHaveTitaniumObject(
-	JSGlobalContextRef ctx, JSObjectRef global)
+static bool ShouldHaveTitaniumObject(JSGlobalContextRef ctx, JSObjectRef global)
 {
 	// We really only want URLs that are loaded via the
 	// app, ti or file protocol to have the Titanium object.
@@ -1783,7 +1813,7 @@ bool UserWindow::ShouldHaveTitaniumObject(
 		url.find("file://") == 0 || url.find("data:text/html;") == 0;
 }
 
-bool UserWindow::IsMainFrame(JSGlobalContextRef ctx, JSObjectRef global)
+static bool IsMainFrame(JSGlobalContextRef ctx, JSObjectRef global)
 {
 	// If this global objects 'parent' property is equal to the object
 	// itself, it is likely the main frame. There might be a better way
@@ -1857,14 +1887,14 @@ void UserWindow::RegisterJSContext(JSGlobalContextRef context)
 	// Only certain pages should get the Titanium object. This is to prevent
 	// malicious sites from always getting access to the user's system. This
 	// can be overridden by any other API that calls InsertAPI on this DOM window.
-	bool hasTitaniumObject = this->ShouldHaveTitaniumObject(context, globalObject);
+	bool hasTitaniumObject = ShouldHaveTitaniumObject(context, globalObject);
 	if (hasTitaniumObject)
 	{
 		this->InsertAPI(frameGlobal);
 		UserWindow::LoadUIJavaScript(context);
 	}
 
-	AutoPtr<Event> event = new Event(this->GetAutoPtr(), Event::PAGE_INITIALIZED);
+	AutoPtr<Event> event = this->CreateEvent(Event::PAGE_INITIALIZED);
 	event->SetObject("scope", frameGlobal);
 	event->SetString("url", config->GetURL());
 	event->SetBool("hasTitaniumObject", hasTitaniumObject);
@@ -1895,21 +1925,8 @@ void UserWindow::LoadUIJavaScript(JSGlobalContextRef context)
 void UserWindow::PageLoaded(
 	SharedKObject globalObject, std::string &url, JSGlobalContextRef context)
 {
-	AutoPtr<Event> event = new Event(this->GetAutoPtr(), Event::PAGE_LOADED);
+	AutoPtr<Event> event = this->CreateEvent(Event::PAGE_LOADED);
 	event->SetObject("scope", globalObject);
 	event->SetString("url", url);
 	this->FireEvent(event);
-}
-
-double UserWindow::Constrain(double value, double min, double max)
-{
-	if (min >= 0.0 && value < min)
-	{
-		value = min;
-	}
-	if (max >= 0.0 && value > max)
-	{
-		value = max;
-	}
-	return value;
 }

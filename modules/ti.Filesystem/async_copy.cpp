@@ -5,6 +5,7 @@
  */
 #include "async_copy.h"
 #include "filesystem_binding.h"
+#include <kroll/thread_manager.h>
 #include <iostream>
 #include <sstream>
 
@@ -105,13 +106,11 @@ namespace ti
 	}
 	void AsyncCopy::Run(void* data)
 	{
+		START_KROLL_THREAD;
+
 		Logger* logger = Logger::Get("Filesystem.AsyncCopy");
-#ifdef OS_OSX
-		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-#endif
 
 		AsyncCopy* ac = static_cast<AsyncCopy*>(data);
-
 		std::vector<std::string>::iterator iter = ac->files.begin();
 		Poco::Path to(ac->destination);
 		Poco::File tof(to.toString());
@@ -174,9 +173,8 @@ namespace ti
 		ac->stopped = true;
 
 		logger->Debug(std::string("Job finished"));
-#ifdef OS_OSX
-		[pool release];
-#endif
+
+		END_KROLL_THREAD;
 	}
 	void AsyncCopy::ToString(const ValueList& args, SharedValue result)
 	{

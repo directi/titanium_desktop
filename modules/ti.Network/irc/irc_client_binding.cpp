@@ -4,6 +4,7 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 #include <kroll/kroll.h>
+#include <kroll/thread_manager.h>
 #include "irc_client_binding.h"
 #include <cstring>
 
@@ -122,14 +123,12 @@ namespace ti
 	}
 	void IRCClientBinding::Run (void* p)
 	{
-#ifdef OS_OSX
-		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-#endif
+		START_KROLL_THREAD;
+
 		IRC *irc = (IRC*)p;
 		irc->message_loop();
-#ifdef OS_OSX
-		[pool release];
-#endif
+
+		END_KROLL_THREAD;
 	}
 	void IRCClientBinding::GetUsers(const ValueList& args, SharedValue result)
 	{

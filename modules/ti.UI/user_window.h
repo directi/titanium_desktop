@@ -34,9 +34,17 @@ namespace ti
 			virtual SharedString DisplayString(int levels=3);
 			virtual ~UserWindow();
 			void UpdateWindowForURL(std::string url);
-			Host* GetHost();
-
+			void RegisterJSContext(JSGlobalContextRef);
+			void InsertAPI(SharedKObject frameGlobal);
+			void PageLoaded(SharedKObject scope, std::string &url, JSGlobalContextRef context);
+			AutoUserWindow CreateWindow(WindowConfig* config);
+			AutoUserWindow CreateWindow(std::string& url);
+			AutoUserWindow CreateWindow(SharedKObject properties);
 			inline SharedKObject GetDOMWindow() { return this->domWindow; }
+			inline Host* GetHost() { return this->host; }
+			bool IsToolWindow() {return this->config->IsToolWindow(); }
+			void SetToolWindow(bool toolWindow) {this->config->SetToolWindow(toolWindow); }
+
 			void _GetCurrentWindow(const kroll::ValueList&, kroll::SharedValue);
 			void _GetDOMWindow(const kroll::ValueList&, kroll::SharedValue);
 			void _InsertAPI(const kroll::ValueList&, kroll::SharedValue);
@@ -52,6 +60,8 @@ namespace ti
 			void _Unfocus(const kroll::ValueList&, kroll::SharedValue);
 			void _IsUsingChrome(const kroll::ValueList&, kroll::SharedValue);
 			void _SetUsingChrome(const kroll::ValueList&, kroll::SharedValue);
+			void _IsToolWindow(const kroll::ValueList&, kroll::SharedValue);
+			void _SetToolWindow(const kroll::ValueList&, kroll::SharedValue);
 			void _IsUsingScrollbars(const kroll::ValueList&, kroll::SharedValue);
 			void _IsFullscreen(const kroll::ValueList&, kroll::SharedValue);
 			void _SetFullscreen(const kroll::ValueList&, kroll::SharedValue);
@@ -214,18 +224,8 @@ namespace ti
 #ifdef OS_WIN32
 			virtual void Flash(int timesToFlash) = 0;
 #endif
-			virtual void RegisterJSContext(JSGlobalContextRef);
-			virtual void InsertAPI(SharedKObject frameGlobal);
-			virtual void PageLoaded(
-				SharedKObject scope, std::string &url, JSGlobalContextRef context);
 			virtual void AppIconChanged() {};
 			virtual void AppMenuChanged() {};
-			AutoUserWindow CreateWindow(WindowConfig* config);
-			AutoUserWindow CreateWindow(std::string& url);
-			AutoUserWindow CreateWindow(SharedKObject properties);
-			AutoUserWindow GetAutoPtr();
-			static bool ShouldHaveTitaniumObject(JSGlobalContextRef, JSObjectRef);
-			static bool IsMainFrame(JSGlobalContextRef, JSObjectRef);
 
 		protected:
 			Logger* logger;
@@ -249,7 +249,6 @@ namespace ti
 				std::string& defaultName,
 				std::vector<std::string>& types,
 				std::string& typesDescription);
-			static double Constrain(double, double, double);
 			static void LoadUIJavaScript(JSGlobalContextRef context);
 
 		private:
