@@ -46,20 +46,6 @@ namespace ti
 		return AutoUserWindow(w, true);
 	}
 
-	void GtkUIBinding::ErrorDialog(std::string msg)
-	{
-		GtkWidget* dialog = gtk_message_dialog_new(
-			NULL,
-			GTK_DIALOG_MODAL,
-			GTK_MESSAGE_ERROR,
-			GTK_BUTTONS_OK,
-			"%s",
-			msg.c_str());
-		gtk_dialog_run(GTK_DIALOG (dialog));
-		gtk_widget_destroy(dialog);
-		UIBinding::ErrorDialog(msg);
-	}
-
 	AutoMenu GtkUIBinding::CreateMenu()
 	{
 		return new GtkMenu();
@@ -95,7 +81,7 @@ namespace ti
 		this->iconPath = iconPath;
 	}
 
-	AutoTrayItem GtkUIBinding::AddTray(std::string& iconPath, SharedKMethod cb)
+	AutoTrayItem GtkUIBinding::AddTray(std::string& iconPath, KMethodRef cb)
 	{
 		AutoTrayItem item = new GtkTrayItem(iconPath, cb);
 		return item;
@@ -131,4 +117,18 @@ namespace ti
 		return this->iconPath;
 	}
 
+	/*static*/
+	void GtkUIBinding::ErrorDialog(std::string msg)
+	{
+		GtkWidget* dialog = gtk_message_dialog_new(
+			NULL,
+			GTK_DIALOG_MODAL,
+			GTK_MESSAGE_ERROR,
+			GTK_BUTTONS_OK,
+			"%s",
+			msg.c_str());
+		gtk_dialog_run(GTK_DIALOG (dialog));
+		gtk_widget_destroy(dialog);
+		UIBinding::ErrorDialog(msg);
+	}
 }

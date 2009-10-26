@@ -14,7 +14,7 @@ namespace ti
 		virtual ~Win32UserWindow();
 	
 		void OpenFileChooserDialog(
-			SharedKMethod callback,
+			KMethodRef callback,
 			bool multiple,
 			std::string& title,
 			std::string& path,
@@ -22,13 +22,13 @@ namespace ti
 			std::vector<std::string>& types,
 			std::string& typesDescription);
 		void OpenFolderChooserDialog(
-			SharedKMethod callback,
+			KMethodRef callback,
 			bool multiple,
 			std::string& title,
 			std::string& path,
 			std::string& defaultName);
 		void OpenSaveAsDialog(
-			SharedKMethod callback,
+			KMethodRef callback,
 			std::string& title,
 			std::string& path,
 			std::string& defaultName,
@@ -105,14 +105,13 @@ namespace ti
 		Win32WebKitFrameLoadDelegate *frameLoadDelegate;
 		Win32WebKitUIDelegate *uiDelegate;
 		Win32WebKitPolicyDelegate *policyDelegate;
-		
 		Bounds restoreBounds;
 		long restoreStyles;
 		int chromeWidth, chromeHeight;
-	
-		HWND windowHandle, viewWindowHandle;
+		HWND windowHandle;
+		HWND viewWindowHandle;
 		IWebView* webView;
-		IWebFrame *webFrame;
+		IWebFrame* mainFrame;
 		IWebInspector *webInspector;
 		bool requiresDisplay;
 	
@@ -134,11 +133,11 @@ namespace ti
 		void SetupState();
 		void SetupMenu();
 		void SetupIcon();
-		SharedKList SelectFile(
+		KListRef SelectFile(
 			bool saveDialog, bool multiple, std::string& title,
 			std::string& path, std::string& defaultName,
 			std::vector<std::string>& types, std::string& typesDescription);
-		SharedKList SelectDirectory(
+		KListRef SelectDirectory(
 			bool multiple, std::string& title, std::string& path, std::string& defaultName);
 		
 		void GetMinMaxInfo(MINMAXINFO* minMaxInfo);

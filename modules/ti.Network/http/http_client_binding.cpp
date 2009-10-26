@@ -250,12 +250,12 @@ namespace ti
 	{
 	}
 
-	void HTTPClientBinding::Abort(const ValueList& args, SharedValue result)
+	void HTTPClientBinding::Abort(const ValueList& args, KValueRef result)
 	{
 		this->abort.set();
 	}
 
-	void HTTPClientBinding::Open(const ValueList& args, SharedValue result)
+	void HTTPClientBinding::Open(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("open", "ss?bss");
 
@@ -298,55 +298,48 @@ namespace ti
 		result->SetBool(true);
 	}
 
-	void HTTPClientBinding::SetBasicCredentials(const ValueList& args, SharedValue result)
+	void HTTPClientBinding::SetBasicCredentials(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("setBasicCredentials", "ss");
 		this->basicCredentials.setUsername(args.GetString(0));
 		this->basicCredentials.setPassword(args.GetString(1));
 	}
 
-	void HTTPClientBinding::Send(const ValueList& args, SharedValue result)
+	void HTTPClientBinding::Send(const ValueList& args, KValueRef result)
 	{
 		// Get send data if provided
-		SharedValue sendData = Value::NewNull();
-		if (args.size() == 1)
-		{
-			sendData = args.at(0);
-		}
+		args.VerifyException("send", "?s|o|0");
+		KValueRef sendData(args.GetValue(0));
 
 		// Setup output stream for data
 		this->outstream = new std::ostringstream(std::ios::binary | std::ios::out);
-
 		result->SetBool(this->BeginRequest(sendData));
 	}
 
-	void HTTPClientBinding::Receive(const ValueList& args, SharedValue result)
+	void HTTPClientBinding::Receive(const ValueList& args, KValueRef result)
 	{
-		result->SetBool(false);
-		if (args.size() < 1)
-		{
-			logger->Error("receive() requires an output handler!");
-			return;
-		}
+		args.VerifyException("receive", "m|o ?s|o|0");
 
 		// Set output handler
 		this->outstream = 0;
-		SharedValue outputHandler = args.at(0);
-		if (outputHandler->IsMethod())
+		result->SetBool(false);
+
+		if (args.at(0)->IsMethod())
 		{
-			this->outputHandler = outputHandler->ToMethod();
+			this->outputHandler = args.at(0)->ToMethod();
 		}
-		else if (outputHandler->IsObject())
+		else if (args.at(0)->IsObject())
 		{
-			SharedKObject handlerObject = outputHandler->ToObject();
-			if (handlerObject->GetType() == "File")
+			KObjectRef handlerObject(args.at(0)->ToObject());
+			KMethodRef writeMethod(handlerObject->GetMethod("write", 0));
+			if (writeMethod.isNull())
 			{
-				this->outputHandler = handlerObject->Get("write")->ToMethod();
+				logger->Error("Unsupported object type as output handler:"
+					" does not have write method");
 			}
 			else
 			{
-				logger->Error("Unsupported object type as output handler!");
-				return;
+				this->outputHandler = writeMethod;
 			}
 		}
 		else
@@ -356,16 +349,11 @@ namespace ti
 		}
 
 		// Get the send data if provided
-		SharedValue sendData = Value::NewNull();
-		if (args.size() == 2)
-		{
-			sendData = args.at(1);
-		}
-
+		KValueRef sendData(args.GetValue(1));
 		result->SetBool(this->BeginRequest(sendData));
 	}
 
-	void HTTPClientBinding::SetRequestHeader(const ValueList& args, SharedValue result)
+	void HTTPClientBinding::SetRequestHeader(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("setRequestHeader", "ss");
 		std::string key = args.GetString(0);
@@ -373,7 +361,7 @@ namespace ti
 		this->headers[key] = value;
 	}
 
-	void HTTPClientBinding::GetResponseHeader(const ValueList& args, SharedValue result)
+	void HTTPClientBinding::GetResponseHeader(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("getResponseHeader", "s");
 		std::string name = args.GetString(0);
@@ -388,25 +376,25 @@ namespace ti
 		}
 	}
 
-	void HTTPClientBinding::SetCookie(const ValueList& args, SharedValue result)
+	void HTTPClientBinding::SetCookie(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("setCookie", "ss");
 		this->requestCookies.add(args.GetString(0), args.GetString(1));
 	}
 
-	void HTTPClientBinding::ClearCookies(const ValueList& args, SharedValue result)
+	void HTTPClientBinding::ClearCookies(const ValueList& args, KValueRef result)
 	{
 		this->requestCookies.clear();
 	}
 
-	void HTTPClientBinding::GetCookie(const ValueList& args, SharedValue result)
+	void HTTPClientBinding::GetCookie(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("getCookie", "s");
 		std::string cookieName = args.GetString(0);
 
 		if (this->responseCookies.find(cookieName) != this->responseCookies.end())
 		{
-			SharedKObject cookie = new HTTPCookie(this->responseCookies[cookieName]);
+			KObjectRef cookie = new HTTPCookie(this->responseCookies[cookieName]);
 			result->SetObject(cookie);
 		}
 		else
@@ -416,7 +404,7 @@ namespace ti
 		}
 	}
 
-	void HTTPClientBinding::SetTimeout(const ValueList& args, SharedValue result)
+	void HTTPClientBinding::SetTimeout(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("setTimeout", "i");
 		this->timeout = args.GetInt(0);
@@ -456,13 +444,13 @@ namespace ti
 
 		// We need this binding to stay alive at least until we have
 		// finished this thread. So save 'this' in an AutoPtr.
-		SharedKObject save(this, true);
+		KObjectRef save(this, true);
 		this->ExecuteRequest();
 
 		END_KROLL_THREAD;
 	}
 
-	bool HTTPClientBinding::BeginRequest(SharedValue sendData)
+	bool HTTPClientBinding::BeginRequest(KValueRef sendData)
 	{
 		if (this->Get("connected")->ToBool())
 		{
@@ -478,27 +466,38 @@ namespace ti
 		// Determine what data type we have to send
 		if (sendData->IsObject())
 		{
-			SharedKObject dataObject = sendData->ToObject();
+			KObjectRef dataObject = sendData->ToObject();
+			KMethodRef nativePathMethod(dataObject->GetMethod("nativePath"));
+			KMethodRef sizeMethod(dataObject->GetMethod("size"));
 
-			if (dataObject->GetType() == "File")
+			if (nativePathMethod.isNull() || sizeMethod.isNull())
 			{
-				SharedValue result;
-				result = dataObject->GetMethod("nativePath")->Call();
-				const char* filename = result->ToString();
-				this->datastream = new std::ifstream(filename,
-						std::ios::in | std::ios::binary);
-				this->contentLength = dataObject->GetMethod("size")->Call()->ToInt();
-				if (this->datastream->fail())
-				{
-					logger->Error("Failed to open file: %s", filename);
-					return false;
-				}
+				std::string err("Unsupported File-like object: did not have"
+					"nativePath and size methods");
+				logger->Error(err);
+				throw ValueException::FromString(err);
 			}
-			else
+
+			const char* filename = nativePathMethod->Call()->ToString();
+			if (!filename)
 			{
-				logger->Error("Unsupported object type");
-				return false;
+				std::string err("Unsupported File-like object: nativePath method"
+					"did not return a String");
+				logger->Error(err);
+				throw ValueException::FromString(err);
 			}
+
+			this->datastream = new std::ifstream(filename,
+				std::ios::in | std::ios::binary);
+			if (this->datastream->fail())
+			{
+				std::string err("Failed to open file: ");
+				err.append(filename);
+				logger->Error(err);
+				throw ValueException::FromString(err);
+			}
+
+			this->contentLength = sizeMethod->Call()->ToInt();
 		}
 		else if (sendData->IsString())
 		{
@@ -510,17 +509,10 @@ namespace ti
 				this->contentLength = dataString.length();
 			}
 		}
-		else if (sendData->IsNull() || sendData->IsUndefined())
+		else
 		{
 			// Sending no data
 			this->datastream = 0;
-		}
-		else
-		{
-			// We do not support this type!
-			logger->Error("Unsupported datatype: %s",
-					sendData->GetType().c_str());
-			return false;
 		}
 
 		this->dirty = true;
@@ -797,6 +789,10 @@ namespace ti
 			this->SetBool("timedOut", true);
 			this->FireEvent(Event::HTTP_TIMEOUT);
 		}
+
+		// Destroy the session here, so that even if this HTTPClient isn't
+		// garbage collected, the socket will close.
+		this->session = 0;
 
 		this->Set("connected", Value::NewBool(false));
 		this->ChangeState(4); // closed

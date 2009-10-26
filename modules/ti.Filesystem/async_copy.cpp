@@ -17,18 +17,15 @@
 
 namespace ti
 {
-	AsyncCopy::AsyncCopy(
-		FilesystemBinding* parent, 
-		Host *host, 
-		std::vector<std::string> files, 
-		std::string destination, 
-		SharedKMethod callback)
-			: parent(parent),
-			  host(host),
-			  files(files),
-			  destination(destination),
-			  callback(callback),
-			  stopped(false)
+	AsyncCopy::AsyncCopy(FilesystemBinding* parent, Host *host,
+		std::vector<std::string> files, std::string destination, KMethodRef callback) :
+			StaticBoundObject("Filesystem.AsyncCopy"),
+			parent(parent),
+			host(host),
+			files(files),
+			destination(destination),
+			callback(callback),
+			stopped(false)
 	{
 		/**
 		 * @tiapi(property=True,type=Boolean,name=Filesystem.AsyncCopy.running,since=0.3) Indicates if the copy operation is running
@@ -142,7 +139,7 @@ namespace ti
 				}
 				logger->Debug("File copied");
 
-				SharedValue value = Value::NewString(file);
+				KValueRef value = Value::NewString(file);
 				ValueList args;
 				args.push_back(value);
 				args.push_back(Value::NewInt(c));
@@ -176,11 +173,11 @@ namespace ti
 
 		END_KROLL_THREAD;
 	}
-	void AsyncCopy::ToString(const ValueList& args, SharedValue result)
+	void AsyncCopy::ToString(const ValueList& args, KValueRef result)
 	{
 		result->SetString("[Async Copy]");
 	}
-	void AsyncCopy::Cancel(const ValueList& args, SharedValue result)
+	void AsyncCopy::Cancel(const ValueList& args, KValueRef result)
 	{
 		KR_DUMP_LOCATION
 		if (thread!=NULL && thread->isRunning())

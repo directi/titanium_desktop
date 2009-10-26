@@ -94,14 +94,6 @@ namespace ti
 		return new OSXMenuItem(MenuItem::CHECK);
 	}
 
-	void OSXUIBinding::ErrorDialog(std::string msg)
-	{
-		NSApplicationLoad();
-		if (!msg.empty())
-			 NSRunCriticalAlertPanel (@"Application Error", [NSString stringWithUTF8String:msg.c_str()],nil,nil,nil);
-		UIBinding::ErrorDialog(msg);
-	}
-
 	void OSXUIBinding::SetMenu(AutoMenu menu)
 	{
 		if (this->menu.get() == menu.get())
@@ -291,7 +283,7 @@ namespace ti
 		return this->contextMenu;
 	}
 
-	AutoTrayItem OSXUIBinding::AddTray(std::string& iconPath, SharedKMethod eventListener)
+	AutoTrayItem OSXUIBinding::AddTray(std::string& iconPath, KMethodRef eventListener)
 	{
 		return new OSXTrayItem(iconPath, eventListener);
 	}
@@ -360,5 +352,14 @@ namespace ti
 		IOObjectRelease(curObj);
 		IOObjectRelease(iter);
 		return (long)tHandle;
+	}
+
+	/*static*/
+	void OSXUIBinding::ErrorDialog(std::string msg)
+	{
+		NSApplicationLoad();
+		NSRunCriticalAlertPanel(@"Application Error", 
+			[NSString stringWithUTF8String:msg.c_str()], nil, nil, nil);
+		UIBinding::ErrorDialog(msg);
 	}
 }
