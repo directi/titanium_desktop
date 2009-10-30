@@ -7,6 +7,7 @@
 #include <kroll/thread_manager.h>
 #include "filesystem_binding.h"
 #include "file.h"
+#include "logger.h"
 #include "async_copy.h"
 #include "filesystem_utils.h"
 #include "app_config.h"
@@ -58,6 +59,11 @@ namespace ti
 		 * @tiresult(for=Filesystem.getFileStream,type=FileSystem.Filestream) a Filestream object referencing the file
 		 */
 		this->SetMethod("getFileStream",&FilesystemBinding::GetFileStream);
+		/**
+		 * @tiapi(method=True,name=Filesystem.getLogger) Returns a Logger object
+		 * @tiresult(for=Filesystem.getLogger,type=FileSystem.Logger) a Logger object referencing the logfile
+		 */
+		this->SetMethod("getLogger",&FilesystemBinding::GetLogger);
 		/**
 		 * @tiapi(method=True,name=Filesystem.getProgramsDirectory) Returns the programs directory of the current system
 		 * @tiresult(for=Filesystem.getProgramsDirectory,type=FileSystem.File) a File object referencing the system programs directory
@@ -222,6 +228,14 @@ namespace ti
 		this->ResolveFileName(args, filename);
 		ti::FileStream* fs = new ti::FileStream(filename);
 		result->SetObject(fs);
+	}
+	
+	void FilesystemBinding::GetLogger(const ValueList& args, KValueRef result)
+	{
+		std::string filename;
+		this->ResolveFileName(args, filename);
+		ti::Logger* logger = new ti::Logger(filename);
+		result->SetObject(logger);
 	}
 
 	void FilesystemBinding::GetApplicationDirectory(const ValueList& args, KValueRef result)
