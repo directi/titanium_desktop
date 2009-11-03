@@ -17,12 +17,10 @@
 
 -(void)setupPreferences
 {
-	AppConfig *appConfig = AppConfig::Instance();
-	std::string appid = appConfig->GetAppID();
-	NSString *appID = [NSString stringWithUTF8String:appid.c_str()];
-	[[window webView] setPreferencesIdentifier:appID];
-
-	WebPreferences *webPrefs = [[WebPreferences alloc] initWithIdentifier:appID];
+	NSString* appId = [NSString stringWithUTF8String:
+		Host::GetInstance()->GetApplication()->id.c_str()];
+	[[window webView] setPreferencesIdentifier:appId];
+	WebPreferences *webPrefs = [[WebPreferences alloc] initWithIdentifier:appId];
 
 	// This indicates that WebViews in this app will not browse multiple pages,
 	// but rather show a small number. This reduces memory cache footprint
@@ -48,7 +46,7 @@
 
 	// Setup the DB to store it's DB under our data directory for the app
 	NSString *datadir = [NSString stringWithUTF8String:
-		kroll::FileUtils::GetApplicationDataDirectory(appid).c_str()];
+		Host::GetInstance()->GetApplication()->GetDataPath().c_str()];
 	[webPrefs _setLocalStorageDatabasePath:datadir];
 
 	NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];
@@ -101,9 +99,8 @@
 
 	// TI-303 we need to add safari UA to our UA to resolve broken
 	// sites that look at Safari and not WebKit for UA
-	NSString *appName = [NSString
-		stringWithFormat:@"Version/4.0 Safari/528.16 %s/%s",
-		PRODUCT_NAME, STRING(PRODUCT_VERSION)];
+	NSString *appName = [NSString stringWithFormat:
+		@"Version/4.0 Safari/528.16 %s/%s", PRODUCT_NAME, PRODUCT_VERSION];
 	[webView setApplicationNameForUserAgent:appName];
 
 	// place our user agent string in the global so we can later use it
