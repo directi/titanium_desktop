@@ -197,12 +197,12 @@ DWORD Win32UserWindow::getStyleFromConfig() const
 	if (config->GetTransparency() < 1.0)
 	{
 		style = WS_EX_LAYERED;
-		if(!config->IsTaskbarTab())
+		if(!config->IsToolWindow())
 		{
 			style |= WS_EX_TOOLWINDOW;
 		}
 	}
-	else if(!config->IsTaskbarTab())
+	else if(!config->IsToolWindow())
 	{
 		style = WS_EX_TOOLWINDOW;
 	}

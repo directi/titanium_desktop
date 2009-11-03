@@ -84,14 +84,13 @@ void WindowConfig::SetDefaults ()
 	this->resizable = true;
 
 	this->usingChrome = true;
-	this->toolWindow = false;
+	this->toolWindow = true;
 	this->usingScrollbars = true;
 	this->fullscreen = false;
 	this->maximized = false;
 	this->minimized = false;
 	this->visible = true;
 	this->topMost = false;
-	this->taskbarTab = true;
 
 #ifdef OS_OSX
 	this->texturedBackground = true;
@@ -141,7 +140,6 @@ void WindowConfig::UseProperties(KObjectRef properties)
 	SET_BOOL(toolWindow, toolWindow);
 	SET_BOOL(usingScrollbars, usingScrollbars);
 	SET_BOOL(topMost, topMost);
-	SET_BOOL(taskbarTab, taskbarTab);
 	SET_DOUBLE(transparency, transparency);
 	
 #ifdef OS_OSX
@@ -179,7 +177,7 @@ WindowConfig::WindowConfig(WindowConfig *config, std::string& url)
 	this->usingScrollbars = config->IsUsingScrollbars();
 	this->topMost = config->IsTopMost();
 	this->transparency = config->GetTransparency();
-	this->taskbarTab = config->IsTaskbarTab();
+	this->toolWindow = config->IsToolWindow();
 
 #ifdef OS_OSX
 	this->texturedBackground = config->IsTexturedBackground();
@@ -304,9 +302,9 @@ WindowConfig::WindowConfig(void* data)
 		{
 			topMost = ConfigUtils::GetNodeValueAsBool(child);
 		}
-		else if (nodeNameEquals(child, "taskbar-tab"))
+		else if (nodeNameEquals(child, "toolwindow"))
 		{
-			taskbarTab = ConfigUtils::GetNodeValueAsBool(child);
+			toolWindow = ConfigUtils::GetNodeValueAsBool(child);
 		}
 #ifdef OS_OSX
 		else if (nodeNameEquals(child, "texturedBackground"))

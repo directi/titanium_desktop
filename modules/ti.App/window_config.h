@@ -114,8 +114,6 @@ class TITANIUM_APP_API WindowConfig
 	void SetUsingScrollbars(bool usingScrollbars_) { usingScrollbars = usingScrollbars_; }
 	bool IsTopMost() { return topMost; }
 	void SetTopMost(bool topmost_) { topMost = topmost_; }
-	bool IsTaskbarTab() { return taskbarTab; }
-	void SetTaskbarTab(bool taskbarTab_) { taskbarTab = taskbarTab_; }
 // probably long term a better way of doing this, but we need a quick way to disable these
 #ifdef OS_OSX
 	void SetTexturedBackground(bool texturedBackground_) { texturedBackground = texturedBackground_; }
