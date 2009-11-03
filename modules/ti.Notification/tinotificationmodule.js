@@ -20,7 +20,7 @@ function TitaniumNotification(window)
 		visible:false,
 		topMost:true,
 		url:'app://blank',
-		taskbarTab: false
+		toolWindow: false
 	});
 	var self = this;
 	var title = '', message = '', icon = '';
