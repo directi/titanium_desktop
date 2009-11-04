@@ -7,11 +7,11 @@ body
 {
 	font-family: "sans-serif";
 	background: transparent;
-	-webkit-user-select: none;
+	-webkit-user-select: auto;
 }
 
 a, h1, h2, h3, h4, blockquote
 {
-	-webkit-user-select: text;
+	-webkit-user-select: auto;
 }
 
