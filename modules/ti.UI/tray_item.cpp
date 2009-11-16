@@ -54,6 +54,12 @@ namespace ti
 		this->SetMethod("getHint", &TrayItem::_GetHint);
 
 		/**
+		 * @tiapi(method=True,name=UI.Tray.showBalloonMessage,since=0.8)
+		 * @tiapi Shows the balloon popup with given title and message
+		 */
+		this->SetMethod("showBalloonMessage", &TrayItem::_ShowBalloonMessage);
+
+		/**
 		 * @tiapi(method=True,name=UI.Tray.remove,since=0.2) Removes a TrayItem
 		 */
 		this->SetMethod("remove", &TrayItem::_Remove);
@@ -118,4 +124,13 @@ namespace ti
 		this->Remove();
 		UIBinding::GetInstance()->UnregisterTrayItem(this);
 	}
+#ifdef WIN32
+	void TrayItem::_ShowBalloonMessage(const ValueList& args, KValueRef result)
+	{
+		std::string title = args.GetString(0);
+		std::string msg = args.GetString(1);
+		this->ShowBalloonMessage(title, msg);
+	}
+#endif
+
 }

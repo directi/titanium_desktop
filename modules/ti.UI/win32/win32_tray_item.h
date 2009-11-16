@@ -17,6 +17,8 @@ namespace ti
 		void SetIcon(std::string& iconPath);
 		void SetMenu(AutoMenu menu);
 		void SetHint(std::string& hint);
+		void ShowBalloonMessage(std::string & title, std::string & message);
+
 		void Remove();
 		void ShowTrayMenu();
 		void HandleRightClick();

@@ -72,6 +72,24 @@ namespace ti
 			Shell_NotifyIcon(NIM_MODIFY, this->trayIconData);
 		}
 	}
+
+	void Win32TrayItem::ShowBalloonMessage(std::string & title, std::string & message)
+	{				
+		// Set the flags for showing balloon, espcially NIF_INFO
+		this->trayIconData->uFlags |= NIF_INFO;
+
+		// Set the balloon title
+		std::wstring wtitle(title.begin(), title.end());
+		::lstrcpy(this->trayIconData->szInfoTitle, wtitle.c_str());
+
+		// Set balloon message
+		std::wstring msg(message.begin(), message.end());
+		::lstrcpy(this->trayIconData->szInfo, msg.c_str());
+
+		// Show balloon....
+		::Shell_NotifyIcon(NIM_MODIFY, this->trayIconData);
+
+	}
 	
 	void Win32TrayItem::Remove()
 	{
