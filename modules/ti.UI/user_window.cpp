@@ -471,13 +471,15 @@ UserWindow::UserWindow(WindowConfig *config, AutoUserWindow& parent) :
 	 */
 	this->SetMethod("showInspector", &UserWindow::_ShowInspector);
 
+#ifdef WIN32
 	/**
 	 * @tiapi(method=True,name=UI.UserWindow.flash,since=0.7) 
 	 * Show the web inspector (currently only supported on windows)
 	 * @tiarg[Integer] number of times the window should flash
 	 */
 	this->SetMethod("flash", &UserWindow::_Flash);
-	
+#endif
+
 	this->FireEvent(Event::CREATED);
 }
 

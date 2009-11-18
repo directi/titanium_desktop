@@ -53,11 +53,13 @@ namespace ti
 		 */
 		this->SetMethod("getHint", &TrayItem::_GetHint);
 
+#ifdef WIN32
 		/**
 		 * @tiapi(method=True,name=UI.Tray.showBalloonMessage,since=0.8)
 		 * @tiapi Shows the balloon popup with given title and message
 		 */
 		this->SetMethod("showBalloonMessage", &TrayItem::_ShowBalloonMessage);
+#endif
 
 		/**
 		 * @tiapi(method=True,name=UI.Tray.remove,since=0.2) Removes a TrayItem
