@@ -64,23 +64,23 @@ namespace ti
 	{
 		Poco::Mutex::ScopedLock lock(loggerMutex);
 		std::string data = (char*)args.at(0)->ToString();
-		writeQueue.push_front(data);
+		writeQueue.push_back(data);
 	}
 
 	void Logger::Log()
 	{
 		Poco::Mutex::ScopedLock lock(loggerMutex);
-		if (writeQueue.size() > 0)
+		if (!writeQueue.empty())
 		{
 			std::ofstream stream;
 			stream.open(filename.c_str(), std::ofstream::app);
 
 			if (stream.is_open())
 			{
-				while (writeQueue.size() > 0)
+				while (!writeQueue.empty())
 				{
-					stream.write(writeQueue.back().c_str(), writeQueue.back().size());
-					writeQueue.pop_back();
+					stream.write(writeQueue.front().c_str(), writeQueue.front().size());
+					writeQueue.pop_front();
 				}
 				stream.close();
 			}
