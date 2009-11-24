@@ -18,7 +18,7 @@
 #endif
 
 #include <string>
-#include <vector>
+#include <list>
 
 namespace ti
 {
@@ -35,7 +35,7 @@ namespace ti
 		{
 			return new string(GetFilename());
 		}
-		
+
 		virtual void run();
 
 		void Log(const ValueList& args, KValueRef result);
@@ -43,7 +43,7 @@ namespace ti
 
 		private:
 		std::string filename;
-		std::vector<std::string> writeQueue;
+		std::list<std::string> writeQueue;
 		Poco::Thread thread;
 		bool bRunning;
 		Poco::Mutex loggerMutex; 

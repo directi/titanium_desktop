@@ -64,7 +64,7 @@ namespace ti
 	{
 		Poco::Mutex::ScopedLock lock(loggerMutex);
 		std::string data = (char*)args.at(0)->ToString();
-		writeQueue.push_back(data);
+		writeQueue.push_front(data);
 	}
 
 	void Logger::Log()
