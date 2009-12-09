@@ -59,6 +59,11 @@ namespace ti
 		 * @tiapi Shows the balloon popup with given title and message
 		 */
 		this->SetMethod("showBalloonMessage", &TrayItem::_ShowBalloonMessage);
+		/**
+		 * @tiapi(method=True,name=UI.Tray.resetBalloonMessage,since=0.8)
+		 * @tiapi reset the balloon popup with given title
+		 */
+		this->SetMethod("resetBalloonMessage", &TrayItem::_ResetBalloonMessage);
 #endif
 
 		/**
@@ -132,6 +137,12 @@ namespace ti
 		std::string title = args.GetString(0);
 		std::string msg = args.GetString(1);
 		this->ShowBalloonMessage(title, msg);
+	}
+
+	void TrayItem::_ResetBalloonMessage(const ValueList& args, KValueRef result)
+	{
+		std::string title = args.GetString(0);
+		this->ResetBalloonMessage(title);
 	}
 #endif
 

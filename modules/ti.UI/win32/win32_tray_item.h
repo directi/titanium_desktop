@@ -18,6 +18,7 @@ namespace ti
 		void SetMenu(AutoMenu menu);
 		void SetHint(std::string& hint);
 		void ShowBalloonMessage(std::string & title, std::string & message);
+		void ResetBalloonMessage(std::string & title);
 
 		void Remove();
 		void ShowTrayMenu();

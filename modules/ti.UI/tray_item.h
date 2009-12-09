@@ -24,6 +24,8 @@ namespace ti
 #ifdef WIN32
 		virtual void ShowBalloonMessage(std::string & title, std::string & message) = 0;
 		void _ShowBalloonMessage(const ValueList& args, KValueRef result);
+		virtual void ResetBalloonMessage(std::string & title) = 0;
+		void _ResetBalloonMessage(const ValueList& args, KValueRef result);
 #endif
 		virtual void Remove() = 0;
 

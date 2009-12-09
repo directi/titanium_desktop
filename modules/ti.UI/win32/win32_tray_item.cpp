@@ -90,6 +90,20 @@ namespace ti
 		::Shell_NotifyIcon(NIM_MODIFY, this->trayIconData);
 
 	}
+
+	void Win32TrayItem::ResetBalloonMessage(std::string & title)
+	{				
+		// Set the flags for showing balloon, espcially NIF_TIP
+		this->trayIconData->uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP;
+
+		// Set the balloon title
+		std::wstring wtitle(title.begin(), title.end());
+		::lstrcpy(this->trayIconData->szTip, wtitle.c_str());
+
+		// Show balloon....
+		::Shell_NotifyIcon(NIM_MODIFY, this->trayIconData);
+	}
+
 	
 	void Win32TrayItem::Remove()
 	{
