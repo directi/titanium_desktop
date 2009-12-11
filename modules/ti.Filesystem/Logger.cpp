@@ -32,7 +32,8 @@ namespace ti
 {
 	Logger::Logger(const std::string &filename) :
 		StaticBoundObject("Filesystem.Logger"),
-		bRunning(false)
+		bRunning(false),
+		pendingMsgEvent(true)
 	{
 		Poco::Path pocoPath(Poco::Path::expand(filename));
 		this->filename = pocoPath.absolute().toString();
@@ -57,6 +58,7 @@ namespace ti
 	Logger::~Logger()
 	{
 		bRunning = false;
+		pendingMsgEvent.set();
 		thread.join();
 	}
 
@@ -65,35 +67,55 @@ namespace ti
 		Poco::Mutex::ScopedLock lock(loggerMutex);
 		std::string data = (char*)args.at(0)->ToString();
 		writeQueue.push_back(data);
+		pendingMsgEvent.set();
 	}
 
 	void Logger::Log()
 	{
-		Poco::Mutex::ScopedLock lock(loggerMutex);
-		if (!writeQueue.empty())
-		{
-			std::ofstream stream;
-			stream.open(filename.c_str(), std::ofstream::app);
+		std::list<std::string> *tempWriteQueue = NULL;
 
-			if (stream.is_open())
+		if(!writeQueue.empty())
+		{
+			Poco::Mutex::ScopedLock lock(loggerMutex);
+			tempWriteQueue = new std::list<std::string>(writeQueue.size());
+			std::copy(writeQueue.begin(), writeQueue.end(), tempWriteQueue->begin()); 
+			writeQueue.clear();
+		}
+		if (tempWriteQueue)
+		{
+			try
 			{
-				while (!writeQueue.empty())
+				std::ofstream stream;
+				stream.open(filename.c_str(), std::ofstream::app);
+
+				if (stream.is_open())
 				{
-					stream.write(writeQueue.front().c_str(), writeQueue.front().size());
-					writeQueue.pop_front();
+					while (!tempWriteQueue->empty())
+					{
+						stream.write(tempWriteQueue->front().c_str(), tempWriteQueue->front().size());
+						tempWriteQueue->pop_front();
+					}
+					stream.close();
+					delete tempWriteQueue;
+					tempWriteQueue = NULL;
 				}
-				stream.close();
+			}
+			catch (...)
+			{
+				if(tempWriteQueue != NULL)
+					delete tempWriteQueue;
+				throw;
 			}
 		}
 	}
 
 	void Logger::run()
 	{
-		bRunning = true;
+		bRunning=true;
 		while(bRunning)
 		{
+			pendingMsgEvent.wait();
 			Log();
-			Poco::Thread::sleep(1000);
 		}
 	}
 }

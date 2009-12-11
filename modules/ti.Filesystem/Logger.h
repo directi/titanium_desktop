@@ -7,6 +7,7 @@
 #define _TI_LOGGER_H_
 #include <kroll/kroll.h>
 #include <Poco/Thread.h>
+#include <Poco/Event.h>
 
 #ifdef OS_WIN32
 #include <windows.h>
@@ -47,6 +48,7 @@ namespace ti
 		Poco::Thread thread;
 		bool bRunning;
 		Poco::Mutex loggerMutex; 
+		Poco::Event pendingMsgEvent;
 	};
 }
 
