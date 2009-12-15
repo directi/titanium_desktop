@@ -64,6 +64,8 @@ clean = 'clean' in targets or ARGUMENTS.get('clean', 0)
 qclean = 'qclean' in targets or ARGUMENTS.get('qclean', 0)
 build.nopackage = ARGUMENTS.get('nopackage', 0)
 
+build.env['CXX']=ARGUMENTS.get('CXX', 'g++')
+
 if clean or qclean:
 	print "Obliterating your build directory: %s" % build.dir
 	if path.exists(build.dir):

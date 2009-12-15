@@ -7,7 +7,7 @@
 #include <kroll/thread_manager.h>
 #include "filesystem_binding.h"
 #include "file.h"
-#include "logger.h"
+#include "Logger.h"
 #include "async_copy.h"
 #include "filesystem_utils.h"
 #include "app_config.h"
