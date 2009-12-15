@@ -109,6 +109,11 @@ namespace ti
 		[nativeWindow dealloc];
 	}
 
+    void OSXUserWindow::Flash(int timesToFlash)
+	{
+		
+	}
+
 	void OSXUserWindow::Hide()
 	{
 		if (active && nativeWindow)

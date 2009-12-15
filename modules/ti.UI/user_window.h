@@ -127,9 +127,9 @@ namespace ti
 			void _IsTopMost(const kroll::ValueList&, kroll::KValueRef);
 			void _SetTopMost(const kroll::ValueList&, kroll::KValueRef);
 			virtual void _ShowInspector(const ValueList& args, KValueRef result);
-#ifdef OS_WIN32
+//#ifdef OS_WIN32
 			void _Flash(const kroll::ValueList&, kroll::KValueRef);
-#endif
+//#endif
 			virtual void OpenFileChooserDialog(
 				KMethodRef callback,
 				bool multiple,
@@ -221,9 +221,9 @@ namespace ti
 			virtual bool IsTopMost() = 0;
 			virtual void SetTopMost(bool topmost) = 0;
 			virtual void ShowInspector(bool console=false) = 0;
-#ifdef OS_WIN32
+//#ifdef OS_WIN32
 			virtual void Flash(int timesToFlash) = 0;
-#endif
+//#endif
 			virtual void AppIconChanged() {};
 			virtual void AppMenuChanged() {};
 
