@@ -106,6 +106,8 @@ namespace ti
 			bool IsTopMost();
 			void SetTopMost(bool topmost);
 
+            void Flash(int timesToFlash);
+
 			void SetMenu(AutoMenu menu);
 			AutoMenu GetMenu();
 			void SetContextMenu(AutoMenu menu);

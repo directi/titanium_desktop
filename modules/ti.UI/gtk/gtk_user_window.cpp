@@ -279,6 +279,11 @@ namespace ti
 		return !this->active;
 	}
 	
+    void GtkUserWindow::Flash(int timesToFlash)
+    {
+        gtk_window_set_urgency_hint(this->gtkWindow, true);
+    }
+
 	void GtkUserWindow::SetupTransparency()
 	{
 		if (this->gtkWindow && GtkVersionSupportsWebViewTransparency())
