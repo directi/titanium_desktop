@@ -4,13 +4,8 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 #include "Logger.h"
-#include "filesystem_utils.h"
 
-#include <Poco/File.h>
 #include <Poco/Path.h>
-#include <Poco/FileStream.h>
-#include <Poco/Exception.h>
-
 
 #ifndef OS_WIN32
 #include <sys/types.h>
@@ -30,92 +25,46 @@
 
 namespace ti
 {
-	Logger::Logger(const std::string &filename) :
-		StaticBoundObject("Filesystem.Logger"),
-		bRunning(false),
-		pendingMsgEvent(true)
+	std::map<std::string, LoggerFile *> Logger::files;
+	Poco::Mutex Logger::filesMutex;
+
+	Logger::Logger(const std::string &filename)
+		: StaticBoundObject("Filesystem.Logger")
 	{
 		Poco::Path pocoPath(Poco::Path::expand(filename));
-		this->filename = pocoPath.absolute().toString();
-
-		// If the filename we were given contains a trailing slash, just remove it
-		// so that users can count on reproducible results from toString.
-		size_t length = this->filename.length();
-		if (length > MIN_PATH_LENGTH && this->filename[length - 1] == Poco::Path::separator())
 		{
-			this->filename.resize(length - 1);
+			Poco::Mutex::ScopedLock lock(filesMutex);
+			std::map<std::string, LoggerFile*>::iterator oIter = files.find(fileName);
+			if(oIter == files.end())
+			{
+				files[fileName] = new LoggerFile(fileName);
+			}
 		}
+		files[fileName]->addRef();
 
 		/**
 		 * @tiapi(method=True,name=Filesystem.Logger.log,since=0.7) Writes data to the logfile
 		 * @tiarg(for=Filesystem.Logger.log,type=String|Blob,name=data) data to log
 		 */
 		this->SetMethod("log",&Logger::Log);
-
-		thread.start(*this);
 	}
 
 	Logger::~Logger()
 	{
-		bRunning = false;
-		pendingMsgEvent.set();
-		thread.join();
+		Poco::Mutex::ScopedLock lock(filesMutex);
+		files[fileName]->release();
+		if(files[fileName]->getReferencesCount() == 0)
+		{
+			delete files[fileName];
+			files[fileName] = NULL;
+			files.erase(fileName);
+		}
 	}
 
 	void Logger::Log(const ValueList& args, KValueRef result)
 	{
-		Poco::Mutex::ScopedLock lock(loggerMutex);
+		// TODO: create map of LoggerFile, select one of the required and call Log on that
 		std::string data = (char*)args.at(0)->ToString();
-		writeQueue.push_back(data);
-		pendingMsgEvent.set();
-	}
-
-	void Logger::Log()
-	{
-		std::list<std::string> *tempWriteQueue = NULL;
-
-		if(!writeQueue.empty())
-		{
-			Poco::Mutex::ScopedLock lock(loggerMutex);
-			tempWriteQueue = new std::list<std::string>(writeQueue.size());
-			std::copy(writeQueue.begin(), writeQueue.end(), tempWriteQueue->begin()); 
-			writeQueue.clear();
-		}
-		if (tempWriteQueue)
-		{
-			try
-			{
-				std::ofstream stream;
-				stream.open(filename.c_str(), std::ofstream::app);
-
-				if (stream.is_open())
-				{
-					while (!tempWriteQueue->empty())
-					{
-						stream.write(tempWriteQueue->front().c_str(), tempWriteQueue->front().size());
-						tempWriteQueue->pop_front();
-					}
-					stream.close();
-					delete tempWriteQueue;
-					tempWriteQueue = NULL;
-				}
-			}
-			catch (...)
-			{
-				if(tempWriteQueue != NULL)
-					delete tempWriteQueue;
-				throw;
-			}
-		}
-	}
-
-	void Logger::run()
-	{
-		bRunning=true;
-		while(bRunning)
-		{
-			pendingMsgEvent.wait();
-			Log();
-		}
+		files[fileName]->log(data);
 	}
 }
