@@ -26,7 +26,6 @@
 namespace ti
 {
 	LoggerFile::LoggerFile(const std::string &filename) :
-		references(0),
 		bRunning(false),
 		pendingMsgEvent(true)
 	{
