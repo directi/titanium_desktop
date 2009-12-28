@@ -8,18 +8,18 @@ modules = [
 	'ti.App', 
 	'ti.UI',
 	'ti.Network',
-#	'ti.Growl',
+	'ti.Growl',
 	'ti.Filesystem',
-#	'ti.Media',
+	'ti.Media',
 	'ti.Desktop',
 	'ti.Platform',
 	'ti.Process',
 	'ti.Notification',
-#	'ti.Monkey',
+	'ti.Monkey',
 	'ti.Analytics',
 	'ti.Database',
 	'ti.Worker',
-#	'ti.Codec'
+	'ti.Codec'
 ]
 
 for module in modules:
