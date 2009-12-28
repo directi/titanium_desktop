@@ -84,10 +84,7 @@ void WindowConfig::SetDefaults ()
 	this->resizable = true;
 
 	this->usingChrome = true;
-    // the default should not be true, as the default window should be
-    // be available in the taskbar. Setting a window as toolWindow, will remove
-    // the taskbar entry
-	this->toolWindow = false;
+	this->toolWindow = true;
 	this->usingScrollbars = true;
 	this->fullscreen = false;
 	this->maximized = false;
