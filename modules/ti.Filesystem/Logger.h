@@ -5,50 +5,57 @@
  */
 #ifndef _TI_LOGGER_H_
 #define _TI_LOGGER_H_
-#include <kroll/kroll.h>
-#include <Poco/Thread.h>
-#include <Poco/Event.h>
 
-#ifdef OS_WIN32
-#include <windows.h>
-#include <commdlg.h>
-#include <shellapi.h>
-#include <shlobj.h>
-#elif OS_OSX
-#import <Foundation/Foundation.h>
-#endif
+#include <map>
+#include "LoggerFile.h"
 
-#include <string>
-#include <list>
 
 namespace ti
 {
-	class Logger
-	  : public StaticBoundObject,
-	    public Poco::Runnable
+	class ReferenceCountedLogger
 	{
 		public:
-		Logger(const std::string &filename);
-		virtual ~Logger();
+			Poco::Mutex referencesMutex;
+			int references;
+			LoggerFile * file;
 
-		std::string& GetFilename() { return filename; }
-		virtual SharedString DisplayString(int levels=3)
-		{
-			return new string(GetFilename());
-		}
+			ReferenceCountedLogger(LoggerFile *_file = NULL)
+				: file(_file), references(0) { }
 
-		virtual void run();
+			void addRef()
+			{
+				Poco::Mutex::ScopedLock lock(referencesMutex);
+				references++;
+			}
 
-		void Log(const ValueList& args, KValueRef result);
-		void Log();
+			void release()
+			{
+				Poco::Mutex::ScopedLock lock(referencesMutex);
+				--references;
+			}
 
+			int getReferencesCount()
+			{
+				Poco::Mutex::ScopedLock lock(referencesMutex);
+				return references;
+			}
+	};
+
+	class Logger
+		: public StaticBoundObject
+	{
 		private:
-		std::string filename;
-		std::list<std::string> writeQueue;
-		Poco::Thread thread;
-		bool bRunning;
-		Poco::Mutex loggerMutex; 
-		Poco::Event pendingMsgEvent;
+			std::string fileName;
+			LoggerFile *currentFile;
+
+			static std::map<std::string, ReferenceCountedLogger *> files;
+			static Poco::Mutex filesMutex;
+
+		public:
+			Logger(const std::string &filename);
+			virtual ~Logger();
+			
+			void Log(const ValueList& args, KValueRef result);
 	};
 }
 
