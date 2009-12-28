@@ -284,6 +284,11 @@ namespace ti
         gtk_window_set_urgency_hint(this->gtkWindow, true);
     }
 
+	void GtkUserWindow::StopFlash()
+	{
+		gtk_window_set_urgency_hint(this->gtkWindow, false);
+	}
+	
 	void GtkUserWindow::SetupTransparency()
 	{
 		if (this->gtkWindow && GtkVersionSupportsWebViewTransparency())
@@ -478,6 +483,7 @@ namespace ti
 			GdkEventFocus* f = (GdkEventFocus*) event;
 			if (f->in)
 			{
+				window->StopFlash();
 				window->FireEvent(Event::FOCUSED);
 			}
 			else

@@ -58,7 +58,8 @@ namespace ti
 		double GetY();
 		void SetY(double y);
 
-        void Flash(int timesToFlash);
+		void Flash(int timesToFlash);
+		void StopFlash();
 
 		double GetWidth();
 		void SetWidth(double width) ;
