@@ -12,35 +12,6 @@
 
 namespace ti
 {
-	class ReferenceCountedLogger
-	{
-		public:
-			Poco::Mutex referencesMutex;
-			int references;
-			LoggerFile * file;
-
-			ReferenceCountedLogger(LoggerFile *_file = NULL)
-				: file(_file), references(0) { }
-
-			void addRef()
-			{
-				Poco::Mutex::ScopedLock lock(referencesMutex);
-				references++;
-			}
-
-			void release()
-			{
-				Poco::Mutex::ScopedLock lock(referencesMutex);
-				--references;
-			}
-
-			int getReferencesCount()
-			{
-				Poco::Mutex::ScopedLock lock(referencesMutex);
-				return references;
-			}
-	};
-
 	class Logger
 		: public StaticBoundObject
 	{
@@ -48,7 +19,7 @@ namespace ti
 			std::string fileName;
 			LoggerFile *currentFile;
 
-			static std::map<std::string, ReferenceCountedLogger *> files;
+			static std::map<std::string, LoggerFile *> files;
 			static Poco::Mutex filesMutex;
 
 		public:

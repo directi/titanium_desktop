@@ -25,20 +25,19 @@
 
 namespace ti
 {
-	std::map<std::string, ReferenceCountedLogger *> Logger::files;
+	std::map<std::string, LoggerFile *> Logger::files;
 	Poco::Mutex Logger::filesMutex;
 
 	Logger::Logger(const std::string &filename)
 		: StaticBoundObject("Filesystem.Logger")
 	{
 		Poco::Path pocoPath(Poco::Path::expand(filename));
-		fileName = pocoPath.absolute().toString();
 		{
 			Poco::Mutex::ScopedLock lock(filesMutex);
-			std::map<std::string, ReferenceCountedLogger *>::iterator oIter = files.find(fileName);
+			std::map<std::string, LoggerFile*>::iterator oIter = files.find(fileName);
 			if(oIter == files.end())
 			{
-				files[fileName] = new ReferenceCountedLogger(new LoggerFile(fileName));
+				files[fileName] = new LoggerFile(fileName);
 			}
 		}
 		files[fileName]->addRef();
@@ -56,8 +55,8 @@ namespace ti
 		files[fileName]->release();
 		if(files[fileName]->getReferencesCount() == 0)
 		{
-			delete files[fileName]->file;
-			files[fileName]->file = NULL;
+			delete files[fileName];
+			files[fileName] = NULL;
 			files.erase(fileName);
 		}
 	}
@@ -66,6 +65,6 @@ namespace ti
 	{
 		// TODO: create map of LoggerFile, select one of the required and call Log on that
 		std::string data = (char*)args.at(0)->ToString();
-		files[fileName]->file->log(data);
+		files[fileName]->log(data);
 	}
 }
