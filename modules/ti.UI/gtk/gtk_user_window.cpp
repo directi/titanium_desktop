@@ -178,7 +178,7 @@ namespace ti
 			/* main window */
 			GtkWidget* window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
-			if (this->IsToolWindow())
+			if (!this->IsToolWindow())
 			{
 				gtk_window_set_skip_taskbar_hint(GTK_WINDOW(window), TRUE);
 				gtk_window_set_skip_pager_hint(GTK_WINDOW(window), TRUE);
