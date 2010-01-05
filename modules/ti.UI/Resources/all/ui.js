@@ -111,7 +111,7 @@
 		obj[originalMethodName] = obj[methodName];
 		var fn = function()
 		{
-			newMethod.call(arguments);
+			newMethod.apply(window, arguments);
 			obj[originalMethodName].apply(obj, arguments);
 		};
 		obj[methodName] = fn;
