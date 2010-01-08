@@ -4,6 +4,7 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 #include "Logger.h"
+#include "XMLLoggerFile.h"
 
 #include <Poco/Path.h>
 
@@ -39,6 +40,28 @@ namespace ti
 			if(oIter == files.end())
 			{
 				files[fileName] = new ReferenceCountedLogger(new LoggerFile(fileName));
+			}
+		}
+		files[fileName]->addRef();
+
+		/**
+		 * @tiapi(method=True,name=Filesystem.Logger.log,since=0.7) Writes data to the logfile
+		 * @tiarg(for=Filesystem.Logger.log,type=String|Blob,name=data) data to log
+		 */
+		this->SetMethod("log",&Logger::Log);
+	}
+
+	Logger::Logger(const std::string &filename, const std::string &rootXMLText, const std::string &xsltFile)
+		: StaticBoundObject("Filesystem.Logger")
+	{
+		Poco::Path pocoPath(Poco::Path::expand(filename));
+		fileName = pocoPath.absolute().toString();
+		{
+			Poco::Mutex::ScopedLock lock(filesMutex);
+			std::map<std::string, ReferenceCountedLogger *>::iterator oIter = files.find(fileName);
+			if(oIter == files.end())
+			{
+				files[fileName] = new ReferenceCountedLogger(new XMLLoggerFile(fileName, rootXMLText, xsltFile));
 			}
 		}
 		files[fileName]->addRef();

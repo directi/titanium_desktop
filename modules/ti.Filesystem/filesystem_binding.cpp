@@ -65,6 +65,11 @@ namespace ti
 		 */
 		this->SetMethod("getLogger",&FilesystemBinding::GetLogger);
 		/**
+		 * @tiapi(method=True,name=Filesystem.getXMLLogger) Returns a Logger object
+		 * @tiresult(for=Filesystem.getXMLLogger,type=FileSystem.Logger) a Logger object referencing the logfile
+		 */
+		this->SetMethod("getXMLLogger",&FilesystemBinding::GetXMLLogger);
+		/**
 		 * @tiapi(method=True,name=Filesystem.getProgramsDirectory) Returns the programs directory of the current system
 		 * @tiresult(for=Filesystem.getProgramsDirectory,type=FileSystem.File) a File object referencing the system programs directory
 		 */
@@ -235,6 +240,16 @@ namespace ti
 		std::string filename;
 		this->ResolveFileName(args, filename);
 		ti::Logger* logger = new ti::Logger(filename);
+		result->SetObject(logger);
+	}
+
+	void FilesystemBinding::GetXMLLogger(const ValueList& args, KValueRef result)
+	{
+		std::string filename;
+		this->ResolveFileName(args, filename);
+		std::string rootXMLText = args.at(1)->ToString();
+		std::string xsltFile = args.at(2)->ToString();
+		ti::Logger* logger = new ti::Logger(filename, rootXMLText, xsltFile);
 		result->SetObject(logger);
 	}
 

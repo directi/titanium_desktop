@@ -46,13 +46,13 @@ namespace ti
 	{
 		private:
 			std::string fileName;
-			LoggerFile *currentFile;
 
 			static std::map<std::string, ReferenceCountedLogger *> files;
 			static Poco::Mutex filesMutex;
 
 		public:
 			Logger(const std::string &filename);
+			Logger(const std::string &filename, const std::string &rootXMLText, const std::string &xsltFile);
 			virtual ~Logger();
 			
 			void Log(const ValueList& args, KValueRef result);

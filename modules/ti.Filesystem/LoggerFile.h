@@ -30,15 +30,16 @@ namespace ti
 			void log(std::string& data);
 
 			virtual void run();
-			void dumpToFile();
+			virtual void dumpToFile();
 
 		private:
-			std::string filename;
-			std::list<std::string> writeQueue;
 			Poco::Thread thread;
 			bool bRunning;
-			Poco::Mutex loggerMutex;
 			Poco::Event pendingMsgEvent;
+		protected:
+			std::string filename;
+			std::list<std::string> writeQueue;
+			Poco::Mutex loggerMutex;
 	};
 }
 

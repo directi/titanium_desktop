@@ -31,6 +31,7 @@ namespace ti
 		void GetFile(const ValueList& args, KValueRef result);
 		void GetFileStream(const ValueList& args, KValueRef result);
 		void GetLogger(const ValueList& args, KValueRef result);
+		void GetXMLLogger(const ValueList& args, KValueRef result);
 		void GetApplicationDirectory(const ValueList& args, KValueRef result);
 		void GetApplicationDataDirectory(const ValueList& args, KValueRef result);
 		void GetRuntimeHomeDirectory(const ValueList& args, KValueRef result);
