@@ -14,8 +14,13 @@ namespace kroll
 	SharedString KMethod::DisplayString(int levels)
 	{
 		std::ostringstream oss;
-		oss << "<KMethod at " << this << ">";
+		oss << "<" << this->GetType() << " at " << this << ">";
 		return new std::string(oss.str());
+	}
+
+	KValueRef KMethod::Call(KObjectRef thisObject, const ValueList& args)
+	{
+		return this->Call(args);
 	}
 
 	KValueRef KMethod::Call()
@@ -23,10 +28,7 @@ namespace kroll
 		return this->Call(ValueList());
 	}
 
-	KValueRef KMethod::Call(
-		const char *one,
-		KValueRef two,
-		KValueRef three,
+	KValueRef KMethod::Call(const char* one, KValueRef two, KValueRef three,
 		KValueRef four)
 	{
 		ValueList args;
@@ -52,10 +54,7 @@ namespace kroll
 		return this->Call(args);
 	}
 
-	KValueRef KMethod::Call(
-		KValueRef one,
-		KValueRef two,
-		KValueRef three)
+	KValueRef KMethod::Call(KValueRef one, KValueRef two, KValueRef three)
 	{
 		ValueList args;
 		args.push_back(one);
@@ -64,14 +63,14 @@ namespace kroll
 		return this->Call(args);
 	}
 
-	KValueRef KMethod::Call(const char *one)
+	KValueRef KMethod::Call(const char* one)
 	{
 		ValueList args;
 		args.push_back(Value::NewString(one));
 		return this->Call(args);
 	}
 
-	KValueRef KMethod::Call(const char *one, KValueRef two)
+	KValueRef KMethod::Call(const char* one, KValueRef two)
 	{
 		ValueList args;
 		args.push_back(Value::NewString(one));
@@ -79,7 +78,7 @@ namespace kroll
 		return this->Call(args);
 	}
 
-	KValueRef KMethod::Call(const char *one, KValueRef two, KValueRef three)
+	KValueRef KMethod::Call(const char* one, KValueRef two, KValueRef three)
 	{
 		ValueList args;
 		args.push_back(Value::NewString(one));

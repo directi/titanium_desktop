@@ -11,10 +11,10 @@ from progressbar import ProgressBar
 Import('build')
 
 revisions = {
-	"linux-i386": 23,
-	"linux-x86_64": 19,
-	"osx-universal": 20,
-	"win32-i386": 24
+	"linux-i386": 29,
+	"linux-x86_64": 21,
+	"osx-universal": 25,
+	"win32-i386": 30
 }
 
 thirdparty_name = 'thirdparty-%s-%s-r%s' % (build.os, build.arch, revisions[build.os+'-'+build.arch])
@@ -53,6 +53,7 @@ if not exists(): fetch()
 if build.is_linux():
 	futils.CopyTree(path.join(build.third_party, 'webkit', 'lib'), rtdir)
 	futils.CopyTree(path.join(build.third_party, 'poco', 'lib'), rtdir)
+	futils.CopyTree(path.join(build.third_party, 'curl', 'lib'), rtdir)
 
 elif build.is_win32():
 	futils.CopyTree(path.join(build.third_party, 'poco', 'bin'), rtdir)
@@ -76,3 +77,4 @@ elif build.is_osx():
 	libdir = path.join(build.third_party, "poco", "lib");
 	targets.append(build.utils.CopyTree(libdir, rtdir, exclude=excludes))
 	build.mark_build_target(targets)
+

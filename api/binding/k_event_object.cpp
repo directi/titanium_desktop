@@ -22,6 +22,7 @@ namespace kroll
 
 		this->SetMethod("addEventListener", &KEventObject::_AddEventListener);
 		this->SetMethod("removeEventListener", &KEventObject::_RemoveEventListener);
+		Event::SetEventConstants(this);
 	}
 
 	KEventObject::~KEventObject()
@@ -95,13 +96,13 @@ namespace kroll
 		return listener->listenerId;
 	}
 
-	bool KEventObject::FireEvent(std::string& eventName)
+	bool KEventObject::FireEvent(std::string& eventName, bool synchronous)
 	{
 		AutoPtr<Event> event(this->CreateEvent(eventName));
 		return this->FireEvent(event);
 	}
 
-	bool KEventObject::FireEvent(AutoPtr<Event> event)
+	bool KEventObject::FireEvent(AutoPtr<Event> event, bool synchronous)
 	{
 		std::vector<EventListener*> listeners;
 		{
@@ -112,33 +113,37 @@ namespace kroll
 			listeners = *(KEventObject::listenerMap[this]);
 		}
 
+		KObjectRef thisObject(this, true);
 		std::vector<EventListener*>::iterator li = listeners.begin();
 		while (li != listeners.end())
 		{
 			EventListener* listener = *li++;
-			listener->FireEventIfMatches(event);
+			listener->FireEventIfMatches(event, synchronous, thisObject);
 
-			if (event->stopped)
+			if (synchronous && event->stopped)
 				return !event->preventedDefault;
 		}
 
 		if (this != GlobalObject::GetInstance().get())
-			GlobalObject::GetInstance()->FireEvent(event);
+			GlobalObject::GetInstance()->FireEvent(event, synchronous);
 
-		return !event->preventedDefault;
+		return !synchronous || !event->preventedDefault;
 	}
 
 	void KEventObject::_AddEventListener(const ValueList& args, KValueRef result)
 	{
 		unsigned int listenerId;
-		if (args.size() > 1 && args.at(0)->IsString() && args.at(1)->IsMethod()) {
-			std::string eventName = args.GetString(0);
+		if (args.size() > 1 && args.at(0)->IsString() && args.at(1)->IsMethod())
+		{
+			std::string eventName(args.GetString(0));
 			listenerId = this->AddEventListener(eventName, args.GetMethod(1));
-
-		} else if (args.size() > 0 && args.at(0)->IsMethod()) {
+		}
+		else if (args.size() > 0 && args.at(0)->IsMethod())
+		{
 			listenerId = this->AddEventListenerForAllEvents(args.GetMethod(0));
-
-		} else {
+		}
+		else
+		{
 			throw ValueException::FromString("Incorrect arguments passed to addEventListener");
 		}
 
@@ -149,24 +154,26 @@ namespace kroll
 	{
 		args.VerifyException("removeEventListener", "s n|m");
 
-		std::string eventName = args.GetString(0);
-		if (args.at(1)->IsMethod()) {
+		std::string eventName(args.GetString(0));
+		if (args.at(1)->IsMethod())
+		{
 			this->RemoveEventListener(eventName, args.GetMethod(1));
-		} else {
+		}
+		else
+		{
 			this->RemoveEventListener(eventName, args.GetInt(1));
 		}
 	}
 
-	void EventListener::FireEventIfMatches(AutoPtr<Event> event)
+	void EventListener::FireEventIfMatches(AutoPtr<Event> event, bool synchronous, KObjectRef thisObject)
 	{
 		if (event->eventName != this->eventName && this->eventName != Event::ALL)
 			return;
 
 		try
 		{
-			Host* host = Host::GetInstance();
-			host->InvokeMethodOnMainThread(
-				callback, ValueList(Value::NewObject(event)));
+			RunOnMainThread(callback, thisObject,
+				ValueList(Value::NewObject(event)), synchronous);
 		}
 		catch (ValueException& e)
 		{
