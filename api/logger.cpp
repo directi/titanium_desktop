@@ -416,6 +416,14 @@ namespace kroll
 			string logDirectory = FileUtils::Dirname(logFilePath);
 			File logDirectoryFile = File(logDirectory);
 			logDirectoryFile.createDirectories();
+			{
+				// appending timestamp for creating a new log file each time we run our application.
+				time_t t = time(NULL);
+				char time[200] = {0};
+				itoa(t, time, 10);
+				logFilePath += ".";
+				logFilePath += time;
+			}
 
 			this->logFile.open(logFilePath.c_str(), std::ios::out | std::ios::trunc);
 
