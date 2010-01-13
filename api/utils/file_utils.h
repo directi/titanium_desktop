@@ -68,7 +68,7 @@ namespace UTILS_NS
 		/**
 		 *
 		 */
-		KROLL_API bool IsFile(const std::string &file);
+		KROLL_API bool IsFile(std::string &file);
 
 		/**
 		 *
@@ -96,17 +96,8 @@ namespace UTILS_NS
 		KROLL_API bool CreateDirectory(std::string &dir, bool recursive=false);
 		KROLL_API bool CreateDirectoryImpl(std::string &dir);
 
-#ifdef OS_WIN32
-		// TODO: implement me for OSX/Linux
-		
 		/**
-		 * Delete the file at the given path
-		 */
-		KROLL_API bool DeleteFile(std::string &path);
-#endif
-		
-		/**
-		 * Recursively delete the directory at the given path
+		 *
 		 */
 		KROLL_API bool DeleteDirectory(std::string &dir);
 
@@ -174,16 +165,31 @@ namespace UTILS_NS
 		 * read the value of the runtime path from the host's current application.
 		 */
 		KROLL_API std::string GetUserRuntimeHomeDirectory();
+
+		/**
+		 *
+		 */
 		KROLL_API bool IsRuntimeInstalled();
-		KROLL_API int RunAndWait(std::string& path, std::vector<std::string>& args);
-		KROLL_API std::string GetUsername();
 
 #ifndef NO_UNZIP
-		typedef bool (*UnzipCallback)(char* message, int current,
-			int total, void* data);
-		KROLL_API bool Unzip(std::string& source, std::string& destination, 
-			UnzipCallback callback=0, void* data=0);
+		typedef void (*UnzipCallback)(char *message, int current, int total, void *data);
+		
+		/**
+		 *
+		 */
+		KROLL_API void Unzip(std::string& source, std::string& destination, 
+			UnzipCallback callback=NULL, void* data=NULL);
 #endif
+
+		/**
+		 *
+		 */
+		KROLL_API int RunAndWait(std::string& path, std::vector<std::string>& args);
+
+		/**
+		 *
+		 */
+		KROLL_API std::string GetUsername();
 	}
 }
 

@@ -16,24 +16,24 @@ namespace UTILS_NS
 	KROLL_API CFStringRef UTF8ToCFString(const std::string& input);
 	KROLL_API std::string CFErrorToString(CFErrorRef cferror);
 
-	// CFRef<> is patterned after scoped_ptr<>, but maintains ownership
+	// scoped_cftyperef<> is patterned after scoped_ptr<>, but maintains ownership
 	// of a CoreFoundation object: any object that can be represented as a
 	// CFTypeRef.  Style deviations here are solely for compatibility with
 	// scoped_ptr<>'s interface, with which everyone is already familiar.
 	//
-	// When CFRef<> takes ownership of an object (in the constructor or
+	// When scoped_cftyperef<> takes ownership of an object (in the constructor or
 	// in reset()), it takes over the caller's existing ownership claim.  The 
-	// caller must own the object it gives to CFRef<>, and relinquishes
-	// an ownership claim to that object.  CFRef<> does not call
+	// caller must own the object it gives to scoped_cftyperef<>, and relinquishes
+	// an ownership claim to that object.  scoped_cftyperef<> does not call
 	// CFRetain().
 	template<typename CFT>
-	class CFRef {
+	class scoped_cftyperef {
 	public:
 		typedef CFT element_type;
-		explicit CFRef(CFT object = NULL) :
+		explicit scoped_cftyperef(CFT object = NULL) :
 			object_(object) { }
 
-		~CFRef()
+		~scoped_cftyperef()
 		{
 			if (object_)
 				CFRelease(object_);
@@ -66,16 +66,16 @@ namespace UTILS_NS
 			return object_;
 		}
 
-		void swap(CFRef& that)
+		void swap(scoped_cftyperef& that)
 		{
 			CFT temp = that.object_;
 			that.object_ = object_;
 			object_ = temp;
 		}
 
-		// CFRef<>::release() is like scoped_ptr<>::release.  It is NOT
-		// a wrapper for CFRelease().  To force a CFRef<> object to call
-		// CFRelease(), use CFRef<>::reset().
+		// scoped_cftyperef<>::release() is like scoped_ptr<>::release.  It is NOT
+		// a wrapper for CFRelease().  To force a scoped_cftyperef<> object to call
+		// CFRelease(), use scoped_cftyperef<>::reset().
 		CFT release()
 		{
 			CFT temp = object_;

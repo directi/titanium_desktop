@@ -19,7 +19,7 @@ namespace UTILS_NS
 {
 namespace FileUtils
 {
-	static bool FileHasAttributes(const std::wstring& widePath, DWORD attributes)
+	static bool FileHasAttributes(std::wstring& widePath, DWORD attributes)
 	{
 		WIN32_FIND_DATA findFileData;
 		ZeroMemory(&findFileData, sizeof(WIN32_FIND_DATA));
@@ -39,7 +39,7 @@ namespace FileUtils
 		}
 	}
 
-	static bool FileHasAttributes(const std::string& path, DWORD attributes)
+	static bool FileHasAttributes(std::string& path, DWORD attributes)
 	{
 		std::wstring widePath(UTILS_NS::UTF8ToWide(path));
 		return FileHasAttributes(widePath, attributes);
@@ -72,7 +72,7 @@ namespace FileUtils
 		return FileUtils::Join(out.c_str(), end.c_str(), NULL);
 	}
 
-	bool IsFile(const std::string& file)
+	bool IsFile(std::string& file)
 	{
 		return FileHasAttributes(file, 0);
 	}
@@ -185,12 +185,6 @@ namespace FileUtils
 		return (::CreateDirectoryW(wideDir.c_str(), NULL) == TRUE);
 	}
 
-	bool DeleteFile(std::string &path)
-	{
-		// SHFileOperation doesn't care if it's a dir or file -- delegate
-		return DeleteDirectory(path);
-	}
-	
 	bool DeleteDirectory(std::string &dir)
 	{
 		std::wstring wideDir(UTILS_NS::UTF8ToWide(dir));
@@ -324,13 +318,12 @@ namespace FileUtils
 	}
 
 #ifndef NO_UNZIP
-	bool Unzip(std::string& source, std::string& destination, 
+	void Unzip(std::string& source, std::string& destination, 
 		UnzipCallback callback, void *data)
 	{
-		bool success = true;
 		std::wstring wideSource(UTILS_NS::UTF8ToWide(source));
 		std::wstring wideDestination(UTILS_NS::UTF8ToWide(destination));
-		
+
 		HZIP handle = OpenZip(wideSource.c_str(), 0);
 		SetUnzipBaseDir(handle, wideDestination.c_str());
 
@@ -358,18 +351,12 @@ namespace FileUtils
 				std::string message("Extracting ");
 				message.append(name);
 				message.append("...");
-				bool result = callback((char*) message.c_str(), zi, numItems, data);
-				if (!result)
-				{
-					success = false;
-					break;
-				}
+				callback((char*) message.c_str(), zi, numItems, data);
 			}
 			
 			UnzipItem(handle, zi, zipEntry.name);
 		}
 		CloseZip(handle);
-		return success;
 	}
 #endif
 

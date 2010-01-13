@@ -67,20 +67,20 @@ namespace KrollBoot
 	{
 		moduleList = app->runtime->path + ":" + moduleList;
 
-		string path(moduleList);
-		string currentFWPath(EnvironmentUtils::Get("DYLD_FRAMEWORK_PATH"));
-		EnvironmentUtils::Set("KR_ORIG_DYLD_FRAMEWORK_PATH", currentFWPath);
+		string path = moduleList;
+		string currentFWPath = EnvironmentUtils::Get("DYLD_FRAMEWORK_PATH");
 		if (!currentFWPath.empty())
+		{
 			path = path + ":" + currentFWPath;
-
+		}
 		EnvironmentUtils::Set("DYLD_FRAMEWORK_PATH", path);
 
 		path = moduleList;
-		string currentLibPath(EnvironmentUtils::Get("DYLD_LIBRARY_PATH"));
-		EnvironmentUtils::Set("KR_ORIG_DYLD_LIBRARY_PATH", currentLibPath);
+		string currentLibPath = EnvironmentUtils::Get("DYLD_LIBRARY_PATH");
 		if (!currentLibPath.empty())
+		{
 			path = path + ":" + currentLibPath;
-
+		}
 		EnvironmentUtils::Set("DYLD_LIBRARY_PATH", path);
 
 		const char* executablePath = 

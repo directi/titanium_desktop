@@ -84,7 +84,6 @@ namespace kroll
 			{
 			 	if (!lastCharacterWasComma)
 					out += ", ";
-				lastCharacterWasComma = true;
 				continue;
 			}
 

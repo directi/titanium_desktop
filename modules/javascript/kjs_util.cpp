@@ -763,15 +763,14 @@ namespace KJSUtil
 
 		JSObjectRef globalObject = JSContextGetGlobalObject(jsContext);
 		std::string scriptContents(FileUtils::ReadFile(fullPath));
-		std::string fileURL(URLUtils::PathToFileURL(fullPath));
-		
+
 		JSStringRef script = JSStringCreateWithUTF8CString(scriptContents.c_str());
-		JSStringRef jsFileURL = JSStringCreateWithUTF8CString(fileURL.c_str());
+		JSStringRef jsFullPath = JSStringCreateWithUTF8CString(fullPath.c_str());
 		JSValueRef exception = NULL;
 		JSValueRef returnValue = JSEvaluateScript(jsContext, script, globalObject, 
-			jsFileURL, 0, &exception);
+			jsFullPath, 0, &exception);
 		JSStringRelease(script);
-		JSStringRelease(jsFileURL);
+		JSStringRelease(jsFullPath);
 
 		if (exception != NULL)
 		{

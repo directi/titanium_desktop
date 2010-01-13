@@ -5,18 +5,15 @@
  */
 
 #include <Poco/Semaphore.h>
-#include "kroll.h"
+#include "linux_job.h"
 
 namespace kroll
 {
-
-	MainThreadJob::MainThreadJob(KMethodRef method, KObjectRef thisObject,
-		const ValueList& args, bool waitForCompletion) :
+	LinuxJob::LinuxJob(KMethodRef method, const ValueList& args, bool synchronous) :
 		method(method),
-		thisObject(thisObject),
 		args(args),
-		waitForCompletion(waitForCompletion),
-		returnValue(NULL),
+		synchronous(synchronous),
+		return_value(NULL),
 		exception(ValueException(NULL)),
 		semaphore(0, 1)
 	{
@@ -26,20 +23,17 @@ namespace kroll
 		// which meets this condition.
 	}
 
-	void MainThreadJob::Wait()
+	void LinuxJob::Wait()
 	{
-		if (this->waitForCompletion)
+		if (this->synchronous)
 			this->semaphore.wait();
 	}
 
-	void MainThreadJob::Execute()
+	void LinuxJob::Execute()
 	{
 		try
 		{
-			if (thisObject.isNull())
-				this->returnValue = this->method->Call(this->args);
-			else
-				this->returnValue = this->method->Call(thisObject, this->args);
+			this->return_value = this->method->Call(this->args);
 		}
 		catch (ValueException& e)
 		{
@@ -58,32 +52,31 @@ namespace kroll
 			this->exception = ValueException::FromString("Unknown Exception from job queue");
 		}
 
-		if (this->waitForCompletion)
+		if (this->synchronous)
 			this->semaphore.set();
 	}
 
-	KValueRef MainThreadJob::GetResult()
+	KValueRef LinuxJob::GetResult()
 	{
-		return this->returnValue;
+		return this->return_value;
 	}
 
-	ValueException MainThreadJob::GetException()
+	ValueException LinuxJob::GetException()
 	{
 		return this->exception;
 	}
 
-	bool MainThreadJob::ShouldWaitForCompletion()
+	bool LinuxJob::IsSynchronous()
 	{
-		return this->waitForCompletion;
+		return this->synchronous;
 	}
 
-	void MainThreadJob::PrintException()
+	void LinuxJob::PrintException()
 	{
-		static Logger* logger = Logger::Get("Host");
-		if (this->returnValue.isNull())
+		if (this->return_value.isNull())
 		{
-			logger->Error("Error in the job queue: %s",
-				this->exception.ToString().c_str());
+			SharedString ss = this->exception.GetValue()->DisplayString();
+			std::cout << "Exception in job queue: " << *ss << std::endl;
 		}
 	}
 }

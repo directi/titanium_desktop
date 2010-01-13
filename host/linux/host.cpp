@@ -1,11 +1,8 @@
 /**
  * Appcelerator Kroll - licensed under the Apache Public License 2
  * see LICENSE in the root folder for details on the license. 
- * Copyright (c) 2008, 2009 Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
-
-#include "host.h"
-
 #include <iostream>
 #include <vector>
 #include <cstring>
@@ -15,22 +12,15 @@
 #include <gdk/gdk.h>
 #include <api/kroll.h>
 
-#include <gnutls/gnutls.h>
-#include <gcrypt.h>
-#include <errno.h>
-#include <pthread.h>
+#include "host.h"
+#include "linux_job.h"
 
-GCRY_THREAD_OPTION_PTHREAD_IMPL;
 using Poco::ScopedLock;
 using Poco::Mutex;
 
 namespace kroll
 {
-	static gboolean MainThreadJobCallback(gpointer data)
-	{
-		static_cast<Host*>(data)->RunMainThreadJobs();
-		return TRUE;
-	}
+	static gboolean MainThreadJobCallback(gpointer);
 
 	LinuxHost::LinuxHost(int argc, const char *argv[]) : Host(argc, argv)
 	{
@@ -40,28 +30,21 @@ namespace kroll
 			g_thread_init(NULL);
 
 		this->mainThread = pthread_self();
-
-		// Initialize gnutls for multi-threaded usage.
-		gcry_control(GCRYCTL_SET_THREAD_CBS, &gcry_threads_pthread);
-		gnutls_global_init();
 	}
 
 	LinuxHost::~LinuxHost()
 	{
 	}
 
-	void LinuxHost::Exit(int returnCode)
+	void LinuxHost::Exit(int return_code)
 	{
-		// Only call this if gtk_main is running. If called when the gtk_main
-		// is not running, it will cause an assertion failure.
-		static bool mainLoopRunning = true;
-		if (mainLoopRunning)
+		if (this->running)
 		{
-			mainLoopRunning = false;
+			// Only call this if gtk main is running.
+			// If called when not running will cause an assert!
 			gtk_main_quit();
 		}
-
-		Host::Exit(returnCode);
+		Host::Exit(return_code);
 	}
 
 	const char* LinuxHost::GetPlatform()
@@ -76,12 +59,14 @@ namespace kroll
 
 	bool LinuxHost::RunLoop()
 	{
-		string origPath(EnvironmentUtils::Get("KR_ORIG_LD_LIBRARY_PATH"));
-		EnvironmentUtils::Set("LD_LIBRARY_PATH", origPath);
-
 		g_timeout_add(250, &MainThreadJobCallback, this);
 		gtk_main();
 		return false;
+	}
+
+	bool LinuxHost::IsMainThread()
+	{
+		return pthread_equal(this->mainThread, pthread_self());
 	}
 
 	Module* LinuxHost::CreateModule(std::string& path)
@@ -106,9 +91,85 @@ namespace kroll
 		return create(this, dir.c_str());
 	}
 
-	bool LinuxHost::IsMainThread()
+	Poco::Mutex& LinuxHost::GetJobQueueMutex()
 	{
-		return pthread_equal(this->mainThread, pthread_self());
+		return this->jobQueueMutex;
+	}
+
+	std::vector<LinuxJob*>& LinuxHost::GetJobs()
+	{
+		return this->jobs;
+	}
+
+	KValueRef LinuxHost::InvokeMethodOnMainThread(
+		KMethodRef method,
+		const ValueList& args,
+		bool synchronous)
+	{
+		LinuxJob* job = new LinuxJob(method, args, synchronous);
+		if (this->IsMainThread() && synchronous)
+		{
+			job->Execute();
+		}
+		else
+		{
+			Poco::ScopedLock<Poco::Mutex> s(this->GetJobQueueMutex());
+			this->jobs.push_back(job); // Enqueue job
+		}
+
+		if (!synchronous)
+		{
+			return Value::Undefined; // Handler will cleanup
+		}
+		else
+		{
+			// If this is the main thread, Wait() will fall
+			// through because we've already called Execute() above.
+			job->Wait(); 
+
+			KValueRef r = job->GetResult();
+			ValueException e = job->GetException();
+			delete job;
+
+			if (!r.isNull())
+				return r;
+			else
+				throw e;
+		}
+	}
+
+	static gboolean MainThreadJobCallback(gpointer data)
+	{
+		LinuxHost *host = (LinuxHost*) data;
+
+		// Prevent other threads trying to queue while we clear the queue.
+		// But don't block the invocation task while we actually execute
+		// the jobs -- one of these jobs may try to add something to the
+		// job queue -- deadlock-o-rama
+		std::vector<LinuxJob*> jobs;
+		{
+			Poco::ScopedLock<Poco::Mutex> s(host->GetJobQueueMutex());
+			jobs = host->GetJobs();
+			host->GetJobs().clear();
+		}
+
+		std::vector<LinuxJob*>::iterator j = jobs.begin();
+		while (j != jobs.end())
+		{
+			LinuxJob* job = *j++;
+
+			// Job might be freed soon after Execute()
+			bool asynchronous = !job->IsSynchronous();
+			job->Execute();
+
+			if (asynchronous)
+			{
+				job->PrintException();
+				delete job;
+			}
+		}
+
+		return TRUE;
 	}
 }
 

@@ -151,7 +151,7 @@ namespace PlatformUtils
 			{
 				std::string line;
 				std::getline(file, line);
-				line = FileUtils::Trim(line);
+				FileUtils::Trim(line);
 				file.close();
 				return line;
 			}

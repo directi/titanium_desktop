@@ -4,6 +4,7 @@
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
 #include "javascript_module.h"
+#include <cstdio>
 
 namespace kroll
 {

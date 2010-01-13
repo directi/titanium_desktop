@@ -3,105 +3,23 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
-#include "host.h"
-
 #include <iostream>
 #include <vector>
+#include <cstring>
 #include <dlfcn.h>
 #include <string>
-#include <signal.h>
 #import <Cocoa/Cocoa.h>
-#include <openssl/crypto.h>
-#include <Poco/Mutex.h>
-
-@interface KrollMainThreadCaller : NSObject
-{
-	MainThreadJob* job;
-}
-- (id)initWithJob:(MainThreadJob*)jobIn;
-- (void)execute;
-@end
-
-@implementation KrollMainThreadCaller
-- (id)initWithJob:(MainThreadJob*)jobIn
-{
-	self = [super init];
-	if (self)
-	{
-		job = jobIn;
-	}
-	return self;
-}
-- (void)dealloc
-{
-	delete job;
-	[super dealloc];
-}
-- (MainThreadJob*)job
-{
-	return job;
-}
-- (void)execute
-{
-	job->Execute();
-
-	// When executing asynchronously, we need to clean ourselves up.
-	if (!job->ShouldWaitForCompletion())
-	{
-		job->PrintException();
-		[self release];
-	}
-}
-@end
+#include "host.h"
+#include <signal.h>
 
 namespace kroll
 {
-	static NSThread* mainThread;
-	static Poco::Mutex* cryptoMutexes = 0;
-
-	static void CryptoLockingCallback(int mode, int n, const char* file, int line)
-	{
-		if (mode & CRYPTO_LOCK)
-			cryptoMutexes[n].lock();
-		else
-			cryptoMutexes[n].unlock();
-	}
-
-	static unsigned long CryptoThreadIdCallback(void)
-	{
-		return ((unsigned long) pthread_self());
-	}
-
-	static void InitializeCryptoMutexes()
-	{
-		if (!cryptoMutexes)
-		{
-			cryptoMutexes = new Poco::Mutex[CRYPTO_num_locks()];
-			CRYPTO_set_id_callback(CryptoThreadIdCallback);
-			CRYPTO_set_locking_callback(CryptoLockingCallback);
-		}
-	}
-
-	static void CleanupCryptoMutexes()
-	{
-		delete [] cryptoMutexes;
-		cryptoMutexes = 0;
-	}
-
 	OSXHost::OSXHost(int _argc, const char **_argv) : Host(_argc,_argv)
 	{
-		InitializeCryptoMutexes();
-		mainThread = [NSThread currentThread];
 	}
 
 	OSXHost::~OSXHost()
 	{
-		CleanupCryptoMutexes();
-	}
-
-	bool OSXHost::IsMainThread()
-	{
-		return [NSThread currentThread] == mainThread;
 	}
 
 	const char* OSXHost::GetPlatform()
@@ -134,12 +52,8 @@ namespace kroll
 
 	bool OSXHost::Start()
 	{
-		string origPath(EnvironmentUtils::Get("KR_ORIG_DYLD_FRAMEWORK_PATH"));
-		EnvironmentUtils::Set("DYLD_FRAMEWORK_PATH", origPath);
-		origPath = EnvironmentUtils::Get("KR_ORIG_DYLD_LIBRARY_PATH");
-		EnvironmentUtils::Set("DYLD_LIBRARY_PATH", origPath);
-
-		[[NSApplication sharedApplication] finishLaunching];
+		NSApplication *app = [NSApplication sharedApplication];
+		[app finishLaunching];
 		Host::Start();
 		return true;
 	}
@@ -207,51 +121,160 @@ namespace kroll
 		void* handle = dlopen(path.c_str(), RTLD_LAZY | RTLD_GLOBAL);
 		if (!handle)
 		{
-			throw ValueException::FromFormat("Error loading module (%s): %s\n",
-				path.c_str(), dlerror());
+			throw ValueException::FromFormat("Error loading module (%s): %s\n", path.c_str(), dlerror());
 		}
 
 		// Get the module factory symbol.
 		ModuleCreator* create = (ModuleCreator*) dlsym(handle, "CreateModule");
 		if (!create)
 		{
-			throw ValueException::FromFormat("Cannot load CreateModule symbol from module "
-				"(%s): %s\n", path.c_str(), dlerror());
+			throw ValueException::FromFormat("Cannot load CreateModule symbol from module (%s): %s\n", path.c_str(), dlerror());
 		}
 
 		std::string dir(FileUtils::GetDirectory(path));
 		return create(this, dir.c_str());
 	}
+}
 
-	KValueRef OSXHost::RunOnMainThread(KMethodRef method, KObjectRef thisObject,
-		const ValueList& args, bool waitForCompletion)
+@interface KrollMainThreadCaller : NSObject
+{
+	KMethodRef *method;
+	KValueRef *result;
+	KValueRef *exception;
+	ValueList *args;
+	bool wait;
+}
+- (id)initWithKMethod:(KMethodRef)method args:(const ValueList*)args wait:(bool)wait;
+- (void)call;
+- (KValueRef)getResult;
+- (KValueRef)getException;
+@end
+
+@implementation KrollMainThreadCaller
+- (id)initWithKMethod:(KMethodRef)m args:(const ValueList*)a wait:(bool)w
+{
+	self = [super init];
+	if (self)
 	{
-		if (this->IsMainThread() && waitForCompletion)
+		method = new KMethodRef(m);
+		args = new ValueList();
+		for (size_t c=0;c<a->size();c++)
+		{
+			args->push_back(a->at(c));
+		}
+		wait = w;
+		result = new KValueRef();
+		exception = new KValueRef();
+	}
+	return self;
+}
+- (void)dealloc
+{
+	delete result;
+	delete exception;
+	delete method;
+	delete args;
+	[super dealloc];
+}
+- (KValueRef)getResult
+{
+	return *result;
+}
+- (KValueRef)getException
+{
+	return *exception;
+}
+- (void)call
+{
+	try
+	{
+		result->assign((*method)->Call(*args));
+	}
+	catch (ValueException &e)
+	{
+		exception->assign(e.GetValue());
+	}
+	catch (std::exception &e)
+	{
+		exception->assign(Value::NewString(e.what()));
+	}
+	catch (...)
+	{
+		exception->assign(Value::NewString("unhandled exception"));
+	}
+
+	if (!wait)
+	{
+		// on non-blocking we own ourselves and need to release
+		[self release];
+	}
+}
+@end
+
+@interface NSThread(isMainThreadIsSafeReally)
++ (BOOL) isMainThread;
+@end
+
+@interface NSThread(isMainThreadLegacy)
++ (void) TiLegacyGetCurrentThread: (NSMutableData *) currentThreadData;
+@end
+
+@implementation NSThread(isMainThreadLegacy)
++ (void) TiLegacyGetCurrentThread: (NSMutableData *) currentThreadData;
+{
+	NSThread * currentThread = [NSThread currentThread];
+	NSRange pointerRange = NSMakeRange(0,sizeof(NSThread *));
+	[currentThreadData replaceBytesInRange:pointerRange withBytes:&currentThread]; //This copies the contents of currentThread, not its address.
+}
+@end
+
+namespace kroll
+{
+	KValueRef OSXHost::InvokeMethodOnMainThread(
+		KMethodRef method,
+		const ValueList& args,
+		bool waitForCompletion)
+	{
+		// make sure to just invoke if we're already on the
+		// main thread
+		bool isMainThread;
+		if ([NSThread respondsToSelector:@selector(isMainThread)]) 
+		{
+			isMainThread = [NSThread isMainThread];
+		} 
+		else 
+		{
+			NSMutableData * mainThreadData= [[NSMutableData alloc] initWithLength:sizeof(NSThread *)];
+			[NSThread performSelectorOnMainThread:@selector(TiLegacyGetCurrentThread:) withObject:mainThreadData waitUntilDone:YES];
+			NSThread * mainThread = *((id *)[mainThreadData bytes]);
+			isMainThread = mainThread == [NSThread currentThread];
+			[mainThreadData release];
+		}
+
+		if (isMainThread && waitForCompletion)
 		{
 			return method->Call(args);
 		}
-
-		MainThreadJob* job = new MainThreadJob(method, thisObject,
-			args, waitForCompletion);
-		KrollMainThreadCaller* caller = 
-			[[KrollMainThreadCaller alloc] initWithJob:job];
-		[caller performSelectorOnMainThread:@selector(execute)
-			withObject:nil waitUntilDone:waitForCompletion];
-
+		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+		KrollMainThreadCaller *caller = [[KrollMainThreadCaller alloc] initWithKMethod:method args:&args wait:waitForCompletion];
+		[caller performSelectorOnMainThread:@selector(call) withObject:nil waitUntilDone:waitForCompletion];
 		if (!waitForCompletion)
 		{
-			// The job will release itself.
+			[pool release];
 			return Value::Undefined;
 		}
-
-		KValueRef result(job->GetResult());
-		ValueException exception(job->GetException());
-		[caller release];
-
-		if (!result.isNull())
+		KValueRef exception = [caller getException];
+		if (exception.isNull())
+		{
+			KValueRef result = [caller getResult];
+			[caller release];
+			[pool release];
 			return result;
-		else
-			throw exception;
+		}
+		[caller release];
+		[pool release];
+		throw ValueException(exception);
+		return Value::Undefined;
 	}
 }
 

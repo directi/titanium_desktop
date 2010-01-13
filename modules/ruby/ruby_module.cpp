@@ -19,11 +19,14 @@ namespace kroll
 		ruby_init();
 		ruby_init_loadpath();
 
+		string modulePath = this->GetPath();
+
 		// Add the application directoy to the Ruby include path so
 		// that includes work in a intuitive way for application developers.
 		ruby_incpush(host->GetApplication()->GetResourcesPath().c_str());
 
 		this->InitializeBinding();
+
 		host->AddModuleProvider(this);
 	}
 

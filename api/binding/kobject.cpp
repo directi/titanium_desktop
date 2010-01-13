@@ -30,21 +30,28 @@ namespace kroll
 	{
 		std::stringstream ss;
 
-		SharedStringList props = this->GetPropertyNames();
-		ss << "(" << this->GetType() << ")" << " {";
-		for (size_t i = 0; i < props->size(); i++)
+		if (levels == 0)
 		{
-			KValueRef prop = this->Get(props->at(i));
-			SharedString disp_string = prop->DisplayString(levels);
-
-			ss << " " << *(props->at(i))
-			    << " : " << *disp_string << ",";
+			ss << "<KObject at " << this << ">";
 		}
+		else
+		{
+			SharedStringList props = this->GetPropertyNames();
+			ss << "{";
+			for (size_t i = 0; i < props->size(); i++)
+			{
+				KValueRef prop = this->Get(props->at(i));
+				SharedString disp_string = prop->DisplayString(levels);
 
-		if (props->size() > 0) // Erase last comma
-			ss.seekp((int)ss.tellp() - 1);
+				ss << " " << *(props->at(i))
+				    << " : " << *disp_string << ",";
+			}
 
-		ss << "}";
+			if (props->size() > 0) // Erase last comma
+				ss.seekp((int)ss.tellp() - 1);
+
+			ss << "}";
+		}
 
 		return new std::string(ss.str());
 	}

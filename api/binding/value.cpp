@@ -16,35 +16,39 @@ namespace kroll
 		if (this->IsString() && this->stringValue)
 		{
 			free(this->stringValue);
-			this->stringValue = 0;
+			this->stringValue = NULL;
 		}
 		this->type = UNDEFINED;
-		this->objectValue = 0;
-		this->stringValue = 0;
+		this->objectValue = NULL;
+		this->stringValue = NULL;
 		this->numberValue = 0;
+		this->voidPtrValue = NULL;
 	}
 
 	Value::Value() :
 		type(UNDEFINED),
 		numberValue(0),
-		stringValue(0),
-		objectValue(0)
+		stringValue(NULL),
+		objectValue(NULL),
+		voidPtrValue(NULL)
 	{
 	}
 
 	Value::Value(KValueRef value) :
 		type(UNDEFINED),
 		numberValue(0),
-		stringValue(0),
-		objectValue(0)
+		stringValue(NULL),
+		objectValue(NULL),
+		voidPtrValue(NULL)
 	{
 		this->SetValue(value);
 	}
 
 	Value::Value(const Value& value) : type(UNDEFINED),
 		numberValue(0),
-		stringValue(0),
-		objectValue(0)
+		stringValue(NULL),
+		objectValue(NULL),
+		voidPtrValue(NULL)
 	{
 		this->SetValue((Value*) &value);
 	}
@@ -123,6 +127,13 @@ namespace kroll
 		return v;
 	}
 
+	KValueRef Value::NewVoidPtr(void *value)
+	{
+		KValueRef v(new Value());
+		v->SetVoidPtr(value);
+		return v;
+	}
+
 	KValueRef Value::NewObject(KObjectRef value)
 	{
 		KValueRef v(new Value());
@@ -141,6 +152,7 @@ namespace kroll
 	bool Value::IsList() const { return type == LIST; }
 	bool Value::IsObject() const { return this->type == OBJECT; }
 	bool Value::IsMethod() const { return type == METHOD; }
+	bool Value::IsVoidPtr() const { return type == VOIDPTR; }
 	bool Value::IsNull() const { return type == NULLV; }
 	bool Value::IsUndefined() const { return type == UNDEFINED; }
 
@@ -152,6 +164,7 @@ namespace kroll
 	KObjectRef Value::ToObject() const { return objectValue; }
 	KMethodRef Value::ToMethod() const { return objectValue.cast<KMethod>(); }
 	KListRef Value::ToList() const { return objectValue.cast<KList>(); }
+	void* Value::ToVoidPtr() const { return voidPtrValue; }
 
 	void Value::SetValue(KValueRef other)
 	{
@@ -177,6 +190,9 @@ namespace kroll
 
 		else if (other->IsMethod())
 			this->SetMethod(other->ToMethod());
+
+		else if (other->IsVoidPtr())
+			this->SetVoidPtr(other->ToVoidPtr());
 
 		else if (other->IsObject())
 			this->SetObject(other->ToObject());
@@ -262,6 +278,13 @@ namespace kroll
 		}
 	}
 
+	void Value::SetVoidPtr(void *value)
+	{
+		reset();
+		this->voidPtrValue = value;
+		type = VOIDPTR;
+	}
+
 	void Value::SetNull()
 	{
 		reset();
@@ -292,6 +315,10 @@ namespace kroll
 			&& this->ToString() == i->ToString())
 			return true;
 
+		if (this->IsVoidPtr() && i->IsVoidPtr()
+			&& this->ToVoidPtr() == i->ToVoidPtr())
+			return true;
+
 		if (this->IsNull() && i->IsNull())
 			return true;
 
@@ -309,48 +336,59 @@ namespace kroll
 	SharedString Value::DisplayString(int levels)
 	{
 		std::ostringstream oss;
-		switch (this->type)
+		if (this->IsInt())
 		{
-			case INT:
-				oss << this->ToInt() << "i";
-				break;
-
-			case DOUBLE:
-				oss << this->ToDouble() << "d";
-				break;
-
-			case BOOL:
-				oss << (this->ToBool() ? "true" : "false");
-				break;
-
-			case STRING:
-				oss << "\"" << this->ToString() << "\"";
-				break;
-
-			case LIST:
-			case OBJECT:
-			case METHOD:
-			{
-				KObjectRef o(this->ToObject());
-				if (levels == 0)
-				{
-					oss << "<" << o->GetType() << " at " << o.get() << ">";
-				}
-				else
-				{
-					SharedString ss(this->ToObject()->DisplayString(levels-1));
-					oss << *ss;
-				}
-				break;
-			}
-
-			case NULLV:
-				oss << "<null>";
-				break;
-
-			case UNDEFINED:
-				oss << "<undefined>";
-				break;
+			oss << this->ToInt() << "i";
+		}
+		else if (this->IsDouble())
+		{
+			oss << this->ToDouble() << "d";
+		}
+		else if (this->IsBool())
+		{
+			if (this->ToBool())
+				oss << "true";
+			else
+				oss << "false";
+		}
+		else if (this->IsString())
+		{
+			oss << "\"" << this->ToString() << "\"";
+		}
+		else if (this->IsList())
+		{
+			KListRef list = this->ToList();
+			SharedString disp_string = list->DisplayString(levels-1);
+			oss << *disp_string;
+		}
+		else if (this->IsMethod())
+		{
+			KMethodRef meth = this->ToMethod();
+			SharedString disp_string = meth->DisplayString(levels-1);
+			oss << *disp_string;
+		}
+		else if (this->IsObject())
+		{
+			KObjectRef obj = this->ToObject();
+			SharedString disp_string = obj->DisplayString(levels-1);
+			oss << *disp_string;
+		}
+		else if (this->IsVoidPtr())
+		{
+			void *value = this->ToVoidPtr();
+			oss << "<void* addr: " << value << ">";
+		}
+		else if (this->IsNull())
+		{
+			oss << "<null>";
+		}
+		else if (this->IsUndefined())
+		{
+			oss << "<undefined>";
+		}
+		else
+		{
+			oss << "<unknown>";
 		}
 
 		return new std::string(oss.str());
@@ -361,24 +399,35 @@ namespace kroll
 		static std::string numberString = "Number";
 		static std::string booleanString = "Boolean";
 		static std::string stringString = "String";
+		static std::string voidPtrString = "VoidPtr";
 		static std::string nullString = "Null";
 		static std::string undefinedString = "Undefined";
 		static std::string unknownString = "Unknown";
 
-		if (IsInt() || IsDouble())
+		if (IsInt() || IsDouble()) {
 			return numberString;
-		else if (IsBool())
+
+		} else if (IsBool()) {
 			return booleanString;
-		else if (IsString())
+
+		} else if (IsString()) {
 			return stringString;
-		else if (IsList() || IsObject() || IsMethod())
+
+		} else if (IsList() || IsObject() || IsMethod()) {
 			return this->ToObject()->GetType();
-		else if (IsNull())
+
+		} else if (IsVoidPtr()) {
+			return voidPtrString;
+
+		} else if (IsNull()) {
 			return nullString;
-		else if (IsUndefined())
+
+		} else if (IsUndefined()) {
 			return undefinedString;
-		else
+
+		} else {
 			return unknownString;
+		}
 	}
 
 	void Value::Unwrap(KValueRef value)
@@ -388,18 +437,15 @@ namespace kroll
 			return;
 		}
 
-		if (value->IsMethod())
-		{
+		if (value->IsMethod()) {
 			KMethodRef list = KMethod::Unwrap(value->ToMethod());
 			value->SetMethod(list);
-		}
-		else if (value->IsList())
-		{
+
+		} else if (value->IsList()) {
 			KListRef list = KList::Unwrap(value->ToList());
 			value->SetList(list);
-		}
-		else if (value->IsObject())
-		{
+
+		} else if (value->IsObject()) {
 			KObjectRef obj = KObject::Unwrap(value->ToObject());
 			value->SetObject(obj);
 		}

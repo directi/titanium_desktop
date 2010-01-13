@@ -13,6 +13,7 @@
 #include <Poco/ScopedLock.h>
 #include <Poco/Mutex.h>
 #include <Poco/Condition.h>
+#include "win32_job.h"
 #include "event_window.h"
  
 #ifdef KROLL_HOST_EXPORT
@@ -28,30 +29,38 @@ namespace kroll
 	public:
 		Win32Host(HINSTANCE hInstance, int argc, const char **argv);
 		virtual ~Win32Host();
-		static void InitOLE();
-		virtual Module* CreateModule(std::string& path);
-		const char* GetPlatform();
-		const char* GetModuleSuffix();
-		virtual bool IsMainThread();
 
-		HWND AddMessageHandler(MessageHandler handler);
-		HINSTANCE GetInstanceHandle() { return instanceHandle; }
-		HWND GetEventWindow() { return eventWindow.GetHandle(); }
-		static inline Win32Host* Win32Instance()
+		static inline SharedPtr<Win32Host> Win32Instance()
 		{
-			return static_cast<Win32Host*>(Host::GetInstance());
+			return Host::GetInstance().cast<Win32Host>();
 		}
 
+		static void InitOLE();
+		virtual Module* CreateModule(std::string& path);
+
+		HINSTANCE GetInstanceHandle() { return instanceHandle; }
+		KValueRef InvokeMethodOnMainThread(KMethodRef method, 
+			const ValueList& args, bool waitForCompletion=true);
+		const char* GetPlatform();
+		const char* GetModuleSuffix();
+		HWND AddMessageHandler(MessageHandler handler);
+		HWND GetEventWindow() { return eventWindow.GetHandle(); }
+		
 	protected:
-		virtual void SignalNewMainThreadJob();
-		virtual bool RunLoop();
-		virtual bool Start();
+		bool RunLoop();
+		bool Start();
+		Poco::Mutex& GetJobQueueMutex();
+		std::vector<Win32Job*>& GetJobs();
+		static UINT tickleRequestMessage;
+		EventWindow eventWindow;
 
 	private:
 		HINSTANCE instanceHandle;
 		static bool oleInitialized;
-		DWORD mainThreadId;
-		EventWindow eventWindow;
+		void InvokeMethods();
+		DWORD threadId;
+		Poco::Mutex jobQueueMutex;
+		std::vector<Win32Job*> jobs;
 	};
 }
 
