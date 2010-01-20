@@ -245,8 +245,7 @@ namespace ti
 
 	void FilesystemBinding::GetXMLLogger(const ValueList& args, KValueRef result)
 	{
-		std::string filename;
-		this->ResolveFileName(args, filename);
+		std::string filename = args.at(0)->ToString();
 		std::string rootXMLText = args.at(1)->ToString();
 		std::string xsltFile = args.at(2)->ToString();
 		ti::Logger* logger = new ti::Logger(filename, rootXMLText, xsltFile);
