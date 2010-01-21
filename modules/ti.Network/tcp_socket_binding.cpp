@@ -11,6 +11,11 @@
 
 namespace ti
 {
+	static kroll::Logger* GetLogger()
+	{
+		return kroll::Logger::Get("Network.TCPSocket");
+	}
+
 	TCPSocketBinding::TCPSocketBinding(Host* ti_host, std::string host, int port) :
 		StaticBoundObject("Network.TCPSocket"),
 		ti_host(ti_host),
@@ -132,6 +137,7 @@ namespace ti
 			this->socket.connectNB(a);
 			this->thread.start(this->reactor);
 			this->opened = true;
+			this->readyForFirstWrite = true;
 			result->SetBool(true);
 		}
 		catch(Poco::IOException &e)
@@ -147,6 +153,7 @@ namespace ti
 			throw ValueException::FromString(eprefix + "Unknown exception");
 		}
 	}
+	// called when the socket is ready for read.
 	void TCPSocketBinding::OnRead(const Poco::AutoPtr<ReadableNotification>& n)
 	{
 		std::string eprefix = "TCPSocketBinding::OnRead: ";
@@ -173,34 +180,60 @@ namespace ti
 		}
 		catch(ValueException& e)
 		{
-			std::cerr << eprefix << *(e.GetValue()->DisplayString()) << std::endl;
-			ValueList args(Value::NewString(e.ToString()));
-			ti_host->InvokeMethodOnMainThread(this->onError, args, false);
+			GetLogger()->Error("Read Failed: %s", e.ToString().c_str());
+			if(!this->onError.isNull())
+			{
+				ValueList args(Value::NewString(e.ToString()));
+				ti_host->InvokeMethodOnMainThread(this->onError, args, false);
+			}
 		}
 		catch(Poco::Exception &e)
 		{
-			std::cerr << eprefix << e.displayText() << std::endl;
-			ValueList args(Value::NewString(e.displayText()));
-			ti_host->InvokeMethodOnMainThread(this->onError, args, false);
+			GetLogger()->Error("Read failed: %s", e.displayText().c_str());
+			if(!this->onError.isNull())
+			{
+				ValueList args(Value::NewString(e.displayText()));
+				ti_host->InvokeMethodOnMainThread(this->onError, args, false);
+			}
 		}
 		catch(...)
 		{
-			std::cerr << eprefix << "Unknown exception" << std::endl;
-			ValueList args(Value::NewString("Unknown exception"));
-			ti_host->InvokeMethodOnMainThread(this->onError, args, false);
+			 GetLogger()->Error("Read failed: Unknown Exception");
+			if(!this->onError.isNull())
+			{
+				ValueList args(Value::NewString("Unknown exception"));
+				ti_host->InvokeMethodOnMainThread(this->onError, args, false);
+			}
 		}
 	}
+	//Called when the socket is ready for write
 	void TCPSocketBinding::OnWrite(const Poco::AutoPtr<WritableNotification>& n)
 	{
 		int count = 0;
-
+		if(this->readyForFirstWrite)
+		{
+			this->socket.setKeepAlive(true);
+			this->readyForFirstWrite = false;
+		}
+		try
 		{
 			Poco::Mutex::ScopedLock lock(bufferMutex);
 			if (!buffer.empty())
 			{
 				count = this->socket.sendBytes(buffer.c_str(), buffer.length());
+				//Why are we not verifying here that all the buffer is written here?
+				//Shouldn't we check count == buffer.length() before clearing the buffer?
 				buffer.clear();
 			}
+		}
+		catch (...)
+		{
+			GetLogger()->Error("Write failed: Unknown Exception");
+			if(!this->onError.isNull()){
+				ValueList args(Value::NewString("Unknown exception"));
+				ti_host->InvokeMethodOnMainThread(this->onError, args, false);
+			}
+
 		}
 
 		if (!this->onWrite.isNull())
@@ -225,6 +258,7 @@ namespace ti
 	}
 	void TCPSocketBinding::OnError(const Poco::AutoPtr<ErrorNotification>& n)
 	{
+		GetLogger()->Error("Socket Error!");
 		if (this->onError.isNull())
 		{
 			return;

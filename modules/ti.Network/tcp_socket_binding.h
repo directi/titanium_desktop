@@ -47,6 +47,7 @@ namespace ti
 		SocketReactor reactor;
 		Thread thread;
 		bool opened;
+		bool readyForFirstWrite;
 		std::string buffer;
 		Poco::Mutex bufferMutex; 
 
