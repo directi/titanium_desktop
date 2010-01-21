@@ -729,7 +729,7 @@ void Win32UserWindow::SetURL(std::string& url_)
 	}
 
 	logger->Debug("set focus");
-	//SetFocus(viewWindowHandle);
+	SetFocus(viewWindowHandle);
 
 exit:
 	if (request)
