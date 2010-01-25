@@ -224,6 +224,8 @@ namespace ti
 				//Why are we not verifying here that all the buffer is written here?
 				//Shouldn't we check count == buffer.length() before clearing the buffer?
 				buffer.clear();
+			}else{
+				return;
 			}
 		}
 		catch (...)
@@ -236,15 +238,11 @@ namespace ti
 
 		}
 
-		if (!this->onWrite.isNull())
+		if (count >0 && !this->onWrite.isNull())
 		{
 			ValueList args;
 			args.push_back(Value::NewInt(count));
 			ti_host->InvokeMethodOnMainThread(this->onWrite, args, false);
-		}
-		else
-		{
-			Poco::Thread::sleep(100);
 		}
 	}
 	void TCPSocketBinding::OnTimeout(const Poco::AutoPtr<TimeoutNotification>& n)
