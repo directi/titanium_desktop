@@ -5,3 +5,5 @@
 /vc80.idb
 
 /installation/self_extractor/progress.res
+commit.id
+prev_commit.id
