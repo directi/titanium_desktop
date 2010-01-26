@@ -28,6 +28,7 @@
 #include <Poco/Net/StreamSocket.h>
 #include <Poco/Net/SocketReactor.h>
 #include <Poco/Net/SocketNotification.h>
+#include <Poco/Semaphore.h>
 
 using namespace Poco;
 using namespace Poco::Net;
@@ -37,30 +38,42 @@ namespace ti
 	class TCPSocketBinding : public StaticBoundObject
 	{
 	public:
-		TCPSocketBinding(Host *ti_host, std::string host, int port);
+		TCPSocketBinding(Host *ti_host, const std::string & host, const int port);
 		virtual ~TCPSocketBinding();
 	private:
 		Host* ti_host;
-		std::string host;
-		int port;
+		const std::string host;
+		const int port;
 		StreamSocket socket;
 		SocketReactor reactor;
-		Thread thread;
+		Thread *thread;
 		bool opened;
-		bool readyForFirstWrite;
+		bool nbConnecting;
+		bool waitingForWriteReady;
 		std::string buffer;
 		Poco::Mutex bufferMutex; 
+		Poco::Semaphore semWaitForConnect;
 
+		KMethodRef onConnect;
 		KMethodRef onRead;
 		KMethodRef onWrite;
 		KMethodRef onTimeout;
 		KMethodRef onError;
 		KMethodRef onReadComplete;
 
+		void InitReactor();
+		void ClearReactor();
+		void CompleteClose();
+
 		void Connect(const ValueList& args, KValueRef result);
+		void OnNonBlockingConnect();
+		void OnNonBlockingConnectFailure();
+		void waitForConnectionOrTimeout(int secs);
+
 		void Write(const ValueList& args, KValueRef result);
 		void Close(const ValueList& args, KValueRef result);
 		void IsClosed(const ValueList& args, KValueRef result);
+		void SetOnConnect(const ValueList& args, KValueRef result);
 		void SetOnRead(const ValueList& args, KValueRef result);
 		void SetOnWrite(const ValueList& args, KValueRef result);
 		void SetOnTimeout(const ValueList& args, KValueRef result);
@@ -71,6 +84,12 @@ namespace ti
 		void OnWrite(const Poco::AutoPtr<WritableNotification>& n);
 		void OnTimeout(const Poco::AutoPtr<TimeoutNotification>& n);
 		void OnError(const Poco::AutoPtr<ErrorNotification>& n);
+
+		void RegisterForWriteReady();
+		void UnregisterForWriteReady();
+		void UnregisterForReadReady();
+		void InvokeErrorHandler(const std::string &str, bool readError = false);
+
 	};
 }
 
