@@ -19,9 +19,9 @@ def build_dist_zips(target, source, env):
 		print "Packing %s" % f
 		futils.ZipDir(m.build_dir, f, exclude=excludes)
 
-build.env.Append(BUILDERS = {'BuildDistZips' : Builder(action=build_dist_zips)})
-zips = build.env.BuildDistZips('#dummy-dist-zips', [])
-build.mark_dist_target(zips)
+#build.env.Append(BUILDERS = {'BuildDistZips' : Builder(action=build_dist_zips)})
+#zips = build.env.BuildDistZips('#dummy-dist-zips', [])
+#build.mark_dist_target(zips)
 
 
 def build_sdk(target, source, env):
@@ -70,12 +70,12 @@ def build_sdk(target, source, env):
 	futils.ZipDir(path.join(build.dir, 'include'), sdkZip, dest_path='sdk/%s/%s/include' % (build.os, baseVersion))
 	sdkZip.close()
 
-build.env.Append(BUILDERS = {'BuildSDK' : Builder(action=build_sdk)})
-sdk_target = build.env.BuildSDK('#dummy-sdk', [])
-build.env.Depends(sdk_target, zips)
-build.mark_dist_target(sdk_target)
+#build.env.Append(BUILDERS = {'BuildSDK' : Builder(action=build_sdk)})
+#sdk_target = build.env.BuildSDK('#dummy-sdk', [])
+#build.env.Depends(sdk_target, zips)
+#build.mark_dist_target(sdk_target)
 
-AlwaysBuild(zips)
-AlwaysBuild(sdk_target)
+#AlwaysBuild(zips)
+#AlwaysBuild(sdk_target)
 
-Alias('sdk', sdk_target)
+#Alias('sdk', sdk_target)
