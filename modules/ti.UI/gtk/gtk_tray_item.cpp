@@ -92,6 +92,8 @@ namespace ti
 		GtkTrayItem* item = static_cast<GtkTrayItem*>(data);
 		KMethodRef cb = item->GetCallback();
 
+		item->FireEvent(Event::DOUBLE_CLICKED);
+
 		if (cb.isNull())
 			return;
 
