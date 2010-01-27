@@ -66,6 +66,10 @@ namespace ti
 		void CompleteClose();
 
 		void Connect(const ValueList& args, KValueRef result);
+		void ConnectNB(const ValueList& args, KValueRef result);
+		
+		bool connect(int timeout, bool nonBlocking);
+		
 		void OnNonBlockingConnect();
 		void OnNonBlockingConnectFailure();
 		void waitForConnectionOrTimeout(int secs);
@@ -88,6 +92,7 @@ namespace ti
 		void RegisterForWriteReady();
 		void UnregisterForWriteReady();
 		void UnregisterForReadReady();
+		void UnregisterForTimeout();
 		void InvokeErrorHandler(const std::string &str, bool readError = false);
 
 	};
