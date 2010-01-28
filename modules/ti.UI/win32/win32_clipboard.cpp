@@ -26,7 +26,7 @@ namespace ti
 				return;
 			}
 			
-			HGLOBAL wideClipboardData = ::GlobalAlloc(GMEM_MOVEABLE, (wideString.size()+1 * sizeof(wchar_t)));
+			HGLOBAL wideClipboardData = ::GlobalAlloc(GMEM_MOVEABLE, (wideString.size()+1) * sizeof(wchar_t));
 			if (wideClipboardData == NULL)
 			{
 				CloseClipboard();

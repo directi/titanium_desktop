@@ -243,7 +243,7 @@ namespace ti
 	void Clipboard::_SetText(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("setText", "s");
-		std::string newText(args.GetString(0, ""));
+		std::string newText(args.GetString(0));
 		this->SetText(newText);
 	}
 
