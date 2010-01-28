@@ -208,7 +208,7 @@ namespace ti
 			this->socket.setBlocking(true);
 			this->OnNonBlockingConnect();
 		}
-		GetLogger()->Debug("TCPSocketBinding::OnRead ready for read with %d bytes", this->socket.available());
+		GetLogger()->Debug("TCPSocketBinding::OnRead ready for read with ", this->socket.available(), " bytes");
 		try
 		{
 			// Always read bytes, so that the tubes get cleared.
@@ -233,12 +233,12 @@ namespace ti
 		}
 		catch(ValueException& e)
 		{
-			GetLogger()->Error("Read Failed: %s", e.ToString().c_str());
+			GetLogger()->Error("Read Failed: ", e.ToString().c_str());
 			InvokeErrorHandler(e.ToString());
 		}
 		catch(Poco::Exception &e)
 		{
-			std::string error_text = "Read failed: %s";
+			std::string error_text = "Read failed: ";
 			error_text += e.displayText().c_str();
 			GetLogger()->Error(error_text.c_str());
 			InvokeErrorHandler(error_text, true);
