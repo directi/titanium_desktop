@@ -125,7 +125,7 @@ namespace kroll
 		else if (this->logFilePath.empty())
 		{
 			string dataDir = FileUtils::GetApplicationDataDirectory(this->application->id);
-			this->logFilePath = FileUtils::Join(dataDir.c_str(), "tiapp.log", NULL);
+			this->logFilePath = FileUtils::Join(dataDir.c_str(), "logs", "tiapp.log", NULL);
 		}
 
 		// If this application has no log level, we'll get a suitable default
