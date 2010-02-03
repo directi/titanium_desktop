@@ -14,6 +14,9 @@
 #include <Poco/Path.h>
 #include <Poco/File.h>
 
+#include <sstream>
+#include <cstring>
+
 #define LOGGER_MAX_ENTRY_SIZE 2048
 
 using Poco::PatternFormatter;
@@ -420,7 +423,9 @@ namespace kroll
 				// appending timestamp for creating a new log file each time we run our application.
 				time_t t = time(NULL);
 				char time[200] = {0};
-				itoa(t, time, 10);
+				std::ostringstream strm;
+				strm << t;
+				strcpy(time, strm.str().c_str());
 				logFilePath += ".";
 				logFilePath += time;
 			}
