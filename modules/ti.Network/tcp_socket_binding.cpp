@@ -16,18 +16,14 @@ namespace ti
 		ti_host(ti_host),
 		host(host),
 		port(port),
-		socket(),
+		opened(false),
+		nbConnecting(false),
+		waitingForWriteReady(false),
 		semWaitForConnect(0,1),
-		sock_state(SOCK_CLOSED),
-		read_state(READ_CLOSED),
-		write_state(WRITE_CLOSED),
-		error_state(ERROR_OFF),
-		notifier(100),
 		onConnect(0),
 		onRead(0),
 		onWrite(0),
 		onTimeout(0),
-		onError(0),
 		onReadComplete(0)
 	{
 		/**
