@@ -114,21 +114,21 @@ namespace ti
 			int sockfd = this->socket.sockfd();
 			IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnReadReady);
 			bool status = this->notifier.addObserver(IO_READ, observer);
-			status?GetLogger()->Debug("Added Read EventHandler on Socket: %s:%d ", this->host.c_str(), this->port):false;
+			if(status) GetLogger()->Debug("Added Read EventHandler on Socket: %s:%d ", this->host.c_str(), this->port);
 		}
 		void UnregisterForRead()
 		{
 			int sockfd = this->socket.sockfd();
 			IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnReadReady);
 			bool status = this->notifier.removeObserver(IO_READ, observer);
-			status?GetLogger()->Debug("Removed Read EventHandler on Socket: %s:%d ", this->host.c_str(), this->port):false;
+			if(status) GetLogger()->Debug("Removed Read EventHandler on Socket: %s:%d ", this->host.c_str(), this->port);
 		}
 		void RegisterForWrite()
 		{
 			int sockfd = this->socket.sockfd();
 			IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnWriteReady);
 			bool status=this->notifier.addObserver(IO_WRITE, observer);
-			status?GetLogger()->Debug("Added Write EventHandler on Socket: %s:%d ", this->host.c_str(), this->port):false;
+			if(status) GetLogger()->Debug("Added Write EventHandler on Socket: %s:%d ", this->host.c_str(), this->port);
 		}
 
 		void UnregisterForWrite()
@@ -136,7 +136,7 @@ namespace ti
 			int sockfd = this->socket.sockfd();
 			IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnWriteReady);
 			bool status=this->notifier.removeObserver(IO_WRITE, observer);
-			status?GetLogger()->Debug("Removed Write EventHandler on Socket: %s:%d ", this->host.c_str(), this->port):false;
+			if(status) GetLogger()->Debug("Removed Write EventHandler on Socket: %s:%d ", this->host.c_str(), this->port);
 		}
 
 		// TODO: add timeouts only for connectNB()
@@ -159,7 +159,7 @@ namespace ti
 			int sockfd = this->socket.sockfd();
 			IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnError);
 			bool status = this->notifier.addObserver(IO_ERROR, observer);
-			status?GetLogger()->Debug("Added Error EventHandler on Socket: %s:%d ", this->host.c_str(), this->port):false;
+			if(status) GetLogger()->Debug("Added Error EventHandler on Socket: %s:%d ", this->host.c_str(), this->port);
 		}
 
 		void UnregisterForError()
@@ -167,7 +167,7 @@ namespace ti
 			int sockfd = this->socket.sockfd();
 			IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnError);
 			bool status = this->notifier.removeObserver(IO_ERROR, observer);
-			status?GetLogger()->Debug("Removed Error EventHandler on Socket: %s:%d ", this->host.c_str(), this->port):false;
+			if(status) GetLogger()->Debug("Removed Error EventHandler on Socket: %s:%d ", this->host.c_str(), this->port);
 		}
 
 		void InvokeErrorHandler(const std::string &str);

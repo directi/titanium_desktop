@@ -33,7 +33,7 @@ namespace ti
 	class IONotification : public Notification 
 	{
 		public:
-			IONotification(int fd, IOEventType ev) : ev(ev), fd(fd)
+	IONotification(int fd, IOEventType ev) : fd(fd), ev(ev)
 			{
 			}
 			int getFd() const { return fd; }
@@ -47,6 +47,7 @@ namespace ti
 	class IOObserver: public Observer<C, IONotification>
 	{
 		public:
+			typedef typename Poco::Observer<C, IONotification>::Callback Callback;
 			IOObserver(int fd, C& object, Callback method):
 			  Observer<C, IONotification>(object, method),
 				  fd(fd)
@@ -55,8 +56,8 @@ namespace ti
 			int getFd() const { return fd; }
 			bool equals(const AbstractObserver& abstractObserver) const
 			{
-				const IOObserver* pObs = dynamic_cast<const IOObserver*>(&abstractObserver);
-				return Observer::equals(*pObs) && pObs->fd == this->fd;
+				const IOObserver<C>* pObs = dynamic_cast<const IOObserver<C> *>(&abstractObserver);
+				return Observer<C, IONotification>::equals(*pObs) && pObs->fd == this->fd;
 			}
 			bool operator==(const IOObserver<C> &rhs) const
 			{ 
@@ -64,7 +65,7 @@ namespace ti
 			}
 
 		private:
-			const int fd;
+			int fd;
 	};
 
 	template <class C>
@@ -97,7 +98,6 @@ namespace ti
 			writeThread.join();
 			readThread.join();
 		}
-		//bool containsObserver(IOEventType ev, IOObserver<C> &observer);
 		bool addObserver(IOEventType ev, IOObserver<C> observer);
 		bool removeObserver(IOEventType ev, IOObserver<C> &observer);
 		int observerCount(IOEventType ev)
@@ -123,16 +123,19 @@ namespace ti
 			{
 				return 0;
 			}
-			int count=0;
+			int maxFd=-1;
 			for (observer_itr_t it = observer_set[ev].begin();
 				it != observer_set[ev].end();
 				++it)
 			{
 				IOObserver<C> & obs = *it;
 				FD_SET(obs.getFd(), &fdSet);
-				count++;
+				if(obs.getFd() > maxFd)
+				{
+					maxFd = obs.getFd();
+				}
 			}
-			return count;
+			return maxFd;
 		}
 		int lastError()
 		{
@@ -147,7 +150,8 @@ namespace ti
 			_stop = true;
 			if (0 == observerCount())
 			{
-				waitForFd.set();
+				waitForWriteFd.set();
+				waitForReadFd.set();
 			}
 		}
 
@@ -170,23 +174,35 @@ namespace ti
 		fd_set fdRead;
 		fd_set fdWrite;
 		fd_set fdExcept;
-		int nfd = 0;
+		int maxFd = -1, tempMaxFd=-1;
 		FD_ZERO(&fdRead);
 		FD_ZERO(&fdWrite);
 		FD_ZERO(&fdExcept);
 		if(read)
 		{
-			nfd += this->prepareFdSet(IO_READ, fdRead);
+			tempMaxFd = this->prepareFdSet(IO_READ, fdRead);
+			if(tempMaxFd > maxFd)
+			{
+				maxFd = tempMaxFd;
+			}
 		}
 		if( write )
 		{
-			nfd += this->prepareFdSet(IO_WRITE, fdWrite);
+			tempMaxFd =  this->prepareFdSet(IO_WRITE, fdWrite);
+			if(tempMaxFd > maxFd)
+			{
+				maxFd = tempMaxFd;
+			}
 		}
 		if( error )
 		{
-			nfd += this->prepareFdSet(IO_ERROR, fdExcept);
+			tempMaxFd =  this->prepareFdSet(IO_ERROR, fdExcept);
+			if(tempMaxFd > maxFd)
+			{
+				maxFd = tempMaxFd;
+			}
 		}
-		if (nfd == 0) return 0;
+		if (maxFd < 0) return 0;
 
 		int rc;
 		struct timeval tv;
@@ -194,7 +210,7 @@ namespace ti
 		tv.tv_sec  = (long) remainingTime.totalSeconds();
 		tv.tv_usec = (long) remainingTime.useconds();
 		Poco::Timestamp start;
-		rc = ::select(nfd + 1, &fdRead, &fdWrite, &fdExcept, &tv);
+		rc = ::select(maxFd + 1, &fdRead, &fdWrite, &fdExcept, &tv);
 		if (rc <= 0 ) 
 		{
 			//if interrupted or on timeout, allow check for updates in fdSet
@@ -211,7 +227,7 @@ namespace ti
 	{
 		while(!_stop)
 		{
-			int readyCount = select(true, false, true);
+		        select(true, false, true);
 			if( observerCount(IO_READ) + observerCount(IO_ERROR)  == 0 ){
 				waitForReadFd.wait();
 			}
@@ -222,7 +238,7 @@ namespace ti
 	{
 		while(!_stop)
 		{
-			int readyCount = select(false, true, false);
+		        select(false, true, false);
 			if( observerCount(IO_WRITE) == 0 ){
 				waitForWriteFd.wait();
 			}		
@@ -248,7 +264,7 @@ namespace ti
 				}
 			}
 		}
-		for(std::list<IOObserver<C> >::iterator it = observers.begin(); it != observers.end(); it++)
+		for(observer_itr_t it = observers.begin(); it != observers.end(); it++)
 		{
 			IOObserver<C> & obs = *it;
 			IONotification notification(obs.getFd(), ev);

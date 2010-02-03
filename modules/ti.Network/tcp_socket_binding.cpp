@@ -16,14 +16,18 @@ namespace ti
 		ti_host(ti_host),
 		host(host),
 		port(port),
-		opened(false),
-		nbConnecting(false),
-		waitingForWriteReady(false),
+		socket(),
 		semWaitForConnect(0,1),
+		sock_state(SOCK_CLOSED),
+		error_state(ERROR_OFF),
+		read_state(READ_CLOSED),
+		write_state(WRITE_CLOSED),
+		notifier(100),
 		onConnect(0),
 		onRead(0),
 		onWrite(0),
 		onTimeout(0),
+		onError(0),
 		onReadComplete(0)
 	{
 		/**
@@ -222,7 +226,6 @@ namespace ti
 			int size = socket.receiveBytes(&data, BUFFER_SIZE);
 			GetLogger()->Debug("Read %d bytes on %s", size, this->socket.peerAddress().toString().c_str());
 
-			const bool read_complete = (size <= 0);
 			if (!this->onRead.isNull() && size > 0)
 			{
 				data[size] = '\0';
