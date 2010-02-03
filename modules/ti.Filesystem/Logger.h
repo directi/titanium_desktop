@@ -20,7 +20,7 @@ namespace ti
 			LoggerFile * file;
 
 			ReferenceCountedLogger(LoggerFile *_file = NULL)
-				: file(_file), references(0) { }
+				: references(0), file(_file) { }
 
 			void addRef()
 			{
