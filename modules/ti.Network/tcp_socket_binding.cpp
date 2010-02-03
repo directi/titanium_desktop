@@ -4,32 +4,31 @@
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
 #include "tcp_socket_binding.h"
-#include <Poco/NObserver.h>
 #include <kroll/kroll.h>
 
 #define BUFFER_SIZE 1024   // choose a reasonable size to send back to JS
 
 namespace ti
 {
-	static kroll::Logger* GetLogger()
-	{
-		return kroll::Logger::Get("Network.TCPSocket");
-	}
 
 	TCPSocketBinding::TCPSocketBinding(Host* ti_host, const std::string& host, const int port) :
 		StaticBoundObject("Network.TCPSocket"),
 		ti_host(ti_host),
 		host(host),
 		port(port),
-		opened(false),
-		nbConnecting(false),
+		socket(),
+		semWaitForConnect(0,1),
+		sock_state(SOCK_CLOSED),
+		read_state(READ_CLOSED),
+		write_state(WRITE_CLOSED),
+		error_state(ERROR_OFF),
+		notifier(100),
+		onConnect(0),
 		onRead(0),
 		onWrite(0),
 		onTimeout(0),
-		onConnect(0),
-		onReadComplete(0),
-		semWaitForConnect(0,1),
-		waitingForWriteReady(false)
+		onError(0),
+		onReadComplete(0)
 	{
 		/**
 		 * @tiapi(method=True,name=Network.TCPSocket.connect,since=0.2) Connects a Socket object to the host specified during creation. 
@@ -38,7 +37,7 @@ namespace ti
 		 */
 		this->SetMethod("connect",&TCPSocketBinding::Connect);
 		/**
-		 * @tiapi(method=True,name=Network.TCPSocket.connect,since=0.8) Connects a Socket object to the host specified during creation. 
+		 * @tiapi(method=True,name=Network.TCPSocket.connect,since=0.9) Connects a Socket object to the host specified during creation. 
 		 * @tiarg(for=Network.TCPSocket.connectNB,type=Integer,name=timeout) the time in seconds to wait before the connect timesout 
 		 * @tiresult(for=Network.TCPSocket.connect,type=Boolean) true if the Socket object successfully connects, false if otherwise
 		 */
@@ -49,6 +48,11 @@ namespace ti
 		 * @tiresult(for=Network.TCPSocket.close,type=Boolean) true if the connection was successfully close, false if otherwise
 		 */
 		this->SetMethod("close",&TCPSocketBinding::Close);
+		/**
+		 * @tiapi(method=True,name=Network.TCPSocket.close,since=0.9) Clears the previous reported error and listens for any new errors
+		 * @tiresult(for=Network.TCPSocket.close,type=Boolean) void
+		 */
+		this->SetMethod("clearError",&TCPSocketBinding::ClearError);
 		/**
 		 * @tiapi(method=True,name=Network.TCPSocket.write,since=0.2) Writes data to a socket
 		 * @tiarg(for=Network.TCPSocket.write,type=String,name=data) data to write
@@ -127,58 +131,48 @@ namespace ti
 	}
 	void TCPSocketBinding::IsClosed(const ValueList& args, KValueRef result)
 	{
-		return result->SetBool(!this->opened);
+		return result->SetBool(this->sock_state == SOCK_CLOSED);
 	}
 	void TCPSocketBinding::Connect(const ValueList& args, KValueRef result)
 	{
-		int timeout = 10;
-		if (args.size() > 0)
-		{
-			timeout = args.at(0)->ToInt();
-		}
-		bool nonBlocking = false;
-		result->SetBool(this->connect(timeout, nonBlocking));
+		const bool nonBlocking = false;
+		int timeout = (args.size() > 0)?args.at(0)->ToInt():10;
+	
+		this->_connect(timeout, nonBlocking);
+		result->SetBool(this->sock_state == SOCK_CONNECTED);
 	}
 	void TCPSocketBinding::ConnectNB(const ValueList& args, KValueRef result)
 	{
-		int timeout = 10;
-		if (args.size() > 0)
-		{
-			timeout = args.at(0)->ToInt();
-		}
 		const bool nonBlocking = true;
-		result->SetBool(this->connect(timeout, nonBlocking));
+		int timeout = (args.size() > 0)?args.at(0)->ToInt():10;
+
+		this->_connect(timeout, nonBlocking);
+		result->SetBool(true);
 	}
 
-	bool TCPSocketBinding::connect(int timeout, bool nonBlocking)
+	bool TCPSocketBinding::_connect(int connectTimeout, bool nonBlocking)
 	{
 		bool result = false;
-		std::string eprefix = "Connect exception: ";
-		if (this->opened)
+		const std::string eprefix = "Connect exception: ";
+		if( this->sock_state != SOCK_CLOSED )
 		{
-			throw ValueException::FromString(eprefix + "Socket is already open");
-		}
-		if (this->nbConnecting)
-		{
-			throw ValueException::FromString(eprefix + "Socket is already connecing in non-blocking mode");
+			throw ValueException::FromString(eprefix + "Socket is either connected or connecting");
 		}
 		try
 		{
 			SocketAddress a(this->host.c_str(), this->port);
-			this->reactor.setTimeout(Poco::Timespan(timeout, 0));
-			this->InitReactor();
+			this->sock_state = SOCK_CONNECTING;
 			this->socket.connectNB(a);
+			this->InitReactor(connectTimeout);
 			if(nonBlocking)
 			{
 				GetLogger()->Debug("Connecting non Blocking.");
-				this->nbConnecting = true;
 				result = true;
 			}
 			else
 			{
 				GetLogger()->Debug("Connecting Blocking.");
-				this->waitForConnectionOrTimeout(timeout);
-				result = this->opened;
+				this->blockForConnectionOrTimeout(connectTimeout);
 			}
 			///Be explicit here
 			// Address Resolution Failure
@@ -199,86 +193,110 @@ namespace ti
 		return result;
 	}
 
-	// called when the socket is ready for read.
-	void TCPSocketBinding::OnRead(const Poco::AutoPtr<ReadableNotification>& n)
+	void TCPSocketBinding::ClearError(const ValueList& args, KValueRef result)
 	{
-		if(!this->socket.getBlocking())
+		this->error_state = ERROR_OFF;
+		this->SetReactorDescriptors();
+	}
+
+	void TCPSocketBinding::OnReadReady(IONotification * notification)
+	{
+		GetLogger()->Debug("Ready for Read with %d bytes on %s", this->socket.available(), this->socket.peerAddress().toString().c_str());
+		if(this->sock_state == SOCK_CONNECTING)
 		{
-			GetLogger()->Debug("TCPSocketBinding::OnRead making socket blocking");
-			this->socket.setBlocking(true);
 			this->OnNonBlockingConnect();
 		}
-		GetLogger()->Debug("TCPSocketBinding::OnRead ready for read with ", this->socket.available(), " bytes");
+		std::string error_text("Read failed: ");
+		bool error = false;
 		try
 		{
+			if(this->socket.available() == 0 )
+			{
+				this->read_state = READ_CLOSED;
+				this->SetReactorDescriptors();
+				if( !this->onReadComplete.isNull() )
+				{
+					ValueList args;
+					ti_host->InvokeMethodOnMainThread(this->onReadComplete, args, false);
+				}
+				return;
+			}
 			// Always read bytes, so that the tubes get cleared.
 			char data[BUFFER_SIZE + 1];
 			int size = socket.receiveBytes(&data, BUFFER_SIZE);
+			GetLogger()->Debug("Read %d bytes on %s", size, this->socket.peerAddress().toString().c_str());
 
-			bool read_complete = (size <= 0);
-			if (read_complete && !this->onReadComplete.isNull())
-			{
-				ValueList args;
-				this->UnregisterForReadReady();
-				ti_host->InvokeMethodOnMainThread(this->onReadComplete, args, false);
-			}
-			else if (!read_complete && !this->onRead.isNull())
+			const bool read_complete = (size <= 0);
+			if (!this->onRead.isNull() && size > 0)
 			{
 				data[size] = '\0';
-
 				ValueList args;
 				args.push_back(Value::NewString(data));
 				ti_host->InvokeMethodOnMainThread(this->onRead, args, false);
 			}
 		}
-		catch(ValueException& e)
-		{
-			GetLogger()->Error("Read Failed: ", e.ToString().c_str());
-			InvokeErrorHandler(e.ToString());
-		}
 		catch(Poco::Exception &e)
 		{
-			std::string error_text = "Read failed: ";
 			error_text += e.displayText().c_str();
-			GetLogger()->Error(error_text.c_str());
-			InvokeErrorHandler(error_text, true);
+			error = true;
 		}
 		catch(...)
 		{
-			GetLogger()->Error("Read failed: Unknown Exception");
-			InvokeErrorHandler(std::string("Unknown exception"), true);
+			error_text += "Unknown Exception";
+			error = true;
+		}
+		if( error )
+		{
+			GetLogger()->Error(error_text);
+			this->read_state = READ_CLOSED;
+			this->SetReactorDescriptors();
+			InvokeErrorHandler(error_text);
 		}
 	}
-	//Called when the socket is ready for write
-	void TCPSocketBinding::OnWrite(const Poco::AutoPtr<WritableNotification>& n)
+
+	void TCPSocketBinding::OnWriteReady(IONotification * notification)
 	{
-		if(!this->socket.getBlocking())
+		GetLogger()->Debug("Ready for Write on Socket: "  + this->socket.peerAddress().toString());
+		if(this->sock_state == SOCK_CONNECTING)
 		{
-			GetLogger()->Debug("TCPSocketBinding::OnWrite making socket blocking");
-			this->socket.setBlocking(true);
 			this->OnNonBlockingConnect();
 		}		
 		int count = 0;
-		GetLogger()->Debug("TCPSocketBinding::OnWrite Callback on Socket: "  + this->socket.address().toString());
+		std::string error_text("Write failed: ");
+		bool error = false;
+
 		try
 		{
 			Poco::Mutex::ScopedLock lock(bufferMutex);
 			if (!buffer.empty())
 			{
 				count = this->socket.sendBytes(buffer.c_str(), buffer.length());
-				GetLogger()->Debug("TCPSocketBinding::OnWrite: SendBytes Complete: "  + buffer.substr(0,count));
+				//GetLogger()->Debug("TCPSocketBinding::OnWriteReady: SendBytes Complete: "  + buffer.substr(0,count));
+				GetLogger()->Debug("Written to socket %d bytes", count);
 				buffer = buffer.substr(count);
 			}
 			if(buffer.empty())
 			{
-				this->UnregisterForWriteReady();
-				GetLogger()->Debug("TCPSocketBinding::OnWrite: Removed Write EventHandler on Socket: "  + this->socket.address().toString());
+				this->write_state = WRITE_OPEN;
+				this->SetReactorDescriptors();
 			}
+		}
+		catch(Poco::Exception &e)
+		{
+			error_text += e.displayText().c_str();
+			error = true;
 		}
 		catch (...)
 		{
-			GetLogger()->Error("TCPSocketBinding::OnWrite: Write failed: Unknown Exception");
-			InvokeErrorHandler(std::string("Unknown exception"));
+			error_text += "Unknown Exception";
+			error = true;
+		}
+		if (error)
+		{
+			GetLogger()->Error(error_text);
+			this->write_state = WRITE_CLOSED;
+			this->SetReactorDescriptors();
+			InvokeErrorHandler(error_text);
 		}
 
 		if (count >0 && !this->onWrite.isNull())
@@ -288,41 +306,40 @@ namespace ti
 			ti_host->InvokeMethodOnMainThread(this->onWrite, args, false);
 		}
 	}
-	void TCPSocketBinding::OnTimeout(const Poco::AutoPtr<TimeoutNotification>& n)
+	void TCPSocketBinding::OnTimeout(IONotification * notification)
 	{
-		if (this->onTimeout.isNull())
+		if (!this->onTimeout.isNull())
 		{
-			return;
+			ValueList args;
+			ti_host->InvokeMethodOnMainThread(this->onTimeout, args, false);
 		}
-		ValueList args;
-		ti_host->InvokeMethodOnMainThread(this->onTimeout, args, false);
 	}
-	void TCPSocketBinding::OnError(const Poco::AutoPtr<ErrorNotification>& n)
+	void TCPSocketBinding::OnError(IONotification * notification)
 	{
-		GetLogger()->Error("Socket Error!");
-		if(!this->socket.getBlocking())
+		GetLogger()->Debug("Socket Error on %s:%d ", this->host.c_str(), this->port);
+		if( this->sock_state == SOCK_CONNECTING )
 		{
 			this->OnNonBlockingConnectFailure();
 		}
-		InvokeErrorHandler(n->name());
+		this->error_state = ERROR_ON;
+		this->SetReactorDescriptors();
+		InvokeErrorHandler("Socket Error !!");
 	}
 	void TCPSocketBinding::Write(const ValueList& args, KValueRef result)
 	{
 		std::string eprefix = "TCPSocketBinding::Write: ";
-		if (!this->opened)
+		if (this->write_state == WRITE_CLOSED && this->sock_state != SOCK_CONNECTING)
 		{
-			throw ValueException::FromString(eprefix +  "Socket is not open");
+			throw ValueException::FromString(eprefix +  "Socket is not open for Write");
 		}
-
 		try
 		{
 			Poco::Mutex::ScopedLock lock(bufferMutex);
-			if(buffer.length() == 0 )
-			{
-				this->RegisterForWriteReady();
-			}
 			buffer += args.at(0)->ToString();
 			result->SetBool(true);
+			this->write_state = WRITE_WAITING;
+			this->error_state = ERROR_OFF;
+			this->SetReactorDescriptors();
 		}
 		catch(Poco::Exception &e)
 		{
@@ -332,126 +349,125 @@ namespace ti
 	}
 	void TCPSocketBinding::Close(const ValueList& args, KValueRef result)
 	{
-		if (this->opened)
+		bool bResult = false;
+		if (this->sock_state != SOCK_CLOSED)
 		{
 			this->CompleteClose();
-			result->SetBool(true);
+			bResult = true;
 		}
-		else
-		{
-			result->SetBool(false);
-		}
+		result->SetBool(bResult);
 	}
 
 	void TCPSocketBinding::OnNonBlockingConnect()
 	{
 		this->socket.setKeepAlive(true);
-		this->opened = true;
-		this->nbConnecting = false;
-		this->semWaitForConnect.set();
+		this->sock_state = SOCK_CONNECTED;
+		this->read_state = READ_OPEN;
+		this->write_state = WRITE_OPEN;
+		this->SetReactorDescriptors();
+
+		GetLogger()->Debug("Socket Connected to %s:%d ", this->host.c_str(), this->port);
+		this->unBlockOnConnectionOrTimeout();
+
 		if(!this->onConnect.isNull())
 		{
 			ValueList args;
 			args.push_back(Value::NewBool(true));
 			ti_host->InvokeMethodOnMainThread(this->onConnect, args, false);
 		}
-		UnregisterForTimeout();
-		this->reactor.setTimeout(Poco::Timespan(0, 200));
 	}
 
 	void TCPSocketBinding::OnNonBlockingConnectFailure()
 	{
-		UnregisterForTimeout();
-		this->CompleteClose();
-		this->semWaitForConnect.set();
+		GetLogger()->Debug("Socket Connect Failure for %s:%d ", this->host.c_str(), this->port);
+		this->sock_state=SOCK_CLOSED;
+		this->SetReactorDescriptors();
+		this->unBlockOnConnectionOrTimeout();
 	}
 
-	void TCPSocketBinding::waitForConnectionOrTimeout(int secs)
+	void TCPSocketBinding::blockForConnectionOrTimeout(int secs)
 	{
 		try
 		{
 			this->semWaitForConnect.wait(secs * 1000);			
-			GetLogger()->Debug("Socket connect to : "  + this->socket.address().toString());
+			GetLogger()->Debug("Unblocked from connect to: %s:%d ", this->host.c_str(), this->port);
 		}
 		catch (Poco::TimeoutException &e)
 		{
-			GetLogger()->Debug("Timeout in a blocking connect to : "  + this->socket.address().toString());
+			GetLogger()->Debug("Timeout in a blocking connect to: %s:%d ", this->host.c_str(), this->port);
 		}
+	}
+	
+	void TCPSocketBinding::unBlockOnConnectionOrTimeout()
+	{
+		this->semWaitForConnect.set();
 	}
 
 	void TCPSocketBinding::CompleteClose()
 	{
-		this->reactor.stop();
-		if(this->opened)
+		this->sock_state = SOCK_CLOSED;
+		this->read_state = READ_CLOSED;
+		this->write_state = WRITE_CLOSED;
+		this->SetReactorDescriptors();
+
+		if(this->sock_state != SOCK_CLOSED)
 		{
+			GetLogger()->Debug("Closing socket to: %s:%d ", this->host.c_str(), this->port);
+			//Ensure Reactor Descriptors are updated before the socket is closed
+			//Once the socket is closed, its file descriptor will no longer be available.
 			this->socket.close();
 		}
-		this->opened = false;
-		this->nbConnecting = false;
-		this->ClearReactor();
 	}
 
-	void TCPSocketBinding::RegisterForWriteReady()
+	void TCPSocketBinding::InitReactor(int connectTimeout)
 	{
-		if( ! this->waitingForWriteReady )
-		{
-			this->reactor.addEventHandler(this->socket,NObserver<TCPSocketBinding, WritableNotification>(*this, &TCPSocketBinding::OnWrite));
-			this->waitingForWriteReady = true;
-			GetLogger()->Debug("Added Write Listener for " + this->host);
+		RegisterForRead();
+		RegisterForWrite();
+		RegisterForTimeout();
+		RegisterForError();		
+	}
+
+	void TCPSocketBinding::SetReactorDescriptors()
+	{
+		if( this->sock_state == SOCK_CLOSED ){
+			this->ClearReactor();
+			return;
 		}
-	}
-
-	void TCPSocketBinding::UnregisterForWriteReady()
-	{
-		if(this->waitingForWriteReady)
-		{
-			this->reactor.removeEventHandler(this->socket,NObserver<TCPSocketBinding, WritableNotification>(*this, &TCPSocketBinding::OnWrite));
-			this->waitingForWriteReady = false;
-			GetLogger()->Debug("Removed Write Listener for " + this->host);
+		if( this->sock_state == SOCK_CONNECTING){
+			this->RegisterForRead();
+			this->RegisterForWrite();
+			this->RegisterForTimeout();
+		}else{
+			UnregisterForTimeout();
 		}
-	}
-
-	void TCPSocketBinding::UnregisterForReadReady()
-	{
-		this->reactor.removeEventHandler(this->socket,NObserver<TCPSocketBinding, ReadableNotification>(*this, &TCPSocketBinding::OnRead));
-	}
-
-	void TCPSocketBinding::UnregisterForTimeout()
-	{
-		this->reactor.removeEventHandler(this->socket,NObserver<TCPSocketBinding, TimeoutNotification>(*this, &TCPSocketBinding::OnTimeout));
-	}
-
-	void TCPSocketBinding::InitReactor()
-	{
-		this->reactor.addEventHandler(this->socket,NObserver<TCPSocketBinding, ReadableNotification>(*this, &TCPSocketBinding::OnRead));
-		RegisterForWriteReady();
-		this->reactor.addEventHandler(this->socket,NObserver<TCPSocketBinding, TimeoutNotification>(*this, &TCPSocketBinding::OnTimeout));
-		this->reactor.addEventHandler(this->socket,NObserver<TCPSocketBinding, ErrorNotification>(*this, &TCPSocketBinding::OnError));
-		this->thread = new Poco::Thread();
-		this->thread->setName("SIO " + host);
-		this->thread->start(this->reactor);
+		if( this->read_state == READ_CLOSED ){
+			this->UnregisterForRead();
+		}else{
+			this->RegisterForRead();
+		}
+		if( this->write_state == WRITE_WAITING ){
+			this->RegisterForWrite();
+		}else{
+			this->UnregisterForWrite();
+		}
+		if( this->error_state == ERROR_ON ){
+			this->UnregisterForError();
+		}else{
+			this->RegisterForError();
+		}
 	}
 
 	void TCPSocketBinding::ClearReactor()
 	{
-		this->UnregisterForReadReady();
-		this->UnregisterForWriteReady();
-		this->reactor.removeEventHandler(this->socket,NObserver<TCPSocketBinding, ErrorNotification>(*this, &TCPSocketBinding::OnError));
-		if(this->thread)
-		{
-			this->thread->join();
-			delete this->thread;
-			this->thread = NULL;
-		}
+		UnregisterForRead();
+		UnregisterForError();
+		UnregisterForWrite();
+		UnregisterForTimeout();
 	}
 
-	void TCPSocketBinding::InvokeErrorHandler(const std::string &str, bool readError)
+	void TCPSocketBinding::InvokeErrorHandler(const std::string &str)
 	{
-		if(readError)
-		{
-			this->UnregisterForReadReady();
-		}
-
+		
 		if (!this->onError.isNull())
 		{
 			ValueList args;

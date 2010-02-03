@@ -29,30 +29,48 @@
 #include <Poco/Net/SocketReactor.h>
 #include <Poco/Net/SocketNotification.h>
 #include <Poco/Semaphore.h>
+#include <Poco/NObserver.h>
+#include <Poco/Pipe.h>
+#include "IONotifier.h"
 
 using namespace Poco;
 using namespace Poco::Net;
 
 namespace ti
 {
+
+	class TiStreamSocket : public StreamSocket {
+	public:
+		int sockfd()
+		{
+			return StreamSocket::sockfd();
+		}
+	};
+
 	class TCPSocketBinding : public StaticBoundObject
 	{
 	public:
 		TCPSocketBinding(Host *ti_host, const std::string & host, const int port);
 		virtual ~TCPSocketBinding();
 	private:
+		static kroll::Logger* GetLogger()
+		{
+			return kroll::Logger::Get("Network.TCPSocket");
+		}
+
 		Host* ti_host;
 		const std::string host;
 		const int port;
-		StreamSocket socket;
-		SocketReactor reactor;
-		Thread *thread;
-		bool opened;
-		bool nbConnecting;
-		bool waitingForWriteReady;
+		TiStreamSocket socket;
 		std::string buffer;
 		Poco::Mutex bufferMutex; 
 		Poco::Semaphore semWaitForConnect;
+
+		enum SOCK_STATE_en {SOCK_CLOSED, SOCK_CONNECTING, SOCK_CONNECTED } sock_state;
+		enum ERROR_STATE_en {ERROR_OFF, ERROR_ON } error_state;
+		enum READ_STATE_en { READ_OPEN, READ_CLOSED } read_state;
+		enum WRITE_STATE_en { WRITE_OPEN, WRITE_WAITING, WRITE_CLOSED } write_state;
+		IONotifier<TCPSocketBinding> notifier;
 
 		KMethodRef onConnect;
 		KMethodRef onRead;
@@ -61,21 +79,23 @@ namespace ti
 		KMethodRef onError;
 		KMethodRef onReadComplete;
 
-		void InitReactor();
+		void InitReactor(int secs);
 		void ClearReactor();
 		void CompleteClose();
 
 		void Connect(const ValueList& args, KValueRef result);
 		void ConnectNB(const ValueList& args, KValueRef result);
-		
-		bool connect(int timeout, bool nonBlocking);
+		bool _connect(int timeout, bool nonBlocking);
 		
 		void OnNonBlockingConnect();
 		void OnNonBlockingConnectFailure();
-		void waitForConnectionOrTimeout(int secs);
+		void blockForConnectionOrTimeout(int secs);
+		void unBlockOnConnectionOrTimeout();
 
 		void Write(const ValueList& args, KValueRef result);
 		void Close(const ValueList& args, KValueRef result);
+		void ClearError(const ValueList& args, KValueRef result);
+
 		void IsClosed(const ValueList& args, KValueRef result);
 		void SetOnConnect(const ValueList& args, KValueRef result);
 		void SetOnRead(const ValueList& args, KValueRef result);
@@ -84,17 +104,74 @@ namespace ti
 		void SetOnError(const ValueList& args, KValueRef result);
 		void SetOnReadComplete(const ValueList& args, KValueRef result);
 
-		void OnRead(const Poco::AutoPtr<ReadableNotification>& n);
-		void OnWrite(const Poco::AutoPtr<WritableNotification>& n);
-		void OnTimeout(const Poco::AutoPtr<TimeoutNotification>& n);
-		void OnError(const Poco::AutoPtr<ErrorNotification>& n);
+		void OnReadReady(IONotification * notification);
+		void OnWriteReady(IONotification * notification);
+		void OnTimeout(IONotification * notification);
+		void OnError(IONotification * notification);
 
-		void RegisterForWriteReady();
-		void UnregisterForWriteReady();
-		void UnregisterForReadReady();
-		void UnregisterForTimeout();
-		void InvokeErrorHandler(const std::string &str, bool readError = false);
+		void RegisterForRead()
+		{
+			int sockfd = this->socket.sockfd();
+			IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnReadReady);
+			bool status = this->notifier.addObserver(IO_READ, observer);
+			status?GetLogger()->Debug("Added Read EventHandler on Socket: %s:%d ", this->host.c_str(), this->port):false;
+		}
+		void UnregisterForRead()
+		{
+			int sockfd = this->socket.sockfd();
+			IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnReadReady);
+			bool status = this->notifier.removeObserver(IO_READ, observer);
+			status?GetLogger()->Debug("Removed Read EventHandler on Socket: %s:%d ", this->host.c_str(), this->port):false;
+		}
+		void RegisterForWrite()
+		{
+			int sockfd = this->socket.sockfd();
+			IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnWriteReady);
+			bool status=this->notifier.addObserver(IO_WRITE, observer);
+			status?GetLogger()->Debug("Added Write EventHandler on Socket: %s:%d ", this->host.c_str(), this->port):false;
+		}
 
+		void UnregisterForWrite()
+		{
+			int sockfd = this->socket.sockfd();
+			IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnWriteReady);
+			bool status=this->notifier.removeObserver(IO_WRITE, observer);
+			status?GetLogger()->Debug("Removed Write EventHandler on Socket: %s:%d ", this->host.c_str(), this->port):false;
+		}
+
+		// TODO: add timeouts only for connectNB()
+		void RegisterForTimeout()
+		{
+			//int sockfd = this->socket.sockfd();
+			//IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnTimeout);
+			//this->notifier.addObserver(IO_TIMEOUT, observer);
+		}
+
+		void UnregisterForTimeout()
+		{
+			//int sockfd = this->socket.sockfd();
+			//IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnTimeout);
+			//this->notifier.removeObserver(IO_TIMEOUT, observer);
+		}
+
+		void RegisterForError()
+		{
+			int sockfd = this->socket.sockfd();
+			IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnError);
+			bool status = this->notifier.addObserver(IO_ERROR, observer);
+			status?GetLogger()->Debug("Added Error EventHandler on Socket: %s:%d ", this->host.c_str(), this->port):false;
+		}
+
+		void UnregisterForError()
+		{
+			int sockfd = this->socket.sockfd();
+			IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnError);
+			bool status = this->notifier.removeObserver(IO_ERROR, observer);
+			status?GetLogger()->Debug("Removed Error EventHandler on Socket: %s:%d ", this->host.c_str(), this->port):false;
+		}
+
+		void InvokeErrorHandler(const std::string &str);
+		void SetReactorDescriptors();
 	};
 }
 
