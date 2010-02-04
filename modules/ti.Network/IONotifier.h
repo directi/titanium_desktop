@@ -174,7 +174,7 @@ namespace ti
 		fd_set fdRead;
 		fd_set fdWrite;
 		fd_set fdExcept;
-		int maxFd = -1, tempMaxFd=-1;
+		int maxFd = -1, tempMaxFd = -1;
 		FD_ZERO(&fdRead);
 		FD_ZERO(&fdWrite);
 		FD_ZERO(&fdExcept);
@@ -227,7 +227,7 @@ namespace ti
 	{
 		while(!_stop)
 		{
-		        select(true, false, true);
+			select(true, false, true);
 			if( observerCount(IO_READ) + observerCount(IO_ERROR)  == 0 ){
 				waitForReadFd.wait();
 			}
@@ -272,19 +272,6 @@ namespace ti
 			obs.notify(&notification);
 		}
 	}
-
-	/*
-	template <class C>
-	bool IONotifier<C>::containsObserver(IOEventType ev, IOObserver<C> &observer)
-	{
-		observer_t set = observer_set[ev];
-		observer_itr_t it = set.find(observer);
-		if( it == set.end()){
-			return false;
-		}
-		return true;
-	}
-	*/
 
 	template <class C>
 	bool IONotifier<C>::addObserver(IOEventType ev, IOObserver<C> observer)
