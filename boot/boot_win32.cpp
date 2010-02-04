@@ -26,9 +26,7 @@ namespace KrollBoot
 	extern SharedApplication app;
 	extern int argc;
 	extern const char** argv;
-	const char *preload[] = { "zlib1.dll", "libeay32.dll", "ssleay32.dll", "libxml2.dll", "libxslt.dll" };
-	const int preloadSize = sizeof(preload)/sizeof(preload[0]);
-
+	
 	inline void ShowError(string msg, bool fatal)
 	{
 		wstring wideMsg(L"Error: ");
@@ -71,6 +69,9 @@ namespace KrollBoot
 		string currentPath(EnvironmentUtils::Get("PATH"));
 		EnvironmentUtils::Set("KR_ORIG_PATH", currentPath);
 
+		// make sure the runtime folder is used before system DLL directories
+		SetDllDirectoryW(KrollUtils::UTF8ToWide(app->runtime->path).c_str());
+		
 		if (!currentPath.empty())
 			path = path + ";" + currentPath;
 		EnvironmentUtils::Set("PATH", path);
@@ -112,15 +113,7 @@ namespace KrollBoot
 	typedef int Executor(HINSTANCE, int, const char **);
 	int StartHost()
 	{
-		// preload some of the troublesome common runtime DLLs
 		string runtimePath(EnvironmentUtils::Get("KR_RUNTIME"));
-		for (int i = 0; i < preloadSize; i++)
-		{
-			string dll(FileUtils::Join(runtimePath.c_str(), preload[i], NULL));
-			if (!SafeLoadRuntimeDLL(dll))
-				return __LINE__;
-		}
-
 		string dll(FileUtils::Join(runtimePath.c_str(), "khost.dll", NULL));
 		HMODULE khost = SafeLoadRuntimeDLL(dll);
 		if (!khost)
@@ -139,11 +132,9 @@ namespace KrollBoot
 	bool RunInstaller(vector<SharedDependency> missing, bool forceInstall)
 	{
 
-		string msiName(app->name);
-		msiName += ".msi";
-		string exec = FileUtils::Join(app->path.c_str(), "installer",
-			msiName.c_str(), NULL);
-		if (!FileUtils::IsFile(exec))
+		string msiName = app->name + ".msi";
+		string msi(FileUtils::Join(app->path.c_str(), "installer", msiName.c_str(), NULL));
+		if (!FileUtils::IsFile(msi))
 		{
 			ShowError("Missing installer and application has additional modules that are needed.");
 			return false;

@@ -338,7 +338,7 @@ namespace FileUtils
 
 		GetZipItem(handle, -1, &zipEntry);
 		int numItems = zipEntry.index;
-		if (callback != NULL)
+		if (callback)
 		{ 
 			std::ostringstream message;
 			message << "Starting extraction of " << numItems 
@@ -352,7 +352,7 @@ namespace FileUtils
 			ZeroMemory(&zipEntry, sizeof(ZIPENTRY));
 			GetZipItem(handle, zi, &zipEntry);
 			
-			if (callback != NULL)
+			if (callback)
 			{
 				std::string name(WideToUTF8(zipEntry.name));
 				std::string message("Extracting ");
@@ -409,21 +409,6 @@ std::cout << "\n>Recursive copy " << dir << " to " << dest << std::endl;
 				std::wstring wideDestName(UTILS_NS::UTF8ToWide(destName));
 				CopyFileW(wideSrcName.c_str(), wideDestName.c_str(), FALSE);
 			}
-		}
-	}
-
-	std::string GetUsername()
-	{
-		wchar_t buf[MAX_PATH];
-		DWORD size = MAX_PATH - 1;
-		if (::GetUserNameW(buf, &size))
-		{
-			buf[size] = '\0';
-			return UTILS_NS::WideToUTF8(buf);
-		}
-		else
-		{
-			return "Unknown";
 		}
 	}
 }

@@ -44,67 +44,26 @@ namespace UTILS_NS
 	namespace FileUtils
 	{
 		/**
-		 * tokenize a string by delimeter into parts and place in vector tokens
+		 * Tokenize a string into parts given a string of delimeters characters.
 		 */
-		KROLL_API void Tokenize(const std::string& str,
-			std::vector<std::string>& tokens, const std::string delimeters,
-			bool skipIfFound=false);
+		KROLL_API void Tokenize(const std::string& haystack,
+			std::vector<std::string>& tokens, const std::string& delimeters,
+			bool skipDuplicates=false);
+		KROLL_API void TokenizeWide(const std::wstring& haystack,
+			std::vector<std::wstring>& tokens, const std::wstring& delimeters,
+			bool skipDuplicates=false);
 
-		/**
-		 * @param str The string to trim
-		 */
 		KROLL_API std::string Trim(std::string str);
-
-		/**
-		 *
-		 */
 		KROLL_API void ListDir(std::string& path, std::vector<std::string>& files);
-
-		/**
-		 *
-		 */
 		KROLL_API bool IsDirectory(std::string &dir);
-
-		/**
-		 *
-		 */
 		KROLL_API bool IsFile(const std::string &file);
-
-		/**
-		 *
-		 */
 		KROLL_API void WriteFile(std::string& path, std::string& content);
-
-		/**
-		 *
-		 */
 		KROLL_API std::string ReadFile(std::string& path);
-		
-		/**
-		 *
-		 */
 		KROLL_API std::string Dirname(std::string path);
-
-		/**
-		 *
-		 */
 		KROLL_API std::string Basename(std::string path);
-
-		/**
-		 *
-		 */
 		KROLL_API bool CreateDirectory(std::string &dir, bool recursive=false);
 		KROLL_API bool CreateDirectoryImpl(std::string &dir);
 
-#ifdef OS_WIN32
-		// TODO: implement me for OSX/Linux
-		
-		/**
-		 * Delete the file at the given path
-		 */
-		KROLL_API bool DeleteFile(std::string &path);
-#endif
-		
 		/**
 		 * Recursively delete the directory at the given path
 		 */
@@ -176,7 +135,6 @@ namespace UTILS_NS
 		KROLL_API std::string GetUserRuntimeHomeDirectory();
 		KROLL_API bool IsRuntimeInstalled();
 		KROLL_API int RunAndWait(std::string& path, std::vector<std::string>& args);
-		KROLL_API std::string GetUsername();
 
 #ifndef NO_UNZIP
 		typedef bool (*UnzipCallback)(char* message, int current,

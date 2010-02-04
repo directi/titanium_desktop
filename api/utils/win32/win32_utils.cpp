@@ -60,11 +60,11 @@ namespace Win32Utils
 		if (size == 0)
 			return "";
 
-		int bufferSize = (4 * size) + 1;
+		size_t bufferSize = (4 * size) + 1;
 		char* buffer = new char[4 * size + 1];
 		buffer[4 * size] = '\0';
 	
-		WideCharToMultiByte(codePage, 0, in, -1, buffer, (int) (bufferSize - 1), NULL, NULL);
+		WideCharToMultiByte(codePage, 0, in, -1, buffer, static_cast<int>(bufferSize - 1), NULL, NULL);
 		std::string out(buffer);
 		delete [] buffer;
 		return out;
@@ -81,7 +81,7 @@ namespace Win32Utils
 		return MultiByteToWide(in.c_str(), CP_UTF8);
 	}
 
-	std::wstring UTF8ToWide(const char *in)
+	std::wstring UTF8ToWide(const char* in)
 	{
 		return MultiByteToWide(in, CP_UTF8);
 	}
@@ -96,4 +96,23 @@ namespace Win32Utils
 		return WideToMultiByte(in, CP_UTF8);
 	}
 
+	std::string UTF8ToSystem(const std::string& in)
+	{
+		return MultiByteToMultiByte(in, CP_UTF8, CP_ACP);
+	}
+
+	std::string UTF8ToSystem(const char* in)
+	{
+		return MultiByteToMultiByte(in, CP_UTF8, CP_ACP);
+	}
+
+	std::string WideToSystem(const std::wstring& in)
+	{
+		return WideToMultiByte(in.c_str(), in.size(), CP_ACP);
+	}
+
+	std::string WideToSystem(const wchar_t* in)
+	{
+		return WideToMultiByte(in, wcslen(in), CP_ACP);
+	}
 }

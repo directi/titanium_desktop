@@ -187,7 +187,7 @@ namespace BootUtils
 		if (FileUtils::IsDirectory(mobileSDKPath))
 		{
 			results.push_back(KComponent::NewComponent(
-				RUNTIME, "mobilesdk", "", mobileSDKPath, true));
+				MOBILESDK, "mobilesdk", "", mobileSDKPath, true));
 		}
 
 		// Find a directory like <appdir>/sdk/
@@ -195,7 +195,7 @@ namespace BootUtils
 		if (FileUtils::IsDirectory(sdkPath))
 		{
 			results.push_back(KComponent::NewComponent(
-				RUNTIME, "sdk", "", sdkPath, true));
+				SDK, "sdk", "", sdkPath, true));
 		}
 
 		// Find all directories like <appdir>/modules/*
@@ -251,21 +251,17 @@ namespace BootUtils
 	{
 		vector<pair<string, string> > manifest;
 		if (!FileUtils::IsFile(path))
-		{
 			return manifest;
-		}
 
-		std::ifstream file(path.c_str());
-		if (file.bad() || file.fail())
-		{
+		string manifestContents(FileUtils::ReadFile(path));
+		if (manifestContents.empty())
 			return manifest;
-		}
 
-		while (!file.eof())
+		vector<string> manifestLines;
+		FileUtils::Tokenize(manifestContents, manifestLines, "\n");
+		for (size_t i = 0; i < manifestLines.size(); i++)
 		{
-			string line;
-			std::getline(file, line);
-			line = FileUtils::Trim(line);
+			string line = FileUtils::Trim(manifestLines[i]);
 
 			size_t pos = line.find(":");
 			if (pos == 0 || pos == line.length() - 1)
@@ -274,17 +270,14 @@ namespace BootUtils
 			}
 			else
 			{
-				string key(line.substr(0, pos));
-				string value(line.substr(pos + 1, line.length()));
-				key = FileUtils::Trim(key);
-				value = FileUtils::Trim(value);
-				manifest.push_back(pair<string, string>(key, value));
+				manifest.push_back(pair<string, string>(
+					FileUtils::Trim(line.substr(0, pos)), // The key
+					FileUtils::Trim(line.substr(pos + 1, line.length())))); // The value.
 			}
 		}
-		file.close();
 		return manifest;
 	}
-	
+
 	SharedComponent ResolveDependency(SharedDependency dep, vector<SharedComponent>& components)
 	{
 		vector<SharedComponent>::iterator i = components.begin();
@@ -378,8 +371,8 @@ namespace BootUtils
 		return d;
 	}
 
-	SharedComponent KComponent::NewComponent(
-		KComponentType type, string name, string version, string path, bool bundled)
+	SharedComponent KComponent::NewComponent(KComponentType type, string name,
+		string version, string path, bool bundled)
 	{
 		KComponent* c = new KComponent();
 		c->type = type;
