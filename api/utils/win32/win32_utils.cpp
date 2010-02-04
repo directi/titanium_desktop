@@ -31,43 +31,32 @@ namespace Win32Utils
 	}
 }
 
-	std::wstring UTF8ToWide(std::string& in)
+	std::wstring MultiByteToWide(const std::string& in, UINT codePage)
 	{
-		return MBToWide(in.c_str(), in.length(), CP_UTF8);
+		return MultiByteToWide(in.c_str(), in.size(), codePage);
 	}
 
-	std::wstring UTF8ToWide(const char *in)
-	{
-		return MBToWide(in, strlen(in), CP_UTF8);
-	}
-
-	std::wstring MBToWide(std::string& in, size_t size, UINT codePage)
-	{
-		return MBToWide(in.c_str(), size, codePage);
-	}
-
-	std::wstring MBToWide(const char* in, size_t size, UINT codePage)
+	std::wstring MultiByteToWide(const char* in, size_t size, UINT codePage)
 	{
 		if (size == 0)
 			return L"";
 
 		wchar_t* buffer = new wchar_t[size + 1];
 		buffer[size] = '\0';
-	
+
 		MultiByteToWideChar(codePage, 0, in, -1, buffer, (int) size);
 		std::wstring out(buffer);
 		delete [] buffer;
 		return out;
 	}
 
-	std::string WideToUTF8(std::wstring& in)
+	std::string WideToMultiByte(const std::wstring& in, UINT codePage)
 	{
-		return WideToUTF8(in.c_str());
+		return WideToMultiByte(in.c_str(), in.size(), codePage);
 	}
 
-	std::string WideToUTF8(const wchar_t* in)
+	std::string WideToMultiByte(const wchar_t* in, size_t size, UINT codePage)
 	{
-		size_t size = wcslen(in);
 		if (size == 0)
 			return "";
 
@@ -75,9 +64,36 @@ namespace Win32Utils
 		char* buffer = new char[4 * size + 1];
 		buffer[4 * size] = '\0';
 	
-		WideCharToMultiByte(CP_UTF8, 0, in, -1, buffer, (int) (bufferSize - 1), NULL, NULL);
+		WideCharToMultiByte(codePage, 0, in, -1, buffer, (int) (bufferSize - 1), NULL, NULL);
 		std::string out(buffer);
 		delete [] buffer;
 		return out;
 	}
+
+	std::string MultiByteToMultiByte(const std::string& in, UINT codePageIn, UINT codePageOut)
+	{
+		std::wstring wideString(MultiByteToWide(in, codePageIn));
+		return WideToMultiByte(wideString, codePageOut);
+	}
+
+	std::wstring UTF8ToWide(const std::string& in)
+	{
+		return MultiByteToWide(in.c_str(), CP_UTF8);
+	}
+
+	std::wstring UTF8ToWide(const char *in)
+	{
+		return MultiByteToWide(in, CP_UTF8);
+	}
+
+	std::string WideToUTF8(const std::wstring& in)
+	{
+		return WideToUTF8(in.c_str());
+	}
+
+	std::string WideToUTF8(const wchar_t* in)
+	{
+		return WideToMultiByte(in, CP_UTF8);
+	}
+
 }
