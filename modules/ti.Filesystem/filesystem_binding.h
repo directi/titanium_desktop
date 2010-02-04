@@ -48,7 +48,6 @@ namespace ti
 		//INTERNAL ONLY
 		void OnAsyncOperationTimer(Poco::Timer &timer);
 		void DeletePendingOperations(const ValueList& args, KValueRef result);
-		void ResolveFileName(const ValueList& args, std::string& filename);
 	};
 }
 

@@ -51,7 +51,7 @@ describe("Network.TCPSocket",{
 		value_of(this.socket.onTimeout).should_be_function();
 		value_of(this.socket.onWrite).should_be_function();
 		value_of(this.socket.write).should_be_function();
-   	},
+	},
 	
 	test_network_TCPSocket_isClosed: function()
 	{
@@ -59,19 +59,26 @@ describe("Network.TCPSocket",{
 		value_of(this.socket.isClosed()).should_be_true();
 	},
 	
-	test_network_TCPSocket_connect: function()
+	test_network_TCPSocket_connect_as_async: function(test)
 	{
+		var mysocket = this.socket;
 		value_of(this.socket.connect).should_be_function();
 		value_of(this.socket.close).should_be_function();
 		value_of(this.socket.isClosed()).should_be_true();
-		
-		var bresult = this.socket.connect();
-		value_of(bresult).should_be_true();
-		value_of(this.socket.isClosed()).should_be_false();
-		
-		bresult = this.socket.close();
-		value_of(bresult).should_be_true();
-		value_of(this.socket.isClosed()).should_be_true();
+		value_of(this.socket.connect()).should_be_true();
+
+		setTimeout(function() {
+			// Connect happens asynchronously now, so isClosed might not 
+			// be true immediately.
+			try {
+				value_of(mysocket.isClosed()).should_be_false();
+				value_of(mysocket.close()).should_be_true();
+				value_of(mysocket.isClosed()).should_be_true();
+				test.passed();
+			} catch (exception) {
+				test.failed(String(exception));
+			}
+		}, 1000);
 	},
 	
 	test_TCPSocket_write_as_async: function(test)
@@ -139,11 +146,9 @@ describe("Network.TCPSocket",{
 
 		var output = null;
 		var timer = null;
-		
-		TCPsocket.onRead( function(buf)
+		TCPsocket.onRead(function(buf)
 		{
-   			alert("like yo");
-			if ( buf == null )
+			if (buf == null)
 			{
 				test.failed("buffer sent to onRead is null");
 			}
@@ -191,7 +196,7 @@ describe("Network.TCPSocket",{
 			}
 			catch(e)
 			{
-				test.failed("TCPSocket error: "+e);			
+				test.failed("TCPSocket error: "+e);
 			}
 			TCPsocket.close();
 		}
@@ -236,7 +241,7 @@ describe("Network.TCPSocket",{
 		
 		TCPsocket.onReadComplete( function(buf)
 		{
-  			clearTimeout(timer);
+			clearTimeout(timer);
 			try
 			{
 				if ( output.length > 0 )

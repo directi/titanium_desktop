@@ -3,16 +3,16 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
-#include "network_binding.h"
 
-#ifndef OS_OSX
+#include <kroll/thread_manager.h>
+#include "network_binding.h"
+#include "network_status.h"
 
 namespace ti
 {
 	NetworkStatus::NetworkStatus(NetworkBinding* binding) :
 		StaticBoundObject("Network.NetworkStatus"),
 		binding(binding),
-		previous_status(false),
 		running(true)
 	{
 	}
@@ -24,9 +24,8 @@ namespace ti
 
 	void NetworkStatus::Start()
 	{
-		this->adapter = new RunnableAdapter<NetworkStatus>(
-			*this,
-			&NetworkStatus::StatusLoop);
+		this->adapter = new Poco::RunnableAdapter<NetworkStatus>(
+			*this, &NetworkStatus::StatusLoop);
 		this->thread = new Poco::Thread();
 		this->thread->start(*this->adapter);
 	}
@@ -44,20 +43,25 @@ namespace ti
 
 	void NetworkStatus::StatusLoop()
 	{
+		START_KROLL_THREAD;
+
 		this->InitializeLoop();
 
 		// We want to wake up and detect if we are running more
 		// often than we want to test reachability, so we only
 		// test reachability every 25 * .2s
 		int count = 0;
+		bool firedAtAll = false;
+		bool previousStatus = false;
 		while (this->running)
 		{
 			if (count == 0)
 			{
 				bool online = this->GetStatus();
-				if (online != this->previous_status)
+				if (!firedAtAll || online != previousStatus)
 				{
-					this->previous_status = online;
+					firedAtAll = true;
+					previousStatus = online;
 					binding->NetworkStatusChange(online);
 				}
 			}
@@ -71,7 +75,7 @@ namespace ti
 		}
 
 		this->CleanupLoop();
+
+		END_KROLL_THREAD;
 	}
 }
-
-#endif

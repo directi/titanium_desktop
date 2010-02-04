@@ -6,14 +6,14 @@
 
 #include "snarl_win32.h"
 #include "SnarlInterface.h"
-#include "../../../kroll/host/win32/host.h"
+#include <kroll/win32/host.h>
 
 using namespace ti;
 using namespace kroll;
 
 namespace ti
 {
-	UINT SnarlWin32::snarlWindowMessage = ::RegisterWindowMessage("TitaniumSnarlMessage");
+	UINT SnarlWin32::snarlWindowMessage = ::RegisterWindowMessageA("TitaniumSnarlMessage");
 	std::map<long, KMethodRef> SnarlWin32::snarlCallbacks;
 
 	SnarlWin32::SnarlWin32(KObjectRef global) :
@@ -37,13 +37,13 @@ namespace ti
 	{
 		SnarlInterface snarlInterface;
 
-		std::wstring wideTitle = UTF8ToWide(title);
-		std::wstring wideText = UTF8ToWide(description);
+		std::wstring wideTitle = ::UTF8ToWide(title);
+		std::wstring wideText = ::UTF8ToWide(description);
 		std::wstring wideIconPath(L"");
 		if (!iconURL.empty())
 		{
 			std::string iconPath = URLUtils::URLToPath(iconURL);
-			wideIconPath.append(UTF8ToWide(iconPath));
+			wideIconPath.append(::UTF8ToWide(iconPath));
 		}
 
 		HWND replyWindow = Win32Host::Win32Instance()->AddMessageHandler(
@@ -70,8 +70,7 @@ namespace ti
 		{
 			if (wParam == SnarlInterface::SNARL_NOTIFICATION_CLICKED)
 			{
-				Host::GetInstance()->InvokeMethodOnMainThread(
-					i->second, ValueList(), false);
+				RunOnMainThread(i->second, ValueList(), false);
 			}
 			else if (wParam == SnarlInterface::SNARL_NOTIFICATION_TIMED_OUT)
 			{

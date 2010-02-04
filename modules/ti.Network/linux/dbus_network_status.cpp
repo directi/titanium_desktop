@@ -3,141 +3,135 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
-#include "../network_binding.h"
+#include "../network_status.h"
+#include <dbus/dbus.h>
+#include <dbus/dbus-glib.h>
+#include <gdk/gdk.h>
 
 namespace ti
 {
-	DBusNetworkStatus::DBusNetworkStatus(ti::NetworkBinding* binding) :
-		NetworkStatus(binding),
-		bus(NULL),
-		wicd_wired_proxy(NULL),
-		wicd_wireless_proxy(NULL),
-		nm_proxy(NULL)
+
+static DBusGConnection* bus = 0;
+static DBusGProxy* wicdWiredProxy = 0;
+static DBusGProxy* wicdWirelessProxy = 0;
+static DBusGProxy* networkManagerProxy = 0;
+static KMethodRef statusCheckWork(0);
+
+static KValueRef StatusCheckWork(const ValueList& args)
+{
+	GError* error = 0;
+	gchar* result = 0;
+	bool foundNetworkManager = false;
+
+	wicdWiredProxy = dbus_g_proxy_new_for_name(
+		bus,
+		"org.wicd.daemon",
+		"/org/wicd/daemon",
+		"org.wicd.daemon.wired");
+	if (!dbus_g_proxy_call(
+		wicdWiredProxy, "GetWiredIP", &error,
+		G_TYPE_INVALID,
+		G_TYPE_STRING, &result,
+		G_TYPE_INVALID))
 	{
-		this->SetMethod("_DBusStatus", &DBusNetworkStatus::_DBusStatus);
+		// 16 == interface not up
+		if (error->code == 16)
+			foundNetworkManager = true;
+		g_error_free(error);
+	}
+	else if (result)
+	{
+		return Value::NewBool(true);
+	}
+	if (wicdWiredProxy)
+		g_object_unref(wicdWiredProxy);
+
+	wicdWirelessProxy = dbus_g_proxy_new_for_name(bus, "org.wicd.daemon",
+		"/org/wicd/daemon", "org.wicd.daemon.wireless");
+	error = 0;
+
+	if (!dbus_g_proxy_call(wicdWirelessProxy, "GetWirelessIP", 
+		&error, G_TYPE_INVALID, G_TYPE_STRING, &result, G_TYPE_INVALID))
+	{
+		// 16 == interface not up
+		if (error->code == 16)
+			foundNetworkManager = true;
+		g_error_free(error);
+	}
+	else if (result)
+	{
+		return Value::NewBool(true);
 	}
 
-	void DBusNetworkStatus::InitializeLoop()
+	if (!wicdWirelessProxy)
+		g_object_unref(wicdWirelessProxy);
+
+	networkManagerProxy = dbus_g_proxy_new_for_name(bus,
+		"org.freedesktop.NetworkManager",
+		"/org/freedesktop/NetworkManager",
+		"org.freedesktop.DBus.Properties");
+	error = 0;
+	GValue nm_state_val = {0, };
+	if (!dbus_g_proxy_call(networkManagerProxy, "Get", &error,
+		G_TYPE_STRING, "org.freedesktop.NetworkManager",
+		G_TYPE_STRING, "state",
+		G_TYPE_INVALID,
+		G_TYPE_VALUE, &nm_state_val,
+		G_TYPE_INVALID))
 	{
-		g_type_init();
-		dbus_threads_init_default();
-
-		GError *error = NULL;
-		this->bus = dbus_g_bus_get(DBUS_BUS_SYSTEM, &error);
-
-		if (this->bus == NULL)
-		{
-			std::cerr << "Could not connect to DBUS: "
-			          << error->message << std::endl;
-		}
+		g_error_free(error);
 	}
-
-	void DBusNetworkStatus::CleanupLoop()
+	else if (g_value_get_uint(&nm_state_val) == 3)
 	{
-		dbus_shutdown();
-
-		if (this->wicd_wireless_proxy != NULL)
-			g_object_unref(this->wicd_wireless_proxy);
-
-		if (this->wicd_wired_proxy != NULL)
-			g_object_unref(this->wicd_wired_proxy);
+		return Value::NewBool(true);
 	}
-
-	void DBusNetworkStatus::_DBusStatus(const ValueList& args, KValueRef lresult)
+	else
 	{
-		GError *error = NULL;
-		gchar* result = NULL;
-		bool found_nm = false;
-
-		this->wicd_wired_proxy = dbus_g_proxy_new_for_name(
-			this->bus,
-			"org.wicd.daemon",
-			"/org/wicd/daemon",
-			"org.wicd.daemon.wired");
-		if (!dbus_g_proxy_call(
-			wicd_wired_proxy, "GetWiredIP", &error,
-			G_TYPE_INVALID,
-			G_TYPE_STRING, &result,
-			G_TYPE_INVALID))
-		{
-			// 16 == interface not up
-			if (error->code == 16)
-				found_nm = true;
-			g_error_free(error);
-		}
-		else if (result != NULL)
-		{
-			lresult->SetBool(true);
-			return;
-		}
-		if (this->wicd_wired_proxy != NULL)
-			g_object_unref(this->wicd_wired_proxy);
-
-		this->wicd_wireless_proxy = dbus_g_proxy_new_for_name(
-			this->bus,
-			"org.wicd.daemon",
-			"/org/wicd/daemon",
-			"org.wicd.daemon.wireless");
-		error = NULL;
-		if (!dbus_g_proxy_call(wicd_wireless_proxy, "GetWirelessIP", &error, G_TYPE_INVALID,
-			                   G_TYPE_STRING, &result, G_TYPE_INVALID))
-		{
-			// 16 == interface not up
-			if (error->code == 16)
-				found_nm = true;
-			g_error_free(error);
-		}
-		else if (result != NULL)
-		{
-			lresult->SetBool(true);
-			return;
-		}
-		if (this->wicd_wireless_proxy != NULL)
-			g_object_unref(this->wicd_wireless_proxy);
-
-		this->nm_proxy = dbus_g_proxy_new_for_name(
-			this->bus,
-			"org.freedesktop.NetworkManager",
-			"/org/freedesktop/NetworkManager",
-			"org.freedesktop.DBus.Properties");
-		error = NULL;
-		GValue nm_state_val = {0, };
-		if (!dbus_g_proxy_call(
-			this->nm_proxy, "Get", &error,
-			G_TYPE_STRING, "org.freedesktop.NetworkManager",
-			G_TYPE_STRING, "state",
-			G_TYPE_INVALID,
-			G_TYPE_VALUE, &nm_state_val,
-			G_TYPE_INVALID))
-		{
-			g_error_free(error);
-		}
-		else if (g_value_get_uint(&nm_state_val) == 3)
-		{
-			lresult->SetBool(true);
-			return;
-		}
-		else
-		{
-			found_nm = true;
-		}
-		if (this->nm_proxy != NULL)
-			g_object_unref(this->nm_proxy);
-
-		if (!found_nm)
-			lresult->SetBool(true);
-		else
-			lresult->SetBool(false);
-
+		foundNetworkManager = true;
 	}
+	if (networkManagerProxy)
+		g_object_unref(networkManagerProxy);
 
-	bool DBusNetworkStatus::GetStatus()
+	if (!foundNetworkManager)
+		return Value::NewBool(true);
+	else
+		return Value::NewBool(false);
+}
+
+
+void NetworkStatus::InitializeLoop()
+{
+	statusCheckWork = new kroll::KFunctionPtrMethod(&StatusCheckWork);
+
+	g_type_init();
+	dbus_threads_init_default();
+
+	GError* error = 0;
+	bus = dbus_g_bus_get(DBUS_BUS_SYSTEM, &error);
+
+	if (!bus)
 	{
-		if (this->bus == NULL)
-			return true;
-
-		KMethodRef meth = this->Get("_DBusStatus")->ToMethod();
-		KValueRef r = binding->GetHost()->InvokeMethodOnMainThread(meth, ValueList());
-		return r->ToBool();
+		Logger::Get("NetworkStatus")->Error(
+			"Could not connect to dbus: %s", error->message);
 	}
+}
+
+void NetworkStatus::CleanupLoop()
+{
+	dbus_shutdown();
+
+	if (wicdWirelessProxy)
+		g_object_unref(wicdWirelessProxy);
+
+	if (wicdWiredProxy)
+		g_object_unref(wicdWiredProxy);
+}
+
+bool NetworkStatus::GetStatus()
+{
+	if (!bus)
+		return true;
+
+	return RunOnMainThread(statusCheckWork, ValueList())->ToBool();
+}
 }

@@ -8,7 +8,7 @@
 #include <comutil.h>
 #include <stdlib.h>
 #include <math.h>
-#include "../../../kroll/host/win32/host.h"
+#include <kroll/win32/host.h>
 
 namespace ti
 {
@@ -17,7 +17,7 @@ namespace ti
 
 	Win32Sound::Win32Sound(std::string &url) :
 		Sound(url),
-		path(UTF8ToWide(URLUtils::URLToPath(url))),
+		path(::UTF8ToWide(URLUtils::URLToPath(url))),
 		graphBuilder(NULL),
 		mediaControl(NULL),
 		mediaEventEx(NULL),

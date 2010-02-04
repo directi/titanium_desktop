@@ -28,27 +28,22 @@ namespace ti
 #elif OS_LINUX
 		this->uiBinding = new GtkUIBinding(host);
 #endif
+		host->GetGlobalObject()->SetObject("UI", this->uiBinding);
+
 		ScriptEvaluator::Initialize();
-		AppConfig *config = AppConfig::Instance();
-		if (config == NULL)
+		AppConfig* config = AppConfig::Instance();
+		if (!config)
 		{
 			std::string msg = "Error loading tiapp.xml. Your application "
-			                  "is not properly configured or packaged.";
-			this->uiBinding->ErrorDialog(msg);
-			throw ValueException::FromString(msg.c_str());
-			return;
-		}
-		WindowConfig *main_window_config = config->GetMainWindow();
-		if (main_window_config == NULL)
-		{
-			std::string msg = "Error loading tiapp.xml. Your application "
-				"window is not properly configured or packaged.";
+				"is not properly configured or packaged.";
 			this->uiBinding->ErrorDialog(msg);
 			throw ValueException::FromString(msg.c_str());
 			return;
 		}
 
-		this->uiBinding->CreateMainWindow(main_window_config);
+		// If there is no main window configuration, this just
+		// AppConfig::GetMainWindow returns a default configuration.
+		this->uiBinding->CreateMainWindow(config->GetMainWindow());
 
 		try
 		{

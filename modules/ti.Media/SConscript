@@ -1,14 +1,11 @@
 #!/usr/bin/env python
-import os, os.path as path
-Import('build')
+from os import path
+Import('build env module')
 
-env = build.env.Clone();
 env.Append(CPPDEFINES = ('TITANIUM_API_EXPORT', 1))
-env.Append(CPPPATH = ['#kroll'])
+
 build.add_thirdparty(env, 'poco')
-
 sources = Glob('*.cpp')
-
 if build.is_osx():
 	env.Append(FRAMEWORKS = ['Cocoa'])
 	sources.extend(Glob('osx/*.cpp'))
@@ -23,13 +20,12 @@ elif build.is_win32():
 	libs = [
 		'user32', 'shell32', 'kernel32', 'shlwapi',
 		'strmiids','ole32', 'comdlg32', 'comctl32',
-		'oleaut32', 'comsuppw', 'khost']
+		'oleaut32', 'comsuppw']
 	env.Append(LIBS = libs)
 	env.Append(CPPPATH=[build.tp('microsoft', 'include')])
 	env.Append(CPPDEFINES = ('WIN32_LEAN_AND_MEAN', 1))
 	env.Append(CCFLAGS=['/MD', '/DUNICODE', '/D_UNICODE'])
 
-m = build.add_module('ti.Media', env=env)
-t = env.SharedLibrary(target = m.build_dir + '/timediamodule', source = sources)
-build.mark_build_target(t)
+build.mark_build_target(env.SharedLibrary(
+	path.join(module.dir, 'timediamodule'), sources))
 

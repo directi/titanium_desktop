@@ -10,17 +10,14 @@ namespace ti
 {
 	UIBinding* UIBinding::instance = NULL;
 
-	// Module constants
-	int UIBinding::CENTERED = WindowConfig::DEFAULT_POSITION;
-
-	UIBinding::UIBinding(Host *host) :
+	UIBinding::UIBinding(Host* host) :
 		KAccessorObject("UI"),
 		host(host)
 	{
 		instance = this;
 
 		// @tiproperty[Number, UI.CENTERED, since=0.6] The CENTERED event constant
-		this->Set("CENTERED", Value::NewInt(UIBinding::CENTERED));
+		this->Set("CENTERED", Value::NewInt(DEFAULT_POSITION));
 
 		/**
 		 * @tiapi(method=True,name=UI.createMenu,since=0.6)
@@ -151,20 +148,50 @@ namespace ti
 		 */
 		this->SetMethod("getMainWindow", &UIBinding::_GetMainWindow);
 
-		this->Set("Clipboard", Value::NewObject(new Clipboard()));
+		/**
+		 * @tiapi(method=True,name=UI.createWindow,since=0.8.1)
+		 * @tiapi Create a new top-level window or a child of the current window if called
+		 * @tiapi from the context of an existing window.
+		 * @tiarg[type=String|Object,options,optional=True]
+		 * @tiarg A string containing a url of the new window or an object
+		 * @tiarg containing properties for the new window
+		 * @tiresult[UI.UserWindow] The new UserWindow object.
+		 */
+		this->SetMethod("createWindow", &UIBinding::_CreateWindow);
 
-		KObjectRef global = host->GetGlobalObject();
-		KValueRef ui_binding_val = Value::NewObject(this);
-		global->Set("UI", ui_binding_val);
-
+		this->SetObject("Clipboard", new Clipboard());
 		Logger::AddLoggerCallback(&UIBinding::Log);
 	}
 
-	void UIBinding::CreateMainWindow(WindowConfig* config)
+	void UIBinding::CreateMainWindow(AutoPtr<WindowConfig> config)
 	{
-		AutoPtr<UserWindow> no_parent = NULL;
-		this->mainWindow = this->CreateWindow(config, no_parent);
+		this->mainWindow = UserWindow::CreateWindow(config, 0);
 		this->mainWindow->Open();
+	}
+
+	void UIBinding::_CreateWindow(const ValueList& args, KValueRef result)
+	{
+		AutoPtr<WindowConfig> config(0);
+		if (args.size() > 0 && args.at(0)->IsObject())
+		{
+			config = WindowConfig::FromProperties(args.GetObject(0));
+		}
+		else if (args.size() > 0 && args.at(0)->IsString())
+		{
+			std::string url(args.GetString(0));
+			config = AppConfig::Instance()->GetWindowByURL(url);
+			if (config.isNull())
+			{
+				config = WindowConfig::Default();
+				config->SetURL(url);
+			}
+		}
+
+		// If we still do not have a configuration, just use the default.
+		if (config.isNull())
+			config = WindowConfig::Default();
+
+		result->SetObject(UserWindow::CreateWindow(config, 0));
 	}
 
 	void UIBinding::ErrorDialog(std::string msg)
@@ -487,8 +514,7 @@ namespace ti
 			if (method.isNull())
 				method = console->GetMethod(methodName.c_str(), 0);
 
-			Host::GetInstance()->InvokeMethodOnMainThread(
-				method, ValueList(Value::NewString(message)), false);
+			RunOnMainThread(method, ValueList(Value::NewString(message)), false);
 		}
 	}
 }

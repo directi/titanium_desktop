@@ -12,7 +12,7 @@ namespace ti
 	Win32MenuItem::Win32MenuItem(MenuItemType type) :
 		MenuItem(type),
 		oldSubmenu(0),
-		wideOldLabel(UTF8ToWide(label))
+		wideOldLabel(::UTF8ToWide(label))
 	{
 	}
 
@@ -24,7 +24,7 @@ namespace ti
 	{
 		if (!this->IsSeparator())
 		{
-			this->wideOldLabel = UTF8ToWide(newLabel);;
+			this->wideOldLabel = ::UTF8ToWide(newLabel);;
 			this->RecreateAllNativeItems();
 		}
 
@@ -139,7 +139,8 @@ namespace ti
 			}
 			else if (!this->iconPath.empty())
 			{
-				HBITMAP bitmap = Win32UIBinding::LoadImageAsBitmap(iconPath, 0, 0);
+				HBITMAP bitmap = Win32UIBinding::LoadImageAsBitmap(iconPath,
+					GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON));
 				if (bitmap)
 				{
 					itemInfo->fMask = itemInfo->fMask | MIIM_BITMAP;

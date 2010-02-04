@@ -29,12 +29,12 @@ HRESULT STDMETHODCALLTYPE Win32WebKitFrameLoadDelegate::didFinishLoadForFrame(
 
 	BSTR u;
 	urlRequest->URL(&u);
-	std::wstring u2(u);
-	std::string url;
-	url.assign(u2.begin(), u2.end());
+	std::wstring wideURL(u);
+	std::string url(::WideToUTF8(wideURL));
 
-	window->PageLoaded(frame_global, url, context);
 	window->FrameLoaded();
+	window->PageLoaded(frame_global, url, context);
+	
 	return S_OK;
 }
 
@@ -42,8 +42,7 @@ HRESULT STDMETHODCALLTYPE Win32WebKitFrameLoadDelegate::didClearWindowObject(
 	IWebView *webView, JSContextRef context, JSObjectRef windowScriptObject,
 	IWebFrame *frame)
 {
-	Win32UserWindow* userWindow = this->window;
-	userWindow->RegisterJSContext((JSGlobalContextRef) context);
+	this->window->RegisterJSContext((JSGlobalContextRef) context);
 	return S_OK;
 }
 
@@ -52,17 +51,13 @@ HRESULT STDMETHODCALLTYPE Win32WebKitFrameLoadDelegate::QueryInterface(
 {
 	*ppvObject = 0;
 	if (IsEqualGUID(riid, IID_IUnknown))
-	{
 		*ppvObject = static_cast<IWebFrameLoadDelegate*>(this);
-	}
 	else if (IsEqualGUID(riid, IID_IWebFrameLoadDelegate))
-	{
 		*ppvObject = static_cast<IWebFrameLoadDelegate*>(this);
-	}
 	else
-	{
 		return E_NOINTERFACE;
-	}
+
+	AddRef();
 	return S_OK;
 }
 

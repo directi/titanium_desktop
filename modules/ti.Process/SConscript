@@ -1,23 +1,20 @@
 #!/usr/bin/env python
-import os
+from os import path
+Import('build env module')
 
-Import('build')
-
-env = build.env.Clone();
 env.Append(CPPDEFINES = ('TITANIUM_PROCESS_API_EXPORT', 1))
-env.Append(CPPPATH = ['#kroll'])
+
 build.add_thirdparty(env, 'poco')
-
 sources = Glob('*.cpp')
-
 if build.is_win32():
+	env.Append(CCFLAGS=['/MD', '/DUNICODE', '/D_UNICODE'])
 	sources += Glob('win32/*.cpp')
 else:
 	sources += Glob('posix/*.cpp')
-	
-m = build.add_module('ti.Process', env=env)
-t = env.SharedLibrary(target = m.build_dir + '/tiprocessmodule', source = sources)
-build.mark_build_target(t)
 
-t = build.utils.CopyTree(Glob('*.js'), m.build_dir)
-build.mark_build_target(t)
+if build.is_win32():
+	env.Append(CCFLAGS=['/DUNICODE', '/D_UNICODE'])
+
+build.mark_build_target(build.utils.CopyTree(Glob('*.js'), module.dir))
+build.mark_build_target(env.SharedLibrary(
+	path.join(module.dir, 'tiprocessmodule'), sources))

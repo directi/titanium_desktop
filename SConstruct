@@ -1,22 +1,10 @@
-#!/usr/bin/env python
-
-# this will ensure that you're using the right version of scons
-EnsureSConsVersion(1,2,0)
-# this will ensure that you're using the right version of python
-EnsurePythonVersion(2,5)
-
-# common SConscripts
-
-import os, re, sys, inspect, os.path as path
-from sets import Set
-import subprocess, distutils.dir_util as dir_util
-sys.path.append(path.join(path.abspath('.'), 'build'))
-import titanium_version
-
+import os.path as path
+import tools
+import distutils.dir_util as dir_util
 from kroll import BuildConfig
+
 build = BuildConfig(
-	PRODUCT_VERSION = titanium_version.version,
-	INSTALL_PREFIX = '/usr/local',
+	PRODUCT_VERSION = tools.get_titanium_version(),
 	PRODUCT_NAME = 'Titanium',
 	GLOBAL_NS_VARNAME = 'Titanium',
 	CONFIG_FILENAME = 'tiapp.xml',
@@ -25,10 +13,13 @@ build = BuildConfig(
 	DISTRIBUTION_URL = 'api.appcelerator.net',
 	CRASH_REPORT_URL = 'api.appcelerator.net/p/v1/app-crash-report'
 )
+EnsureSConsVersion(1,2,0)
+EnsurePythonVersion(2,5)
+
 build.set_kroll_source_dir(path.abspath('kroll'))
 
 build.titanium_source_dir = path.abspath('.')
-build.titanium_support_dir = path.join(build.titanium_source_dir, 'support', build.os)
+build.titanium_support_dir = path.join(build.titanium_source_dir, 'support')
 
 # This should only be used for accessing various
 # scripts in the kroll build directory. All resources
@@ -61,14 +52,12 @@ if build.is_win32():
 Export('build', 'debug')
 targets = COMMAND_LINE_TARGETS
 clean = 'clean' in targets or ARGUMENTS.get('clean', 0)
-qclean = 'qclean' in targets or ARGUMENTS.get('qclean', 0)
 build.nopackage = ARGUMENTS.get('nopackage', 0)
 
-if clean or qclean:
+if clean:
 	print "Obliterating your build directory: %s" % build.dir
 	if path.exists(build.dir):
 		dir_util.remove_tree(build.dir)
-	if not qclean: os.system('scons -c')
 	Exit(0)
 
 # forcing a crash to test crash detection
@@ -76,8 +65,8 @@ if ARGUMENTS.get('test_crash', 0):
 	build.env.Append(CPPDEFINES = ('TEST_CRASH_DETECTION', 1))
 
 ## Kroll *must not be required* for installation
-SConscript('kroll/SConscript.thirdparty', exports='debug')
-SConscript('installation/SConscript')
+SConscript('kroll/SConscript.thirdparty')
+SConscript('installer/SConscript')
 
 # After Kroll builds, the environment will  link 
 # against libkroll, so anything that should not be

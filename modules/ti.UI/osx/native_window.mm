@@ -21,16 +21,14 @@
 	userWindow = inUserWindow;
 }
 
-- (void)setupDecorations:(WindowConfig*)inConfig;
+- (void)setupDecorations:
 {
-	config = inConfig;
+	Autoptr<WindowConfig> config(userWindow->GetConfig());
 
 	[self setTitle:[NSString stringWithUTF8String:config->GetTitle().c_str()]];
-	[self setOpaque:false];
 	[self setHasShadow:true];
 
-	webView = [[WebView alloc] init];
-	[webView setDrawsBackground:NO];
+	webView = [[WebView alloc] initWithFrame:[[self contentView] bounds]];
 
 	delegate = [[WebViewDelegate alloc] initWithWindow:self];
 	[webView setFrameLoadDelegate:delegate];
@@ -38,11 +36,44 @@
 	[webView setResourceLoadDelegate:delegate];
 	[webView setPolicyDelegate:delegate];
 
-	[self setContentView:webView];
+	// Because of the Win32 implementation, this setting
+	// only applies during window creation.
+	if (config->HasTransparentBackground())
+	{
+		[self setOpaque:false];
+		[self setBackgroundColor:[NSColor clearColor]];
+		[webView setDrawsBackground:NO];
+		[webView setBackgroundColor:[NSColor clearColor]];
+	}
+	else if (config->HasTexturedBackground())
+	{
+		[self setOpaque:false];
+		[webView setDrawsBackground:NO];
+		[self setMovableByWindowBackground:NO]; // On by default.
+
+		// HACK: When a large portion of a textured window is covered
+		// by an opaque subview, OS X will push the window gradient up
+		// to emulate the look of a non-textured window. Since we are
+		// *really* transparent here, make the alpha value less than
+		// 1.0 to trick OS X into knowing that we are transparent.
+		[webView setAlphaValue:0.99];
+	}
+	else
+	{
+		// This is to match the default Windows behavior of painting
+		// the background of the web view white.
+		[webView setBackgroundColor:[NSColor whiteColor]];
+	}
+
+	if (config->IsResizable() && config->IsUsingChrome())
+		[self setShowsResizeIndicator:YES];
+	else
+		[self setShowsResizeIndicator:NO];
+
 	[self setDelegate:self];
 	[self setTransparency:config->GetTransparency()];
 	[self setInitialFirstResponder:webView];
-	[self setShowsResizeIndicator:config->IsResizable()];
+	[self setContentView:webView];
 }
 
 - (void)dealloc
@@ -88,8 +119,7 @@
 
 - (void)titaniumQuit:(id)sender
 {
-	Host* host = Host::GetInstance();
-	host->Exit(0);
+	Host::GetInstance()->Exit(0);
 }
 
 - (void)windowWillClose:(NSNotification *)notification
@@ -100,7 +130,6 @@
 		[inspector release];
 		inspector = nil;
 	}
-	config->SetVisible(false);
 }
 
 - (NSSize)windowWillResize:(NSWindow *) window toSize:(NSSize)newSize
@@ -154,14 +183,6 @@
 - (void)setTransparency:(double)transparency
 {
 	[self setAlphaValue:transparency];
-	if (transparency < 1.0)
-	{
-		[webView setBackgroundColor:[NSColor clearColor]];
-	}
-	else
-	{
-		[webView setBackgroundColor:[NSColor whiteColor]];
-	}
 	[self invalidateShadow];
 }
 
@@ -185,11 +206,7 @@
 
 - (NSRect)constrainFrameRect:(NSRect)frameRect toScreen:(NSScreen *)screen 
 {
-	if (fullscreen)
-	{
-		return frameRect;
-	}
-	return [super constrainFrameRect:frameRect toScreen:screen];
+	return frameRect;
 }
 
 - (void)setFullscreen:(BOOL)yn
@@ -202,16 +219,15 @@
 	{
 		fullscreen = YES;
 		savedFrame = [self frame];
-		
-		// adjust to remove toolbar from view on window
-		NSView *toolbarView = [[self toolbar] valueForKey:@"toolbarView"];
-		float toolbarHeight = [toolbarView frame].size.height;
-		if (![[self toolbar] isVisible]) {
-			toolbarHeight = 0;
-		}
-		float windowBarHeight = [self frame].size.height - ([[self contentView] frame].size.height + toolbarHeight);
+
+		float toolbarHeight = 0;
+		if ([[self toolbar] isVisible])
+			toolbarHeight = [[[self toolbar] valueForKey:@"toolbarView"]
+				frame].size.height;
+
 		NSRect frame = [[NSScreen mainScreen] frame];
-		frame.size.height += windowBarHeight;
+		frame.size.height += [self frame].size.height -
+			([[self contentView] frame].size.height + toolbarHeight);
 
 		SetSystemUIMode(kUIModeAllHidden,kUIOptionAutoShowMenuBar);
 		[self setFrame:frame display:display animate:display];
@@ -223,7 +239,7 @@
 		fullscreen = NO;
 		[self setFrame:savedFrame display:display animate:display];
 		SetSystemUIMode(kUIModeNormal,0);
-		[self setShowsResizeIndicator:config->IsResizable()];
+		[self setShowsResizeIndicator:userWindow->IsResizable()];
 		(*userWindow)->FireEvent(Event::UNFULLSCREENED);
 	}
 	if (display)
@@ -238,24 +254,18 @@
 	return webView;
 }
 
-- (WindowConfig*)config
-{
-	return config;
-}
-
 - (void)open
 {
-	if (config->IsVisible() && !config->IsMinimized())
-	{
-		// if we call open and we're initially visible
-		// we need to basically set requires display which
-		// will cause the window to be shown once the url is loaded
-		requiresDisplay = YES;
-	}
-	std::string url = kroll::URLUtils::NormalizeURL(config->GetURL());
+	// Wait until the frame has loaded to show the window. This prevents
+	// showing an unloaded WebView (a white screen).
+	requiresDisplay = YES;
+
+	if (userWindow->IsFullscreen())
+		[self setFullscreen:YES];
+
+	std::string url(kroll::URLUtils::NormalizeURL(userWindow->GetURL()));
 	NSURL* nsurl = [NSURL URLWithString: [NSString stringWithUTF8String:url.c_str()]];
 	[[webView mainFrame] loadRequest:[NSURLRequest requestWithURL:nsurl]];
-	
 }
 
 - (void)close
@@ -269,29 +279,19 @@
 	[super close];
 }
 
-- (void)setInitialWindow:(BOOL)yn
-{
-	// this is a boolean to indicate that when the frame is loaded,
-	// we should go ahead and display the window
-	requiresDisplay = yn;
-}
-
 - (void)frameLoaded
 {
-	if (requiresDisplay)
+	if (requiresDisplay && (*userWindow)->IsVisible())
 	{
 		requiresDisplay = NO;
-		config->SetVisible(true);
-
-		[NSApp arrangeInFront:self];
-		[self makeKeyAndOrderFront:self];
-		[NSApp activateIgnoringOtherApps:YES];
-
-		if (config->IsFullscreen())
-		{
-			[self setFullscreen:YES];
-		}
+		(*userWindow)->Show();
 	}
 	[self invalidateShadow];
 }
+
+-(NSRect)windowWillUseStandardFrame:(NSWindow *)sender defaultFrame:(NSRect)defaultFrame
+{
+	return [[self screen] frame];
+}
+
 @end

@@ -7,7 +7,7 @@
 #include <Poco/Environment.h>
 #include "app_binding.h"
 #include "app_config.h"
-#include "Properties/properties_binding.h"
+#include "properties_binding.h"
 
 namespace ti
 {
@@ -17,7 +17,7 @@ namespace ti
 		global(global)
 	{
 		/**
-		 * @tiapi(method=Truename=App.getID,since=0.2)
+		 * @tiapi(method=True,name=App.getID,since=0.2)
 		 * @tiapi Return the application id.
 		 * @tiresult[String] The application id.
 		 */
@@ -115,7 +115,13 @@ namespace ti
 		 * @tiapi(method=True,name=App.exit,since=0.2)
 		 * @tiapi Exit the application.
 		 */
-		this->SetMethod("exit",&AppBinding::Exit);
+		this->SetMethod("exit", &AppBinding::Exit);
+
+		/**
+		 * @tiapi(method=True,name=App.restart,since=0.9)
+		 * @tiapi Restart the application.
+		 */
+		this->SetMethod("restart", &AppBinding::Restart);
 
 		/**
 		 * @tiapi(method=True,name=App.createProperties,since=0.6)
@@ -147,6 +153,14 @@ namespace ti
 		this->SetMethod("stderr", &AppBinding::StdErr);
 
 		/**
+		 * @tiapi(method=True,name=App.stdin,since=0.7) Reads from stdin
+		 * @tiapi(for=App.stdin,type=String,name=prompt,optional=True) text prompt (Default: no prompt)
+		 * @tiarg(for=App.stdin,type=String,name=delimiter,optional=True) Will continue reading stdin until the delimiter character is reached. (Default: newline)
+		 * @tiresult(for=App.stderr,type=String) data read from stdin
+		 */
+		this->SetMethod("stdin", &AppBinding::StdIn);
+		
+		/**
 		 * @tiapi(method=True,name=App.getSystemProperties,since=0.4)
 		 * @tiapi get the system properties defined in tiapp.xml
 		 * @tiapi (see App.Properties).
@@ -160,6 +174,11 @@ namespace ti
 		 * @tiresult[String] The application icon path.
 		 */
 		this->SetMethod("getIcon", &AppBinding::GetIcon);
+
+		// Don't document this temporary API point. This will be replaced by
+		// a generic method of reading arbitrary property values from tiapp.xml.
+		this->SetBool("analyticsEnabled",
+			AppConfig::Instance()->IsAnalyticsEnabled());
 	}
 
 	AppBinding::~AppBinding()
@@ -198,9 +217,10 @@ namespace ti
 		std::string guid = host->GetApplication()->guid;
 		result->SetString(guid);
 	}
+
 	void AppBinding::Exit(const ValueList& args, KValueRef result)
 	{
-		host->Exit(args.size()==0 ? 0 : args.at(0)->ToInt());
+		host->Exit(args.GetInt(0, 0));
 	}
 
 	void AppBinding::AppURLToPath(const ValueList& args, KValueRef result)
@@ -295,6 +315,26 @@ namespace ti
 		std::cerr << std::endl;
 	}
 
+	void AppBinding::StdIn(const ValueList& args, KValueRef result)
+	{
+		args.VerifyException("stdin", "?ss");
+		std::string input;
+		char delimiter = '\n';
+
+		if (args.size() >= 1)
+		{
+			std::cout << args.GetString(0);
+		}
+
+		if (args.size() >= 2)
+		{
+			delimiter = args.GetString(1).at(0);
+		}
+
+		getline(std::cin, input, delimiter);
+		result->SetString(input);
+	}
+
 	void AppBinding::GetStreamURL(const ValueList& args, KValueRef result)
 	{
 		SharedApplication app = this->host->GetApplication();
@@ -325,14 +365,12 @@ namespace ti
 
 	void AppBinding::GetPath(const ValueList& args, KValueRef result)
 	{
-		static std::string path(host->GetCommandLineArg(0));
-		result->SetString(path);
+		result->SetString(host->GetApplication()->GetArguments().at(0).c_str());
 	}
 
 	void AppBinding::GetHome(const ValueList& args, KValueRef result)
 	{
-		static std::string path(host->GetApplicationHomePath());
-		result->SetString(path);
+		result->SetString(host->GetApplication()->path);
 	}
 
 	void AppBinding::GetArguments(const ValueList& args, KValueRef result)
@@ -340,10 +378,11 @@ namespace ti
 		static KListRef argList(0);
 		if (argList.isNull())
 		{
-			// Skip the first argument which is the filename to the executable
+			// Skip the first argument which is the filename of the executable.
+			std::vector<std::string>& args = host->GetApplication()->GetArguments();
 			argList = new StaticBoundList();
-			for (int i = 1; i < host->GetCommandLineArgCount(); i++)
-				argList->Append(Value::NewString(host->GetCommandLineArg(i)));
+			for (size_t i = 1; i < args.size(); i++)
+				argList->Append(Value::NewString(args.at(i)));
 		}
 
 		result->SetList(argList);

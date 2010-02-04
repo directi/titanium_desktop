@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-import os, os.path as path
-Import('build')
+from os import path
+import os
+Import('build env module')
 
-env = build.env.Clone();
 env.Append(CPPDEFINES = ('TITANIUM_APP_API_EXPORT', 1))
 
 build.add_thirdparty(env, 'poco')
@@ -12,6 +12,7 @@ if build.is_osx():
 	env.Append(CPPPATH=['/usr/include/libxml2'])
 
 if build.is_win32():
+	env.Append(CCFLAGS=['/MD', '/DUNICODE', '/D_UNICODE'])
 	env.Append(CPPPATH=[
 		build.tp('libxml', 'include'),
 		build.tp('icu','include')])
@@ -24,10 +25,14 @@ else:
 	if not build.is_osx():
 		env.ParseConfig('pkg-config --cflags --libs libxml-2.0')
 
-m = build.add_module('ti.App', env=env)
-sources = Glob('*.cpp') + Glob('Properties/*.cpp')
-t = env.SharedLibrary(target = m.build_dir + '/tiappmodule', source=sources)
-build.mark_build_target(t)
+sources = Glob('*.cpp')
+if build.is_win32():
+	sources += Glob('win32/*.cpp')
+elif build.is_linux():
+	sources += Glob('linux/*.cpp')
+elif build.is_osx():
+	sources += Glob('osx/*.mm')
 
-t = build.utils.CopyTree(Glob('*.js'), m.build_dir)
-build.mark_build_target(t)
+build.mark_build_target(env.SharedLibrary(
+	path.join(module.dir, 'tiappmodule'), sources))
+build.mark_build_target(build.utils.CopyTree(Glob('*.js'), module.dir))

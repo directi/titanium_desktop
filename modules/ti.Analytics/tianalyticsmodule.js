@@ -3,9 +3,15 @@
 //
 (function()
 {
-	var update_check_delay = 30000; // how many ms before we initiate check
-	var update_check_interval_secs = (60000 * 15) / 1000; // once per 15 min
-	
+	// How often to actually check for updates on the network in seconds.
+	// 900 seconds == every 15 minutes.
+	var UPDATE_CHECK_INTERVAL = 900;
+
+	// How many milliseconds before the update check timer fires. The update
+	// check timer will only launch an update check if the time passed since
+	// the last update check is greater than UPDATE_CHECK_INTERVAL.
+	var UPDATE_CHECK_TIMER_INTERVAL = 30000;
+
 	var url = Titanium.App.getStreamURL("app-track");
 	var guid = null;
 	var sid = null;
@@ -15,20 +21,31 @@
 	var refresh_components = true;
 	var update_check_timer = null;
 	var analytics_spec_version = 2;
-	var tz_offset_mins = - (new Date().getTimezoneOffset()); // js returns minutes to add to local to get UTC,
-	                                                         // Java returns ms to add to UTC to get local
-	
+
+	// js returns minutes to add to local to get UTC,
+	// Java returns ms to add to UTC to get local
+	var tz_offset_mins = - (new Date().getTimezoneOffset());
+
 	function send(qsv,async,timeout)
 	{
 		try
 		{
-			// if we're offline we don't even attempt these
-			if (qsv.type!='ti.start' && qsv.type!='ti.end' && Titanium.Network.online===false)
+			// If we're offline we don't even attempt these
+			if (qsv.type != 'ti.start' && qsv.type != 'ti.end'
+				&& Titanium.Network.online === false)
 			{
 				//TODO: we need to place these in DB and re-send later
-				Titanium.API.debug("we're not online - skipping analytics");
+				Titanium.API.debug("Not online -- skipping analytics");
 				return;
 			}
+
+			// If we're offline we don't even attempt these
+			if (!Titanium.App.analyticsEnabled)
+			{
+				Titanium.API.debug("Analytics disabled via tiapp.xml, skipping");
+				return;
+			}
+
 			async = (typeof async=='undefined') ? true : async;
 			qsv.mid = Titanium.Platform.id;
 			qsv.guid = guid;
@@ -46,7 +63,7 @@
 			qsv.ip = Titanium.Platform.address;
 			qsv.ver = analytics_spec_version;
 			qsv.tz = tz_offset_mins;
-			
+
 			var qs = '';
 			for (var p in qsv)
 			{
@@ -80,7 +97,9 @@
 	}
 	
 	/** Undocumented, perhaps to be deprecated
-	 * @no_tiapi(method=True,name=Analytics.addEvent,since=0.3) Sends an analytics event associated with the application, likely to be deprecated in favor of userEvent
+	 * @no_tiapi(method=True,name=Analytics.addEvent,since=0.3)
+	 * @no_tiapi Sends an analytics event associated with the application,
+	 * @no_tiapi likely to be deprecated in favor of userEvent
 	 * @no_tiarg(for=Analytics.addEvent,type=String,name=event) event name
 	 * @no_tiarg(for=Analytics.addEvent,type=Object,name=data,optional=True) event data
 	 */
@@ -184,8 +203,6 @@
 		}
 	});
 
-	
-
 	/**
 	 * @tiapi(method=True,name=Analytics.userEvent,since=0.7) Sends an analytics event not covered by the other interfaces
 	 * @tiarg(for=Analytics.userEvent,type=String,name=event) event name
@@ -196,7 +213,7 @@
 		if (typeof(name)!='undefined')
 		{
 			data = ((typeof(data)!='undefined') ? Titanium.JSON.stringify(data) : null);
-			send({type:'app.user',event:name,data:data});		
+			send({type:'app.user',event:name,data:data});
 		}
 	});
 
@@ -291,15 +308,61 @@
 	});
 
 	/**
-	 * @tiapi(method=True,name=UpdateManager.installAppUpdate,since=0.4) Install an application update received from update monitor. This method will cause the process to first be restarted for the update to begin.
-	 * @tiarg(for=UpdateManager.installAppUpdate,name=spec,type=Object) Update spec object received from update service.
+	 * @tiapi(method=True,name=UpdateManager.installAppUpdate,since=0.4)
+	 * @tiapi Install an application update received from update monitor. This
+	 * @tiapi method will cause the process to first be restarted for the update to begin.
+	 * @tiarg[Object, updateSpec] Update spec object received from update service.
 	 */
 	Titanium.API.set("UpdateManager.installAppUpdate", function(updateSpec)
 	{
 		installAppUpdate(updateSpec);
 	});
-	
-	
+
+	Titanium.UpdateManager.compareVersions = function(newVersion, oldVersion)
+	{
+		// 1. Split on dots.
+		// 2. For every dot do a comparison.
+		// 3. If we get to the end of one of the arrays, the longer
+		//    array is the larger version.
+		var newVersionParts = newVersion.split(".");
+		var oldVersionParts = oldVersion.split(".");
+
+		while (newVersionParts.length > 0 && oldVersionParts.length > 0)
+		{
+			var newPart = newVersionParts[0];
+			var oldPart = oldVersionParts[0];
+			var result = false;
+
+			// If both can't be parsed, compare them as strings.
+			if (isNaN(newPart) && isNaN(oldPart))
+			{
+				if (newVersionParts[0] > oldVersionParts[0])
+					return 1;
+				else if (oldVersionParts[0] > newVersionParts[0])
+					return -1;
+			}
+			else if (newPart != oldPart)
+			{
+				// Unparsable integer is always < than an integer
+				if (isNaN(oldPart))
+					return 1;
+				else if (isNaN(newPart))
+					return -1;
+				else if (newPart > oldPart)
+					return 1;
+				else
+					return -1;
+			}
+
+			newVersionParts.shift();
+			oldVersionParts.shift();
+		}
+
+		// If the new version has a longer array, return true,
+		// otherwise the old version is larger or equal.
+		return newVersionParts.length - oldVersionParts.length;
+	}
+
 	function installAppUpdate(updateSpec)
 	{
 		// write our the new manifest for the update
@@ -308,7 +371,7 @@
 		update.write(updateSpec.manifest);
 		
 		// restart ourselves to cause the install
-		Titanium.Process.restart();
+		Titanium.App.restart();
 	}
 	
 
@@ -324,7 +387,13 @@
 			var url = Titanium.App.getStreamURL("release-list");
 			var xhr = Titanium.Network.createHTTPClient();
 			xhr.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
-			var qs = 'version='+Titanium.Network.encodeURIComponent(version)+'&name='+Titanium.Network.encodeURIComponent(component)+'&mid='+Titanium.Network.encodeURIComponent(Titanium.Platform.id)+'&limit='+limit+'&guid='+Titanium.Network.encodeURIComponent(Titanium.App.getGUID());
+			var qs = 'version=' + Titanium.Network.encodeURIComponent(version) +
+				'&name=' + Titanium.Network.encodeURIComponent(component) + 
+				'&mid=' + Titanium.Network.encodeURIComponent(Titanium.Platform.id) +
+				'&limit=' + limit +
+				'&guid=' + Titanium.Network.encodeURIComponent(Titanium.App.getGUID()) +
+				'&os=' + Titanium.platform +
+				'&ostype=' + Titanium.Platform.ostype;
 			xhr.onreadystatechange = function()
 			{
 				if (this.readyState==4)
@@ -358,7 +427,7 @@
 					}
 				}
 			}
-			xhr.open('POST',url,true);
+			xhr.open('POST', url, true);
 			xhr.send(qs);
 		}
 		catch(e)
@@ -430,47 +499,63 @@
 			}
 		});
 	}
-	function isUpdateRequired(newVersion, oldVersion)
-	{
-		// for now, trivial check
-		// in the future we may want something more sophisticated
-		return oldVersion!=newVersion;
-	}
-	function sendUpdateCheck()
-	{
-		updateCheck('app-update',Titanium.App.getVersion(),function(success,update)
-		{
-			if (success && isUpdateRequired(update.version,Titanium.App.getVersion()))
-			{
-				updateDetected(update);
-			}
-		});
-	}
+
 	function checkForUpdate()
 	{
-		var db = Titanium.Database.open("app_updates");
-		var initial = false;
-		db.execute("create table if not exists last_check(time long)");
+		var db = null;
+		var duration = null;
+
 		try
 		{
+			db = Titanium.Database.open("app_updates");
+			db.execute("create table if not exists last_check(time long)");
+
+			// Seconds since the last update check or null if we've never done a check.
 			var rs = db.execute("select strftime('%s','now')-time from last_check");
 			var duration = rs.field(0);
 			rs.close();
-			if (duration == null)
+		}
+		catch (e)
+		{
+			Titanium.API.error("Could not read UpdateManager last_check table: " + e);
+			if (db)
+				db.close();
+			return;
+		}
+
+		try
+		{
+			// We aren't ready to do an update check yet.
+			if (duration && duration < UPDATE_CHECK_INTERVAL)
+				return;
+
+			updateCheck('app-update', Titanium.App.getVersion(), function(success, update)
 			{
-				initial = true;
-			}
-			if (!duration || duration >= update_check_interval_secs)
-			{
-				// time to perform check
-				sendUpdateCheck();
-			}
+				if (success && Titanium.UpdateManager.compareVersions(
+					update.version,Titanium.App.getVersion()) > 0)
+				{
+					updateDetected(update);
+				}
+			});
 		}
 		catch(e)
 		{
-			Titanium.API.error("Error in ti.Analytics checkForUpdate. Error="+e);	
+			Titanium.API.error("UpdateManager app update check failed: " + e);
+			db.close();
+			return;
 		}
-		insertUpdateTimestamp(db,initial);
+
+		// Record the last update.
+		try
+		{
+			db.execute("DELETE FROM last_check"); // Delete old rows.
+			db.execute("INSERT INTO last_check VALUES(strftime('%s','now'))");
+		}
+		catch (e)
+		{
+			Titanium.API.error("Could not update UpdateManager last_check table: " + e);
+		}
+
 		db.close();
 	}
 	
@@ -517,7 +602,7 @@
 			// schedule the update check
 			update_check_timer = window.setTimeout(function(){
 				checkForUpdate();
-			},update_check_delay);
+			}, UPDATE_CHECK_TIMER_INTERVAL);
 		}
 		catch(e)
 		{
