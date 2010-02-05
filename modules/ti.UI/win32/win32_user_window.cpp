@@ -1155,6 +1155,18 @@ void Win32UserWindow::ShowInspector(bool console)
 	}
 }
 
+void Win32UserWindow::Flash(int timesToFlash)
+{
+	FLASHWINFO fwi;
+	ZeroMemory(&fwi, sizeof(FLASHWINFO));
+	fwi.cbSize = sizeof(FLASHWINFO);
+	fwi.hwnd = windowHandle;
+	fwi.dwFlags = FLASHW_ALL;
+	fwi.uCount = timesToFlash;
+	fwi.dwTimeout = 0;
+	FlashWindowEx(&fwi);
+}
+
 void Win32UserWindow::OpenFileChooserDialog(
 	KMethodRef callback,
 	bool multiple,

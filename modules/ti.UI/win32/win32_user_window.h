@@ -75,6 +75,8 @@ namespace ti
 		void SetTopMost(bool topmost);
 		void FrameLoaded();
 		void ShowInspector(bool console);
+		virtual void Flash(int timesToFlash);
+
 		static Win32UserWindow* FromWindow(HWND hWnd);
 		static AutoPtr<Win32UserWindow> FromWebView(IWebView *webView);
 
