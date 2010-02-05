@@ -338,8 +338,8 @@ namespace ti
 
 	void NetworkBinding::NetworkStatusChange(bool online)
 	{
-		static Logger* log = Logger::Get("NetworkStatus");
-		log->Debug("ti.Network: Online status changed ==> %i", online);
+		//static Logger* log = kroll::Logger::Get("NetworkStatus");
+		//log->Debug("ti.Network: Online status changed ==> %i", online);
 		this->Set("online", Value::NewBool(online));
 
 		ValueList args = ValueList();
@@ -355,7 +355,7 @@ namespace ti
 			catch(ValueException& e)
 			{
 				SharedString ss = e.GetValue()->DisplayString();
-				log->Error("Network.NetworkStatus callback failed: %s", ss->c_str());
+				//log->Error("Network.NetworkStatus callback failed: %s", ss->c_str());
 			}
 		}
 	}

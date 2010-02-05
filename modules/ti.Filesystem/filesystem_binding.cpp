@@ -204,8 +204,8 @@ namespace ti
 	
 	void FilesystemBinding::GetLogger(const ValueList& args, KValueRef result)
 	{
-		std::string filename;
-		this->ResolveFileName(args, filename);
+		std::string filename = args.at(0)->ToString();
+		//this->ResolveFileName(args, filename);
 		ti::Logger* logger = new ti::Logger(filename);
 		result->SetObject(logger);
 	}
