@@ -13,7 +13,6 @@ namespace ti
 	public:
 		GtkUserWindow(AutoPtr<WindowConfig>, AutoUserWindow&);
 		virtual ~GtkUserWindow();
-		void Flash(int timesToFlash);
 		void CreateWidgets();
 		void ShowWidgets();
 		void SetupDecorations();

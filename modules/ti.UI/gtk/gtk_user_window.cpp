@@ -238,8 +238,8 @@ namespace ti
 		this->ShowWidgets();
 		 if (this->IsToolWindow())
 		 {
-		 	gtk_window_set_skip_taskbar_hint(GTK_WINDOW(window), TRUE);
-			gtk_window_set_skip_pager_hint(GTK_WINDOW(window), TRUE);
+		 	gtk_window_set_skip_taskbar_hint(this->gtkWindow, TRUE);
+			gtk_window_set_skip_pager_hint(this->gtkWindow, TRUE);
 		 }
 	}
 
