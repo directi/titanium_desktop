@@ -132,6 +132,7 @@ namespace kroll
 		{
 			Poco::ScopedLock<Poco::Mutex> s(this->GetJobQueueMutex());
 			this->jobs.push_back(job); // Enqueue job
+			std::cerr <<  "\r\nQueued Job: " << *method->DisplayString(1) << "\r\n";
 		}
 
 		// send a message to tickle the windows message queue

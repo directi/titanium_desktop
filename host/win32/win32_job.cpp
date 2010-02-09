@@ -37,6 +37,7 @@ namespace kroll
 	{
 		try
 		{
+			std::cerr <<  "\r\nExecuting Job: " << *this->method->DisplayString(1) << "\r\n";
 			this->return_value = this->method->Call(this->args);
 		}
 		catch (ValueException& e)
