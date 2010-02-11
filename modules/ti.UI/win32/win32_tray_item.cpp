@@ -16,7 +16,10 @@ namespace ti
 		oldNativeMenu(0),
 		trayIconData(0)
 	{
-		this->AddEventListener(Event::CLICKED, cbSingleClick);
+		if(cbSingleClick)
+		{
+			this->AddEventListener(Event::CLICKED, cbSingleClick);
+		}
 
 		HWND hwnd = Win32Host::Win32Instance()->AddMessageHandler(
 			&Win32TrayItem::MessageHandler);
@@ -186,17 +189,20 @@ namespace ti
 			{
 				AutoPtr<Win32TrayItem> item = trayItems[i];
 
-				item->is_double_clicked = false;
+				// TODO: Disabling Double Click Support.
+				// We need to revisit this logic once we are 
+/*				item->is_double_clicked = false;
 				if(item->GetId() == id && button == WM_LBUTTONDBLCLK)
 				{
 					item->is_double_clicked = true;
 					KillTimer(hWnd, 100);
 					item->HandleDoubleLeftClick();
 					handled = true;
-				}
+				}*/
 				if (item->GetId() == id && button == WM_LBUTTONDOWN)
 				{
-					SetTimer(hWnd, 100, GetDoubleClickTime(), (TIMERPROC)DoubleClickTimerProc); 
+					item->HandleLeftClick();
+					//SetTimer(hWnd, 100, GetDoubleClickTime(), (TIMERPROC)DoubleClickTimerProc); 
 					handled = true;
 				}
 				else if (item->GetId() == id && button == WM_RBUTTONDOWN)
