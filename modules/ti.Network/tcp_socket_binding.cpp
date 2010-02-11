@@ -436,6 +436,7 @@ namespace ti
 			this->RegisterForRead();
 			this->RegisterForWrite();
 			this->RegisterForTimeout();
+			return;
 		}else{
 			UnregisterForTimeout();
 		}
