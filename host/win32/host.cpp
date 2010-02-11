@@ -19,18 +19,20 @@ using Poco::Mutex;
 
 namespace kroll
 {
-	bool Win32Host::oleInitialized = false;
 	UINT Win32Host::tickleRequestMessage =
 		::RegisterWindowMessageA(PRODUCT_NAME"TickleRequest");
 
-	/*static*/
-	void Win32Host::InitOLE()
+	/*static */
+	bool Win32Host::MainThreadJobsTickleHandler(HWND hWnd, UINT message,
+		WPARAM wParam, LPARAM lParam)
 	{
-		if (!oleInitialized)
+		if (message == Win32Host::tickleRequestMessage)
 		{
-			OleInitialize(NULL);
-			oleInitialized = true;
+			SharedPtr<Win32Host> host = Win32Host::Win32Instance();
+			host->InvokeMethods();
+			return true;
 		}
+		return false;
 	}
 
 	Win32Host::Win32Host(HINSTANCE hInstance, int _argc, const char** _argv) :
@@ -38,15 +40,13 @@ namespace kroll
 		instanceHandle(hInstance),
 		eventWindow(hInstance)
 	{
-		InitOLE();
+		OleInitialize(NULL);
+		this->AddMessageHandler(&MainThreadJobsTickleHandler);
 	}
 
 	Win32Host::~Win32Host()
 	{
-		if (oleInitialized)
-		{
-			OleUninitialize();
-		}
+		OleUninitialize();
 	}
 
 	const char* Win32Host::GetPlatform()
@@ -81,12 +81,7 @@ namespace kroll
 		// just process one message at a time
 		MSG message;
 		if (GetMessage(&message, NULL, 0, 0))
-		{
-			if (message.message == tickleRequestMessage)
-			{
-				this->InvokeMethods();
-			}
-			
+		{			
 			// still translate/dispatch this message, in case
 			// we are polluting the message namespace
 			// .. i'm looking at you flash!
@@ -132,11 +127,12 @@ namespace kroll
 		{
 			Poco::ScopedLock<Poco::Mutex> s(this->GetJobQueueMutex());
 			this->jobs.push_back(job); // Enqueue job
-			std::cerr <<  "\r\nQueued Job: " << *method->DisplayString(1) << "\r\n";
+			Logger::Get("Win32Host")->Debug("Queued Job: " + *method->DisplayString(1) );
+
 		}
 
 		// send a message to tickle the windows message queue
-		PostThreadMessage(threadId, tickleRequestMessage, 0, 0);
+		PostMessage(eventWindow.GetHandle(), tickleRequestMessage, 0, 0);
 
 		if (!synchronous)
 		{

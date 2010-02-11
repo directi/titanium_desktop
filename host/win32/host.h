@@ -35,7 +35,8 @@ namespace kroll
 			return Host::GetInstance().cast<Win32Host>();
 		}
 
-		static void InitOLE();
+		static bool MainThreadJobsTickleHandler(HWND hWnd, UINT message,
+			WPARAM wParam, LPARAM lParam);
 		virtual Module* CreateModule(std::string& path);
 
 		HINSTANCE GetInstanceHandle() { return instanceHandle; }
@@ -56,7 +57,6 @@ namespace kroll
 
 	private:
 		HINSTANCE instanceHandle;
-		static bool oleInitialized;
 		void InvokeMethods();
 		DWORD threadId;
 		Poco::Mutex jobQueueMutex;
