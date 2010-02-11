@@ -105,13 +105,13 @@
 	//
 	var Logger = {
 		init: function(){
-			this.log = this._createLogger("log");
-			this.debug = this._createLogger("debug");
-			this.warn = this._createLogger("warn");
-			this.info = this._createLogger("info");
-			this.error = this._createLogger("error");
+			this.log = this._createLogger("log", 1);
+			this.debug = this._createLogger("debug", 2);
+			this.warn = this._createLogger("warn", 1);
+			this.info = this._createLogger("info", 1);
+			this.error = this._createLogger("error", 2);
 		},
-		_createLogger: function(level){
+		_createLogger: function(level, depth){
 			var self = this;
 			return function(){
 				if(arguments.length === 0){
@@ -120,7 +120,7 @@
 				var str = "";
 				for(var i = 0; i < arguments.length; ++i){
 					var arg = arguments[i];
-					str += " " + self.formatContent(arg, 2);
+					str += " " + self.formatContent(arg, depth);
 				}
 				Titanium.API[level](str);
 			}
