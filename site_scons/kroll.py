@@ -25,14 +25,6 @@ class Module(object):
 		if not d:
 			d = self.build.cwd(2)
 
-		indir = path.join(d, 'AppResources', 'all')
-		outdir = path.join(self.build_dir, 'AppResources', 'all'), 
-		self.light_weight_copy('#' + self.name + '-AllAppResources', indir, outdir)
-
-		indir = path.join(d, 'AppResources', self.build.os)
-		outdir = path.join(self.build_dir, 'AppResources', self.build.os), 
-		self.light_weight_copy('#' + self.name + '-OSAppResources', indir, outdir)
-
 		outdir = self.build_dir
 		indir = path.join(d, 'Resources', 'all')
 		self.light_weight_copy('#' + self.name + '-AllResources', indir, outdir)
@@ -294,14 +286,48 @@ class BuildConfig(object):
 		return manifest
 
 	def add_thirdparty(self, env, name):
+		cpppath = libpath = libs = None
 		if name is 'poco':
-			cpppath = path.join(self.third_party, 'poco', 'include')
-			libpath = path.join(self.third_party, 'poco', 'lib')
-			libs = ['PocoFoundation', 'PocoNet', 'PocoNetSSL', 'PocoUtil',
-			        'PocoXML', 'PocoZip', 'PocoData', 'PocoSQLite']
-		env.Append(CPPPATH=[cpppath])
-		env.Append(LIBPATH=[libpath])
-		env.Append(LIBS=[libs])
+			cpppath = [self.tp('poco', 'include')]
+			libpath = [self.tp('poco', 'lib')]
+			libs = ['PocoFoundation', 'PocoNet', 'PocoUtil', 'PocoXML',
+				    'PocoZip', 'PocoData', 'PocoSQLite']
+
+		if name is 'curl' and self.is_win32(): # Don't judge us!
+			cpppath = [self.tp('webkit', 'include')]
+			libpath = [self.tp('webkit', 'lib')]
+			libs = ['libcurl_imp']
+
+		elif name is 'curl':
+			cpppath = [self.tp('curl', 'include')]
+			libpath = [self.tp('curl', 'lib')]
+			libs = ['curl']
+
+		if name is 'webkit':
+			if self.is_win32() or self.is_linux():
+				cpppath = [self.tp('webkit', 'include')]
+				libpath = [self.tp('webkit', 'lib')]
+
+			if self.is_linux():
+				cpppath.append(self.tp('webkit', 'include', 'glib-2.0'))
+
+			if self.is_win32():
+				suffix = ''
+				if ARGUMENTS.get('webkit_debug', None):
+					suffix = '_debug'
+				libs = ['WebKit', 'WebKitGUID', 'JavaScriptCore']
+				libs = [x + suffix for x in libs]
+
+			if self.is_linux():
+				libs = ['webkittitanium-1.0']
+
+			if self.is_osx():
+				env.Append(FRAMEWORKPATH=[self.tp('webkit')])
+				env.Append(FRAMEWORKS=['WebKit', 'JavaScriptCore'])
+
+		if cpppath: env.Append(CPPPATH=cpppath)
+		if libpath: env.Append(LIBPATH=libpath)
+		if libs: env.Append(LIBS=[libs])
 
 	def tp(self, *parts):
 		full_path = self.third_party

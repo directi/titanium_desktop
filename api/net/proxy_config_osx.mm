@@ -36,6 +36,7 @@ static string autoConfigURL;
 static SharedProxy httpProxy(0);
 static SharedProxy httpsProxy(0);
 static SharedProxy ftpProxy(0);
+static SharedProxy socksProxy(0);
 static vector<SharedPtr<BypassEntry> > bypassList;
 static bool bypassLocalNames = false;
 
@@ -95,16 +96,9 @@ SharedProxy GetProxyServerFromDictionary(string scheme,
 		return 0;
 	}
 
-	SharedProxy proxy(new Proxy());
-	proxy->info = new URI();
-
+	// This should work equally well for hostnames without a port.
 	string host(kroll::CFStringToUTF8(hostRef));
-	size_t endScheme = host.find("://");
-	if (endScheme != string::npos)
-		host = host.substr(endScheme + 3);
-	proxy->info->setHost(host);
-
-	proxy->info->setScheme(scheme);
+	SharedProxy proxy(ParseProxyEntry(host, scheme, scheme));
 
 	CFNumberRef portRef = (CFNumberRef) GetValueFromDictionary(
 		dict, portKey, CFNumberGetTypeID());
@@ -113,13 +107,10 @@ SharedProxy GetProxyServerFromDictionary(string scheme,
 	{
 		int port;
 		CFNumberGetValue(portRef, kCFNumberIntType, &port);
-		proxy->info->setPort(port);
+		proxy->port = port;
 	}
 
-	GetLogger()->Debug("Got proxy from dictionary (scheme=%s host=%s port=%i)",
-		proxy->info->getScheme().c_str(), proxy->info->getHost().c_str(),
-		proxy->info->getPort());
-
+	GetLogger()->Debug("Got proxy from dictionary: %s", proxy->ToString().c_str());
 	return proxy;
 }
 
@@ -129,7 +120,7 @@ static void InitializeOSXProxyConfig()
 	if (initialized)
 		return;
 
-	scoped_cftyperef<CFDictionaryRef> configDict(SCDynamicStoreCopyProxies(NULL));
+	CFRef<CFDictionaryRef> configDict(SCDynamicStoreCopyProxies(NULL));
 
 	// PAC file
 	if (GetBoolFromDictionary(configDict.get(),
@@ -153,7 +144,7 @@ static void InitializeOSXProxyConfig()
 			kSCPropNetProxiesFTPProxy, kSCPropNetProxiesFTPPort);
 
 		if (!ftpProxy.isNull())
-			GetLogger()->Debug("FTP Proxy: %s", ftpProxy->info->toString().c_str());
+			GetLogger()->Debug("FTP Proxy: %s", ftpProxy->ToString().c_str());
 	}
 
 	// HTTP proxy
@@ -163,7 +154,7 @@ static void InitializeOSXProxyConfig()
 			kSCPropNetProxiesHTTPProxy, kSCPropNetProxiesHTTPPort);
 
 		if (!httpProxy.isNull())
-			GetLogger()->Debug("HTTP Proxy: %s", httpProxy->info->toString().c_str());
+			GetLogger()->Debug("HTTP Proxy: %s", httpProxy->ToString().c_str());
 	}
 
 	// HTTPS proxy
@@ -173,7 +164,17 @@ static void InitializeOSXProxyConfig()
 			kSCPropNetProxiesHTTPSProxy, kSCPropNetProxiesHTTPSPort);
 
 		if (!httpsProxy.isNull())
-			GetLogger()->Debug("HTTPS Proxy: %s", httpsProxy->info->toString().c_str());
+			GetLogger()->Debug("HTTPS Proxy: %s", httpsProxy->ToString().c_str());
+	}
+
+	// SOCKS proxy
+	if (GetBoolFromDictionary(configDict.get(), kSCPropNetProxiesSOCKSEnable, false))
+	{
+		socksProxy = GetProxyServerFromDictionary("socks", configDict.get(),
+			kSCPropNetProxiesSOCKSProxy, kSCPropNetProxiesSOCKSPort);
+
+		if (!socksProxy.isNull())
+			GetLogger()->Debug("SOCKS Proxy: %s", socksProxy->ToString().c_str());
 	}
 
 	// Proxy bypass list
@@ -235,7 +236,7 @@ void DoPACRequst(void* data)
 	// release the return CFRunLoopSourceRef <rdar://problem/5533931>.
 	CFTypeRef result = NULL;
 	CFStreamClientContext context = { 0, &result, NULL, NULL, NULL };
-	scoped_cftyperef<CFRunLoopSourceRef> runLoopSource(
+	CFRef<CFRunLoopSourceRef> runLoopSource(
 		CFNetworkExecuteProxyAutoConfigurationURL(info->scriptURL, info->url,
 			ResultCallback, &context));
 
@@ -323,7 +324,7 @@ static void ExpandPACProxies(CFURLRef url, CFArrayRef proxies,
 
 SharedProxy TryCFNetworkCopyProxiesForURL(const string& queryURL)
 {
-	scoped_cftyperef<CFURLRef> cfurl(CFURLCreateWithBytes(NULL, 
+	CFRef<CFURLRef> cfurl(CFURLCreateWithBytes(NULL, 
 		(const UInt8 *) queryURL.c_str(), queryURL.size(),
 		 kCFStringEncodingUTF8, NULL));
 
@@ -334,7 +335,7 @@ SharedProxy TryCFNetworkCopyProxiesForURL(const string& queryURL)
 	}
 
 	// Get the default proxies dictionary from CF.
-	scoped_cftyperef<CFDictionaryRef> proxySettings(SCDynamicStoreCopyProxies(NULL));
+	CFRef<CFDictionaryRef> proxySettings(SCDynamicStoreCopyProxies(NULL));
 	if (!proxySettings.get())
 	{
 		GetLogger()->Error("SCDynamicStoreCopyProxies returned NULL");
@@ -343,7 +344,7 @@ SharedProxy TryCFNetworkCopyProxiesForURL(const string& queryURL)
 
 	// Call CFNetworkCopyProxiesForURL to get the proxy list.  Then expand 
 	// any PAC-based proxies.
-	scoped_cftyperef<CFArrayRef> proxies(CFNetworkCopyProxiesForURL(
+	CFRef<CFArrayRef> proxies(CFNetworkCopyProxiesForURL(
 		cfurl.get(), proxySettings.get()));
 	if (!proxies.get())
 	{
@@ -354,7 +355,7 @@ SharedProxy TryCFNetworkCopyProxiesForURL(const string& queryURL)
 	// If there are any PAC entries in our list of proxies, we're going to
 	// need to use the CFNetwork APIs to execute the script at the URL. The
 	// resulting proxies will be placed in the correct order in proxiesToTry.
-	scoped_cftyperef<CFMutableArrayRef> proxiesToTry(CFArrayCreateMutable(
+	CFRef<CFMutableArrayRef> proxiesToTry(CFArrayCreateMutable(
 		NULL, 0, &kCFTypeArrayCallBacks));
 	if (!proxiesToTry.get())
 	{
@@ -393,6 +394,11 @@ SharedProxy TryCFNetworkCopyProxiesForURL(const string& queryURL)
 			return GetProxyServerFromDictionary("ftp", proxy,
 				kCFProxyHostNameKey, kCFProxyPortNumberKey);
 		}
+		else if (CFEqual(proxyType, kCFProxyTypeSOCKS))
+		{
+			return GetProxyServerFromDictionary("socks", proxy,
+				kCFProxyHostNameKey, kCFProxyPortNumberKey);
+		}
 	}
 
 	return 0;
@@ -411,12 +417,16 @@ SharedProxy GetProxyForURLImpl(Poco::URI& uri)
 
 	// Try the proxies set via the manual global settings.
 	string scheme(uri.getScheme());
-	if (scheme == "http" && httpProxy)
+	if (scheme == "http" && httpProxy.get())
 		return httpProxy;
-	if (scheme == "https" && httpsProxy)
+	if (scheme == "https" && httpsProxy.get())
 		return httpsProxy;
-	if (scheme == "ftp" && ftpProxy)
+	if (scheme == "ftp" && ftpProxy.get())
 		return ftpProxy;
+
+	// Fallback to SOCKS proxy.
+	if (socksProxy.get())
+		return socksProxy;
 
 	return TryCFNetworkCopyProxiesForURL(uri.toString());
 }

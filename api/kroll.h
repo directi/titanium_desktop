@@ -45,6 +45,7 @@ namespace kroll
 	class GlobalObject;
 	class ScopeMethodDelegate;
 	class Blob;
+	class VoidPtr;
 	class ValueReleasePolicy;
 	class Logger;
 	class ArgList;
@@ -86,6 +87,7 @@ namespace kroll
 #include "module_provider.h"
 #include "module.h"
 #include "async_job.h"
+#include "main_thread_job.h"
 #include "host.h"
 #include "script.h"
 

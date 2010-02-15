@@ -170,19 +170,20 @@ namespace URLUtils
 			}
 		}
 
-		std::string url("file://localhost");
+		std::string url("file://");
 		std::vector<std::string> pieces;
 		std::string delim("/");
 		FileUtils::Tokenize(path, pieces, delim);
 		for (size_t i = 0; i < pieces.size(); i++)
 		{
-			url.append("/");
-
 #if OS_WIN32
-			// Don't encode the driver letter & colon on Windows.
+			// Don't encode the C:
 			if (i != 0)
 #endif
-			pieces[i] = EncodeURIComponent(pieces[i]);
+			{
+				url.append("/");
+				pieces[i] = EncodeURIComponent(pieces[i]);
+			}
 
 			url.append(pieces[i]);
 		}
@@ -267,8 +268,13 @@ namespace URLUtils
 			}
 			else if (inURI.getScheme().empty())
 			{
-				// If the URL has no scheme, it is relative, so just
-				// assume that this is an app:// URL.
+				// There is no scheme for this URL, so we have to/ guess at this point if
+				// it's a path or a relative app:// URL. If a file can be found, assume thi
+				// is a file path.
+				if (FileUtils::IsFile(url))
+					return url;
+
+				// Otherwise treat this like an app:// URL relative to the root.
 				std::string newURL("app://");
 				newURL.append(url);
 				return AppURLToPath(newURL);
