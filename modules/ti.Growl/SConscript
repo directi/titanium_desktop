@@ -12,15 +12,13 @@ build.add_thirdparty(env, 'poco')
 sources = Glob('*.cpp')
 
 if build.is_osx():
-	cwd = build.cwd()
-	env.Append(FRAMEWORKPATH = [cwd + '/Resources/osx'])
-	env.Append(CPPPATH = [cwd + '/Resources/osx/Growl.framework/Headers'])
-	env.Append(FRAMEWORKS = ['Cocoa', 'Growl'])
-	env.Append(LIBS = ['kroll','dl'])
+	env.Append(FRAMEWORKPATH=[build.tp('growl')])
+	env.Append(FRAMEWORKS=['Cocoa', 'Growl'])
 	sources += Glob(build.os + '/*.mm')
 	sources += Glob('%s/*.cpp' % build.os)
 
 elif build.is_win32():
+	env.Append(CCFLAGS=['/MD', '/DUNICODE', '/D_UNICODE'])
 	env.Append(LIBS = ['user32', 'shell32', 'advapi32', 'khost'])
 	sources += Glob('%s/*.cpp' % build.os)
 

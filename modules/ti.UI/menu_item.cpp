@@ -276,7 +276,7 @@ namespace ti
 	void MenuItem::_Disable(const ValueList& args, KValueRef result)
 	{
 		this->enabled = false;
-		this->SetEnabledImpl(true);
+		this->SetEnabledImpl(false);
 	}
 
 	void MenuItem::_SetAutoCheck(const ValueList& args, KValueRef result)
@@ -340,11 +340,8 @@ namespace ti
 		if (this->IsCheck() && this->autoCheck)
 		{
 			// Execute this later on the main thread
-			Host* host = Host::GetInstance();
-			host->InvokeMethodOnMainThread(
-				this->Get("setState")->ToMethod(),
-				ValueList(Value::NewBool(!this->GetState())),
-				false);
+			RunOnMainThread(this->Get("setState")->ToMethod(),
+				ValueList(Value::NewBool(!this->GetState())), false);
 		}
 
 		this->FireEvent(Event::CLICKED);

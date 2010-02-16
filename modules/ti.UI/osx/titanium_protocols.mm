@@ -6,6 +6,22 @@
 #import <WebKit/WebKit.h>
 #include "../ui_module.h"
 
+static NSString* GetRegisteredMimeTypeFromExtension(NSString* ext)
+{
+	CFRef<CFStringRef> uti(UTTypeCreatePreferredIdentifierForTag(
+		kUTTagClassFilenameExtension, (CFStringRef)ext, 0));
+	if (!uti.get())
+		return nil;
+
+	CFStringRef registeredType = UTTypeCopyPreferredTagWithClass(
+		uti.get(), kUTTagClassMIMEType);
+	if (!registeredType)
+		return nil;
+
+	NSString* mimeType = NSMakeCollectable(registeredType);
+	return [mimeType autorelease];
+}
+
 @implementation TitaniumProtocols
 
 +(BOOL)canInitWithRequest:(NSURLRequest*)theRequest 
@@ -38,57 +54,44 @@
 
 +(NSString*)mimeTypeFromExtension:(NSString*)ext
 {
-	NSString* mime = @"application/octet-stream";
-	
+	NSString* mimeType = GetRegisteredMimeTypeFromExtension(ext);
+	if (mimeType)
+		return mimeType;
+
 	if ([ext isEqualToString:@"png"])
-	{
-		mime = @"image/png";
-	}
+		return @"image/png";
 	else if ([ext isEqualToString:@"gif"])
-	{
-		mime = @"image/gif"; 
-	}
+		return @"image/gif"; 
 	else if ([ext isEqualToString:@"jpg"])
-	{
-		mime = @"image/jpeg";
-	}
+		return @"image/jpeg";
 	else if ([ext isEqualToString:@"jpeg"])
-	{
-		mime = @"image/jpeg";
-	}
+		return @"image/jpeg";
 	else if ([ext isEqualToString:@"ico"])
-	{
-		mime = @"image/x-icon";
-	}
+		return @"image/x-icon";
 	else if ([ext isEqualToString:@"html"])
-	{
-		mime = @"text/html";
-	}
+		return @"text/html";
 	else if ([ext isEqualToString:@"htm"])
-	{
-		mime = @"text/html";
-	}
+		return @"text/html";
 	else if ([ext isEqualToString:@"text"])
-	{
-		mime = @"text/plain";
-	}
+		return @"text/plain";
 	else if ([ext isEqualToString:@"js"])
-	{
-		mime = @"text/javascript";
-	}
+		return @"text/javascript";
 	else if ([ext isEqualToString:@"json"])
-	{
-		mime = @"application/json";
-	}
+		return @"application/json";
 	else if ([ext isEqualToString:@"css"])
-	{
-		mime = @"text/css";
-	}
+		return @"text/css";
 	else if ([ext isEqualToString:@"xml"])
-	{
-		mime = @"text/xml";
-	}
-	return mime;
+		return @"text/xml";
+	else if ([ext isEqualToString:@"pdf"])
+		return @"application/pdf";
+	else if ([ext isEqualToString:@"m4v"] )
+		return @"video/x-m4v";
+	else if([ext isEqualToString:@"m4p"])
+		return @"audio/x-m4p";
+	else if([ext isEqualToString:@"swf"])
+		return @"application/x-shockwave-flash";
+	else
+		return @"application/octet-stream";
 }
 
 -(NSData*)preprocessRequest:(const char*)url returningMimeType:(NSString**)mimeType
@@ -132,9 +135,6 @@
 	static Logger* logger = Logger::Get("UI.TitaniumProtocols");
 	id<NSURLProtocolClient> client = [self client];
 	NSURL* url = [[self request] URL];
-	std::string urlString = [[url absoluteString] UTF8String];
-	std::string path = URLUtils::URLToPath(urlString);
-	
 
 	// First check if this is the non-canonical version of this request.
 	// If it is, we redirect to the canonical version.
@@ -155,6 +155,8 @@
 	
 
 	// This is a canonical request, so try to load the file it represents.
+	std::string urlString([[url absoluteString] UTF8String]);
+	std::string path(URLUtils::URLToPath(urlString));
 	NSError* error = nil;
 	NSData* data = nil;
 	NSString* mimeType = nil;

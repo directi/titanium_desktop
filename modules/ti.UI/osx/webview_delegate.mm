@@ -27,7 +27,7 @@
 	// significantly.
 	[webPrefs setCacheModel:WebCacheModelDocumentBrowser];
 
-	[webPrefs setDeveloperExtrasEnabled:host->IsDebugMode()];
+	[webPrefs setDeveloperExtrasEnabled:host->DebugModeEnabled()];
 	[webPrefs setPlugInsEnabled:YES]; 
 	[webPrefs setJavaEnabled:YES];
 	[webPrefs setJavaScriptEnabled:YES];
@@ -78,28 +78,18 @@
 	[self setupPreferences];
 
 	// This stuff adjusts the webview/window for chromeless windows.
-	WindowConfig *o = [window config];
-	if (o->IsUsingScrollbars()) {
+	if ([window userWindow]->IsUsingScrollbars())
 		[[[webView mainFrame] frameView] setAllowsScrolling:YES];
-	} else {
+	else
 		[[[webView mainFrame] frameView] setAllowsScrolling:NO];
-	}
-	if (o->IsResizable() && o->IsUsingChrome()) {
-		[window setShowsResizeIndicator:YES];
-	} else {
-		[window setShowsResizeIndicator:NO];
-	}
 
 	[webView setBackgroundColor:[NSColor clearColor]];
 	[webView setAutoresizingMask:NSViewHeightSizable | NSViewWidthSizable];
 	[webView setShouldCloseWithWindow:NO];
 
-	// if we use a textured window mask, this is on by default which we don't want
-	[window setMovableByWindowBackground:NO];
-
 	// TI-303 we need to add safari UA to our UA to resolve broken
 	// sites that look at Safari and not WebKit for UA
-	NSString *appName = [NSString stringWithFormat:
+	NSString* appName = [NSString stringWithFormat:
 		@"Version/4.0 Safari/528.16 %s/%s", PRODUCT_NAME, PRODUCT_VERSION];
 	[webView setApplicationNameForUserAgent:appName];
 
@@ -120,8 +110,6 @@
 
 -(void)show
 {
-	WindowConfig *config = [window config];
-	config->SetVisible(true);
 	[window makeKeyAndOrderFront:nil];
 }
 
@@ -206,11 +194,10 @@
 {
 	std::map<WebFrame*, KObjectRef>::iterator iter =
 		frameToGlobalObject->find(frame);
-	if (iter == frameToGlobalObject->end()) {
-		return NULL;
-	} else {
+	if (iter == frameToGlobalObject->end())
+		return 0;
+	else
 		return iter->second;
-	}
 }
 
 - (void)deregisterGlobalObjectForFrame:(WebFrame *)frame
@@ -257,7 +244,7 @@
 	}
 
 	// fire load event
-	UserWindow *userWindow = [window userWindow];
+	UserWindow* userWindow = [window userWindow];
 	std::string url = [[[[[frame dataSource] request] URL] absoluteString] UTF8String];
 	userWindow->PageLoaded(global, url, context);
 
@@ -289,6 +276,14 @@
 	}
 }
 
+-(void)webView:(WebView *)sender resource:(id)identifier didFailLoadingWithError:(NSError *)error fromDataSource:(WebDataSource *)dataSource
+{
+	NSString* urlString = [[[dataSource request] URL] absoluteString];
+	logger->Error("didFailLoadingWithErrorFromDataSource (%s): %s",
+		[urlString UTF8String], [[error localizedDescription] UTF8String]);
+}
+
+
 - (void)webView:(WebView *)sender didClearWindowObject:(WebScriptObject *)windowScriptObject forFrame:(WebFrame*)frame 
 {
 	JSGlobalContextRef context = [frame globalContext];
@@ -301,15 +296,13 @@
 
 - (WebView *)webView:(WebView *)sender createWebViewWithRequest:(NSURLRequest *)request windowFeatures:(NSDictionary *)features
 {
-	AutoUserWindow newWindow = 0;
-	NSString *url = [[request URL] absoluteString];
-	WindowConfig *config = new WindowConfig();
+	AutoUserWindow newWindow(0);
+	NSString* url = [[request URL] absoluteString];
+	AutoPtr<WindowConfig> config(WindowConfig::FromWindowConfig(0));
 	
 	if ([url length] > 0)
 	{
-		std::string urlStr = [url UTF8String];
-		logger->Debug("creating new webView window with url: %s", urlStr.c_str());
-		config->SetURL(urlStr);
+		config->SetURL([url UTF8String]);
 	}
 	// webkit and firefox both ignore the 'resizable' flag
 	// see WebCore/page/WindowFeatures.cpp line 133
@@ -338,11 +331,11 @@
 	{
 		config->SetHeight([(NSNumber*)height intValue]);
 	}
-	
-	newWindow = [window userWindow]->CreateWindow(config);
-	AutoPtr<OSXUserWindow> osxWindow = newWindow.cast<OSXUserWindow>();
-	osxWindow->Open();
-	return [osxWindow->GetNative() webView];
+
+	AutoPtr<OSXUserWindow> newOSXWindow(UserWindow::CreateWindow(
+		config, AutoUserWindow([window userWindow], true)).cast<OSXUserWindow>());
+	newOSXWindow->Open();
+	return [newOSXWindow->GetNative() webView];
 }
 
 - (void)webViewShow:(WebView *)sender
@@ -352,66 +345,53 @@
 
 - (void)webViewClose:(WebView *)wv 
 {
-	[[wv window] close];
-	WindowConfig *config = [window config];
-	config->SetVisible(NO);
-	
-	if (inspector)
-	{
-		[inspector webViewClosed];
-	}
+	[window userWindow]->Close();
 }
 
 - (void)webViewFocus:(WebView *)wv 
 {
-	[[wv window] makeKeyAndOrderFront:wv];
+	[window userWindow]->Focus();
 }
 
 - (void)webViewUnfocus:(WebView *)wv 
 {
-	if ([[wv window] isKeyWindow] || [[[wv window] attachedSheet] isKeyWindow]) 
-	{
-		[NSApp _cycleWindowsReversed:FALSE];
-	}
+	[window userWindow]->Unfocus();
 }
 
-- (NSResponder *)webViewFirstResponder:(WebView *)wv 
+- (NSResponder *)webViewFirstResponder:(WebView *)wv
 {
 	return [[wv window] firstResponder];
 }
 
-- (void)webView:(WebView *)wv makeFirstResponder:(NSResponder *)responder 
+- (void)webView:(WebView *)wv makeFirstResponder:(NSResponder *)responder
 {
 	[[wv window] makeFirstResponder:responder];
 }
 
-- (NSString *)webViewStatusText:(WebView *)wv 
+- (NSString *)webViewStatusText:(WebView *)wv
 {
 	return nil;
 }
 
-- (BOOL)webViewIsResizable:(WebView *)wv 
+- (BOOL)webViewIsResizable:(WebView *)wv
 {
-	WindowConfig *config = [window config];
-	return config->IsResizable();
+	return [window userWindow]->IsResizable();
 }
 
-- (void)webView:(WebView *)wv setResizable:(BOOL)resizable; 
+- (void)webView:(WebView *)wv setResizable:(BOOL)resizable;
 {
-	WindowConfig *config = [window config];
-	config->SetResizable(resizable);
-	[[wv window] setShowsResizeIndicator:resizable];
+	[window userWindow]->SetResizable(resizable);
 }
 
 
-- (void)webView:(WebView *)wv setFrame:(NSRect)frame 
+- (void)webView:(WebView *)wv setFrame:(NSRect)frame
 {
 	[[wv window] setFrame:frame display:YES];
 }
 
 - (NSRect)webViewFrame:(WebView *)wv 
 {
-	NSWindow *w = [wv window];
+	NSWindow* w = [wv window];
 	return w == nil ? NSZeroRect : [w frame];
 }
 
@@ -441,13 +421,6 @@
 	return request;
 }
 
--(void)webView:(WebView *)sender resource:(id)identifier didFailLoadingWithError:(NSError *)error fromDataSource:(WebDataSource *)dataSource
-{
-	NSString* urlString = [[[dataSource request] URL] absoluteString];
-	logger->Error("didFailLoadingWithError (%s): %s",
-		[urlString UTF8String], [[error localizedDescription] UTF8String]);
-}
-
 -(void)webView:(WebView *)sender resource:(id)identifier didFinishLoadingFromDataSource:(WebDataSource *)dataSource
 {
 }
@@ -466,20 +439,28 @@
 		[window userWindow]->Show();
 	}
 
+	// NSRunInformationalAlertPanel uses printf style formatting arguments,
+	// so pass in the message as an argument, which results in percent signs
+	// passing through untouched.
 	NSRunInformationalAlertPanel([window title], // title
-		message, // message
+		@"%@",
 		NSLocalizedString(@"OK", @""), // default button
 		nil, // alt button
-		nil); // other button
+		nil, // other button
+		message);
 }
 
 - (BOOL)webView:(WebView *)wv runJavaScriptConfirmPanelWithMessage:(NSString *)message initiatedByFrame:(WebFrame *)frame 
 {
+	// NSRunInformationalAlertPanel uses printf style formatting arguments,
+	// so pass in the message as an argument, which results in percent signs
+	// passing through untouched.
 	int result = NSRunInformationalAlertPanel([window title], // title
-		message, // message
+		@"%@",
 		NSLocalizedString(@"OK", @""), // default button
 		NSLocalizedString(@"Cancel", @""), // alt button
-		nil);
+		nil,
+		message);
 
 	// only show if already visible
 	if ([window userWindow]->IsVisible())
@@ -573,7 +554,7 @@
 {
 	NSMutableArray *menuItems = [[[NSMutableArray alloc] init] autorelease];
 
-	UserWindow *uw = [window userWindow];
+	UserWindow* uw = [window userWindow];
 	AutoPtr<OSXMenu> menu = uw->GetContextMenu().cast<OSXMenu>();
 	if (menu.isNull()) {
 		menu = UIBinding::GetInstance()->GetContextMenu().cast<OSXMenu>();
@@ -584,7 +565,6 @@
 	}
 	return menuItems;
 }
-
 
 // return whether or not quota has been reached for a db (enabling db support)
 - (void)webView:(WebView*)webView

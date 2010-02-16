@@ -217,9 +217,10 @@ namespace ti
 		 */
 		this->SetMethod("setWriteable",&File::SetWriteable);
 		/**
-		 * @tiapi(method=True,name=Filesystem.File.unzip,since=0.3) Unzips a zip into a directory directory
-		 * @tiarg(for=Filesystem.File.unzip,type=Filesystem.File|String,name=destination) destination to unzip to
-		* @tiresult(for=Filesystem.File.unzip,type=Boolean) returns true if successful
+		 * @tiapi(method=True,name=Filesystem.File.unzip,since=0.3)
+		 * @tiapi If this file is s zip file, unzip it into the given destination directory.
+		 * @tiarg[Filesystem.File|String,destination] Directory to unzip the file to.
+		 * @tiresult[Boolean] True if the operation was succesful, false otherwise.
 		 */
 		this->SetMethod("unzip",&File::Unzip);
 	}
@@ -758,8 +759,8 @@ namespace ti
 		unsigned __int64 i64FreeBytesToCaller;
 		unsigned __int64 i64TotalBytes;
 		unsigned __int64 i64FreeBytes;
-		if (GetDiskFreeSpaceEx(
-			this->filename.c_str(),
+		if (GetDiskFreeSpaceExW(
+			::UTF8ToWide(this->filename).c_str(),
 			(PULARGE_INTEGER) &i64FreeBytesToCaller,
 			(PULARGE_INTEGER) &i64TotalBytes,
 			(PULARGE_INTEGER) &i64FreeBytes))
@@ -835,22 +836,24 @@ namespace ti
 		}
 #elif defined(OS_WIN32)
 		HRESULT hResult;
-		IShellLink* psl;
+		IShellLinkW* psl;
 
 		if(from.length() == 0 || to.length() == 0) {
 			std::string ex = "Invalid arguments given to createShortcut()";
 			throw ValueException::FromString(ex);
 		}
 
-		hResult = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID*)&psl);
+		hResult = CoCreateInstance(CLSID_ShellLink, NULL,
+			CLSCTX_INPROC_SERVER, IID_IShellLinkW, (LPVOID*)&psl);
 
 		if(SUCCEEDED(hResult))
 		{
 			IPersistFile* ppf;
 
 			// set path to the shortcut target and add description
-			psl->SetPath(from.c_str());
-			psl->SetDescription("File shortcut");
+			std::wstring wideFrom(::UTF8ToWide(from));
+			psl->SetPath(wideFrom.c_str());
+			psl->SetDescription(L"File shortcut");
 
 			hResult = psl->QueryInterface(IID_IPersistFile, (LPVOID*) &ppf);
 

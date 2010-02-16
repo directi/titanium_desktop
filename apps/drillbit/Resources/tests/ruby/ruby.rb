@@ -5,6 +5,7 @@ $LOAD_PATH << builder_path
 require 'builder/lib/builder'
 require 'markaby/lib/markaby'
 require 'ostruct'
+require 'rss'
 
 def external_document
 	document.getElementById 'a'
@@ -273,4 +274,16 @@ end
 
 def get_include_path()
 	return $orig_include_path.join(" : ")
+end
+
+def api_is_there()
+	return defined?(RSS) != nil
+end
+
+def test_rb_collect(input)
+    return input.collect {|x| x * 2}
+end
+
+def test_rb_map(input)
+    return input.map {|x| x * 2}
 end

@@ -25,19 +25,20 @@ class DesktopPackager(object):
 				self.package = self.create_dmg(builder)
 			elif builder.options.platform == 'linux':
 				self.package = self.create_tgz(builder)
-			elif builder.options.platform == 'win32':
-				self.package = self.create_zip(builder)
+			elif builder.options.platform == 'win32' and not builder.options.no_install:
+				self.package = self.create_wix(builder)
 
+	def create_wix(self, builder):
+		sys.path.append(os.path.join(os.path.dirname(__file__), 'win32'))
+		import wix
+		return wix.create_installer(builder)
+	
 	def create_zip(self, builder):
 		extractor = os.path.join(self.options.assets_dir, 'self_extractor.exe')
 		exe = builder.options.executable
 		shutil.copy(extractor,exe)
 		builder.log("making win32 binary at %s, this will take a sec..." % exe)
 		zf = zipfile.ZipFile(exe, 'a', zipfile.ZIP_DEFLATED)
-
-		# add the shitty ass MSVCRT crap
-		for f in glob.glob(os.path.join(self.options.runtime_dir,'Microsoft.VC80.CRT')+'/*'):
-			zf.write(f,'Microsoft.VC80.CRT/'+os.path.basename(f))
 
 		kboot = os.path.join(builder.options.runtime_dir, 'template', 'kboot.exe')
 		installer = os.path.join(builder.options.runtime_dir, 'installer', 'Installer.exe')

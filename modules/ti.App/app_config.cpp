@@ -4,185 +4,232 @@
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include <libxml/parser.h>
-#include <libxml/tree.h>
-#include <libxml/xpath.h>
-
 #include "app_config.h"
 #include "window_config.h"
 #include "config_utils.h"
-#include "Poco/RegularExpression.h"
-#include "Properties/properties_binding.h"
+#include "properties_binding.h"
 
-using namespace ti;
-AppConfig *AppConfig::instance_ = NULL;
+#include <Poco/RegularExpression.h>
+#include <libxml/parser.h>
+#include <libxml/tree.h>
+#include <libxml/xpath.h>
+#include <string>
+#include <cstring>
+#include <vector>
+#include <algorithm>
+#include <sstream>
+
+using Poco::Util::PropertyFileConfiguration;
+
+namespace ti
+{
+
+static void ParsePropertyNode(xmlNodePtr node,
+	AutoPtr<PropertyFileConfiguration> config)
+{
+	std::string name(ConfigUtils::GetPropertyValue(node, "name"));
+
+	if (name.empty())
+		return;
+
+	std::string type(ConfigUtils::GetPropertyValue(node, "type"));
+	std::string value(ConfigUtils::GetNodeValue(node));
+	if (type == "int")
+	{
+		config->setInt(name, atoi(value.c_str()));
+	}
+	else if (type == "bool")
+	{
+		config->setBool(name, ConfigUtils::StringToBool(value));
+	}
+	else if (type == "double")
+	{
+		config->setDouble(name, atof(value.c_str()));
+	}
+	else
+	{
+		config->setString(name, value);
+	}
+}
+
+static Logger* GetLogger()
+{
+	static Logger* logger = Logger::Get("App.AppConfig");
+	return logger;
+}
+
+AppConfig* AppConfig::Instance()
+{
+	static AppConfig* instance = 0;
+	if (!instance)
+	{
+		std::string configFilename(FileUtils::Join(
+			Host::GetInstance()->GetApplication()->path.c_str(),
+			CONFIG_FILENAME, 0));
+		GetLogger()->Debug("Loading config file: %s", configFilename.c_str());
+		if (!FileUtils::IsFile(configFilename))
+		{
+			GetLogger()->Critical("Cannot load config file: %s",
+				configFilename.c_str());
+			throw ValueException::FromFormat("Cannot load config file: %s",
+				configFilename.c_str());
+		}
+
+		instance = new AppConfig(configFilename);
+	}
+
+	return instance;
+}
 
 AppConfig::AppConfig(std::string& xmlfile)
+	: analyticsEnabled(true)
 {
 	systemProperties = new PropertiesBinding();
-	instance_ = this;
-	error = NULL;
 	xmlParserCtxtPtr context = xmlNewParserCtxt();
-
 	xmlDocPtr document = xmlCtxtReadFile(context, xmlfile.c_str(), NULL, 0);
-	if (document != NULL)
+
+	if (!document)
 	{
-		xmlNodePtr root = xmlDocGetRootElement(document);
-		xmlNodePtr node = root->children;
-		while (node != NULL)
-		{
-			if (node->type == XML_ELEMENT_NODE)
-			{
-				if (nodeNameEquals(node, "name"))
-				{
-					appName = ConfigUtils::GetNodeValue(node);
-				}
-				else if (nodeNameEquals(node, "id"))
-				{
-					appID = ConfigUtils::GetNodeValue(node);
-				}
-				else if (nodeNameEquals(node, "description"))
-				{
-					description = ConfigUtils::GetNodeValue(node);
-				}
-				else if (nodeNameEquals(node, "copyright"))	
-				{
-					copyright = ConfigUtils::GetNodeValue(node);
-				}
-				else if (nodeNameEquals(node, "url"))
-				{
-					url = ConfigUtils::GetNodeValue(node);
-				}
-				else if (nodeNameEquals(node, "version"))
-				{
-					version = ConfigUtils::GetNodeValue(node);
-				}
-				else if (nodeNameEquals(node, "publisher"))
-				{
-					publisher = ConfigUtils::GetNodeValue(node);
-				}
-				else if (nodeNameEquals(node, "window"))
-				{
-					this->windows.push_back(new WindowConfig((void *) node));
-				}
-				else if (nodeNameEquals(node, "icon"))
-				{
-					xmlNodePtr child = node->children;
-					while (child != NULL)
-					{
-						if (child->type == XML_ELEMENT_NODE)
-						{
-							if (nodeNameEquals(child, "image16"))
-							{
-								icon16 = ConfigUtils::GetNodeValue(child);
-							}
-							else if (nodeNameEquals(child, "image32"))
-							{
-								icon32 = ConfigUtils::GetNodeValue(child);
-							}
-							else if (nodeNameEquals(child, "image48"))
-							{
-								icon48 = ConfigUtils::GetNodeValue(child);
-							}
-						}
-						child = child->next;
-					}
-				}
-				else if (nodeNameEquals(node, "property"))
-				{
-					std::string name = ConfigUtils::GetPropertyValue(node, "name");
-					if (name.size() > 0) {
-						std::string type = ConfigUtils::GetPropertyValue(node, "type");
-						std::string value = ConfigUtils::GetNodeValue(node);
-					
-						PRINTD("system property " << name << " = " << value);
-						
-						if (type == "int") {
-							systemProperties->GetConfig()->setInt(name, atoi(value.c_str()));
-						}
-						else if (type == "bool") {
-							systemProperties->GetConfig()->setBool(name, ConfigUtils::StringToBool(value));
-						}
-						else if (type == "double")
-						{
-							systemProperties->GetConfig()->setDouble(name, atof(value.c_str()));
-						}
-						else {
-							systemProperties->GetConfig()->setString(name, value);
-						}
-					}
-				}
-			}
-			node = node->next;
-		}
-
-		xmlFreeDoc(document);
-	}
-
-	if (document == NULL)
-	{
-		std::string _error;
-
+		std::ostringstream error;
 		if (context->lastError.code != XML_IO_LOAD_ERROR)
 		{
-			_error += context->lastError.file;
-			_error += " [Line ";
-
-			std::ostringstream o;
-			o << context->lastError.line;
-
-			_error += o.str();
-			_error += "]";
-			_error += " ";
+			error << context->lastError.file << "[Line ";
+			error << context->lastError.line << "] ";
 		}
-		_error += context->lastError.message;
+		error << context->lastError.message;
+		GetLogger()->Error(error.str());
 
-		error = strdup(_error.c_str());
+		xmlFreeParserCtxt(context);
+		xmlCleanupParser();
+		return;
 	}
 
+	xmlNodePtr root = xmlDocGetRootElement(document);
+	xmlNodePtr node = root->children;
+	while (node)
+	{
+		if (node->type != XML_ELEMENT_NODE)
+		{
+			node = node->next;
+			continue;
+		}
+
+		// This should always be a UTF-8, so we can just cast
+		// the node name here to a char*
+		std::string nodeName(reinterpret_cast<char*>(
+			const_cast<xmlChar*>(node->name)));
+
+		if (nodeName == "name")
+		{
+			appName = ConfigUtils::GetNodeValue(node);
+		}
+		else if (nodeName == "id")
+		{
+			appID = ConfigUtils::GetNodeValue(node);
+		}
+		else if (nodeName == "description")
+		{
+			description = ConfigUtils::GetNodeValue(node);
+		}
+		else if (nodeName == "copyright")
+		{
+			copyright = ConfigUtils::GetNodeValue(node);
+		}
+		else if (nodeName == "url")
+		{
+			url = ConfigUtils::GetNodeValue(node);
+		}
+		else if (nodeName == "version")
+		{
+			version = ConfigUtils::GetNodeValue(node);
+		}
+		else if (nodeName == "publisher")
+		{
+			publisher = ConfigUtils::GetNodeValue(node);
+		}
+		else if (nodeName == "window")
+		{
+			this->windows.push_back(WindowConfig::FromXMLNode(node));
+		}
+		else if (nodeName == "analytics")
+		{
+			std::string nodeValue(ConfigUtils::GetNodeValue(node));
+			analyticsEnabled = ConfigUtils::StringToBool(nodeValue);
+		}
+		else if (nodeName == "icon")
+		{
+			icon = ConfigUtils::GetNodeValue(node);
+		}
+		else if (nodeName == "property")
+		{
+			ParsePropertyNode(node, systemProperties->GetConfig());
+		}
+
+		node = node->next;
+	}
+
+	xmlFreeDoc(document);
 	xmlFreeParserCtxt(context);
 	xmlCleanupParser();
 }
 
-AppConfig::~AppConfig()
+AutoPtr<WindowConfig> AppConfig::GetWindowByURL(const std::string& url)
 {
-}
+	AutoPtr<WindowConfig> config(0);
 
-WindowConfig* AppConfig::GetWindow(std::string& id)
-{
+	// First try matching the URL exactly.
 	for (size_t i = 0; i < windows.size(); i++)
 	{
-		if (windows[i]->GetID() == id)
+		if (windows[i]->GetURL() == url)
 		{
-			return windows[i];
+			config = windows[i];
+			break;
 		}
 	}
-	return NULL;
-}
 
-WindowConfig* AppConfig::GetWindowByURL(std::string url)
-{
-	for (size_t i = 0; i < windows.size(); i++)
+	// If we didn't find a matching window URL, try matching
+	// against the url-regex parameter of the windows configs.
+	if (config.isNull())
 	{
-		std::string urlRegex(windows[i]->GetURLRegex());
-
-		Poco::RegularExpression::Match match;
-		Poco::RegularExpression regex(urlRegex);
-
-		regex.match(url, match);
-
-		if(match.length != 0)
+		for (size_t i = 0; i < windows.size(); i++)
 		{
-			return windows[i];
+			if (windows[i]->GetURLRegex().empty())
+				continue;
+
+			std::string urlRegex(windows[i]->GetURLRegex());
+			Poco::RegularExpression::Match match;
+			Poco::RegularExpression regex(windows[i]->GetURLRegex());
+			regex.match(url, match);
+			if (match.length != 0)
+			{
+				config = windows[i];
+				break;
+			}
 		}
 	}
-	return NULL;
+
+	// Return NULL here, because callers need to know whether
+	// or not a configuration was matched.
+	if (config.isNull())
+		return config;
+	
+	// Return a copy here, so that the original configuration
+	// is preserved when this is mutated
+	config = WindowConfig::FromWindowConfig(config);
+	config->SetURL(url);
+	return config;
 }
 
-WindowConfig* AppConfig::GetMainWindow()
+AutoPtr<WindowConfig> AppConfig::GetMainWindow()
 {
-	if (windows.size() > 0)
-		return windows[0];
-	else
-		return NULL;
+	// WindowConfig::FromWindowConfig should just return
+	// the default configuration given a NULL config.
+	if (windows.empty())
+		return WindowConfig::FromWindowConfig(0);
+
+	// Return a copy here, so that the original configuration
+	// is preserved when this is mutated
+	return WindowConfig::FromWindowConfig(windows[0]);
 }
+
+} // namespace ti

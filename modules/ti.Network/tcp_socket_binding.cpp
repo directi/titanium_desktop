@@ -217,7 +217,7 @@ namespace ti
 				if( !this->onReadComplete.isNull() )
 				{
 					ValueList args;
-					ti_host->InvokeMethodOnMainThread(this->onReadComplete, args, false);
+					ti_host->RunOnMainThread(this->onReadComplete, args, false);
 				}
 				return;
 			}
@@ -231,7 +231,7 @@ namespace ti
 				data[size] = '\0';
 				ValueList args;
 				args.push_back(Value::NewString(data));
-				ti_host->InvokeMethodOnMainThread(this->onRead, args, false);
+				ti_host->RunOnMainThread(this->onRead, args, false);
 			}
 		}
 		catch(Poco::Exception &e)
@@ -302,7 +302,7 @@ namespace ti
 		{
 			ValueList args;
 			args.push_back(Value::NewInt(count));
-			ti_host->InvokeMethodOnMainThread(this->onWrite, args, false);
+			ti_host->RunOnMainThread(this->onWrite, args, false);
 		}
 	}
 	void TCPSocketBinding::OnTimeout(IONotification * notification)
@@ -310,7 +310,7 @@ namespace ti
 		if (!this->onTimeout.isNull())
 		{
 			ValueList args;
-			ti_host->InvokeMethodOnMainThread(this->onTimeout, args, false);
+			ti_host->RunOnMainThread(this->onTimeout, args, false);
 		}
 	}
 	void TCPSocketBinding::OnError(IONotification * notification)
@@ -372,7 +372,7 @@ namespace ti
 		{
 			ValueList args;
 			args.push_back(Value::NewBool(true));
-			ti_host->InvokeMethodOnMainThread(this->onConnect, args, false);
+			ti_host->RunOnMainThread(this->onConnect, args, false);
 		}
 	}
 
@@ -436,7 +436,6 @@ namespace ti
 			this->RegisterForRead();
 			this->RegisterForWrite();
 			this->RegisterForTimeout();
-			return;
 		}else{
 			UnregisterForTimeout();
 		}
@@ -472,7 +471,7 @@ namespace ti
 		{
 			ValueList args;
 			args.push_back(Value::NewString(str.c_str()));
-			ti_host->InvokeMethodOnMainThread(this->onError, args, false);
+			ti_host->RunOnMainThread(this->onError, args, false);
 		}
 	}
 }

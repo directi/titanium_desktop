@@ -14,20 +14,20 @@
 
 using namespace ti;
 
-@interface NativeWindow : NSWindow {
+@interface NativeWindow : NSWindow
+{
 	BOOL canReceiveFocus;
-	WindowConfig* config;
 	WebView* webView;
 	WebViewDelegate* delegate;
 	BOOL requiresDisplay;
 	AutoPtr<OSXUserWindow>* userWindow;
-	WebInspector *inspector;
+	WebInspector* inspector;
 	BOOL fullscreen;
 	BOOL focused;
 	NSRect savedFrame;
 }
 - (void)setUserWindow:(AutoPtr<OSXUserWindow>*)inUserWindow;
-- (void)setupDecorations:(WindowConfig*)config;
+- (void)setupDecorations;
 - (void)setTransparency:(double)transparency;
 - (void)setFullscreen:(BOOL)yn;
 - (void)close;
@@ -35,9 +35,7 @@ using namespace ti;
 - (void)open;
 - (void)frameLoaded;
 - (WebView*)webView;
-- (WindowConfig*)config;
 - (UserWindow*)userWindow;
-- (void)setInitialWindow:(BOOL)yn;
 - (void)showInspector:(BOOL)console;
 @end
 

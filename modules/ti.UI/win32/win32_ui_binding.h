@@ -14,13 +14,9 @@ namespace ti
 {
 	class Win32UIBinding : public UIBinding
 	{
-
 		public:
 		Win32UIBinding(Module* uiModule, Host *host);
 		~Win32UIBinding();
-
-		AutoUserWindow CreateWindow(WindowConfig*, AutoUserWindow& parent);
-
 		AutoMenu CreateMenu();
 		AutoMenuItem CreateMenuItem();
 		AutoMenuItem CreateSeparatorMenuItem();
@@ -36,8 +32,8 @@ namespace ti
 		std::string& GetIcon();
 		static UINT nextItemId;
 
-		static HICON LoadImageAsIcon(std::string& path, int sizeX=0, int sizeY=0);
-		static HBITMAP LoadImageAsBitmap(std::string& path, int sizeX=0, int sizeY=0);
+		static HICON LoadImageAsIcon(std::string& path, int sizeX, int sizeY);
+		static HBITMAP LoadImageAsBitmap(std::string& path, int sizeX, int sizeY);
 		static HICON BitmapToIcon(HBITMAP bitmap, int sizeX, int sizeY);
 		static HBITMAP IconToBitmap(HICON icon, int sizeX, int sizeY);
 		static HBITMAP LoadPNGAsBitmap(std::string& path, int sizeX, int sizeY);
@@ -51,10 +47,6 @@ namespace ti
 		AutoPtr<Win32Menu> menu;
 		AutoPtr<Win32Menu> contextMenu;
 		std::string iconPath;
-
-		// Cookie and handle for WebKit Activation Context
-		ULONG_PTR lpCookie; 
-		HANDLE pActCtx;
 		static std::vector<HICON> loadedICOs;
 		static std::vector<HBITMAP> loadedBMPs;
 	};

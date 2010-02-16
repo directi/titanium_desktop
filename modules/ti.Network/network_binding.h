@@ -9,29 +9,18 @@
 
 #include <kroll/kroll.h>
 
-
 namespace ti
 {
 	class NetworkBinding;
 	class NetworkStatus;
 }
 
-#if defined(OS_OSX)
-#include "osx/network_status.h"
-#elif defined(OS_LINUX)
-#include "network_status.h"
-#include "linux/dbus_network_status.h"
-#elif defined(OS_WIN32)
-#include "network_status.h"
-#include "win32/icmp_network_status.h"
-#endif
-
 namespace ti
 {
 	class NetworkBinding : public StaticBoundObject
 	{
 	public:
-		NetworkBinding(Host*,std::string);
+		NetworkBinding(Host*);
 		virtual ~NetworkBinding();
 
 		bool HasNetworkStatusListeners();
@@ -41,7 +30,6 @@ namespace ti
 
 	private:
 		Host* host;
-		std::string modulePath;
 		KObjectRef global;
 
 		struct Listener
@@ -50,12 +38,7 @@ namespace ti
 			long id;
 		};
 		std::vector<Listener> listeners;
-
-#if defined(OS_OSX)
-		NetworkReachability *networkDelegate;
-#else 
-		NetworkStatus *net_status;
-#endif
+		NetworkStatus* netStatus;;
 
 		void CreateIPAddress(const ValueList& args, KValueRef result);
 		void CreateTCPSocket(const ValueList& args, KValueRef result);

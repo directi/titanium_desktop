@@ -282,10 +282,10 @@ namespace ti
 	void FilesystemBinding::GetProgramsDirectory(const ValueList &args, KValueRef result)
 	{
 #ifdef OS_WIN32
-		char path[MAX_PATH];
-		if (!SHGetSpecialFolderPath(NULL, path, CSIDL_PROGRAM_FILES, FALSE))
+		wchar_t path[MAX_PATH];
+		if (!SHGetSpecialFolderPathW(NULL, path, CSIDL_PROGRAM_FILES, FALSE))
 			throw ValueException::FromString("Could not get Program Files path.");
-		std::string dir(path);
+		std::string dir(::WideToUTF8(path));
 
 #elif OS_OSX
 		std::string dir([[NSSearchPathForDirectoriesInDomains(
@@ -303,10 +303,10 @@ namespace ti
 	void FilesystemBinding::GetDesktopDirectory(const ValueList& args, KValueRef result)
 	{
 #ifdef OS_WIN32
-		char path[MAX_PATH];
-		if (!SHGetSpecialFolderPath(NULL, path, CSIDL_DESKTOPDIRECTORY, FALSE))
+		wchar_t path[MAX_PATH];
+		if (!SHGetSpecialFolderPathW(NULL, path, CSIDL_DESKTOPDIRECTORY, FALSE))
 			throw ValueException::FromString("Could not get Desktop path.");
-		std::string dir(path);
+		std::string dir(::WideToUTF8(path));
 
 #elif OS_OSX
 		std::string dir([[NSSearchPathForDirectoriesInDomains(
@@ -329,10 +329,10 @@ namespace ti
 	void FilesystemBinding::GetDocumentsDirectory(const ValueList& args, KValueRef result)
 	{
 #ifdef OS_WIN32
-		char path[MAX_PATH];
-		if (!SHGetSpecialFolderPath(NULL,path,CSIDL_PERSONAL,FALSE))
+		wchar_t path[MAX_PATH];
+		if (!SHGetSpecialFolderPathW(NULL, path, CSIDL_PERSONAL, FALSE))
 			throw ValueException::FromString("Could not get Documents path.");
-		std::string dir(path);
+		std::string dir(::WideToUTF8(path));
 
 #elif OS_OSX
 		std::string dir([[NSSearchPathForDirectoriesInDomains(
@@ -506,7 +506,7 @@ namespace ti
 
 		ValueList args = ValueList();
 		KMethodRef m = this->Get("_invoke")->ToMethod();
-		KValueRef result = host->InvokeMethodOnMainThread(m, args);
+		KValueRef result = RunOnMainThread(m, args);
 		if (result->ToBool())
 		{
 			timer.restart(0);
