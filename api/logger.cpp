@@ -79,6 +79,18 @@ namespace kroll
 		return loggers[name];
 	}
 
+	static std::string getCurrentTimeString()
+	{
+		time_t time_of_day;
+		char buffer[ 80 ];
+		time_of_day = time( NULL );
+		strftime( buffer, 80, "%d_%B_%Y_%H_%M_%S", localtime( &time_of_day ) );
+		printf( "%s\n", buffer );
+		std::string str(buffer);
+		return str;
+	}
+
+
 	Logger::Level Logger::GetLevel(std::string& levelString)
 	{
 		if (levelString == "TRACE")
@@ -421,13 +433,8 @@ namespace kroll
 			logDirectoryFile.createDirectories();
 			{
 				// appending timestamp for creating a new log file each time we run our application.
-				time_t t = time(NULL);
-				char time[200] = {0};
-				std::ostringstream strm;
-				strm << t;
-				strcpy(time, strm.str().c_str());
 				logFilePath += ".";
-				logFilePath += time;
+				logFilePath += getCurrentTimeString();
 			}
 
 			this->logFile.open(logFilePath.c_str(), std::ios::out | std::ios::trunc);
