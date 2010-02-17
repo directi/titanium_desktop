@@ -12,9 +12,9 @@ Import('build')
 
 revisions = {
 	"linux-i386": 32,
-	"linux-x86_64": 24,
+	"linux-x86_64": 25,
 	"osx-universal": 26,
-	"win32-i386": 34
+	"win32-i386": 36
 }
 
 thirdparty_name = 'thirdparty-%s-%s-r%s' % (build.os, build.arch, revisions[build.os+'-'+build.arch])

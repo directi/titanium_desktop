@@ -7,6 +7,11 @@
 #include "php_module.h"
 #include <Poco/Path.h>
 
+extern "C"
+{
+	int php_load_extension(char *filename, int type, int start_now TSRMLS_DC);
+}
+
 #ifdef ZTS
 void ***tsrm_ls;
 #endif
@@ -52,6 +57,21 @@ namespace kroll
 		zend_alter_ini_entry("include_path", sizeof("include_path"),
 			(char*) resourcesPath.c_str(), resourcesPath.size(),
 			ZEND_INI_USER, ZEND_INI_STAGE_RUNTIME);
+
+#ifdef OS_WIN32
+		// Manually load some PHP extensions for Windows.
+		TSRMLS_FETCH();
+		std::string phpPath(UTF8ToSystem(this->GetPath()));
+
+		std::string modPath(FileUtils::Join(phpPath.c_str(), "php_gd2.dll", 0));
+		php_load_extension((char*) modPath.c_str(), 1, 1 TSRMLS_CC);
+		modPath = FileUtils::Join(phpPath.c_str(), "php_openssl.dll", 0);
+		php_load_extension((char*) modPath.c_str(), 1, 1 TSRMLS_CC);
+		modPath = FileUtils::Join(phpPath.c_str(), "php_curl.dll", 0);
+		php_load_extension((char*) modPath.c_str(), 1, 1 TSRMLS_CC);
+		modPath = FileUtils::Join(phpPath.c_str(), "php_xls.dll", 0);
+		php_load_extension((char*) modPath.c_str(), 1, 1 TSRMLS_CC);
+#endif
 	}
 
 	/*static*/

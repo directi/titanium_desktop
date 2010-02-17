@@ -31,6 +31,8 @@
 #include "utils.h"
 #include <iostream>
 #include <fstream>
+#include <cstdio>
+#include <cstring>
 #define MID_PREFIX "v2:"
 
 namespace UTILS_NS
@@ -48,26 +50,22 @@ namespace PlatformUtils
 
 	std::string GetFirstMACAddress()
 	{
-		NodeId id;
+		MACAddress address;
+		memset(&address, 0, sizeof(&address));
+
 		try
 		{
-			PlatformUtils::GetNodeId(id);
-		} catch(std::string e)
-		{
-			return e;
+			PlatformUtils::GetFirstMACAddressImpl(address);
 		}
 		catch(...)
 		{
-			return "NoMACAddressFound";
+			// Just return zeros.
 		}
+
 		char result[18];
 		std::sprintf(result, "%02x:%02x:%02x:%02x:%02x:%02x",
-			id[0],
-			id[1],
-			id[2],
-			id[3],
-			id[4],
-			id[5]);
+			address[0], address[1], address[2], address[3],
+			address[4], address[5]);
 		return std::string(result);
 	}
 
