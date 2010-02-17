@@ -6,70 +6,33 @@
 #ifndef TI_WINDOW_CONFIG_H_
 #define TI_WINDOW_CONFIG_H_
 
-#include <string>
-
 #include "app_api.h"
-#include "app_config.h" 
-namespace ti {
+#define DEFAULT_POSITION -404404404
+typedef struct _xmlNode xmlNode;
+typedef xmlNode* xmlNodePtr;
 
-class TITANIUM_APP_API WindowConfig
+namespace ti
 {
-	private:
-	std::string winid;
-	std::string url;
-	std::string urlRegex;
-	std::string title;
 
-	int x;
-	int y;
-	int width;
-	int height;
-	int minWidth;
-	int minHeight;
-	int maxWidth;
-	int maxHeight;
+class TITANIUM_APP_API WindowConfig : public ReferenceCounted
+{
+public:
+	static AutoPtr<WindowConfig> FromXMLNode(xmlNodePtr);
+	static AutoPtr<WindowConfig> FromWindowConfig(AutoPtr<WindowConfig>);
+	static AutoPtr<WindowConfig> FromProperties(KObjectRef);
+	static AutoPtr<WindowConfig> Default()
+	{
+		return new WindowConfig();
+	}
 
-	float transparency;
-
-	bool visible;
-	bool maximizable;
-	bool minimizable;
-	bool closeable;
-	bool resizable;
-	bool fullscreen;
-	bool maximized;
-	bool minimized;
-	bool usingChrome;
-	bool toolWindow;
-	bool usingScrollbars;
-	bool topMost;
-	bool taskbarTab;
-#ifdef OS_OSX
-	bool texturedBackground;
-#endif
-
-	void SetDefaults();
-
-	public:
-	static int DEFAULT_POSITION;
-	static int windowCount;
-
-	WindowConfig() { SetDefaults(); }
-	WindowConfig(void* data);
-	WindowConfig(WindowConfig *config, std::string& url);
-	void UseProperties(KObjectRef properties);
-
-	std::string ToString();
-
-	// window accessors
 	std::string& GetURL() { return url; }
-	void SetURL(std::string& url_) { url = url_; }
+	void SetURL(const std::string& url_) { url = url_; }
 	std::string& GetURLRegex() { return urlRegex; }
-	void SetURLRegex(std::string& urlRegex_) { urlRegex = urlRegex_; }
+	void SetURLRegex(const std::string& urlRegex_) { urlRegex = urlRegex_; }
 	std::string& GetTitle() { return title; }
-	void SetTitle(std::string& title_) { title = title_; }
+	void SetTitle(const std::string& title_) { title = title_; }
 	std::string& GetID() { return winid; }
-	void SetID(std::string id_) { winid = id_; }
+	void SetID(const std::string id_) { winid = id_; }
 
 	int GetX() { return x; }
 	void SetX(int x_) { x = x_; }
@@ -114,11 +77,49 @@ class TITANIUM_APP_API WindowConfig
 	void SetUsingScrollbars(bool usingScrollbars_) { usingScrollbars = usingScrollbars_; }
 	bool IsTopMost() { return topMost; }
 	void SetTopMost(bool topmost_) { topMost = topmost_; }
+	bool HasTransparentBackground() { return transparentBackground; }
+	void SetTransparentBackground(bool transparentBackground) { this->transparentBackground = transparentBackground; }
+
 // probably long term a better way of doing this, but we need a quick way to disable these
 #ifdef OS_OSX
 	void SetTexturedBackground(bool texturedBackground_) { texturedBackground = texturedBackground_; }
-	bool IsTexturedBackground() { return texturedBackground; }
+	bool HasTexturedBackground() { return texturedBackground; }
 #endif
+private:
+	std::string winid;
+	std::string url;
+	std::string urlRegex;
+	std::string title;
+
+	int x;
+	int y;
+	int width;
+	int height;
+	int minWidth;
+	int minHeight;
+	int maxWidth;
+	int maxHeight;
+
+	float transparency;
+
+	bool visible;
+	bool maximizable;
+	bool minimizable;
+	bool closeable;
+	bool resizable;
+	bool fullscreen;
+	bool maximized;
+	bool minimized;
+	bool usingChrome;
+	bool toolWindow;
+	bool usingScrollbars;
+	bool topMost;
+	bool transparentBackground;
+#ifdef OS_OSX
+	bool texturedBackground;
+#endif
+
+	WindowConfig();
 };
 
 }

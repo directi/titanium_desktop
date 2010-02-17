@@ -299,7 +299,7 @@ namespace ti
 
 	void NetworkBinding::NetworkStatusChange(bool online)
 	{
-		static Logger* log = Logger::Get("NetworkStatus");
+		static kroll::Logger* log = kroll::Logger::Get("NetworkStatus");
 		log->Debug("ti.Network: Online status changed ==> %i", online);
 		this->Set("online", Value::NewBool(online));
 

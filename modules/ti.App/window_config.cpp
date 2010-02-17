@@ -7,75 +7,91 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <libxml/xpath.h>
+#include <sstream>
 
 #include "app_config.h"
 #include "window_config.h"
 #include "config_utils.h"
 
-#define SET_STRING(name, prop) \
-{ \
-	KValueRef v = properties->Get(#name); \
-	if (v->IsString()) \
-	{ \
-		std::string value(v->ToString()); \
-		this->prop = value; \
-	} \
-}
+static size_t windowCount = 0;
 
-#define SET_BOOL(name, prop) \
-{ \
-	KValueRef v = properties->Get(#name); \
-	if (v->IsString()) \
-	{ \
-		std::string value(v->ToString()); \
-		if (value=="yes" || value=="1" || value=="true" || value=="True") \
-		{\
-			this->prop = true; \
-		} \
-		else \
-		{ \
-			this->prop = false; \
-		} \
-	} \
-	else if (v->IsInt()) \
-	{ \
-		this->prop = v->ToInt() == 1; \
-	} \
-	else if (v->IsBool()) \
-	{ \
-		this->prop = v->ToBool(); \
-	} \
-}
-
-#define SET_INT(name, prop) \
-{ \
-	KValueRef v = properties->Get(#name); \
-	if (v->IsNumber()) \
-	{ \
-		this->prop = v->ToInt(); \
-	} \
-}
-
-#define SET_DOUBLE(name, prop) \
-{ \
-	KValueRef v = properties->Get(#name); \
-	if (v->IsNumber()) \
-	{ \
-		this->prop = v->ToDouble(); \
-	} \
-}
-
-using namespace ti;
-
-int WindowConfig::DEFAULT_POSITION = -404404404;
-int WindowConfig::windowCount = 0;
-
-void WindowConfig::SetDefaults ()
+namespace ti
 {
+static bool CoerceBool(KObjectRef props, const char* name, bool defaultValue)
+{
+	KValueRef v(props->Get(name));
+	if (v->IsString())
+	{
+		std::string value(v->ToString());
+		if (value=="yes" || value=="1" || value=="true" || value=="True")
+			return true;
+		else
+			return false;
+	}
+	else if (v->IsInt())
+		return v->ToInt();
 
-	WindowConfig::windowCount++;
+	else if (v->IsBool())
+		return v->ToBool();
+
+	return defaultValue;
+}
+
+static void EnforceTransparentBackgroundSettings(WindowConfig* config)
+{
+	if (!config->HasTransparentBackground())
+		return;
+
+	config->SetCloseable(false);
+	config->SetResizable(false);
+	config->SetMinimizable(false);
+	config->SetMaximizable(false);
+	config->SetUsingChrome(false);
+}
+
+static void EnforceMaxMinConstraints(WindowConfig* config)
+{
+	if (config->GetMinWidth() <= 0)
+	{
+		config->SetMinWidth(-1);
+	}
+	else if (config->GetWidth() < config->GetMinWidth())
+	{
+		config->SetWidth(config->GetMinWidth());
+	}
+
+	if (config->GetMaxWidth() <= 0)
+	{
+		config->SetMaxWidth(-1);
+	}
+	else if (config->GetWidth() > config->GetMaxWidth())
+	{
+		config->SetWidth(config->GetMaxWidth());
+	}
+
+	if (config->GetMinHeight() <= 0)
+	{
+		config->SetMinHeight(-1);
+	}
+	else if (config->GetHeight() < config->GetMinHeight())
+	{
+		config->SetHeight(config->GetMinHeight());
+	}
+
+	if (config->GetMaxHeight() <= 0)
+	{
+		config->SetMaxHeight(-1);
+	}
+	else if (config->GetHeight() > config->GetMaxHeight())
+	{
+		config->SetHeight(config->GetMaxHeight());
+	}
+}
+
+WindowConfig::WindowConfig()
+{
 	std::ostringstream winid;
-	winid << "win_" << WindowConfig::windowCount;
+	winid << "win_" << ++windowCount;
 	this->winid = winid.str();
 
 	this->maximizable = true;
@@ -84,7 +100,7 @@ void WindowConfig::SetDefaults ()
 	this->resizable = true;
 
 	this->usingChrome = true;
-	this->toolWindow = true;
+	this->toolWindow = false;
 	this->usingScrollbars = true;
 	this->fullscreen = false;
 	this->maximized = false;
@@ -97,10 +113,11 @@ void WindowConfig::SetDefaults ()
 #endif
 
 	this->transparency = 1.0;
+	this->transparentBackground = false;
 	this->width = 800;
 	this->height = 600;
-	this->x = WindowConfig::DEFAULT_POSITION;
-	this->y = WindowConfig::DEFAULT_POSITION;
+	this->x = DEFAULT_POSITION;
+	this->y = DEFAULT_POSITION;
 
 	// -1 in this case signifies no constraints
 	this->minWidth = -1;
@@ -112,255 +129,230 @@ void WindowConfig::SetDefaults ()
 	this->title = Host::GetInstance()->GetApplication()->name;
 }
 
-void WindowConfig::UseProperties(KObjectRef properties)
+/*static*/
+AutoPtr<WindowConfig> WindowConfig::FromProperties(KObjectRef properties)
 {
-	this->SetDefaults();
-
-	SET_STRING(id, winid)
-	SET_STRING(url, url);
-	SET_STRING(urlRegex, urlRegex);
-	SET_STRING(title, title);
-	SET_INT(x, x);
-	SET_INT(y, y);
-	SET_INT(width, width);
-	SET_INT(minWidth, minWidth);
-	SET_INT(maxWidth, maxWidth);
-	SET_INT(height, height);
-	SET_INT(minHeight, minHeight);
-	SET_INT(maxHeight, maxHeight);
-	SET_BOOL(visible, visible);
-	SET_BOOL(maximizable, maximizable);
-	SET_BOOL(minimizable, minimizable);
-	SET_BOOL(closeable, closeable);
-	SET_BOOL(resizable, resizable);
-	SET_BOOL(fullscreen, fullscreen);
-	SET_BOOL(maximized, maximized);
-	SET_BOOL(minimized, minimized);
-	SET_BOOL(usingChrome, usingChrome);
-	SET_BOOL(toolWindow, toolWindow);
-	SET_BOOL(usingScrollbars, usingScrollbars);
-	SET_BOOL(topMost, topMost);
-	SET_DOUBLE(transparency, transparency);
-	
-#ifdef OS_OSX
-	SET_BOOL(texturedBackground,texturedBackground);
-#endif
-}
-
-WindowConfig::WindowConfig(WindowConfig *config, std::string& url)
-{
-	this->SetDefaults();
-	this->url = url;
-
-	if (config == NULL) // Just use defaults if not found
-	{
-		return;
-	}
-
-	this->title = config->GetTitle();
-	this->x = config->GetX();
-	this->y = config->GetY();
-	this->width = config->GetWidth();
-	this->minWidth = config->GetMinWidth();
-	this->maxWidth = config->GetMaxWidth();
-	this->height = config->GetHeight();
-	this->minHeight = config->GetMinHeight();
-	this->maxHeight = config->GetMaxHeight();
-	this->visible = config->IsVisible();
-	this->maximizable = config->IsMaximizable();
-	this->minimizable = config->IsMinimizable();
-	this->resizable = config->IsResizable();
-	this->fullscreen = config->IsFullscreen();
-	this->maximized = config->IsMaximized();
-	this->minimized = config->IsMinimized();
-	this->usingChrome = config->IsUsingChrome();
-	this->usingScrollbars = config->IsUsingScrollbars();
-	this->topMost = config->IsTopMost();
-	this->transparency = config->GetTransparency();
-	this->toolWindow = config->IsToolWindow();
+	WindowConfig* c = new WindowConfig();
+	c->SetID(properties->GetString("id", c->GetID()));
+	c->SetURL(properties->GetString("url", c->GetURL()));
+	c->SetURLRegex(properties->GetString("urlRegex", c->GetURLRegex()));
+	c->SetTitle(properties->GetString("title", c->GetTitle()));
+	c->SetX(properties->GetInt("x", c->GetX()));
+	c->SetY(properties->GetInt("y", c->GetY()));
+	c->SetWidth(properties->GetInt("width", c->GetWidth()));
+	c->SetMinWidth(properties->GetInt("minWidth", c->GetMinWidth()));
+	c->SetMaxWidth(properties->GetInt("maxWidth", c->GetMaxWidth()));
+	c->SetHeight(properties->GetInt("height", c->GetHeight()));
+	c->SetMinHeight(properties->GetInt("minHeight", c->GetMinHeight()));
+	c->SetMaxHeight(properties->GetInt("maxHeight", c->GetMaxHeight()));
+	c->SetMaximizable(CoerceBool(properties, "maximizable", c->IsMaximizable()));
+	c->SetMinimizable(CoerceBool(properties, "minimizable", c->IsMinimizable()));
+	c->SetCloseable(CoerceBool(properties, "closeable", c->IsCloseable()));
+	c->SetResizable(CoerceBool(properties, "resizable", c->IsResizable()));
+	c->SetFullscreen(CoerceBool(properties, "fullscreen", c->IsFullscreen()));
+	c->SetMaximized(CoerceBool(properties, "maximized", c->IsMaximized()));
+	c->SetMinimized(CoerceBool(properties, "minimized", c->IsMinimized()));
+	c->SetUsingChrome(CoerceBool(properties, "usingChrome", c->IsUsingChrome()));
+	c->SetToolWindow(CoerceBool(properties, "toolWindow", c->IsToolWindow()));
+	c->SetTopMost(CoerceBool(properties, "topMost", c->IsTopMost()));
+	c->SetVisible(CoerceBool(properties, "visible", c->IsVisible()));
+	c->SetTransparentBackground(CoerceBool(properties,
+		"transparentBackground", c->HasTransparentBackground()));
+	c->SetTransparency(properties->GetDouble("transparency", c->GetTransparency()));
 
 #ifdef OS_OSX
-	this->texturedBackground = config->IsTexturedBackground();
+	c->SetTexturedBackground(properties->GetDouble("texturedBackground", c->HasTexturedBackground()));
 #endif
+
+	EnforceMaxMinConstraints(c);
+	EnforceTransparentBackgroundSettings(c);
+	return c;
 }
 
-WindowConfig::WindowConfig(void* data)
+/*static*/
+AutoPtr<WindowConfig> WindowConfig::FromWindowConfig(AutoPtr<WindowConfig> config)
 {
-	xmlElementPtr element = (xmlElementPtr) data;
-	SetDefaults();
+	WindowConfig* newConfig = new WindowConfig();
+
+	// Just use defaults given a NULL instance.
+	if (config.isNull())
+		return newConfig;
+
+	newConfig->SetURL(config->GetURL());
+	newConfig->SetTitle(config->GetTitle());
+	newConfig->SetX(config->GetX());
+	newConfig->SetY(config->GetY());
+	newConfig->SetWidth(config->GetWidth());
+	newConfig->SetMinWidth(config->GetMinWidth());
+	newConfig->SetMaxWidth(config->GetMaxWidth());
+	newConfig->SetHeight(config->GetHeight());
+	newConfig->SetMinHeight(config->GetMinHeight());
+	newConfig->SetMaxHeight(config->GetMaxHeight());
+	newConfig->SetVisible(config->IsVisible());
+	newConfig->SetMaximizable(config->IsMaximizable());
+	newConfig->SetMinimizable(config->IsMinimizable());
+	newConfig->SetResizable(config->IsResizable());
+	newConfig->SetFullscreen(config->IsFullscreen());
+	newConfig->SetMaximized(config->IsMaximized());
+	newConfig->SetMinimized(config->IsMinimized());
+	newConfig->SetUsingChrome(config->IsUsingChrome());
+	newConfig->SetUsingScrollbars(config->IsUsingScrollbars());
+	newConfig->SetTopMost(config->IsTopMost());
+	newConfig->SetTransparency(config->GetTransparency());
+	newConfig->SetTransparentBackground(config->HasTransparentBackground());
+#ifdef OS_OSX
+	newConfig->SetTexturedBackground(config->HasTexturedBackground());
+#endif
+
+	return newConfig;
+}
+
+/*static*/
+AutoPtr<WindowConfig> WindowConfig::FromXMLNode(xmlNodePtr element)
+{
+	WindowConfig* config = new WindowConfig();
 
 	xmlNodePtr child = element->children;
-	while (child != NULL)
+	while (child)
 	{
-		if (nodeNameEquals(child, "id"))
+		if (child->type != XML_ELEMENT_NODE)
 		{
-			winid = ConfigUtils::GetNodeValue(child);
+			child = child->next;
+			continue;
 		}
-		else if (nodeNameEquals(child, "title"))
+
+		// This should always be a UTF-8, so we can just cast
+		// the node name here to a char*
+		std::string nodeName(reinterpret_cast<char*>(
+			const_cast<xmlChar*>(child->name)));
+
+		if (nodeName == "id")
 		{
-			title = ConfigUtils::GetNodeValue(child);
+			config->SetID(ConfigUtils::GetNodeValue(child));
 		}
-		else if (nodeNameEquals(child, "url"))
+		else if (nodeName == "title")
 		{
-			url = ConfigUtils::GetNodeValue(child);
+			config->SetTitle(ConfigUtils::GetNodeValue(child));
 		}
-		else if (nodeNameEquals(child, "url-regex"))
+		else if (nodeName == "url")
 		{
-			urlRegex = ConfigUtils::GetNodeValue(child);
+			config->SetURL(ConfigUtils::GetNodeValue(child));
 		}
-		else if (nodeNameEquals(child, "maximizable"))
+		else if (nodeName == "url-regex")
 		{
-			maximizable = ConfigUtils::GetNodeValueAsBool(child);
+			config->SetURLRegex(ConfigUtils::GetNodeValue(child));
 		}
-		else if (nodeNameEquals(child, "minimizable"))
+		else if (nodeName == "maximizable")
 		{
-			minimizable = ConfigUtils::GetNodeValueAsBool(child);
+			config->SetMaximizable(ConfigUtils::GetNodeValueAsBool(child));
 		}
-		else if (nodeNameEquals(child, "closeable"))
+		else if (nodeName == "minimizable")
 		{
-			closeable = ConfigUtils::GetNodeValueAsBool(child);
+			config->SetMinimizable(ConfigUtils::GetNodeValueAsBool(child));
 		}
-		else if (nodeNameEquals(child, "resizable"))
+		else if (nodeName == "closeable")
 		{
-			resizable = ConfigUtils::GetNodeValueAsBool(child);
+			config->SetCloseable(ConfigUtils::GetNodeValueAsBool(child));
 		}
-		else if (nodeNameEquals(child, "fullscreen"))
+		else if (nodeName == "resizable")
 		{
-			fullscreen = ConfigUtils::GetNodeValueAsBool(child);
+			config->SetResizable(ConfigUtils::GetNodeValueAsBool(child));
 		}
-		else if (nodeNameEquals(child, "maximized"))
+		else if (nodeName == "fullscreen")
 		{
-			maximized = ConfigUtils::GetNodeValueAsBool(child);
+			config->SetFullscreen(ConfigUtils::GetNodeValueAsBool(child));
 		}
-		else if (nodeNameEquals(child, "minimized"))
+		else if (nodeName == "maximized")
 		{
-			minimized = ConfigUtils::GetNodeValueAsBool(child);
+			config->SetMaximized(ConfigUtils::GetNodeValueAsBool(child));
 		}
-		else if (nodeNameEquals(child, "chrome"))
+		else if (nodeName == "minimized")
 		{
-			usingChrome = ConfigUtils::GetNodeValueAsBool(child);
-			std::string scrollbars = ConfigUtils::GetPropertyValue(child, "scrollbars");
+			config->SetMinimized(ConfigUtils::GetNodeValueAsBool(child));
+		}
+		else if (nodeName == "chrome")
+		{
+			config->SetUsingChrome(ConfigUtils::GetNodeValueAsBool(child));
+			std::string scrollbars(ConfigUtils::GetPropertyValue(child, "scrollbars"));
 			if (!scrollbars.empty())
 			{
-				usingScrollbars = ConfigUtils::StringToBool(scrollbars);
+				config->SetUsingScrollbars(ConfigUtils::StringToBool(scrollbars));
 			}
 		}
-		else if (nodeNameEquals(child, "tool-window"))
+		else if (nodeName == "tool-window")
 		{
-			toolWindow = ConfigUtils::GetNodeValueAsBool(child);
+			config->SetToolWindow(ConfigUtils::GetNodeValueAsBool(child));
 		}
-		else if (nodeNameEquals(child, "transparency"))
+		else if (nodeName == "transparency")
 		{
-			std::string value = ConfigUtils::GetNodeValue(child);
-			transparency = (float) atof(value.c_str());
+			std::string value(ConfigUtils::GetNodeValue(child));
+			config->SetTransparency((float) atof(value.c_str()));
 		}
-		else if (nodeNameEquals(child, "x"))
+		else if (nodeName == "transparent-background")
 		{
-			std::string value = ConfigUtils::GetNodeValue(child);
-			x = atoi(value.c_str());
+			config->SetTransparentBackground(
+				ConfigUtils::GetNodeValueAsBool(child));
 		}
-		else if (nodeNameEquals(child, "y"))
+		else if (nodeName == "x")
 		{
-			std::string value = ConfigUtils::GetNodeValue(child);
-			y = atoi(value.c_str());
+			std::string value(ConfigUtils::GetNodeValue(child));
+			config->SetX(atoi(value.c_str()));
 		}
-		else if (nodeNameEquals(child, "width"))
+		else if (nodeName == "y")
 		{
-			std::string value = ConfigUtils::GetNodeValue(child);
-			width = atoi(value.c_str());
+			std::string value(ConfigUtils::GetNodeValue(child));
+			config->SetY(atoi(value.c_str()));
 		}
-		else if (nodeNameEquals(child, "height"))
+		else if (nodeName == "width")
 		{
-			std::string value = ConfigUtils::GetNodeValue(child);
-			height = atoi(value.c_str());
+			std::string value(ConfigUtils::GetNodeValue(child));
+			config->SetWidth(atoi(value.c_str()));
 		}
-		else if (nodeNameEquals(child, "visible"))
+		else if (nodeName == "height")
 		{
-			visible = ConfigUtils::GetNodeValueAsBool(child);
+			std::string value(ConfigUtils::GetNodeValue(child));
+			config->SetHeight(atoi(value.c_str()));
 		}
-		else if (nodeNameEquals(child, "min-width"))
+		else if (nodeName == "visible")
 		{
-			std::string value = ConfigUtils::GetNodeValue(child);
-			minWidth = atoi(value.c_str());
+			config->SetVisible(ConfigUtils::GetNodeValueAsBool(child));
 		}
-		else if (nodeNameEquals(child, "max-width"))
+		else if (nodeName == "min-width")
 		{
-			std::string value = ConfigUtils::GetNodeValue(child);
-			maxWidth = atoi(value.c_str());
+			std::string value(ConfigUtils::GetNodeValue(child));
+			config->SetMinWidth(atoi(value.c_str()));
 		}
-		else if (nodeNameEquals(child, "min-height"))
+		else if (nodeName == "max-width")
 		{
-			std::string value = ConfigUtils::GetNodeValue(child);
-			minHeight = atoi(value.c_str());
+			std::string value(ConfigUtils::GetNodeValue(child));
+			config->SetMaxWidth(atoi(value.c_str()));
 		}
-		else if (nodeNameEquals(child, "max-height"))
+		else if (nodeName == "min-height")
 		{
-			std::string value = ConfigUtils::GetNodeValue(child);
-			maxHeight = atoi(value.c_str());
+			std::string value(ConfigUtils::GetNodeValue(child));
+			config->SetMinHeight(atoi(value.c_str()));
 		}
-		else if (nodeNameEquals(child, "top-most"))
+		else if (nodeName == "max-height")
 		{
-			topMost = ConfigUtils::GetNodeValueAsBool(child);
+			std::string value(ConfigUtils::GetNodeValue(child));
+			config->SetMaxHeight(atoi(value.c_str()));
 		}
-		else if (nodeNameEquals(child, "toolwindow"))
+		else if (nodeName == "top-most")
 		{
-			toolWindow = ConfigUtils::GetNodeValueAsBool(child);
+			config->SetTopMost(ConfigUtils::GetNodeValueAsBool(child));
 		}
 #ifdef OS_OSX
-		else if (nodeNameEquals(child, "texturedBackground"))
+		else if (nodeName == "texturedBackground")
 		{
-		 	texturedBackground = ConfigUtils::GetNodeValueAsBool(child);
+			config->SetTexturedBackground(ConfigUtils::GetNodeValueAsBool(child));
 		}
 #endif
 		child = child->next;
 	}
 
-	if (minWidth <= 0)
-	{
-		minWidth = -1;
-	}
-	else if (width < minWidth)
-	{
-		width = minWidth;
-	}
-
-	if (maxWidth <= 0)
-	{
-		maxWidth = -1;
-	}
-	else if (width > maxWidth)
-	{
-		width = maxWidth;
-	}
-
-	if (minHeight <= 0)
-	{
-		minHeight = -1;
-	}
-	else if (height < minHeight)
-	{
-		height = minHeight;
-	}
-
-	if (maxHeight <= 0)
-	{
-		maxHeight = -1;
-	}
-	else if (height > maxHeight)
-	{
-		height = maxHeight;
-	}
+	EnforceMaxMinConstraints(config);
+	EnforceTransparentBackgroundSettings(config);
+	return config;
 }
 
-std::string WindowConfig::ToString()
-{
-	std::ostringstream stream;
-
-	stream << "[WindowConfig id=" << winid
-		<< ", x=" << x << ", y=" << y
-		<< ", width=" << width << ", height=" << height
-		<< ", url=" << url
-		<< "]";
-
-	return stream.str();
-}
+} // namespace ti
