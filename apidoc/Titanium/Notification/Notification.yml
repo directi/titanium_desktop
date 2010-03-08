@@ -1,0 +1,5 @@
+---
+namespace: Titanium.Notification.Notification
+type: object
+description: An object representing a desktop notification.
+since: 0.4.0

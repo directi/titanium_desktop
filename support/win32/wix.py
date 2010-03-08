@@ -273,7 +273,6 @@ def build_msi(template, args, basename, destdir):
 
 def create_installer(builder):
 	app_installer_template = read_template('app_installer_template.wxs')
-	print app_installer_template
 		
 	lang = get_from_tiapp(builder.options.tiapp, 'language', 'en-us')
 	app_language = get_app_language(lang)
@@ -411,6 +410,7 @@ def create_installer(builder):
 	install_msi = build_msi(app_installer_template, app_template_args,
 		builder.appname, builder.options.destination)
 
-	os.unlink(license_rtf)
+	if license_rtf != default_license_rtf:
+		os.unlink(license_rtf)
 
 	return install_msi

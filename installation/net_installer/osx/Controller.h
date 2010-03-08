@@ -54,7 +54,7 @@ SharedApplication app;
 	NSString *temporaryDirectory;
 	NSString *installDirectory;
 	NSString *updateFile;
-	BOOL quiet;
+	BOOL skipIntroDialog;
 }
 
 -(IBAction)cancelProgress:(id)sender;
@@ -67,12 +67,8 @@ SharedApplication app;
 -(void)downloadAndInstall:(Controller*)controller;
 -(void)install:(Job*)job;
 -(void)downloadJob:(Job*)job atIndex:(int)index;
+-(void)setupDialogs;
 -(void)createInstallerMenu:(NSString*)applicationName;
--(void)showIntroDialog: (NSString*)appName
-	path:(NSString*)appPath
-	version:(NSString*)appVersion
-	publisher:(NSString*)appPublisher
-	url:(NSString*)appURL
-	image:(NSString*)appImage;
+-(void)showIntroDialog;
 
 @end

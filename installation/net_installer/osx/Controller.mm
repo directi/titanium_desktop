@@ -93,6 +93,25 @@ static int totalJobs = 0;
 
 @implementation Controller
 
+-(void)dealloc
+{
+	[jobs release];
+	[installDirectory release];
+
+	if (temporaryDirectory)
+	{
+		[[NSFileManager defaultManager] 
+			removeFileAtPath:temporaryDirectory handler:nil];
+		[temporaryDirectory release];
+	}
+
+	if (updateFile)
+		[updateFile release];
+
+	[super dealloc];
+}
+
+
 -(NSProgressIndicator*)progressBar
 {
 	return progressBar;
@@ -117,7 +136,7 @@ static int totalJobs = 0;
 -(void)bailWithMessage:(NSString*)errorString;
 {
 	NSLog(@"Bailing with error: %@", errorString);
-	NSRunCriticalAlertPanel(nil, errorString, @"Cancel", nil, nil);
+	NSRunCriticalAlertPanel(@"Error", errorString, @"Cancel", nil, nil);
 	exit(1);
 }
 
@@ -288,6 +307,7 @@ static int totalJobs = 0;
 
 -(void)downloadAndInstall:(Controller*)controller 
 {
+	printf("downloading jobs: %i\n", [jobs count]);
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
 	// Download only those jobs which actually need to be downloaded
@@ -326,26 +346,14 @@ static int totalJobs = 0;
 	[NSApp terminate:self];
 }
 
-- (BOOL)isVolumeReadOnly
-{  
-  struct statfs statfs_info;
-  statfs([[[NSBundle mainBundle] bundlePath] fileSystemRepresentation], &statfs_info);
-  return (statfs_info.f_flags & MNT_RDONLY);
-}
-
 -(void)finishInstallation
 {
 	// Write the .installed file
-	NSFileManager *fm = [NSFileManager defaultManager];
-	NSString* ifile = [NSString stringWithUTF8String:app->GetDataPath().c_str()];
-	ifile  = [ifile stringByAppendingPathComponent:@".installed"];
-	[fm createFileAtPath:ifile contents:[NSData data] attributes:nil];
-
-	// Remove the update file if it exists
-	if (updateFile != nil)
-	{
-		[fm removeFileAtPath:updateFile handler:nil];
-	}
+	std::string filePath(FileUtils::Join(app->GetDataPath().c_str(), ".installed", 0));
+	[[NSFileManager defaultManager]
+		createFileAtPath:[NSString stringWithUTF8String:filePath.c_str()]
+		contents:[NSData data]
+		attributes:nil];
 }
 
 -(void)downloadJob:(Job*)job atIndex:(int)index
@@ -384,27 +392,6 @@ static int totalJobs = 0;
 		[job setPath:path];
 		[downloader release];
 	}
-}
-
--(void)dealloc
-{
-
-	[jobs release];
-	[installDirectory release];
-
-	if (temporaryDirectory != nil)
-	{
-		NSFileManager *fm = [NSFileManager defaultManager];
-		[fm removeFileAtPath:temporaryDirectory handler:nil];
-		[temporaryDirectory release];
-	}
-
-	if (updateFile != nil)
-	{
-		[updateFile release];
-	}
-
-	[super dealloc];
 }
 
 -(void)createInstallerMenu: (NSString*)applicationName
@@ -525,11 +512,109 @@ static int totalJobs = 0;
 -(void)awakeFromNib
 { 
 	[NSApp setDelegate:self];
+}
 
-	quiet = NO;;
+-(void)setupDialogs
+{
+	NSString* appName = @"Unknown";
+	if (!app->name.empty())
+		appName = [NSString stringWithUTF8String:app->name.c_str()];
+
+	NSString* appVersion = @"Unknown";
+	if (!app->version.empty() && updateFile == nil)
+	{
+		appVersion = [NSString stringWithUTF8String:app->version.c_str()];
+	}
+	else if (!app->version.empty())
+	{
+		appVersion = [NSString stringWithUTF8String:app->version.c_str()];
+		appVersion = [appVersion stringByAppendingString:@" (Update)"];
+	}
+
+	NSString* appPublisher = @"Unknown";
+	if (!app->publisher.empty())
+		appPublisher = [NSString stringWithUTF8String:app->publisher.c_str()];
+
+	NSString* appURL = @"Unknown";
+	if (!app->url.empty())
+		appURL = [NSString stringWithUTF8String:app->url.c_str()];
+
+	[self createInstallerMenu:appName];
+	[progressAppName setStringValue:appName];
+	[introAppName setStringValue:appName];
+	[progressAppVersion setStringValue:appVersion];
+	[introAppVersion setStringValue:appVersion];
+	[progressAppPublisher setStringValue:appPublisher];
+	[introAppPublisher setStringValue:appPublisher];
+	[progressAppURL setStringValue:appURL];
+	[introAppURL setStringValue:appURL];
+
+	[introAppVersion setFont:[NSFont boldSystemFontOfSize:12]];
+	[introAppPublisher setFont:[NSFont boldSystemFontOfSize:12]];
+	[introAppURL setFont:[NSFont boldSystemFontOfSize:12]];
+
+	if (!app->image.empty())
+	{
+		NSImage* img = [[NSImage alloc] initWithContentsOfFile:
+			[NSString stringWithUTF8String:app->image.c_str()]];
+		if ([img isValid])
+		{
+			[progressImage setImage:img];
+			[introImage setImage:img];
+		}
+	}
+}
+
+-(void)showIntroDialog
+{
+	string licensePathString(FileUtils::Join(app->path.c_str(), LICENSE_FILENAME, 0));
+	NSString* licensePath = [NSString stringWithUTF8String:licensePathString.c_str()];
+	NSFileManager* fm = [NSFileManager defaultManager];
+	if ([fm fileExistsAtPath:licensePath])
+	{
+		NSString* licenseText = [NSString
+			stringWithContentsOfFile:licensePath
+			encoding:NSUTF8StringEncoding
+			error:nil];
+		NSAttributedString* licenseAttrText = [[NSAttributedString alloc] initWithString:licenseText];
+		[[introLicenseText textStorage] setAttributedString:licenseAttrText];
+		[introLicenseText setEditable:NO];
+	}
+	else
+	{
+		[introLicenseLabel setHidden:YES];
+		[introLicenseBox setHidden:YES];
+		NSRect frame = [introWindow frame];
+		frame.size.width = 650;
+		frame.size.height = 275;
+		[introWindow setMinSize:frame.size];
+		[introWindow setMaxSize:frame.size];
+		[introWindow setShowsResizeIndicator:NO];
+		[introWindow setFrame:frame display:YES];
+	}
+
+	// Hide the progress Window.
+	[progressWindow orderOut:self];
+	[introWindow center];
+	[introWindow makeKeyAndOrderFront:self];
+}
+
+- (BOOL)canBecomeKeyWindow
+{
+	return YES;
+}
+
+- (BOOL)canBecomeMainWindow
+{
+	return YES;
+}
+
+-(void)applicationDidFinishLaunching:(NSNotification *) notif
+{
+	jobs = [[NSMutableArray alloc] init];
+	skipIntroDialog = NO;;
 	updateFile = nil;
 	NSString *appPath = nil;
-	jobs = [[NSMutableArray alloc] init];
 
 	NSArray* args = [[NSProcessInfo processInfo] arguments];
 	int count = [args count];
@@ -549,7 +634,7 @@ static int totalJobs = 0;
 		}
 		else if ([arg isEqual:@"-quiet"])
 		{
-			quiet = YES;
+			skipIntroDialog = YES;
 		}
 		else
 		{
@@ -557,52 +642,27 @@ static int totalJobs = 0;
 		}
 	}
 
-	if (appPath == nil)
-	{
-		[self bailWithMessage:@"Sorry, but the installer was not given enough information to continue."];
-	}
+	if (!appPath)
+		[self bailWithMessage:@"Sorry, but the installer was not given the application path."];
 
-	if (updateFile == nil)
+	if (!updateFile)
 	{
 		app = Application::NewApplication([appPath UTF8String]);
 	}
 	else
 	{
-		quiet = YES; // An update will happen silently
+		if (!FileUtils::IsFile([updateFile UTF8String]))
+			[self bailWithMessage:@"Could not find specified update file."];
+
+		skipIntroDialog = YES;
 		app = Application::NewApplication([updateFile UTF8String], [appPath UTF8String]);
-		NSString* updateURL = [NSString stringWithUTF8String:app->GetUpdateURL().c_str()];
-		[jobs addObject:[[Job alloc] initUpdate:updateURL]];
-	}
-	NSString *appName, *appVersion, *appPublisher, *appURL, *appImage;
-	appName = appVersion = appPublisher = appURL = @"Unknown";
-	appImage = nil;
+		[jobs addObject:[[Job alloc]
+			initUpdate:[NSString stringWithUTF8String:app->GetUpdateURL().c_str()]]];
 
-	if (!app->name.empty())
-	{
-		appName = [NSString stringWithUTF8String:app->name.c_str()];
-	}
-
-	if (!app->version.empty() && updateFile == nil)
-	{
-		appVersion = [NSString stringWithUTF8String:app->version.c_str()];
-	}
-	else if (!app->version.empty())
-	{
-		appVersion = [NSString stringWithUTF8String:app->version.c_str()];
-		appVersion = [appVersion stringByAppendingString:@" (Update)"];
-	}
-
-	if (!app->publisher.empty())
-	{
-		appPublisher = [NSString stringWithUTF8String:app->publisher.c_str()];
-	}
-	if (!app->url.empty())
-	{
-		appURL = [NSString stringWithUTF8String:app->url.c_str()];
-	}
-	if (!app->image.empty())
-	{
-		appImage = [NSString stringWithUTF8String:app->image.c_str()];
+		// Remove the update file as soon as possible, so that if the installation
+		// fails the application will still start. We can always fetch the update
+		// later.
+		[[NSFileManager defaultManager] removeFileAtPath:updateFile handler:nil];
 	}
 
 	std::string tempDir = FileUtils::GetTempDirectory();
@@ -627,104 +687,16 @@ static int totalJobs = 0;
 		installDirectory = [NSString stringWithUTF8String:userRuntimeHome.c_str()];
 	}
 	[installDirectory retain];
-	
 
-	if (quiet)
+	[self setupDialogs];
+	if (skipIntroDialog)
 	{
 		[self continueIntro:self];
 		return;
 	}
 	else
 	{
-		[self showIntroDialog:appName
-			path:appPath
-			version:appVersion
-			publisher:appPublisher
-			url:appURL
-			image:appImage];
-	}
-
-	[progressWindow makeKeyAndOrderFront:progressWindow];
-	[NSApp activateIgnoringOtherApps:YES];
-	
-}
-
--(void)showIntroDialog: (NSString*)appName
-	path:(NSString*)appPath
-	version:(NSString*)appVersion
-	publisher:(NSString*)appPublisher
-	url:(NSString*)appURL
-	image:(NSString*)appImage
-{
-	[self createInstallerMenu:appName];
-	[progressAppName setStringValue:appName];
-	[introAppName setStringValue:appName];
-	[progressAppVersion setStringValue:appVersion];
-	[introAppVersion setStringValue:appVersion];
-	[progressAppPublisher setStringValue:appPublisher];
-	[introAppPublisher setStringValue:appPublisher];
-	[progressAppURL setStringValue:appURL];
-	[introAppURL setStringValue:appURL];
-
-	[introAppVersion setFont:[NSFont boldSystemFontOfSize:12]];
-	[introAppPublisher setFont:[NSFont boldSystemFontOfSize:12]];
-	[introAppURL setFont:[NSFont boldSystemFontOfSize:12]];
-
-
-	if (appImage != nil)
-	{
-		NSImage* img = [[NSImage alloc] initWithContentsOfFile:appImage];
-		if ([img isValid])
-		{
-			[progressImage setImage:img];
-			[introImage setImage:img];
-		}
-	}
-
-	NSString* licensePath = [appPath stringByAppendingPathComponent: @LICENSE_FILENAME];
-	NSFileManager *fm = [NSFileManager defaultManager];
-	if ([fm fileExistsAtPath:licensePath])
-	{
-		NSString* licenseText = [NSString
-			stringWithContentsOfFile: licensePath
-			encoding:NSUTF8StringEncoding
-			error:nil];
-		NSAttributedString* licenseAttrText = [[NSAttributedString alloc] initWithString:licenseText];
-		[[introLicenseText textStorage] setAttributedString:licenseAttrText];
-		[introLicenseText setEditable:NO];
-	}
-	else
-	{
-		[introLicenseLabel setHidden:YES];
-		[introLicenseBox setHidden:YES];
-		NSRect frame = [introWindow frame];
-		frame.size.width = 650;
-		frame.size.height = 275;
-		[introWindow setMinSize:frame.size];
-		[introWindow setMaxSize:frame.size];
-		[introWindow setShowsResizeIndicator:NO];
-		[introWindow setFrame:frame display:YES];
-	}
-	[NSApp arrangeInFront:introWindow];
-}
-
-- (BOOL)canBecomeKeyWindow
-{
-	return YES;
-}
-
-- (BOOL)canBecomeMainWindow
-{
-	return YES;
-}
-
--(void)applicationDidFinishLaunching:(NSNotification *) notif
-{
-	if (updateFile == nil && quiet == NO)
-	{
-		[introWindow center];
-		[progressWindow orderOut:self];
-		[introWindow makeKeyAndOrderFront:self];
+		[self showIntroDialog];
 	}
 }
 
@@ -743,23 +715,29 @@ static int totalJobs = 0;
 
 -(IBAction)continueIntro:(id)sender;
 {
-	if (quiet == NO)
-	{
+	if (!skipIntroDialog)
 		[introWindow orderOut:self];
-		[progressText setStringValue:@"Connecting to download site..."];
-		[progressBar setUsesThreadedAnimation:NO];
-		[progressBar setIndeterminate:NO];
-		[progressBar setMinValue:0.0];
-		[progressBar setMaxValue:100.0];
-		[progressBar setDoubleValue:0.0];
 
-		[progressWindow center];
-		if ([jobs count] > 0)
-		{
-			[progressWindow orderFront:self];
-		}
+	// Always show the progress view, even if we skip the intro dialog.
+	// Otherwise the user won't know what is going on or be able to cancel
+	// the download.
+	[progressText setStringValue:@"Connecting to download site..."];
+	[progressBar setUsesThreadedAnimation:NO];
+	[progressBar setIndeterminate:NO];
+	[progressBar setMinValue:0.0];
+	[progressBar setMaxValue:100.0];
+	[progressBar setDoubleValue:0.0];
+
+	[progressWindow center];
+	if ([jobs count] > 0)
+	{
+		[progressWindow makeKeyAndOrderFront:progressWindow];
+		[NSApp activateIgnoringOtherApps:YES];
 	}
-	[NSThread detachNewThreadSelector:@selector(downloadAndInstall:) toTarget:self withObject:self];
+
+	[NSThread detachNewThreadSelector:@selector(downloadAndInstall:) 
+		toTarget:self
+		withObject:self];
 }
 
 @end
