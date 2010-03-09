@@ -1,8 +1,8 @@
 ---
-namespace: Titanium.API.fatal
-type: function
+namespace: Titanium.API.FATAL
+type: property
 description: |
-    Log a statement with FATAL severity.
+    A constant representing FATAL logger severity.
     The severity levels in order from least severe to most severe are:
     <ol>
         <li>TRACE</li>
@@ -16,6 +16,4 @@ description: |
     </ol>
 since: 0.4.0
 platforms: ['osx', 'linux', 'win32']
-returns: void
-parameters: 
-    - [String, statement, The String to send to the logger.]
+returns: Number

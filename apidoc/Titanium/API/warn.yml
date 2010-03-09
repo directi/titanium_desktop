@@ -1,9 +1,9 @@
 ---
-namespace: Titanium.API.warn
-type: function
+namespace: Titanium.API.WARN
+type: property
 description: |
-    Log a statement with WARN severity. The severity levels in order from
-    least severe to most severe are:
+    A constant representing WARN logger severity.
+    The severity levels in order from least severe to most severe are:
     <ol>
         <li>TRACE</li>
         <li>DEBUG</li>
@@ -16,6 +16,4 @@ description: |
     </ol>
 since: 0.4.0
 platforms: ['osx', 'linux', 'win32']
-returns: void
-parameters: 
-    - [String, statement, The String to send to the logger.]
+returns: Number

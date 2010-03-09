@@ -1,8 +1,8 @@
 ---
-namespace: Titanium.API.critical
-type: function
+namespace: Titanium.API.CRITICAL
+type: property
 description: |
-    Log a statement with CRITICAL severity.
+    A constant representing CRITICAL logger severity.
     The severity levels in order from least severe to most severe are:
     <ol>
         <li>TRACE</li>
@@ -14,9 +14,6 @@ description: |
         <li>CRITICAL</li>
         <li>FATAL</li>
     </ol>
-
 since: 0.4.0
 platforms: ['osx', 'linux', 'win32']
-returns: void
-parameters: 
-    - [String, statement, The String to send to the logger.]
+returns: Number
