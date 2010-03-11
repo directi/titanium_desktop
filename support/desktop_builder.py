@@ -170,6 +170,12 @@ class DesktopBuilder(object):
 					(os.path.join(self.options.assets_dir, '..', 'ReplaceVistaIcon.exe'),
 					options.executable, icon_path))
 
+			installer = os.path.join(self.contents_dir,'installer')
+			if not os.path.exists(installer):
+				os.makedirs(installer)
+			netinstaller = os.path.join(options.runtime_dir, 'installer', 'installer.exe')
+			shutil.copy(netinstaller, installer)
+
 		# if selected, write in the .installed file
 		if options.no_install:
 			f = open(os.path.join(self.contents_dir,'.installed'),'w')	
