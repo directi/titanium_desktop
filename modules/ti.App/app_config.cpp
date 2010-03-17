@@ -164,6 +164,10 @@ AppConfig::AppConfig(std::string& xmlfile)
 		{
 			ParsePropertyNode(node, systemProperties->GetConfig());
 		}
+		else if (nodeName == "title")
+		  {
+			appTitle = ConfigUtils::GetNodeValue(node);
+		  }
 
 		node = node->next;
 	}

@@ -30,6 +30,10 @@ namespace ti
 		 */
 		this->SetMethod("getName", &AppBinding::GetName);
 
+		// Added by anirban.m
+		// To solve http://pt/browse/PWDESKTOP-599
+		this->SetMethod("getTitle", &AppBinding::GetTitle);		
+
 		/**
 		 * @tiapi(method=True,name=App.getVersion,since=0.2)
 		 * @tiapi Return the application version.
@@ -183,6 +187,12 @@ namespace ti
 	void AppBinding::GetName(const ValueList& args, KValueRef result)
 	{
 		result->SetString(AppConfig::Instance()->GetAppName().c_str());
+	}
+  // Added by anirban.m
+  // To solve http://pt/browse/PWDESKTOP-599
+        void AppBinding::GetTitle(const ValueList& args, KValueRef result)
+	{
+		result->SetString(AppConfig::Instance()->GetAppTitle().c_str());
 	}
 	void AppBinding::GetVersion(const ValueList& args, KValueRef result)
 	{

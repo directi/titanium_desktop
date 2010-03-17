@@ -20,6 +20,7 @@ public:
 	AutoPtr<WindowConfig> GetWindowByURL(const std::string& url);
 	AutoPtr<WindowConfig> GetMainWindow();
 	std::string& GetAppName() { return appName; }
+	std::string& GetAppTitle() { return appTitle; }
 	std::string& GetAppID() { return appID; }
 	std::string& GetDescription() { return description; }
 	std::string& GetCopyright() { return copyright; }
@@ -35,6 +36,7 @@ private:
 	AutoPtr<PropertiesBinding> systemProperties;
 	std::vector<AutoPtr<WindowConfig> > windows;
 	std::string appName;
+	std::string appTitle;
 	std::string appID;
 	std::string description;
 	std::string copyright;
