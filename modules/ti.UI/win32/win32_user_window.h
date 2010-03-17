@@ -55,7 +55,7 @@ namespace ti
 		void SetMinHeight(double height);
 		Bounds GetBoundsImpl();
 		void SetBoundsImpl(Bounds bounds);
-		void SetTitleImpl(std::string& title);
+		void SetTitleImpl(const std::string& title);
 		void SetURL(std::string& url);
 		void SetResizableImpl(bool resizable);
 		void SetMaximizable(bool maximizable);
@@ -144,8 +144,6 @@ namespace ti
 			std::vector<std::string>& types, std::string& typesDescription);
 		KListRef SelectDirectory(bool multiple, std::string& title,
 			std::string& path, std::string& defaultName);
-		static void ParseSelectedFiles(const wchar_t *s,
-			std::vector<std::string> &selectedFiles);
 		Logger* logger;
 	};
 }

@@ -231,6 +231,12 @@ namespace ti
 
 	bool OSXUserWindow::Close()
 	{
+		// Hold a reference here so we can still get the value of
+		// this->timer and this->active even after calling ::Closed
+		// which will remove us from the open window list and decrement
+		// the reference count.
+		AutoUserWindow keep(this, true);
+
 		// Guard against re-closing a window
 		if (!this->active || !this->nativeWindow)
 			return false;
@@ -513,7 +519,7 @@ namespace ti
 		return this->config->GetTitle();
 	}
 
-	void OSXUserWindow::SetTitleImpl(std::string& newTitle)
+	void OSXUserWindow::SetTitleImpl(const std::string& newTitle)
 	{
 		if (nativeWindow != nil)
 		{
