@@ -437,19 +437,20 @@ namespace kroll
 				logFilePath += getCurrentTimeString();
 			}
 
-#ifdef OS_WIN32
-			this->logFile.open(UTF8ToWide(logFilePath).c_str(),
-				 std::ios::out | std::ios::trunc);
-#else
-			this->logFile.open(logFilePath.c_str(),
-				 std::ios::out | std::ios::trunc);
-#endif
+			logFile = new LoggerFile(logFilePath);
+//#ifdef OS_WIN32
+//			this->logFile.open(UTF8ToWide(logFilePath).c_str(),
+//				 std::ios::out | std::ios::trunc);
+//#else
+//			this->logFile.open(logFilePath.c_str(),
+//				 std::ios::out | std::ios::trunc);
+//#endif
 
 			// Couldn't open the file, perhaps there is contention?
-			if (!this->logFile.is_open())
-			{
-				this->fileLogging = false;
-			}
+//			if (!this->logFile.is_open())
+//			{
+//				this->fileLogging = false;
+//			}
 		}
 	}
 
@@ -457,7 +458,8 @@ namespace kroll
 	{
 		if (fileLogging)
 		{
-			this->logFile.close();
+			delete logFile;
+			//this->logFile.close();
 		}
 	}
 
@@ -470,8 +472,9 @@ namespace kroll
 
 		if (fileLogging)
 		{
-			this->logFile << line << std::endl;
-			this->logFile.flush();
+			logFile->log(line + "\n");
+			//this->logFile << line << std::endl;
+			//this->logFile.flush();
 		}
 
 		if (consoleLogging)

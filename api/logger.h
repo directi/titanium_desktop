@@ -11,6 +11,8 @@
 #include <iostream>
 #include <fstream>
 
+#include "LoggerFile.h"
+
 namespace kroll
 {
 	class RootLogger;
@@ -112,9 +114,9 @@ namespace kroll
 		bool fileLogging;
 		Poco::PatternFormatter* formatter;
 		std::string logFilePath;
-		std::ofstream logFile;
 		Poco::Mutex mutex;
 		std::vector<LoggerCallback> callbacks;
+		kroll::LoggerFile * logFile;
 	};
 
 }
