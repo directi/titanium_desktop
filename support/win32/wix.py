@@ -212,7 +212,6 @@ def build_msi(template, args, basename, destdir):
 	tmpfile = open(wxsname, "w+")
 	tmpfile.write(wxs)
 	tmpfile.close()
-	print wxs
 	
 	wix_dir = os.path.join("C:\\", "Program Files", "Windows Installer XML v3", "bin")
 	if not os.path.exists(wix_dir):
