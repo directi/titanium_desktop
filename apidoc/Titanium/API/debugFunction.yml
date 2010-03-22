@@ -1,9 +1,9 @@
 ---
-namespace: Titanium.API.DEBUG
-type: property
+namespace: Titanium.API.debug
+type: function
 description: |
-    A constant representing DEBUG logger severity.
-    The severity levels in order from least severe to most severe are:
+    Log a statement with DEBUG severity. The severity levels in order from
+    least severe to most severe are:
     <ol>
         <li>TRACE</li>
         <li>DEBUG</li>
@@ -16,4 +16,12 @@ description: |
     </ol>
 since: 0.4.0
 platforms: ['osx', 'linux', 'win32']
-returns: Number
+returns: void
+parameters: 
+    - [String, statement, The String to send to the logger.]
+examples:
+    - description: Using API.debug
+      code: |
+            <pre><code>
+                Titanium.API.debug("This is a debug message");
+            </code></pre>
