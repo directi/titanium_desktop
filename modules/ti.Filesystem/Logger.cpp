@@ -39,7 +39,7 @@ namespace ti
 			std::map<std::string, ReferenceCountedLogger *>::iterator oIter = files.find(fileName);
 			if(oIter == files.end())
 			{
-				files[fileName] = new ReferenceCountedLogger(new LoggerFile(fileName));
+				files[fileName] = new ReferenceCountedLogger(new kroll::LoggerFile(fileName));
 			}
 		}
 		files[fileName]->addRef();
