@@ -19,7 +19,7 @@
 
 namespace kroll
 {
-	class LoggerFile
+	class KROLL_API LoggerFile
 		: public Poco::Runnable
 	{
 		public:
