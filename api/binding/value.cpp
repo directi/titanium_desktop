@@ -7,13 +7,14 @@
 #include "../kroll.h"
 #include <sstream>
 #include <cstring>
+#include <sstream>
 
 namespace kroll
 {
 
 	void Value::reset()
 	{
-		if (this->IsString() && this->stringValue)
+		if (this->stringValue)
 		{
 			free(this->stringValue);
 			this->stringValue = 0;
@@ -22,11 +23,13 @@ namespace kroll
 		this->objectValue = 0;
 		this->stringValue = 0;
 		this->numberValue = 0;
+		this->boolValue = false;
 	}
 
 	Value::Value() :
 		type(UNDEFINED),
 		numberValue(0),
+		boolValue(false),
 		stringValue(0),
 		objectValue(0)
 	{
@@ -35,14 +38,17 @@ namespace kroll
 	Value::Value(KValueRef value) :
 		type(UNDEFINED),
 		numberValue(0),
+		boolValue(false),
 		stringValue(0),
 		objectValue(0)
 	{
 		this->SetValue(value);
 	}
 
-	Value::Value(const Value& value) : type(UNDEFINED),
+	Value::Value(const Value& value) :
+		type(UNDEFINED),
 		numberValue(0),
+		boolValue(false),
 		stringValue(0),
 		objectValue(0)
 	{
@@ -195,6 +201,11 @@ namespace kroll
 	{
 		reset();
 		this->numberValue = value;
+		// Updating corresponding values for string and bool
+		this->boolValue = this->numberValue;
+		std::stringstream str;
+		str << this->numberValue;
+		this->stringValue = strdup(str.str().c_str());
 		type = INT;
 	}
 
@@ -202,6 +213,11 @@ namespace kroll
 	{
 		reset();
 		this->numberValue = value;
+		this->boolValue = this->numberValue;
+		std::stringstream str;
+		str << this->numberValue;
+		this->stringValue = strdup(str.str().c_str());
+
 		type = DOUBLE;
 	}
 
@@ -209,6 +225,9 @@ namespace kroll
 	{
 		reset();
 		this->boolValue = value;
+		string str = (this->boolValue)? "true":"false";
+		this->stringValue = strdup(str.c_str());
+		this->numberValue = (this->boolValue)? 1:0;
 		type = BOOL;
 	}
 
@@ -216,6 +235,8 @@ namespace kroll
 	{
 		reset();
 		this->stringValue = strdup(value);
+		this->numberValue = atoi(this->stringValue);
+		this->boolValue = (this->boolValue)? true:false;
 		type = STRING;
 	}
 
