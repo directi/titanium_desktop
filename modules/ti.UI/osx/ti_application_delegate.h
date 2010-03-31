@@ -16,6 +16,9 @@
 	openFile:(NSString*)filename;
 -(BOOL)application:(NSApplication*)theApplication
 	openFiles:(NSArray*)filenames;
+- (BOOL)applicationShouldHandleReopen:(NSApplication *)theApplication
+	hasVisibleWindows:(BOOL)flag;
+
 @end
 
 #endif
