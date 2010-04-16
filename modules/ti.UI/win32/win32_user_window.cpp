@@ -139,7 +139,6 @@ static LRESULT CALLBACK UserWindowWndProc(HWND hWnd, UINT message, WPARAM wParam
 
 		case WM_SETFOCUS:
 			// The focus event will be fired by the UIDelegate
-			Logger::Get("UI.Win32UserWindow")->Debug("WM_SETFOCUS received");
 			window->Focus(); // Focus the WebView and not the main window.
 			handled = 1;
 			break;
