@@ -93,7 +93,7 @@ class BuildConfig(object):
 	def set_kroll_source_dir(self, dir):
 		self.kroll_source_dir = path.abspath(dir)
 		self.kroll_include_dir = path.join(self.dir, 'sdk', 'include')
-		self.kroll_utils_dir = path.join(self.kroll_source_dir, 'api', 'utils');
+		self.kroll_utils_dir = path.join(self.kroll_source_dir, 'libkroll', 'utils');
 
 	# Get a separate copy of the Kroll Utils for a particular build piece
 	# Give: A unique directory for that build piece where the utils should be copied
@@ -135,7 +135,7 @@ class BuildConfig(object):
 
 			self.env['CC'] = ['gcc', '-arch', 'i386', '-arch', 'ppc']
 			self.env['CXX'] = ['gcc', '-arch', 'i386', '-arch', 'ppc']
-			self.env.Append(FRAMEWORKS=['Foundation'])
+			self.env.Append(FRAMEWORKS=['Foundation', 'IOKit'])
 			self.env.Append(CXXFLAGS=['-isysroot', sdk_dir, sdk_minversion, '-x', 'objective-c++'])
 			self.env.Append(LINKFLAGS=['-isysroot', sdk_dir, '-syslibroot,' + sdk_dir, '-lstdc++', sdk_minversion])
 			self.env.Append(CPPFLAGS=[
@@ -154,26 +154,6 @@ class BuildConfig(object):
 			if module.name == name:
 				return module
 		return None
-
-	def generate_manifest(self, name, id, guid, exclude=None, include=None, image=None, publisher=None, url=None, version=None, sdk=False):
-		manifest = "#appname: %s\n" % name
-		manifest += "#appid: %s\n" % id
-		manifest += "#guid: %s\n" % guid
-
-		if version: manifest += "#version: %s\n" % version
-		if image: manifest += "#image: %s\n" % image
-		if publisher: manifest += "#publisher: %s\n" % publisher
-		if url: manifest += "#url: %s\n" % url
-		if sdk: manifest += "sdk: %s\n" % self.version
-
-		manifest += "runtime: %s\n" % self.version
-		for m in self.modules:
-			if (include and not (m.name in include)) \
-			  or (exclude and (m.name in exclude)):
-				continue
-			else:
-				manifest += "%s:%s\n" % (m.name, m.version)
-		return manifest
 
 	def add_thirdparty(self, env, name):
 		cpppath = libpath = libs = None
