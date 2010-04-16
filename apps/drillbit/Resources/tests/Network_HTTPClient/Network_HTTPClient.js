@@ -275,6 +275,41 @@ describe("Network.HTTPClient",
 		this.client.send(this.text);
 	},
 
+	test_post_paramters_as_async: function(callback)
+	{
+		var timer = 0;
+		var reply = this.reply;
+
+		this.client.addEventListener(Titanium.HTTP_DONE, function(e)
+		{
+			try
+			{
+				value_of(this.status).should_be(200);
+				value_of(this.responseText).should_be(reply);
+				clearTimeout(timer);
+				callback.passed();
+			}
+			catch(e)
+			{
+				clearTimeout(timer);
+				callback.failed(e);
+			}
+		});
+
+		timer = setTimeout(function()
+		{
+			callback.failed('POST test timed out');
+		},10000);
+
+		this.client.open("POST", this.url + "recvpostparams");
+		this.client.send({
+			'one': 'flippityflop',
+			'two': 'bloopityblop',
+			'three': ''
+		})
+	},
+
+
 	test_redirect_as_async: function(callback)
 	{
 		var timer = 0;
@@ -447,6 +482,23 @@ describe("Network.HTTPClient",
 		this.client.send();
 	},
 
+	test_onload_as_async: function(callback)
+	{
+		// Test onload handler when an onreadystatechange handler is not installed
+		// See bug #335
+		this.client.onload = function()
+		{
+			callback.passed()
+		}
+
+		this.client.open("GET", this.url, false);
+		this.client.send();
+		timer = setTimeout(function()
+		{
+			callback.failed('Test timed out');
+		}, 10000);
+	},
+
 	test_request_headers: function()
 	{
 		this.client.setRequestHeader("Foo", "Bar");
@@ -496,4 +548,45 @@ describe("Network.HTTPClient",
 		//value_of(sawFoo).should_be_true();
 		//value_of(sawHead).should_be_true();
 	},
+	test_http_continue_as_async: function(callback)
+	{
+		// Test onload handler when an onreadystatechange handler is not installed
+		// See bug #335
+		this.client.onload = function()
+		{
+			if (this.status != 200)
+				callback.failed("status should be 200, but was: " + this.status);
+
+			callback.passed()
+		}
+
+		this.client.open("GET", this.url + "continue", false);
+		this.client.send();
+		timer = setTimeout(function()
+		{
+			callback.failed('Test timed out');
+		}, 10000);
+	},
+	test_default_user_agent_as_async: function(callback)
+	{
+		// google.fr will not send utf8 data unless we give it a reasonable
+		// user agent (event accept-charset has no affect), so just make sure
+		// that the output properly converted to UTF8. Bug #353.
+		this.client.onload = function()
+		{
+			if (this.responseText.length < 10) {
+				callback.failed("responseText wasn't large enough");
+			} else {
+				callback.passed()
+			}
+		}
+
+		this.client.open("GET", "http://www.google.fr");
+		this.client.send();
+		timer = setTimeout(function()
+		{
+			callback.failed('Test timed out');
+		}, 10000);
+	},
+
 });

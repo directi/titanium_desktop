@@ -12,6 +12,8 @@ namespace ti
 	{
 	public:
 		GtkUserWindow(AutoPtr<WindowConfig>, AutoUserWindow&);
+		inline WebKitWebView* GetWebView() { return this->webView; }
+
 		virtual ~GtkUserWindow();
 		void CreateWidgets();
 		void ShowWidgets();
@@ -78,7 +80,7 @@ namespace ti
 		Bounds GetBoundsImpl();
 		void SetBoundsImpl(Bounds bounds);
 		std::string GetTitle();
-		void SetTitleImpl(std::string& title);
+		void SetTitleImpl(const std::string& title);
 		std::string GetURL();
 		void SetURL(std::string& url);
 		bool IsResizable();
@@ -104,7 +106,7 @@ namespace ti
 		void SetInspectorWindow(GtkWidget* inspectorWindow);
 		GtkWidget *GetInspectorWindow();
 		virtual void ShowInspector(bool console);
-		inline WebKitWebView* GetWebView() { return this->webView; }
+		void SetContentsImpl(const std::string&, const std::string&);
 
 		// These values contain the most-recently-set dimension
 		// information for this UserWindow. GDK is asynchronous,

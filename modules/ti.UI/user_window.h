@@ -132,6 +132,8 @@ namespace ti
 			void _SetTopMost(const kroll::ValueList&, kroll::KValueRef);
 			virtual void _ShowInspector(const ValueList& args, KValueRef result);
 			void _Flash(const kroll::ValueList&, kroll::KValueRef);
+			void _SetContents(const ValueList& args, KValueRef result);
+			void SetContents(const std::string& content, const std::string& baseURL);
 			virtual void OpenFileChooserDialog(KMethodRef callback, bool multiple,
 				std::string& title, std::string& path, std::string& defaultName,
 				std::vector<std::string>& types, std::string& typesDescription) = 0;
@@ -141,7 +143,7 @@ namespace ti
 			virtual void OpenSaveAsDialog(KMethodRef callback, std::string& title,
 				std::string& path, std::string& defaultName,
 				std::vector<std::string>& types, std::string& typesDescription) = 0;
-	
+
 			virtual void Hide() = 0;
 			virtual void Show() = 0;
 			virtual void Minimize() = 0;
@@ -179,8 +181,8 @@ namespace ti
 			void SetBounds(Bounds bounds);
 			virtual void SetBoundsImpl(Bounds bounds) = 0;
 			virtual std::string GetTitle() = 0;
-			virtual void SetTitle(std::string& title);
-			virtual void SetTitleImpl(std::string& title) = 0;
+			virtual void SetTitle(const std::string& title);
+			virtual void SetTitleImpl(const std::string& title) = 0;
 			virtual std::string GetURL() = 0;
 			virtual void SetURL(std::string &url) = 0;
 			virtual bool IsResizable() = 0;
@@ -209,6 +211,7 @@ namespace ti
 			virtual void Flash(int timesToFlash) = 0;
 			virtual void AppIconChanged() {};
 			virtual void AppMenuChanged() {};
+			virtual void SetContentsImpl(const std::string& content,  const std::string& baseURL) = 0;
 
 		protected:
 			Logger* logger;

@@ -2,6 +2,7 @@ import BaseHTTPServer
 from Cookie import SimpleCookie
 import base64
 import time
+import cgi
 
 reply = "I got it!"
 error = "bad data!"
@@ -72,6 +73,16 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 		self.send_header('Head', 'Tail')
 		self.end_headers()
 
+	def send_continue_headers(self):
+		print 'Sending headers...'
+		# Work-around for http://bugs.python.org/issue1491
+		# Just send the raw header directly.
+		self.wfile.write("HTTP/1.1 100 Continue\r\n\r\n")
+		self.send_response(200)
+		self.send_header('Foo', 'Bar')
+		self.send_header('Head', 'Tail')
+		self.end_headers()
+
 	# Verify basic auth credentials
 	def basic_auth(self):
 		print "Basic auth..."
@@ -102,6 +113,26 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 		else:
 			self.error('Invalid data: \'%s\'' % data)
 
+	def recv_post_parameters(self):
+		print 'Receiving post data...'
+		if self.command != 'POST':
+			self.error('Not a POST request')
+		if self.headers.has_key('content-length') is False:
+			self.error('Missing content length')
+		length = int( self.headers['content-length'] )
+
+		ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
+		query = cgi.parse_multipart(self.rfile, pdict)
+
+		if query.get('one')[0] != 'flippityflop':
+			self.error('Invalid data for "one": \'%s\'' % query.get['one'])
+		elif query.get('two')[0] != 'bloopityblop':
+			self.error('Invalid data for "two": \'%s\'' % query.get['two'])
+		elif query.get('three')[0] != '':
+			self.error('Invalid data for "three": \'%s\'' % query.get['three'])
+
+		self.send_text('I got it!');
+
 	def recv_file(self):
 		correct_text = """Just some test text that will be sent
 to the http server to verify file sending works
@@ -131,9 +162,11 @@ with the http client.
 		'/recvcookie': recv_cookie,
 		'/basicauth': basic_auth,
 		'/recvpostdata': recv_post_data,
+		'/recvpostparams': recv_post_parameters,
 		'/recvfile': recv_file,
 		'/requestheaders': recv_headers,
 		'/responseheaders': send_headers,
+		'/continue': send_continue_headers,
 	}
 
 if __name__ == '__main__':

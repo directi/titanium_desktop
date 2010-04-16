@@ -20,7 +20,7 @@
 	NSString* appId = [NSString stringWithUTF8String:
 		Host::GetInstance()->GetApplication()->id.c_str()];
 	[[window webView] setPreferencesIdentifier:appId];
-	WebPreferences *webPrefs = [[WebPreferences alloc] initWithIdentifier:appId];
+	WebPreferences* webPrefs = [[WebPreferences alloc] initWithIdentifier:appId];
 
 	// This indicates that WebViews in this app will not browse multiple pages,
 	// but rather show a small number. This reduces memory cache footprint
@@ -28,28 +28,26 @@
 	[webPrefs setCacheModel:WebCacheModelDocumentBrowser];
 
 	[webPrefs setDeveloperExtrasEnabled:host->DebugModeEnabled()];
-	[webPrefs setPlugInsEnabled:YES]; 
+	[webPrefs setPlugInsEnabled:YES];
 	[webPrefs setJavaEnabled:YES];
 	[webPrefs setJavaScriptEnabled:YES];
 	[webPrefs setJavaScriptCanOpenWindowsAutomatically:YES];
-
-	if ([webPrefs respondsToSelector:@selector(setDatabasesEnabled:)])
-	{
-		[webPrefs setDatabasesEnabled:YES];
-	}
-	if ([webPrefs respondsToSelector:@selector(setLocalStorageEnabled:)])
-	{
-		[webPrefs setLocalStorageEnabled:YES];
-	}
+	[webPrefs setAllowUniversalAccessFromFileURLs:YES];
+	[webPrefs setDatabasesEnabled:YES];
+	[webPrefs setLocalStorageEnabled:YES];
 	[webPrefs setDOMPasteAllowed:YES];
 	[webPrefs setUserStyleSheetEnabled:NO];
+	[webPrefs setShouldPrintBackgrounds:YES];
 
 	// Setup the DB to store it's DB under our data directory for the app
-	NSString *datadir = [NSString stringWithUTF8String:
+	NSString* datadir = [NSString stringWithUTF8String:
 		Host::GetInstance()->GetApplication()->GetDataPath().c_str()];
-	[webPrefs _setLocalStorageDatabasePath:datadir];
+	[webPrefs _setLocalStorageDatabasePath:[NSString stringWithUTF8String:
+		Host::GetInstance()->GetApplication()->GetDataPath().c_str()]];
+	[[window webView] setPreferences:webPrefs];
+	[webPrefs release];
 
-	NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];
+	NSUserDefaults* standardUserDefaults = [NSUserDefaults standardUserDefaults];
 	[standardUserDefaults
 		setObject:[NSNumber numberWithInt:1]
 		forKey:WebKitEnableFullDocumentTeardownPreferenceKey];
@@ -58,8 +56,6 @@
 		forKey:@"WebDatabaseDirectory"];
 	[standardUserDefaults synchronize];
 
-	[[window webView] setPreferences:webPrefs];
-	[webPrefs release];
 
 }
 
@@ -111,19 +107,6 @@
 -(void)show
 {
 	[window makeKeyAndOrderFront:nil];
-}
-
--(DOMElement*)findAnchor:(DOMNode*)node
-{
-	while (node)
-	{
-		if ([node nodeType] == 1 && [[node nodeName] isEqualToString:@"A"])
-		{
-			return (DOMElement*)node;
-		}
-		node = [node parentNode];
-	}
-	return nil;
 }
 
 #pragma mark -
@@ -222,8 +205,11 @@
 
 - (void)webView:(WebView *)sender didReceiveTitle:(NSString *)title forFrame:(WebFrame *)frame
 {
-	std::string newTitle = [title UTF8String];
-	[window userWindow]->SetTitle(newTitle);
+	// Only set the title when the main frame title changes.
+	if ([frame parentFrame])
+		return;
+
+	[window userWindow]->SetTitle([title UTF8String]);
 }
 
 - (void)webView:(WebView *)sender didFinishLoadForFrame:(WebFrame *)frame
@@ -264,9 +250,15 @@
 	// register this context or fire the page loaded message.
 	[self deregisterGlobalObjectForFrame:frame];
 
-	NSString* urlString = [[[[frame dataSource] request] URL] absoluteString];
-	logger->Error("didFailProvisionalLoadWithError (%s): %s",
-		[urlString UTF8String], [[error localizedDescription] UTF8String]);
+	// Don't report NSURLErrorCancelled errors, because these often happen even
+	// in situations where there is no real error.
+	// See: http://discussions.apple.com/thread.jspa?threadID=1727260
+	if (error.code != NSURLErrorCancelled)
+	{
+		NSString* urlString = [[[[frame dataSource] request] URL] absoluteString];
+		logger->Error("didFailProvisionalLoadWithError (%s): %s",
+			[urlString UTF8String], [[error localizedDescription] UTF8String]);
+	}
 
 	// in this case we need to ensure that the window is showing if not initially shown
 	if (!initialDisplay)
@@ -333,8 +325,9 @@
 	}
 
 	AutoPtr<OSXUserWindow> newOSXWindow(UserWindow::CreateWindow(
-		config, AutoUserWindow([window userWindow], true)));
+		config, AutoUserWindow([window userWindow], true)).cast<OSXUserWindow>());
 	newOSXWindow->Open();
+
 	return [newOSXWindow->GetNative() webView];
 }
 
@@ -404,6 +397,25 @@
 {
 	return NO;
 }
+
+- (void)webView:(WebView *)sender printFrameView:(WebFrameView *)frameView
+{
+	// First see if the frame view can handle the printing operation iself. See:
+	// http://devworld.apple.com/mac/library/documentation/Cocoa/Reference/WebKit/Protocols/WebUIDelegate_Protocol/Reference/Reference.html#//apple_ref/occ/instm/NSObject/webView:printFrameView:
+	if ([frameView documentViewShouldHandlePrint])
+	{
+		[frameView printDocumentView];
+	}
+	else
+	 {
+		NSPrintOperation* printOperation = [frameView 
+			printOperationWithPrintInfo:[NSPrintInfo sharedPrintInfo]];
+		[printOperation setCanSpawnSeparateThread:YES];
+		[printOperation runOperationModalForWindow:window
+			delegate:nil didRunSelector:0 contextInfo:0];
+	}
+}
+
 
 // WebResourceLoadDelegate Methods
 #pragma mark -

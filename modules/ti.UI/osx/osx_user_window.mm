@@ -188,7 +188,7 @@ namespace ti
 
 	void OSXUserWindow::Maximize()
 	{
-		if (nativeWindow)
+		if (nativeWindow && ![nativeWindow isZoomed])
 		{
 			[nativeWindow zoom:nativeWindow];
 		}
@@ -231,6 +231,12 @@ namespace ti
 
 	bool OSXUserWindow::Close()
 	{
+		// Hold a reference here so we can still get the value of
+		// this->timer and this->active even after calling ::Closed
+		// which will remove us from the open window list and decrement
+		// the reference count.
+		AutoUserWindow keep(this, true);
+
 		// Guard against re-closing a window
 		if (!this->active || !this->nativeWindow)
 			return false;
@@ -513,7 +519,7 @@ namespace ti
 		return this->config->GetTitle();
 	}
 
-	void OSXUserWindow::SetTitleImpl(std::string& newTitle)
+	void OSXUserWindow::SetTitleImpl(const std::string& newTitle)
 	{
 		if (nativeWindow != nil)
 		{
@@ -525,10 +531,11 @@ namespace ti
 	{
 		if (nativeWindow) {
 			NSString* url = [[nativeWindow webView] mainFrameURL];
-			return [url UTF8String];
-		} else {
-			return this->config->GetURL();
+			if (url) {
+				return [url UTF8String];
+			}
 		}
+		return this->config->GetURL();
 	}
 
 	void OSXUserWindow::SetURL(std::string& url)
@@ -548,19 +555,18 @@ namespace ti
 
 	void OSXUserWindow::SetResizableImpl(bool resizable)
 	{
-		if (nativeWindow != nil)
+		if (!nativeWindow)
+			return;
+
+		[nativeWindow setShowsResizeIndicator:resizable];
+		if (resizable)
 		{
-			[nativeWindow setShowsResizeIndicator:resizable];
-			if (resizable)
-			{
-				[nativeWindow setContentMinSize: NSMakeSize(config->GetMinWidth(), config->GetMinHeight())];
-				[nativeWindow setContentMaxSize: NSMakeSize(config->GetMaxWidth(), config->GetMaxHeight())];
-			}
-			else
-			{
-				[nativeWindow setMinSize: [nativeWindow frame].size];
-				[nativeWindow setMaxSize: [nativeWindow frame].size];
-			}
+			this->ReconfigureWindowConstraints();
+		}
+		else
+		{
+			[nativeWindow setMinSize: [nativeWindow frame].size];
+			[nativeWindow setMaxSize: [nativeWindow frame].size];
 		}
 	}
 
@@ -699,15 +705,9 @@ namespace ti
 		}
 	}
 
-	void OSXUserWindow::OpenChooserDialog(
-		bool files,
-		KMethodRef callback,
-		bool multiple,
-		std::string& title,
-		std::string& path,
-		std::string& defaultName,
-		std::vector<std::string>& types,
-		std::string& typesDescription)
+	void OSXUserWindow::OpenChooserDialog(bool files, KMethodRef callback,
+		bool multiple, std::string& title, std::string& path, std::string& defaultName,
+		std::vector<std::string>& types, std::string& typesDescription)
 	{
 		KListRef results = new StaticBoundList();
 		NSOpenPanel* openDlg = [NSOpenPanel openPanel];
@@ -769,12 +769,8 @@ namespace ti
 			title, path, defaultName, types, typesDescription);
 	}
 
-	void OSXUserWindow::OpenFolderChooserDialog(
-		KMethodRef callback,
-		bool multiple,
-		std::string& title,
-		std::string& path,
-		std::string& defaultName)
+	void OSXUserWindow::OpenFolderChooserDialog(KMethodRef callback, bool multiple,
+		std::string& title, std::string& path, std::string& defaultName)
 	{
 		std::vector<std::string> types;
 		std::string typesDescription;
@@ -783,12 +779,8 @@ namespace ti
 			title, path, defaultName, types, typesDescription);
 	}
 
-	void OSXUserWindow::OpenSaveAsDialog(
-		KMethodRef callback,
-		std::string& title,
-		std::string& path,
-		std::string& defaultName,
-		std::vector<std::string>& types,
+	void OSXUserWindow::OpenSaveAsDialog(KMethodRef callback, std::string& title,
+		std::string& path, std::string& defaultName, std::vector<std::string>& types,
 		std::string& typesDescription)
 	{
 		int runResult;
@@ -830,5 +822,12 @@ namespace ti
 	{
 		[nativeWindow showInspector:console];
 	}
+
+	void OSXUserWindow::SetContentsImpl(const std::string& content, const std::string& baseURL)
+	{
+		[[[nativeWindow webView] mainFrame]
+			loadHTMLString: [NSString stringWithUTF8String:content.c_str()]
+			baseURL: [NSURL URLWithString:
+				[NSString stringWithUTF8String:baseURL.c_str()]]];
+	}
 }
-    

@@ -30,6 +30,7 @@ namespace ti
 		void GotHeader(std::string& header);
 		void DataReceived(char* buffer, size_t numberOfBytes);
 		inline bool IsAborted() { return aborted; }
+		void RequestDataSent(size_t sent, size_t total);
 
 	private:
 		Host* host;
@@ -56,8 +57,7 @@ namespace ti
 
 		// This variables must be reset on each send()
 		SharedPtr<Poco::Thread> thread;
-		SharedPtr<std::ifstream> requestStream;
-		BlobRef requestBlob;
+		BytesRef requestBytes;
 		SharedPtr<std::ostringstream> responseStream;
 		int requestContentLength;
 		bool aborted;
@@ -65,11 +65,15 @@ namespace ti
 		size_t requestDataSent;
 		size_t responseDataReceived;;
 		bool sawHTTPStatus;
-		std::vector<BlobRef> responseData;
+		std::vector<BytesRef> responseData;
+		std::vector<BytesRef> preservedPostData;
+		struct curl_httppost* postData;
+		KValueRef sendData;
 
 		void run(); // Poco Thread implementation.
 		bool BeginRequest(KValueRef sendData);
-		void BeginWithFileLikeObject(KObjectRef dataObject);
+		void BeginWithPostDataObject(KObjectRef object);
+		void SetRequestData();
 		void ChangeState(int readyState);
 		void GetResponseCookie(std::string cookieLine);
 		struct curl_slist* SetRequestHeaders(CURL* handle);

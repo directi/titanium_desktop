@@ -3,14 +3,14 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
+#include "app_config.h"
+#include "window_config.h"
+#include "config_utils.h"
 
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <libxml/xpath.h>
-
-#include "app_config.h"
-#include "window_config.h"
-#include "config_utils.h"
+#include <sstream>
 
 static size_t windowCount = 0;
 
@@ -136,6 +136,8 @@ AutoPtr<WindowConfig> WindowConfig::FromProperties(KObjectRef properties)
 	c->SetURL(properties->GetString("url", c->GetURL()));
 	c->SetURLRegex(properties->GetString("urlRegex", c->GetURLRegex()));
 	c->SetTitle(properties->GetString("title", c->GetTitle()));
+	c->SetTitle(properties->GetString("contents", c->GetContents()));
+	c->SetURLRegex(properties->GetString("baseURL", c->GetBaseURL()));
 	c->SetX(properties->GetInt("x", c->GetX()));
 	c->SetY(properties->GetInt("y", c->GetY()));
 	c->SetWidth(properties->GetInt("width", c->GetWidth()));
@@ -160,7 +162,7 @@ AutoPtr<WindowConfig> WindowConfig::FromProperties(KObjectRef properties)
 	c->SetTransparency(properties->GetDouble("transparency", c->GetTransparency()));
 
 #ifdef OS_OSX
-	c->SetTexturedBackground(properties->GetDouble("texturedBackground", c->GetTexturedBackground()));
+	c->SetTexturedBackground(properties->GetDouble("texturedBackground", c->HasTexturedBackground()));
 #endif
 
 	EnforceMaxMinConstraints(c);
@@ -341,7 +343,7 @@ AutoPtr<WindowConfig> WindowConfig::FromXMLNode(xmlNodePtr element)
 			config->SetTopMost(ConfigUtils::GetNodeValueAsBool(child));
 		}
 #ifdef OS_OSX
-		else if (nodeName == "texturedBackground")
+		else if (nodeName == "texturedBackground" || nodeName == "textured-background")
 		{
 			config->SetTexturedBackground(ConfigUtils::GetNodeValueAsBool(child));
 		}

@@ -1,9 +1,15 @@
 .sconsign.dblite
 *.swp
 *.swo
-/vc80.pdb
-/vc80.idb
 *.pyc
+*.pbxuser
+*.model1v3
+apidoc/docout
+build/osx
+build/linux
+build/win32
+vc80.pdb
+vc80.idb
 /installation/self_extractor/progress.res
 commit.id
 prev_commit.id

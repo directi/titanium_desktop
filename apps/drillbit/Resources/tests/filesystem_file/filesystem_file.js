@@ -344,5 +344,22 @@ describe("Ti.Filesystem File tests",
 		value_of(f.spaceAvailable()).should_be_number();
 		value_of(f.spaceAvailable()).should_not_be(0);
 	},
+	test_read_large_file: function()
+	{
+		var data = make_large_file();
+		var file = Titanium.Filesystem.getFile(data[0]);
+		var contents = file.read();
+		file.deleteFile();
+		value_of(contents.length).should_be(data[1].length);
+		value_of(String(contents)).should_be(data[1]);
+	},
+	test_file_url_three_slashes: function()
+	{
+		// File URLs on all platforms needs to begin with three slashes
+		// (effectively an empty host name)
+		var file = Titanium.Filesystem.getFile(
+			Titanium.API.application.dataPath, "a_file.txt");
+		value_of(file.toURL().indexOf("file:///")).should_be(0);
+	},
 });
 

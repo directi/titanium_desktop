@@ -13,7 +13,7 @@ namespace ti
 		KAccessorObject("UI.Clipboard")
 	{
 		/**
-		 * @tiapi(method=True,name=UI.Clipboard.setText,since=0.7)
+		 * @tiapi(method=True,name=UI.Clipboard.setData,since=0.7)
 		 * @tiapi Set the data on the clipboard given a mime-type and the new data.
 		 * @tiapi This method will set data on the appropriate portion of the clipboard
 		 * @tiapi for the given mime-type.
@@ -23,7 +23,7 @@ namespace ti
 		this->SetMethod("setData", &Clipboard::_SetData);
 
 		/**
-		 * @tiapi(method=True,name=UI.Clipboard.getText,since=0.7)
+		 * @tiapi(method=True,name=UI.Clipboard.getData,since=0.7)
 		 * @tiapi Get the data on the clipboard from the portion which contains
 		 * @tiapi data of the given mime-type.
 		 * @tiarg[String, type] The mime-type of the data to get.
@@ -65,7 +65,7 @@ namespace ti
 		this->SetMethod("getText", &Clipboard::_GetText);
 
 		/**
-		 * @tiapi(method=True,name=UI.Clipboard.clearData,since=0.7)
+		 * @tiapi(method=True,name=UI.Clipboard.clearText,since=0.7)
 		 * @tiapi Clear the text portion of the clipboard.
 		 */
 		this->SetMethod("clearText", &Clipboard::_ClearText);
@@ -102,23 +102,23 @@ namespace ti
 		}
 	}
 
-	static BlobRef ValueToBlob(KValueRef value)
+	static BytesRef ValueToBytes(KValueRef value)
 	{
 		if (value->IsObject())
 		{
-			BlobRef blob = value->ToObject().cast<Blob>();
-			if (blob.isNull())
-				blob = new Blob("", 0);
-			return blob;
+			BytesRef bytes = value->ToObject().cast<Bytes>();
+			if (bytes.isNull())
+				bytes = new Bytes("", 0);
+			return bytes;
 		}
 		else if (value->IsString())
 		{
 			const char* data = value->ToString();
-			return new Blob(data, strlen(data));
+			return new Bytes(data, strlen(data));
 		}
 		else
 		{
-			throw ValueException::FromString("Need a Blob or a String");
+			throw ValueException::FromString("Need a Bytes or a String");
 		}
 	}
 
@@ -202,8 +202,8 @@ namespace ti
 		}
 		else if (type == IMAGE)
 		{
-			BlobRef imageBlob(ValueToBlob(args.at(1)));
-			this->SetImage(mimeType, imageBlob);
+			BytesRef imageBytes(ValueToBytes(args.at(1)));
+			this->SetImage(mimeType, imageBytes);
 		}
 		else
 		{
@@ -327,12 +327,12 @@ namespace ti
 		return this->HasTextImpl();
 	}
 
-	BlobRef Clipboard::GetImage(std::string& mimeType)
+	BytesRef Clipboard::GetImage(std::string& mimeType)
 	{
 		return this->GetImageImpl(mimeType);
 	}
 
-	void Clipboard::SetImage(std::string& mimeType, BlobRef newImage)
+	void Clipboard::SetImage(std::string& mimeType, BytesRef newImage)
 	{
 		this->SetImageImpl(mimeType, newImage);
 	}

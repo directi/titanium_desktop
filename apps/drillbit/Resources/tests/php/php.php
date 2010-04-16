@@ -182,3 +182,13 @@ function php_test_mysql()
 	mysql_close($link);
 	return true;
 }
+
+function php_test_curl()
+{
+	return function_exists('curl_init');
+}
+
+function php_test_array_getArrayCopy($array)
+{
+	return $array->getArrayCopy();
+}

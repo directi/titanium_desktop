@@ -63,7 +63,7 @@ namespace ti
 			Bounds GetBoundsImpl();
 			void SetBoundsImpl(Bounds bounds);
 			std::string GetTitle();
-			void SetTitleImpl(std::string& title);
+			void SetTitleImpl(const std::string& title);
 			std::string GetURL();
 			void SetURL(std::string& url);
 			bool IsResizable();
@@ -94,6 +94,7 @@ namespace ti
 			void Focused();
 			void Unfocused();
 			virtual void ShowInspector(bool console=false);
+			void SetContentsImpl(const std::string&, const std::string&);
 
 		private:
 			NativeWindow* nativeWindow;

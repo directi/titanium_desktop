@@ -1,23 +1,14 @@
 /**
  * Appcelerator Titanium - licensed under the Apache Public License 2
  * see LICENSE in the root folder for details on the license.
- * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2010 Appcelerator, Inc. All Rights Reserved.
  */
 
 #include "../network_module.h"
 #include "http_client_binding.h"
 #include <kroll/thread_manager.h>
+#include "../common.h"
 #include <sstream>
-
-#define SET_CURL_OPTION(handle, option, value) \
-	{\
-		CURLcode result = curl_easy_setopt(handle, option, value); \
-		if (CURLE_OK != result) \
-		{ \
-			GetLogger()->Error("Failed to set cURL handle option ("#option"): %s", \
-				curl_easy_strerror(result)); \
-		} \
-	}
 
 using Poco::Net::NameValueCollection;
 
@@ -37,274 +28,53 @@ namespace ti
 		maxRedirects(-1),
 		curlHandle(0),
 		thread(0),
-		requestStream(0),
-		requestBlob(0),
+		requestBytes(0),
 		responseStream(0),
 		requestContentLength(0),
 		requestDataSent(0),
-		responseDataReceived(0)
+		responseDataReceived(0),
+		postData(0),
+		sendData(0)
 	{
-		/**
-		 * @tiapi(method=True, name=Network.HTTPClient.abort, since=0.3)
-		 * @tiapi Aborts an in progress connection
-		 */
 		this->SetMethod("abort", &HTTPClientBinding::Abort);
-
-		/**
-		 * @tiapi(method=True, name=Network.HTTPClient.open, since=0.3)
-		 * @tiapi Opens an HTTP connection
-		 * @tiarg[String, method] The HTTP method to use e.g. POST
-		 * @tiarg[String, url] The url to connect to
-		 * @tiarg[Boolean, asynchronous, optional=True] Whether or not the request should be asynchronous (default: True)
-		 * @tiarg[String, username, optional=True] The HTTP username to use
-		 * @tiarg[String, password, optional=True] The HTTP password to use
-		 * @tiresult[Boolean] return true if supplied arguments are valid
-		 */
 		this->SetMethod("open", &HTTPClientBinding::Open);
-
-		/**
-		 * @tiapi(method=True, name=Network.HTTPClient.setCredentials, since=0.8)
-		 * @tiapi Set the authentication credentials for the HTTPClient.
-		 * @tiarg[String, username] The username to use or an empty String to use none.
-		 * @tiarg[String, password] The password to use or an empty String to use none.
-		 *
-		 * @tiapi(method=True, name=Network.HTTPClient.setBasicCredentials, since=0.7, deprecated=True)
-		 * @tiapi Set the basic authentication credentials
-		 * @tiarg[String, username] The username to use or an empty String to use none.
-		 * @tiarg[String, password] The password to use or an empty String to use none.
-		 */
 		this->SetMethod("setCredentials", &HTTPClientBinding::SetCredentials);
 		this->SetMethod("setBasicCredentials", &HTTPClientBinding::SetCredentials);
-
-		/**
-		 * @tiapi(method=True, name=Network.HTTPClient.setRequestHeader, since=0.3)
-		 * @tiapi Sets a request header for the connection
-		 * @tiarg[String, header] request header name
-		 * @tiarg[String, value] request header value
-		 */
 		this->SetMethod("setRequestHeader", &HTTPClientBinding::SetRequestHeader);
-
-		/**
-		 * @tiapi(method=True, name=Network.HTTPClient.send, since=0.3)
-		 * @tiapi Sends data through the HTTP connection
-		 * @tiarg[Object|String|null, data, optional=True] Data to send to the server.
-		 * @tiresult[Boolean] returns true if request dispatched successfully
-		 */
 		this->SetMethod("send", &HTTPClientBinding::Send);
-
-		/**
-		 * @tiapi(method=True, name=Network.HTTPClient.sendFile, since=0.3)
-		 * @tiapi Sends the contents of a file as body content
-		 * @tiarg[Titanium.Filesystem.File, file] the File object to send
-		 */
 		this->SetMethod("sendFile", &HTTPClientBinding::Send);
-
-		/**
-		 * @tiapi(method=True, name=Network.HTTPClient.receive, since=0.7)
-		 * @tiapi Sends a request to the server and receive data with the provided handler.
-		 * @tiarg[Object|Function, handler] A handler to receive the response data. handler can
-		 * @tiarg either be Titanium.Filesystem.File or a Function.
-		 * @tiarg[Object|String|null, data, optional=True] Data to send to the server.
-		 * @tiresult[Boolean] returns true if request dispatched successfully
-		 */
 		this->SetMethod("receive", &HTTPClientBinding::Receive);
-
-		/**
-		 * @tiapi(method=True, name=Network.HTTPClient.getResponseHeader, since=0.3)
-		 * @tiapi Return the value of a response header, given it's name. If the given
-		 * @tiapi name occurs multiple times, this method will only return one occurence.
-		 * @tiarg[String, name] The response header name.
-		 * @tiresult[String] The value of the response header.
-		 */
 		this->SetMethod("getResponseHeader", &HTTPClientBinding::GetResponseHeader);
-
-		/**
-		 * @tiapi(method=True, name=Network.HTTPClient.getResponseHeaders, since=0.8)
-		 * @tiapi Return all response headers as an array of two element arrays.
-		 * @tiresult[Array<Array<String, String>>] The array of response headers.
-		 */
 		this->SetMethod("getResponseHeaders", &HTTPClientBinding::GetResponseHeaders);
-
-		/**
-		 * @tiapi(method=True, name=Network.HTTPClient.setCookie, since=0.7)
-		 * @tiapi Set a HTTP cookie in the request.
-		 * @tiarg[String, name] the cookie name
-		 * @tiarg[String, value] the cookie value
-		 */
 		this->SetMethod("setCookie", &HTTPClientBinding::SetCookie);
-
-		/**
-		 * @tiapi(method=True, name=Network.HTTPClient.clearCookies, since=0.7)
-		 * @tiapi Clear any cookies set on the request
-		 */
 		this->SetMethod("clearCookies", &HTTPClientBinding::ClearCookies);
-
-		/**
-		 * @tiapi(method=True, name=Network.HTTPClient.getCookie, since=0.7)
-		 * @tiapi Get a HTTP cookie from the response.
-		 * @tiarg[String, name] name of the cookie to get
-		 * @tiresult[Network.HTTPCookie] a cookie or null if not found
-		 */
 		this->SetMethod("getCookie", &HTTPClientBinding::GetCookie);
-
-		/**
-		 * @tiapi(method=True, name=Network.HTTPClient.setTimeout, since=0.4)
-		 * Sets the timeout for the request. The default timeout value is five
-		 * minutes.
-		 * @tiarg[Number, timeout] The new timeout value in milliseconds.
-		 */
 		this->SetMethod("setTimeout", &HTTPClientBinding::SetTimeout);
-
-		/**
-		 * @tiapi(method=True, name=Network.HTTPClient.getTimeout, since=0.8)
-		 * Gets the timeout for the request.
-		 * @tiresult[Number] timeout value in milliseconds
-		 */
 		this->SetMethod("getTimeout", &HTTPClientBinding::GetTimeout);
-
-		/**
-		 * @tiapi(method=True, name=Network.HTTPClient.getMaxRedirects, since=0.8)
-		 * @tiapi Get the maximum number of redirects to follow. The default is -1, which means
-		 * @tiapi that there is no maximum limit to the number of redirects to follow.
-		 * @tiresult[Number] the maximum number of redirects to follow.
-		 */
 		this->SetMethod("getMaxRedirects", &HTTPClientBinding::GetMaxRedirects);
-
-		/**
-		 * @tiapi(method=True, name=Network.HTTPClient.setMaxRedirects, since=0.8)
-		 * @tiapi Set the maximum number of redirects to follow. The default is -1, which means
-		 * @tiapi that there is no maximum limit to the number of redirects to follow.
-		 * @tiarg[Number, amount] the number of redirects to follow.
-		 */
 		this->SetMethod("setMaxRedirects", &HTTPClientBinding::SetMaxRedirects);
-
-		/**
-		 * @tiapi(property=True, type=Number, name=Network.HTTPClient.readyState, since=0.3)
-		 * @tiapi The ready-state status for the connection
-		 */
 		this->SetInt("readyState", 0);
-
-		/**
-		 * @tiapi(property=True, type=Number, name=Network.HTTPClient.UNSENT, since=0.3)
-		 * @tiai The UNSENT readyState property
-		 */
 		this->SetInt("UNSENT", 0);
-
-		/**
-		 * @tiapi(property=True, type=Number, name=Network.HTTPClient.OPENED, since=0.3)
-		 * @tiapi The OPENED readyState property
-		 */
 		this->SetInt("OPENED", 1);
-
-		/**
-		 * @tiapi(property=True, type=Number, name=Network.HTTPClient.HEADERS_RECEIVED, since=0.3)
-		 * @tiapi The HEADERS_RECEIVED readyState property
-		 */
 		this->SetInt("HEADERS_RECEIVED", 2);
-
-		/**
-		 * @tiapi(property=True, type=Number, name=Network.HTTPClient.LOADING, since=0.3)
-		 * @tiapi The LOADING readyState property
-		 */
 		this->SetInt("LOADING", 3);
-
-		/**
-		 * @tiapi(property=True, type=Number, name=Network.HTTPClient.DONE, since=0.3)
-		 * @tiapi The DONE readyState property
-		 */
 		this->SetInt("DONE", 4);
-
-		/**
-		 * @tiapi(property=True, type=String, name=Network.HTTPClient.responseText, since=0.3)
-		 * @tiapi The response of an HTTP request as text
-		 */
 		this->SetNull("responseText");
-
-		/**
-		 * @tiapi(property=True, type=String, name=Network.HTTPClient.responseXML, since=0.3)
-		 * @tiapi The response of an HTTP request as parsable XML
-		 */
 		this->SetNull("responseXML");
-
-		/**
-		 * @tiapi(property=True, type=String, name=Network.HTTPClient.responseData, since=0.8)
-		 * @tiapi The response of an HTTP request as a Blob. Currently this property
-		 * @tiapi is only valid after the request has been completed.
-		 */
 		this->SetNull("responseData");
-
-		/**
-		 * @tiapi(property=True, type=Number, name=Network.HTTPClient.status, since=0.3)
-		 * @tiapi The response status code of an HTTP request
-		 */
 		this->SetNull("status");
-
-		/**
-		 * @tiapi(property=True, type=String, name=Network.HTTPClient.statusText, since=0.3)
-		 * @tiapi The response status text of an HTTP Request
-		 */
 		this->SetNull("statusText");
-
-		/**
-		 * @tiapi(property=True, type=Boolean, name=Network.HTTPClient.timedOut, since=0.7)
-		 * @tiapi True if HTTP request timed out
-		 */
 		this->SetBool("timedOut", false);
-
-		/**
-		 * @tiapi(property=True, type=String, name=Network.HTTPClient.url, since=0.7)
-		 * @tiapi The request URL. This value will be updated on redirect events.
-		 */
 		this->SetNull("url");
-
-		/**
-		 * @tiapi(property=True, type=Number, name=Network.HTTPClient.dataSent, since=0.7)
-		 * @tiapi Amount of data sent to server so far. Updated on HTTP_DATA_SENT event.
-		 */
 		this->SetInt("dataSent", 0);
-
-		/**
-		 * @tiapi(property=True, type=Number, name=Network.HTTPClient.dataReceived, since=0.7)
-		 * @tiapi Amount of data received from server so far. Updated on HTTP_DATA_RECEIVED event.
-		 */
 		this->SetInt("dataReceived", 0);
-
-		/**
-		 * @tiapi(property=True, type=Boolean, name=Network.HTTPClient.connected, since=0.3)
-		 * @tiapi Whether an HTTPClient object is connected or not
-		 */
 		this->SetBool("connected", false);
-
-		/**
-		 * @tiapi(property=True, type=Function, name=Network.HTTPClient.onreadystatechange, since=0.3)
-		 * @tiapi The handler function that will be fired when the readyState code of
-		 * @tiapi an HTTPClient object changes.
-		 */
 		this->SetNull("onreadystatechange");
-
-		/**
-		 * @tiapi(property=True, type=Function, name=Network.HTTPClient.ondatastream, since=0.3)
-		 * @tiapi The handler function that will be fired as stream data is received from an HTTP request
-		 */
 		this->SetNull("ondatastream");
-
-		/**
-		 * @tiapi(property=True, type=Function, name=Network.HTTPClient.onsendstream, since=0.3)
-		 * @tiapi The handler function that will be fired as the stream data is sent.
-		 */
 		this->SetNull("onsendstream");
-
-		/**
-		 * @tiapi(property=True, type=Function, name=Network.HTTPClient.onload, since=0.7)
-		 * @tiapi The handler function that will be fired when request is completed
-		*/
 		this->SetNull("onload");
+		this->SetString("userAgent", GlobalObject::GetInstance()->GetString("userAgent"));
 
-		/**
-		 * @tiapi(property=True, name=Network.HTTPClient.userAgent, since=0.7)
-		 * @tiapi User agent string to use for requests. (Default: PRODUCTNAME/PRODUCT_VERSION)
-		 */
-		this->SetString("userAgent", PRODUCT_NAME"/"PRODUCT_VERSION);
 	}
 
 	HTTPClientBinding::~HTTPClientBinding()
@@ -518,9 +288,10 @@ namespace ti
 		ValueList args(Value::NewObject(GetAutoPtr()));
 
 		// Must invoke the on*** handler functions
-		if (eventName == Event::HTTP_STATE_CHANGED && !this->onreadystate.isNull())
+		if (eventName == Event::HTTP_STATE_CHANGED)
 		{
-			RunOnMainThread(this->onreadystate, GetAutoPtr(), args, true);
+			if (!this->onreadystate.isNull())
+				RunOnMainThread(this->onreadystate, GetAutoPtr(), args, true);
 
 			if (this->Get("readyState")->ToInt() == 4 && !this->onload.isNull())
 			{
@@ -551,41 +322,57 @@ namespace ti
 		END_KROLL_THREAD;
 	}
 
-	void HTTPClientBinding::BeginWithFileLikeObject(KObjectRef dataObject)
+	void HTTPClientBinding::BeginWithPostDataObject(KObjectRef object)
 	{
-		KMethodRef nativePathMethod(dataObject->GetMethod("nativePath"));
-		KMethodRef sizeMethod(dataObject->GetMethod("size"));
+		struct curl_httppost* last = 0;
 
-		if (nativePathMethod.isNull() || sizeMethod.isNull())
+		SharedStringList properties = object->GetPropertyNames();
+		for (unsigned int i = 0; i < properties->size(); i++)
 		{
-			std::string err("Unsupported File-like object: did not have"
-				"nativePath and size methods");
-			GetLogger()->Error(err);
-			throw ValueException::FromString(err);
-		}
+			SharedString propertyName(properties->at(i));
+			KValueRef value(object->Get(propertyName->c_str()));
+			if (value->IsString())
+			{
+				curl_formadd(&this->postData, &last,
+					CURLFORM_COPYNAME, propertyName->c_str(),
+					CURLFORM_COPYCONTENTS, value->ToString(),
+					CURLFORM_END);
+				continue;
+			}
 
-		KValueRef filenameValue(nativePathMethod->Call());
-		if (!filenameValue->IsString())
-		{
-			std::string err("Unsupported File-like object: nativePath method"
-				"did not return a String");
-			GetLogger()->Error(err);
-			throw ValueException::FromString(err);
-		}
+			if (value->IsObject())
+			{
+				BytesRef bytes(ObjectToBytes(value->ToObject()));
+				if (!bytes.isNull())
+				{
+					// TODO(mrobinson): The CURLFORM_BUFFER parameter should eventually
+					// be pulled from the file-like object if we can get it.
+					curl_formadd(&this->postData, &last,
+						CURLFORM_COPYNAME, propertyName->c_str(),
+						CURLFORM_BUFFER, "data",
+						CURLFORM_BUFFERPTR, bytes->Get(),
+						CURLFORM_BUFFERLENGTH, bytes->Length(),
+						CURLFORM_END);
 
-		std::string filename(filenameValue->ToString());
-		this->requestStream = new std::ifstream(
-			filename.c_str(), std::ios::in | std::ios::binary);
-		if (this->requestStream->fail())
-		{
-			std::string err("Failed to open file: ");
-			err.append(filename);
-			GetLogger()->Error(err);
-			throw ValueException::FromString(err);
-		}
+					// We need to preserve the Bytes data until the end of this
+					// request. This prevents us from having to copy the data with
+					// something like CURLFROM_COPYCONTENTS above.
+					preservedPostData.push_back(bytes);
+					continue;
+				}
+			}
 
-		this->requestContentLength = sizeMethod->Call()->ToInt();
+			// TODO(mrobinson): Intelligently handle lists of data here as CURLFORM_ARRAY
+			// If we've gotten here we have not been able to convert this object
+			// through any normal means, so we just use the DisplayString of the value.
+			SharedString ss(value->DisplayString());
+			curl_formadd(&this->postData, &last,
+				CURLFORM_COPYNAME, propertyName->c_str(),
+				CURLFORM_COPYCONTENTS, ss->c_str(),
+				CURLFORM_END);
+		}
 	}
+
 
 	bool HTTPClientBinding::BeginRequest(KValueRef sendData)
 	{
@@ -593,13 +380,13 @@ namespace ti
 			throw ValueException::FromString("Tried to use an HTTPClient while "
 				"another transfer was in progress");
 
+		this->sendData = sendData;
 		this->sawHTTPStatus = false;
 		this->requestDataSent = 0;
 		this->responseDataReceived = 0;
 		this->responseCookies.clear();
 		this->aborted = false;
-		this->requestBlob = 0;
-		this->requestStream = 0;
+		this->requestBytes = 0;
 		this->responseData.clear();
 
 		this->SetInt("dataSent", 0);
@@ -610,32 +397,6 @@ namespace ti
 		this->SetNull("responseData");
 		this->SetNull("status");
 		this->SetNull("statusText");
-
-		if (sendData->IsObject())
-		{
-			KObjectRef dataObject(sendData->ToObject());
-			BlobRef blob(dataObject.cast<Blob>());
-			if (blob.isNull())
-			{
-				this->BeginWithFileLikeObject(dataObject);
-			}
-			else
-			{
-				this->requestBlob = blob;
-			}
-		}
-		else if (sendData->IsString())
-		{
-			const char* sendChars = sendData->ToString();
-			this->requestContentLength = strlen(sendChars);
-			this->requestBlob = new Blob(sendChars, this->requestContentLength);
-		}
-		else // Sending no data
-		{
-			this->requestStream = 0;
-			this->requestBlob = 0;
-			this->requestContentLength = 0;
-		}
 
 		if (this->async)
 		{
@@ -750,33 +511,38 @@ namespace ti
 
 	size_t HTTPClientBinding::WriteRequestDataToBuffer(char* buffer, size_t bufferSize)
 	{
+		if (requestBytes.isNull())
+			return 0;
+
 		size_t bytesSent = 0;
-		if (!requestStream.isNull() && !requestStream->eof())
+		size_t toSend = bufferSize;
+		if (requestBytes->Length() - requestDataSent < bufferSize)
+			toSend = requestBytes->Length() - requestDataSent;
+
+		if (toSend > 0)
 		{
-			requestStream->read(buffer, bufferSize);
-			bytesSent = requestStream->gcount();
-
-			if (requestStream->eof())
-				requestStream->close();
+			memcpy(buffer, requestBytes->Get() + requestDataSent, toSend);
+			bytesSent = toSend;
 		}
-		else if (!requestBlob.isNull())
-		{
-			size_t toSend = bufferSize;
-			if (requestBlob->Length() - requestDataSent < bufferSize)
-				toSend = requestBlob->Length() - requestDataSent;
-
-			if (toSend > 0)
-			{
-				memcpy(buffer, requestBlob->Get() + requestDataSent, toSend);
-				bytesSent = toSend;
-			}
-		}
-
-		this->requestDataSent += bytesSent;
-		this->SetInt("dataSent", requestDataSent);
-		this->FireEvent(Event::HTTP_DATA_SENT);
+		
 
 		return bytesSent;
+	}
+
+	void HTTPClientBinding::RequestDataSent(size_t sent, size_t total)
+	{
+		// Firing an event is a fairly expensive operation, so only fire
+		// an HTTP_DATA_SENT event if we've transferred at least 250KB of data.
+		// or we have completed the transfer.
+		if (total == requestDataSent)
+			return;
+
+		if (sent == total || sent > this->requestDataSent + (250 * 1024))
+		{
+			this->requestDataSent = sent;
+			this->SetInt("dataSent", sent);
+			this->FireEvent(Event::HTTP_DATA_SENT);
+		}
 	}
 
 	// This callback is invoked when cURL needs to send data to the server.
@@ -817,7 +583,6 @@ namespace ti
 			this->responseHeaders = this->nextResponseHeaders;
 			this->nextResponseHeaders.clear();
 
-			// TODO(mrobinson): We need to parse the status text eventually.
 			long httpStatus = 0;
 			curl_easy_getinfo(this->curlHandle, CURLINFO_RESPONSE_CODE, &httpStatus);
 			this->SetInt("status", httpStatus);
@@ -865,8 +630,8 @@ namespace ti
 	void HTTPClientBinding::DataReceived(char* buffer, size_t bufferSize)
 	{
 		// Pass data to handler on main thread
-		BlobRef blob(new Blob(buffer, bufferSize, true));
-		responseData.push_back(blob);
+		BytesRef bytes(new Bytes(buffer, bufferSize, true));
+		responseData.push_back(bytes);
 
 		if (this->responseStream)
 		{
@@ -879,7 +644,7 @@ namespace ti
 		if (this->outputHandler)
 		{
 			RunOnMainThread(this->outputHandler, GetAutoPtr(),
-				ValueList(Value::NewObject(blob)));
+				ValueList(Value::NewObject(bytes)));
 		}
 
 		responseDataReceived += bufferSize;
@@ -896,38 +661,21 @@ namespace ti
 		return dataLength;
 	}
 
-	int CurlProgressCallback(HTTPClientBinding *client, double , double , double , double)
+	int CurlProgressCallback(HTTPClientBinding* client, double dltotal, double dlnow, double ultotal, double ulnow)
 	{
 		if (client->IsAborted())
 			return CURLE_ABORTED_BY_CALLBACK;
 		else
 			return 0;
+
+		client->RequestDataSent(ulnow, ultotal);
 	}
 
 	void HTTPClientBinding::SetupCurlMethodType()
 	{
-		// Modify the HTTP method based on the method variable. The default
-		// in cURL is to use GET.
-		if (this->httpMethod == "POST")
-		{
-			SET_CURL_OPTION(curlHandle, CURLOPT_POST, 1);
-		}
-		else if (this->httpMethod == "PUT")
-		{
-			SET_CURL_OPTION(curlHandle, CURLOPT_UPLOAD, 1);
-		}
-		else if (this->httpMethod == "HEAD")
-		{
-			SET_CURL_OPTION(curlHandle, CURLOPT_NOBODY, 1);
-		}
-		else if (this->httpMethod != "GET")
-		{
-			// This may work and it may not depending on the method type.
-			// DELETE should work, in particular.
-			SET_CURL_OPTION(curlHandle, CURLOPT_CUSTOMREQUEST, this->httpMethod.c_str());
-		}
-
-		// Only set up the read handler if there is data to send to the server.
+		// Only set up the read handler if there is data to send to the server
+		// and we aren't using the POST fields (i.e. we were just given a blob
+		// of data).
 		if (this->requestContentLength > 0)
 		{
 			SET_CURL_OPTION(curlHandle, CURLOPT_READDATA, this);
@@ -939,7 +687,35 @@ namespace ti
 			}
 			else if (this->httpMethod == "POST")
 			{
+				SET_CURL_OPTION(curlHandle, CURLOPT_POST, 1);
 				SET_CURL_OPTION(curlHandle, CURLOPT_POSTFIELDSIZE, requestContentLength);
+			}
+		}
+		else
+		{
+			// Modify the HTTP method based on the method variable. The default
+			// for cURL is to use GET, so do nothing in that case.
+			if (this->httpMethod == "POST" && this->postData)
+			{
+				curl_easy_setopt(this->curlHandle, CURLOPT_HTTPPOST, this->postData);
+			}
+			else if (this->httpMethod == "POST")
+			{
+				SET_CURL_OPTION(curlHandle, CURLOPT_POST, 1);
+			}
+			else if (this->httpMethod == "PUT")
+			{
+				SET_CURL_OPTION(curlHandle, CURLOPT_UPLOAD, 1);
+			}
+			else if (this->httpMethod == "HEAD")
+			{
+				SET_CURL_OPTION(curlHandle, CURLOPT_NOBODY, 1);
+			}
+			else if (this->httpMethod != "GET")
+			{
+				// This may work and it may not depending on the method type.
+				// DELETE should work, in particular.
+				SET_CURL_OPTION(curlHandle, CURLOPT_CUSTOMREQUEST, this->httpMethod.c_str());
 			}
 		}
 	}
@@ -973,6 +749,13 @@ namespace ti
 
 	void HTTPClientBinding::CleanupCurl(curl_slist* headers)
 	{
+		if (this->postData)
+		{
+			curl_formfree(this->postData);
+			this->postData = 0;
+			preservedPostData.clear();
+		}
+
 		if (this->curlHandle)
 		{
 			curl_easy_cleanup(this->curlHandle);
@@ -983,73 +766,35 @@ namespace ti
 			curl_slist_free_all(headers);
 	}
 
-	static void SetStandardCurlHandleOptions(CURL* handle)
+	void HTTPClientBinding::SetRequestData()
 	{
-		SET_CURL_OPTION(handle, CURLOPT_SSL_VERIFYPEER, false);
-		SET_CURL_OPTION(handle, CURLOPT_CAINFO, NetworkModule::GetRootCertPath().c_str());
-
-		// If a timeout happens, this normally causes cURL to fire a signal.
-		// Since we're running multiple threads and possibily have multiple HTTP
-		// requests going at once, we need to disable this behavior.
-		SET_CURL_OPTION(handle, CURLOPT_NOSIGNAL, 1);
-
-		// See also: CURLOPT_HEADERDATA, CURLOPT_WRITEFUNCTION, etc below.
-		SET_CURL_OPTION(handle, CURLOPT_HEADERFUNCTION, &CurlHeaderCallback);
-		SET_CURL_OPTION(handle, CURLOPT_WRITEFUNCTION, &CurlWriteCallback);
-		SET_CURL_OPTION(handle, CURLOPT_PROGRESSFUNCTION, &CurlProgressCallback);
-		SET_CURL_OPTION(handle, CURLOPT_NOPROGRESS, 0);
-
-		// Enable all supported Accept-Encoding values.
-		SET_CURL_OPTION(handle, CURLOPT_ENCODING, "");
-
-		SET_CURL_OPTION(handle, CURLOPT_FOLLOWLOCATION, 1);
-		SET_CURL_OPTION(handle, CURLOPT_AUTOREFERER, 1);
-
-		static std::string cookieJarFilename;
-		if (cookieJarFilename.empty())
+		if (this->sendData->IsObject())
 		{
-			cookieJarFilename = FileUtils::Join(
-				Host::GetInstance()->GetApplication()->GetDataPath().c_str(),
-				"network_httpclient_cookies.dat", 0);
+			BytesRef bytes(ObjectToBytes(this->sendData->ToObject()));
+			if (!bytes.isNull())
+			{
+				this->requestBytes = bytes;
+				this->requestContentLength = bytes->Length();
+			}
+			else
+			{
+				// Well this is just a plain-ole object, so treat it as
+				// a key-value store of POST parameters.
+				this->BeginWithPostDataObject(this->sendData->ToObject());
+				this->requestBytes = 0;
+				this->requestContentLength = 0;
+			}
 		}
-
-		// cURL doesn't have built in thread support, so we must handle thread-safety
-		// via the CURLSH callback API.
-		SET_CURL_OPTION(handle, CURLOPT_SHARE, NetworkModule::GetCurlShareHandle());
-		SET_CURL_OPTION(handle, CURLOPT_COOKIEFILE, cookieJarFilename.c_str());
-		SET_CURL_OPTION(handle, CURLOPT_COOKIEJAR, cookieJarFilename.c_str());
-	}
-
-	static void SetCurlProxySettings(CURL* curlHandle, SharedProxy proxy)
-	{
-		if (proxy.isNull())
-			return;
-
-		if (proxy->type == SOCKS)
+		else if (this->sendData->IsString())
 		{
-			SET_CURL_OPTION(curlHandle, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
+			const char* sendChars = this->sendData->ToString();
+			this->requestContentLength = strlen(sendChars); // Include NUL character.
+			this->requestBytes = new Bytes(sendChars, this->requestContentLength);
 		}
-		else
+		else // Sending no data
 		{
-			SET_CURL_OPTION(curlHandle, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
-		}
-
-		SET_CURL_OPTION(curlHandle, CURLOPT_PROXY, proxy->host.c_str());
-		if (proxy->port != 0)
-		{
-			SET_CURL_OPTION(curlHandle, CURLOPT_PROXYPORT, proxy->port);
-		}
-
-		if (!proxy->username.empty() || !proxy->password.empty())
-		{
-			// We are allowing any sort of authentication. This may not be the fastest
-			// method, but at least the request will succeed.
-			std::string proxyAuthString(proxy->username);
-			proxyAuthString.append(":");
-			proxyAuthString.append(proxy->password.c_str());
-
-			SET_CURL_OPTION(curlHandle, CURLOPT_PROXYUSERPWD, proxyAuthString.c_str());
-			SET_CURL_OPTION(curlHandle, CURLOPT_PROXYAUTH, CURLAUTH_ANY);
+			this->requestBytes = 0;
+			this->requestContentLength = 0;
 		}
 	}
 
@@ -1067,10 +812,17 @@ namespace ti
 			SET_CURL_OPTION(curlHandle, CURLOPT_URL, url.c_str());
 			SET_CURL_OPTION(curlHandle, CURLOPT_ERRORBUFFER, &curlErrorBuffer);
 
+			SET_CURL_OPTION(curlHandle, CURLOPT_HEADERFUNCTION, &CurlHeaderCallback);
+			SET_CURL_OPTION(curlHandle, CURLOPT_WRITEFUNCTION, &CurlWriteCallback);
+			SET_CURL_OPTION(curlHandle, CURLOPT_PROGRESSFUNCTION, &CurlProgressCallback);
 			SET_CURL_OPTION(curlHandle, CURLOPT_WRITEHEADER, this);
 			SET_CURL_OPTION(curlHandle, CURLOPT_WRITEDATA, this);
 			SET_CURL_OPTION(curlHandle, CURLOPT_PROGRESSDATA, this);
 
+			// Progress must be turned on for CURLOPT_PROGRESSFUNCTION to be called.
+			SET_CURL_OPTION(curlHandle, CURLOPT_NOPROGRESS, 0);
+
+			this->SetRequestData();
 			this->SetupCurlMethodType();
 
 			SET_CURL_OPTION(curlHandle, CURLOPT_MAXREDIRS, this->maxRedirects);
@@ -1101,7 +853,7 @@ namespace ti
 			this->Set("connected", Value::NewBool(false));
 
 			if (!responseData.empty())
-				this->SetObject("responseData", Blob::GlobBlobs(this->responseData));
+				this->SetObject("responseData", Bytes::GlobBytes(this->responseData));
 
 			this->ChangeState(4); // Done
 		}

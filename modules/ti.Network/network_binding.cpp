@@ -23,7 +23,7 @@ using Poco::Net::NetworkInterface;
 namespace ti
 {
 	static KListRef interfaceList(0);
-	static std::string firstIPv4Address;
+	static std::string firstIPv4Address = "127.0.0.1";
 
 	static void GetInterfaceList()
 	{
@@ -137,22 +137,12 @@ namespace ti
 		 * @tiapi Override application proxy autodetection with a proxy URL.
 		 * @tiarg[String, hostname] The full proxy hostname.
 		 */
-		/**
-		 * @tiapi(method=True,name=Network.setProxy,since=0.2, deprecated=True)
-		 * @tiapi Override HTTP application proxy autodetection with a proxy URL.
-		 * @tiarg[String, hostname] The full proxy hostname.
-		 */
 		this->SetMethod("setHTTPProxy", &NetworkBinding::_SetHTTPProxy);
 		this->SetMethod("setProxy", &NetworkBinding::_SetHTTPProxy);
 
 		/**
 		 * @tiapi(method=True,name=Network.getHTTPProxy,since=0.7) 
 		 * @tiapi Return the proxy override, if one is set.
-		 * @tiresult[String|null] The full proxy override URL or null if none is set.
-		 */
-		/**
-		 * @tiapi(method=True,name=Network.getHTTPProxy,since=0.2,deprecated=True) 
-		 * @tiapi Return the HTTP proxy override, if one is set.
 		 * @tiresult[String|null] The full proxy override URL or null if none is set.
 		 */
 		this->SetMethod("getHTTPProxy", &NetworkBinding::_GetHTTPProxy);
@@ -166,7 +156,7 @@ namespace ti
 		this->SetMethod("setHTTPSProxy", &NetworkBinding::_SetHTTPSProxy);
 
 		/**
-		 * @tiapi(method=True,name=Network.getHTTPProxy,since=0.7)
+		 * @tiapi(method=True,name=Network.getHTTPSProxy,since=0.7)
 		 * @tiapi Return the proxy override, if one is set.
 		 * @tiresult[String|null] The full proxy override URL or null if none is set.
 		 */
@@ -474,10 +464,14 @@ namespace ti
 
 	void NetworkBinding::_GetFirstIPAddress(const ValueList& args, KValueRef result)
 	{
-		if (firstIPv4Address.empty())
-			result->SetString("127.0.0.1");
-		else
-			result->SetString(firstIPv4Address.c_str());
+		static std::string address(NetworkBinding::GetFirstIPAddress());
+		result->SetString(address.c_str());
+	}
+
+	/*static*/
+	const std::string& NetworkBinding::GetFirstIPAddress()
+	{
+		return firstIPv4Address;
 	}
 
 	void NetworkBinding::_GetInterfaces(const ValueList& args, KValueRef result)

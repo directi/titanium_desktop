@@ -6,6 +6,8 @@
 
 #include "http_server_response.h"
 #include <Poco/Net/HTTPCookie.h>
+#include <curl/curl.h>
+#include "../common.h"
 
 namespace ti
 {
@@ -63,7 +65,7 @@ namespace ti
 		
 		/**
 		 * @tiapi(method=True,name=Network.HTTPServerResponse.write,since=0.3) write content into this response
-		 * @tiarg(for=Network.HTTPServerResponse.write,type=String,name=data) content to write (can be string or blob content)
+		 * @tiarg(for=Network.HTTPServerResponse.write,type=String,name=data) content to write (can be string or bytes content)
 		 */
 		SetMethod("write",&HttpServerResponse::Write);
 	}
@@ -131,22 +133,21 @@ namespace ti
 		
 		if (args.at(0)->IsString())
 		{
-			const char *data = args.at(0)->ToString();
-			ostr << data;
+			ostr << args.at(0)->ToString();
 			ostr.flush();
 			return;
 		}
 		else if (args.at(0)->IsObject())
 		{
-			AutoPtr<Blob> blob = args.at(0)->ToObject().cast<Blob>();
-			if (!blob.isNull())
-			{
-				const char *data = blob->Get();
-				ostr << data;
-				ostr.flush();
-				return;
-			}
+			BytesRef bytes(ObjectToBytes(args.at(0)->ToObject()));
+			if (bytes.isNull())
+				throw ValueException::FromString("Don't know how to write that kind of data.");
+
+			ostr.write(bytes->Get(), bytes->Length());
 		}
-		throw ValueException::FromString("unknown type");
+		else
+		{
+			throw ValueException::FromString("Don't know how to write that kind of data.");
+		}
 	}
 }

@@ -20,6 +20,13 @@ namespace ti
 		this->Set("CENTERED", Value::NewInt(DEFAULT_POSITION));
 
 		/**
+		 * @tiapi(method=True,name=UI.createNotification,since=0.9)
+		 * @tiapi Create a new Notification object
+		 * @tiresult[UI.Notification] A new notification
+		 */
+		this->SetMethod("createNotification", &UIBinding::_CreateNotification);
+
+		/**
 		 * @tiapi(method=True,name=UI.createMenu,since=0.6)
 		 * @tiapi Create a new menu
 		 * @tiresult[UI.Menu] A new menu
@@ -159,6 +166,9 @@ namespace ti
 		 */
 		this->SetMethod("createWindow", &UIBinding::_CreateWindow);
 
+		// Initialize notifications
+		this->SetBool("nativeNotifications", Notification::InitializeImpl());
+
 		this->SetObject("Clipboard", new Clipboard());
 		Logger::AddLoggerCallback(&UIBinding::Log);
 	}
@@ -202,6 +212,9 @@ namespace ti
 	UIBinding::~UIBinding()
 	{
 		this->ClearTray();
+
+		// Shutdown notifications
+		Notification::ShutdownImpl();
 	}
 
 	Host* UIBinding::GetHost()
@@ -251,6 +264,17 @@ namespace ti
 	void UIBinding::_GetMainWindow(const ValueList& args, KValueRef result)
 	{
 		result->SetObject(this->mainWindow);
+	}
+
+	void UIBinding::_CreateNotification(const ValueList& args, KValueRef result)
+	{
+		args.VerifyException("createNotification", "?o");
+		AutoNotification n(new Notification());
+
+		if (args.GetValue(0)->IsObject())
+			n->Configure(args.GetObject(0));
+
+		result->SetObject(n);
 	}
 
 	void UIBinding::_CreateMenu(const ValueList& args, KValueRef result)
@@ -321,13 +345,7 @@ namespace ti
 	void UIBinding::_SetMenu(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("setMenu", "o|0");
-		KObjectRef argObj = args.GetObject(0, NULL);
-		AutoMenu menu = NULL;
-
-		if (!argObj.isNull())
-		{
-			menu = argObj.cast<Menu>();
-		}
+		AutoMenu menu(args.GetObject(0, 0).cast<Menu>());
 
 		this->SetMenu(menu); // platform-specific impl
 
@@ -354,13 +372,7 @@ namespace ti
 	void UIBinding::_SetContextMenu(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("setContextMenu", "o|0");
-		KObjectRef argObj = args.GetObject(0, NULL);
-		AutoMenu menu = NULL;
-
-		if (!argObj.isNull())
-		{
-			menu = argObj.cast<Menu>();
-		}
+		AutoMenu menu(args.GetObject(0, 0).cast<Menu>());
 		this->SetContextMenu(menu);
 	}
 
@@ -451,11 +463,7 @@ namespace ti
 
 	void UIBinding::_SetDockMenu(const ValueList& args, KValueRef result)
 	{
-		AutoPtr<Menu> menu = NULL; // A NULL value is an unset
-		if (args.size() > 0 && args.at(0)->IsObject())
-		{
-			menu = args.at(0)->ToObject().cast<Menu>();
-		}
+		AutoMenu menu(args.GetObject(0, 0).cast<Menu>());
 		this->SetDockMenu(menu);
 	}
 

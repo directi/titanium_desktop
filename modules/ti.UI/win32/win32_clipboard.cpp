@@ -20,7 +20,7 @@ namespace ti
 			return;
 		}
 
-		HWND eventWindow = Win32Host::Win32Instance()->GetEventWindow();
+		HWND eventWindow = Host::GetInstance()->GetEventWindow();
 		if (!OpenClipboard(eventWindow))
 		{
 			std::string error(Win32Utils::QuickFormatMessage(GetLastError()));
@@ -63,12 +63,13 @@ namespace ti
 		CopyMemory(data, wideString.c_str(), length);
 		::GlobalUnlock(clipboardData);
 		SetClipboardData(CF_UNICODETEXT, clipboardData);
+		CloseClipboard();
 	}
 
 	std::string& Clipboard::GetTextImpl()
 	{
 		static std::string clipboardText;
-		HWND eventWindow = Win32Host::Win32Instance()->GetEventWindow();
+		HWND eventWindow = Host::GetInstance()->GetEventWindow();
 		if (!OpenClipboard(eventWindow))
 		{
 			std::string error(Win32Utils::QuickFormatMessage(GetLastError()));
@@ -128,7 +129,7 @@ namespace ti
 
 	void Clipboard::ClearTextImpl()
 	{
-		HWND eventWindow = Win32Host::Win32Instance()->GetEventWindow();
+		HWND eventWindow = Host::GetInstance()->GetEventWindow();
 
 		// TODO(mrobinson): If possible we need to clear only the text portion here.
 		if (!OpenClipboard(eventWindow))
@@ -142,13 +143,13 @@ namespace ti
 		CloseClipboard();
 	}
 
-	BlobRef Clipboard::GetImageImpl(std::string& mimeType)
+	BytesRef Clipboard::GetImageImpl(std::string& mimeType)
 	{
-		BlobRef image(0);
+		BytesRef image(0);
 		return image;
 	}
 
-	void Clipboard::SetImageImpl(std::string& mimeType, BlobRef image)
+	void Clipboard::SetImageImpl(std::string& mimeType, BytesRef image)
 	{
 	}
 

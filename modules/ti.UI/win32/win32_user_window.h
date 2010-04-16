@@ -55,7 +55,7 @@ namespace ti
 		void SetMinHeight(double height);
 		Bounds GetBoundsImpl();
 		void SetBoundsImpl(Bounds bounds);
-		void SetTitleImpl(std::string& title);
+		void SetTitleImpl(const std::string& title);
 		void SetURL(std::string& url);
 		void SetResizableImpl(bool resizable);
 		void SetMaximizable(bool maximizable);
@@ -84,6 +84,7 @@ namespace ti
 		static void RedrawAllMenus();
 		virtual void AppIconChanged();
 		virtual void AppMenuChanged();
+		void SetContentsImpl(const std::string&, const std::string&);
 
 		IWebView* GetWebView() { return webView; };
 		std::string GetTitle() { return config->GetTitle(); }
@@ -102,7 +103,6 @@ namespace ti
 		void GetMinMaxInfo(MINMAXINFO* minMaxInfo);
 
 	private:
-		kroll::Win32Host* win32Host;
 		Win32WebKitFrameLoadDelegate* frameLoadDelegate;
 		Win32WebKitUIDelegate* uiDelegate;
 		Win32WebKitPolicyDelegate* policyDelegate;
@@ -144,8 +144,6 @@ namespace ti
 			std::vector<std::string>& types, std::string& typesDescription);
 		KListRef SelectDirectory(bool multiple, std::string& title,
 			std::string& path, std::string& defaultName);
-		static void ParseSelectedFiles(const wchar_t *s,
-			std::vector<std::string> &selectedFiles);
 		Logger* logger;
 	};
 }

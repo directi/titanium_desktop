@@ -212,7 +212,6 @@ namespace ti
 		this->SetResizable(config->IsResizable());
 
 		gtk_widget_grab_focus(GTK_WIDGET(webView));
-		webkit_web_view_open(webView, this->config->GetURL().c_str());
 
 		if (this->IsVisible())
 			gtk_widget_show_all(GTK_WIDGET(this->gtkWindow));
@@ -253,6 +252,12 @@ namespace ti
 
 	bool GtkUserWindow::Close()
 	{
+		// Hold a reference here so we can still get the value of
+		// this->timer and this->active even after calling ::Closed
+		// which will remove us from the open window list and decrement
+		// the reference count.
+		AutoUserWindow keep(this, true);
+
 		if (!this->active)
 			return false;
 
@@ -262,6 +267,9 @@ namespace ti
 		// indicates an event listener has cancelled this close event.
 		if (!this->active)
 		{
+			// Remove the old menu first, so that GTK+ doesn't destroy it first.
+			this->RemoveOldMenu(); // Cleanup old menu
+
 			// Destroy the GTK bits, if we have them first, because
 			// we need to assume the GTK window is gone for  everything
 			// below (this method might be called by DeleteCallback)
@@ -274,7 +282,6 @@ namespace ti
 				this->gtkWindow = 0;
 				this->webView = 0;
 			}
-			this->RemoveOldMenu(); // Cleanup old menu
 
 			this->Closed();
 		}
@@ -642,11 +649,12 @@ namespace ti
 		gchar* newTitle, gpointer data)
 	{
 		GtkUserWindow* userWindow = (GtkUserWindow*) data;
-		if (NULL == webkit_web_frame_get_parent(frame))
-		{
-			std::string newTitleString = newTitle;
-			userWindow->SetTitle(newTitleString);
-		}
+
+		// Only change the window title if the main frame's title changed.
+		if (webkit_web_frame_get_parent(frame))
+			return;
+
+		userWindow->SetTitle(newTitle);
 	}
 
 	static void FeaturesChangedCallback(WebKitWebView* view, GParamSpec *pspec, gpointer data)
@@ -1026,7 +1034,7 @@ namespace ti
 		return this->config->GetTitle();
 	}
 	
-	void GtkUserWindow::SetTitleImpl(std::string& title)
+	void GtkUserWindow::SetTitleImpl(const std::string& title)
 	{
 		if (this->gtkWindow != NULL)
 		{
@@ -1042,7 +1050,7 @@ namespace ti
 	
 	void GtkUserWindow::SetURL(std::string& uri)
 	{
-		if (this->gtkWindow != NULL && this->webView != NULL)
+		if (this->gtkWindow && this->webView)
 			webkit_web_view_open(this->webView, uri.c_str());
 	}
 	
@@ -1194,7 +1202,7 @@ namespace ti
 	
 		// Only do this if the menu is actually changing.
 		if (menu.get() == this->activeMenu.get())
-			return
+			return;
 
 		this->RemoveOldMenu();
 		if (!menu.isNull() && this->gtkWindow)
@@ -1482,6 +1490,15 @@ namespace ti
 
 		gtk_widget_destroy(dialog);
 		return toReturn;
+	}
+
+	void GtkUserWindow::SetContentsImpl(const std::string& content, const std::string& baseURL)
+	{
+		if (!this->webView)
+			return;
+
+		webkit_web_view_load_string(this->webView, content.c_str(),
+			"text/html", "utf-8", baseURL.c_str());
 	}
 }
 

@@ -4,7 +4,7 @@
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
 #include "ui_module.h"
-#include "../../kroll/modules/javascript/javascript_module_instance.h"
+#include <kroll/javascript/javascript_module_instance.h>
 
 namespace ti
 {
@@ -488,6 +488,15 @@ UserWindow::UserWindow(AutoPtr<WindowConfig> config, AutoUserWindow parent) :
 	 */
 	this->SetMethod("flash", &UserWindow::_Flash);
 //#endif
+	/**
+	 * @tiapi(method=True,name=UI.UserWindow.setContents,since=0.9)
+	 * Set the contents of the UserWindow, given an HTML string and a base URL.
+	 * Relative links in the HTML will be resolved relatively to the base URL.
+	 * @tiarg[String, contents] The HTML string to inject into the UserWindow.
+	 * @tiarg[String, baseURL, optional=True] The base URL of the URL string. If
+	 * @tiarg omitted URLs will be resolved relative to the root of the app resources directory.
+	 */
+	this->SetMethod("setContents", &UserWindow::_SetContents);
 
 	this->FireEvent(Event::CREATED);
 }
@@ -538,6 +547,12 @@ void UserWindow::Open()
 
 	this->initialized = true;
 	this->active = true;
+
+	if (!this->config->GetContents().empty())
+		this->SetContents(this->config->GetContents(),
+			 this->config->GetBaseURL());
+	else
+		this->SetURL(this->config->GetURL());
 }
 
 bool UserWindow::Close()
@@ -1232,7 +1247,7 @@ void UserWindow::_SetTitle(const kroll::ValueList& args, kroll::KValueRef result
 	this->SetTitle(newTitle);
 }
 
-void UserWindow::SetTitle(std::string& newTitle)
+void UserWindow::SetTitle(const std::string& newTitle)
 {
 	this->config->SetTitle(newTitle);
 	if (this->active)
@@ -1431,16 +1446,11 @@ void UserWindow::_SetTransparency(const kroll::ValueList& args, kroll::KValueRef
 
 void UserWindow::_SetMenu(const kroll::ValueList& args, kroll::KValueRef result)
 {
-	args.VerifyException("setMenu", "?o");
-	AutoMenu menu = NULL;
-	if (args.size() > 0) {
-		menu = args.at(0)->ToObject().cast<Menu>();
-	}
+	args.VerifyException("setMenu", "o|0");
+	AutoMenu menu(args.GetObject(0, 0).cast<Menu>());
 
 	if (this->active)
-	{
 		this->SetMenu(menu);
-	}
 }
 
 void UserWindow::_GetMenu(const kroll::ValueList& args, kroll::KValueRef result)
@@ -1458,16 +1468,11 @@ void UserWindow::_GetMenu(const kroll::ValueList& args, kroll::KValueRef result)
 
 void UserWindow::_SetContextMenu(const kroll::ValueList& args, kroll::KValueRef result)
 {
-	args.VerifyException("setContextMenu", "?o");
-	AutoMenu menu = NULL;
-	if (args.size() > 0) {
-		menu = args.at(0)->ToObject().cast<Menu>();
-	}
+	args.VerifyException("setMenu", "o|0");
+	AutoMenu menu(args.GetObject(0, 0).cast<Menu>());
 
 	if (this->active)
-	{
 		this->SetContextMenu(menu);
-	}
 }
 
 void UserWindow::_GetContextMenu(const kroll::ValueList& args, kroll::KValueRef result)
@@ -1737,7 +1742,6 @@ void UserWindow::_ShowInspector(const ValueList& args, KValueRef result)
 	}
 }
 
-//#ifdef OS_WIN32
 void UserWindow::_Flash(const ValueList& args, kroll::KValueRef result)
 {
 	if (!this->active)
@@ -1750,8 +1754,28 @@ void UserWindow::_Flash(const ValueList& args, kroll::KValueRef result)
 	}
 	this->Flash(timesToFlash);
 }
-//#endif
 
+void UserWindow::_SetContents(const ValueList& args, KValueRef result)
+{
+	args.VerifyException("setContents", "s ?s");
+	this->SetContents(args.GetString(0), args.GetString(1));
+}
+
+void UserWindow::SetContents(const std::string& content, const std::string& baseURL)
+{
+	std::string normalizedURL(baseURL);
+	if (baseURL.empty())
+		normalizedURL = "app://_blank_.html";
+	normalizedURL = URLUtils::NormalizeURL(normalizedURL);
+
+	this->config->SetContents(content);
+	this->config->SetBaseURL(normalizedURL);
+
+	if (!this->active)
+		return;
+
+	this->SetContentsImpl(content, normalizedURL);
+}
 
 AutoUserWindow UserWindow::GetParent()
 {
@@ -1875,6 +1899,12 @@ void UserWindow::InsertAPI(KObjectRef frameGlobal)
 	frameGlobal->SetObject(GLOBAL_NS_VARNAME, delegateGlobalObject);
 }
 
+static KValueRef DeferredGarbageCollection(const ValueList& args)
+{
+	JavaScriptModuleInstance::GarbageCollect();
+	return Value::Undefined;
+}
+
 void UserWindow::RegisterJSContext(JSGlobalContextRef context)
 {
 	JSObjectRef globalObject = JSContextGetGlobalObject(context);
@@ -1908,7 +1938,8 @@ void UserWindow::RegisterJSContext(JSGlobalContextRef context)
 	// The page location has changed, but JavaScriptCore may have references
 	// to old DOMs still in memory waiting on garbage collection. Force a GC
 	// here so that memory usage stays reasonable.
-	JavascriptModuleInstance::GarbageCollect();
+	RunOnMainThread(new KFunctionPtrMethod(&DeferredGarbageCollection),
+		ArgList(), false);
 }
 
 void UserWindow::LoadUIJavaScript(JSGlobalContextRef context)
