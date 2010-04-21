@@ -72,6 +72,69 @@
 	//
 	// override console.log to also send into our API logger
 	//
+	var Logger = {
+		init: function(){
+			this.log = this._createLogger("log", 1);
+			this.debug = this._createLogger("debug", 2);
+			this.warn = this._createLogger("warn", 1);
+			this.info = this._createLogger("info", 1);
+			this.error = this._createLogger("error", 2);
+		},
+		_createLogger: function(level, depth){
+			var self = this;
+			return function(){
+				if(arguments.length === 0){
+					return;
+				}
+				var str = "";
+				for(var i = 0; i < arguments.length; ++i){
+					var arg = arguments[i];
+					str += " " + self.formatContent(arg, depth);
+				}
+				Titanium.API[level](str);
+			}
+		},
+		formatContent: function(content, depth){
+			if(depth===undefined){
+				depth=1;
+			}
+			if(typeof content === "undefined"){
+				return "undefined";
+			}
+			if(content === null){
+				return "null";
+			}else if(typeof content== "object"){
+				return this.serializeObject(content, depth);
+			}
+			else if(typeof content== "function"){
+				return "function()";
+			}
+			return content;
+		},
+		serializeObject: function(objectValue, depth){
+			if(depth==0){
+				return objectValue.toString();
+			}
+			else {
+				var serialized=[];
+				if(objectValue instanceof Array){
+					for(var key in objectValue){
+						var value = this.formatContent(objectValue[key], depth-1);
+						serialized.push(value);
+					}
+					return "[" + serialized + "]";
+				}else{
+					for(var key in objectValue){
+						var value = this.formatContent(objectValue[key], depth-1);
+						serialized.push(key + ": " + value);
+					}
+					return "{" + serialized + "}";
+				}
+			}
+		}
+	}
+	Logger.init();
+
 	// patch from cb1kenobi
 	function replaceMethod(obj, methodName, newMethod)
 	{
@@ -79,16 +142,16 @@
 		obj[originalMethodName] = obj[methodName];
 		var fn = function()
 		{
-			newMethod.apply(null, arguments);
+			newMethod.apply(window, arguments);
 			obj[originalMethodName].apply(obj, arguments);
 		};
 		obj[methodName] = fn;
 	}
-	replaceMethod(console, "debug", function(msg) { Titanium.API.debug(msg); });
-	replaceMethod(console, "log", function(msg) { Titanium.API.log(msg); });
-	replaceMethod(console, "info", function(msg) { Titanium.API.info(msg); });
-	replaceMethod(console, "warn", function(msg) { Titanium.API.warn(msg); });
-	replaceMethod(console, "error", function(msg) { Titanium.API.error(msg); });
+	replaceMethod(console, "debug", Logger.debug);
+	replaceMethod(console, "log", Logger.log);
+	replaceMethod(console, "info", Logger.info);
+	replaceMethod(console, "warn", Logger.warn);
+	replaceMethod(console, "error", Logger.error);
 
 	// Exchange the open() method for a version which ensures that a blank
 	// URL maps to app://__blank__ rather than about:blank.

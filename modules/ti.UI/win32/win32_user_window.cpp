@@ -625,7 +625,7 @@ bool Win32UserWindow::IsMaximized()
 
 void Win32UserWindow::Focus()
 {
-	if (viewWindowHandle && HasTransparentBackground())
+	if (viewWindowHandle)
 		SetFocus(viewWindowHandle);
 }
 

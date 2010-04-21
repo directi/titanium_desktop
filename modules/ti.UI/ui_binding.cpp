@@ -105,6 +105,11 @@ namespace ti
 		this->SetMethod("clearTray", &UIBinding::_ClearTray);
 
 		/**
+		 * @tiapi(method=True,name=UI.bounceDockIcon,since=0.9) Bounce the dock icon
+		 */
+		this->SetMethod("bounceDockIcon", &UIBinding::_BounceDockIcon);
+
+		/**
 		 * @tiapi(method=True,name=UI.setDockIcon,since=0.2) Set the dock icon
 		 * @tiarg(for=UI.setDockIcon,type=String,name=icon) path to the icon
 		 */
@@ -449,6 +454,11 @@ namespace ti
 				i++;
 			}
 		}
+	}
+
+	void UIBinding::_BounceDockIcon(const ValueList& args, KValueRef result)
+	{
+		this->BounceDockIcon();
 	}
 
 	void UIBinding::_SetDockIcon(const ValueList& args, KValueRef result)

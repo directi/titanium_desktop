@@ -18,6 +18,10 @@
 #include <sys/statvfs.h>
 #endif
 
+#ifdef OS_OSX
+#import <Foundation/Foundation.h>
+#endif
+
 #ifdef OS_WIN32
 #define MIN_PATH_LENGTH 3
 #else
@@ -38,6 +42,16 @@ namespace ti
 	{
 	}
 
+/*	void testMessage(std::string & str)
+	{
+		NSString * message = [NSString stringWithUTF8String: str.c_str()]; 
+		NSRunInformationalAlertPanel(@"test", // title
+				@"%@",
+				NSLocalizedString(@"OK", @""), // default button
+				nil, // alt button
+				nil, // other button
+				message);
+	}*/
 	void XMLLoggerFile::dumpToFile()
 	{
 		std::list<std::string> *tempWriteQueue = NULL;
@@ -63,7 +77,8 @@ namespace ti
 
 				if (stream.is_open())
 				{
-					stream.seekp(-(3 + rootXMLText.size()), std::ios_base::end);
+					int size = 3 + rootXMLText.size();
+					stream.seekp(-(size), std::ios_base::end);
 
 					while (!tempWriteQueue->empty())
 					{

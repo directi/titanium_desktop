@@ -31,6 +31,7 @@ namespace ti
 
 		AutoTrayItem AddTray(std::string& icon_path, KMethodRef cb);
 		void SetIcon(std::string& iconPath);
+		virtual void BounceDockIcon();
 		virtual void SetDockIcon(std::string& iconPath);
 		virtual void SetBadge(std::string& badgeLabel);
 		virtual void SetBadgeImage(std::string& badgeImage);

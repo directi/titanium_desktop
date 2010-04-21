@@ -84,7 +84,7 @@ namespace ti
 		this->SetCloseable(config->IsCloseable());
 		this->SetMaximizable(config->IsMaximizable());
 		this->SetMinimizable(config->IsMinimizable());
-		[nativeWindow setupDecorations:config];
+		[nativeWindow setupDecorations];
 		this->SetTopMost(config->IsTopMost());
 
 		if (config->IsMaximized())

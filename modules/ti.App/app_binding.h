@@ -24,6 +24,7 @@ namespace ti
 
 		void GetID(const ValueList& args, KValueRef result);
 		void GetName(const ValueList& args, KValueRef result);
+		void GetTitle(const ValueList& args, KValueRef result);
 		void GetVersion(const ValueList& args, KValueRef result);
 		void GetPublisher(const ValueList& args, KValueRef result);
 		void GetCopyright(const ValueList& args, KValueRef result);

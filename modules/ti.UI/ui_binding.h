@@ -50,6 +50,7 @@ namespace ti
 		void _GetIdleTime(const ValueList& args, KValueRef result);
 
 		/* OS X specific callbacks */
+		void _BounceDockIcon(const ValueList& args, KValueRef result);
 		void _SetDockIcon(const ValueList& args, KValueRef result);
 		void _SetDockMenu(const ValueList& args, KValueRef result);
 		void _SetBadge(const ValueList& args, KValueRef result);
@@ -68,6 +69,7 @@ namespace ti
 		virtual long GetIdleTime() = 0;
 
 		/* These have empty impls, because are OS X-only for now */
+		virtual void BounceDockIcon() {}
 		virtual void SetDockIcon(std::string& icon_path) {}
 		virtual void SetDockMenu(AutoMenu) {}
 		virtual void SetBadge(std::string& badgeLabel) {}

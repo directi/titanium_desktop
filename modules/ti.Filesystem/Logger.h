@@ -7,7 +7,7 @@
 #define _TI_LOGGER_H_
 
 #include <map>
-#include "LoggerFile.h"
+#include <kroll/kroll.h>
 
 
 namespace ti
@@ -17,9 +17,9 @@ namespace ti
 		public:
 			Poco::Mutex referencesMutex;
 			int references;
-			LoggerFile * file;
+			kroll::LoggerFile * file;
 
-			ReferenceCountedLogger(LoggerFile *_file = NULL)
+			ReferenceCountedLogger(kroll::LoggerFile *_file = NULL)
 				: references(0), file(_file) { }
 
 			void addRef()

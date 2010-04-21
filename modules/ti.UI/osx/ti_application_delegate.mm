@@ -64,5 +64,15 @@
 	return YES;
 }
 
+-(BOOL)applicationShouldHandleReopen:(NSApplication *)theApplication hasVisibleWindows:(BOOL)flag
+{
+	AutoPtr<GlobalObject> globalObject(GlobalObject::GetInstance());
+	AutoPtr<Event> event(globalObject->CreateEvent(Event::DOCK_ICON_CLICKED));
+	globalObject->FireEvent(event);
+
+	return YES;
+
+}
+
 @end
 

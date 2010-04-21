@@ -99,3 +99,4 @@ HRESULT STDMETHODCALLTYPE Win32WebKitFrameLoadDelegate::didReceiveTitle(
 	}
 	return S_OK;
 }
+

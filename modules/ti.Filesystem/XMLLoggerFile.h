@@ -12,12 +12,12 @@
 
 #include <string>
 
-#include "LoggerFile.h"
+#include <kroll/kroll.h>
 
 namespace ti
 {
 	class XMLLoggerFile
-		: public LoggerFile
+		: public kroll::LoggerFile
 	{
 		public:
 			XMLLoggerFile(const std::string &filename, const std::string &_rootXMLText, const std::string &_xsltFile);

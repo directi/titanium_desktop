@@ -511,7 +511,6 @@ HRESULT STDMETHODCALLTYPE Win32WebKitUIDelegate::printFrame(
 		framePrivate->Release();
 
 	return S_OK;
-
 }
 
 HRESULT STDMETHODCALLTYPE Win32WebKitUIDelegate::webViewPrintingMarginRect(

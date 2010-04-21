@@ -102,6 +102,11 @@ namespace ti
 		this->contextMenu = menu.cast<OSXMenu>();
 	}
 
+	void OSXUIBinding::BounceDockIcon()
+	{
+		[NSApp requestUserAttention: NSInformationalRequest];
+	}
+
 	void OSXUIBinding::SetDockIcon(std::string& badgePath)
 	{
 		//TODO: Put Dock Icon support back in for 10.4.
