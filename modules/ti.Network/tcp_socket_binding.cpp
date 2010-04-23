@@ -404,12 +404,14 @@ namespace ti
 
 	void TCPSocketBinding::CompleteClose()
 	{
+		bool socketNeedsToBeClosed = (this->sock_state != SOCK_CLOSED)?true:false;
+
 		this->sock_state = SOCK_CLOSED;
 		this->read_state = READ_CLOSED;
 		this->write_state = WRITE_CLOSED;
 		this->SetReactorDescriptors();
 
-		if(this->sock_state != SOCK_CLOSED)
+		if(socketNeedsToBeClosed)
 		{
 			GetLogger()->Debug("Closing socket to: %s:%d ", this->host.c_str(), this->port);
 			//Ensure Reactor Descriptors are updated before the socket is closed
