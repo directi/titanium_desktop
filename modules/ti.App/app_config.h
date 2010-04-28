@@ -30,6 +30,7 @@ public:
 	AutoPtr<PropertiesBinding> GetSystemProperties() { return systemProperties; }
 	std::string& GetIcon() { return icon; }
 	bool IsAnalyticsEnabled() { return analyticsEnabled; }
+	bool IsUpdateMonitorEnabled() { return updateMonitorEnabled; }
 	static AppConfig* Instance();
 
 private:
@@ -45,6 +46,7 @@ private:
 	std::string publisher;
 	std::string icon;
 	bool analyticsEnabled;
+	bool updateMonitorEnabled;
 	static AppConfig* instance_;
 	AppConfig(std::string& xmlfile);
 };

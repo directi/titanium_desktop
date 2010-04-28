@@ -246,7 +246,8 @@ namespace ti
 	bool OSXMenu::IsNativeMenuAMainMenu(NSMenu* menu)
 	{
 		return ([menu numberOfItems] > 0 &&
-			[[[[menu itemAtIndex:0] submenu] title] isEqualToString:@"Apple"]);
+			([[[[menu itemAtIndex:0] submenu] title] isEqualToString:@"Apple"]
+			 || [[[[menu itemAtIndex:0] submenu] title] isEqualToString:@"APPNAME"]));
 	}
 
 	/*static*/
@@ -347,10 +348,10 @@ namespace ti
 	/*static*/
 	void OSXMenu::SetupInspectorItem(NSMenu* menu)
 	{
-		NSMenu *windowMenu = OSXMenu::GetWindowMenu(menu);
-		NSMenuItem *showInspector = [windowMenu
+		NSMenu* windowMenu = OSXMenu::GetWindowMenu(menu);
+		NSMenuItem* showInspector = [windowMenu
 			itemWithTitle:NSLocalizedString(@"Show Inspector", @"")];
-		NSMenuItem *showInspectorSeparator = [windowMenu
+		NSMenuItem* showInspectorSeparator = [windowMenu
 			itemWithTitle:NSLocalizedString(@"Show Inspector Separator", @"")];
 
 		if (!Host::GetInstance()->DebugModeEnabled())

@@ -136,14 +136,9 @@ namespace ti
 		/**
 		 * @tiapi(property=True,immutable=True,name=Filesystem.MODE_READ, since=0.3, type=Number) File read constant
 		 */
+
 		this->Set("MODE_READ", Value::NewInt(MODE_READ));
-		/**
-		 * @tiapi(property=True,immutable=True,name=Filesystem.MODE_WRITE, since=0.3, type=Number) File write constant
-		 */
 		this->Set("MODE_WRITE", Value::NewInt(MODE_WRITE));
-		/**
-		 * @tiapi(property=True,immutable=True,name=Filesystem.MODE_APPEND, since=0.3, type=Number) File append constant
-		 */
 		this->Set("MODE_APPEND", Value::NewInt(MODE_APPEND));
 	}
 
@@ -347,6 +342,7 @@ namespace ti
 		ti::File* file = new ti::File(dir);
 		result->SetObject(file);
 	}
+
 	void FilesystemBinding::GetLineEnding(const ValueList& args, KValueRef result)
 	{
 		try
@@ -358,6 +354,7 @@ namespace ti
 			throw ValueException::FromString(exc.displayText());
 		}
 	}
+
 	void FilesystemBinding::GetSeparator(const ValueList& args, KValueRef result)
 	{
 		try
@@ -371,6 +368,7 @@ namespace ti
 			throw ValueException::FromString(exc.displayText());
 		}
 	}
+
 	void FilesystemBinding::GetRootDirectories(const ValueList& args, KValueRef result)
 	{
 		try
@@ -395,6 +393,7 @@ namespace ti
 			throw ValueException::FromString(exc.displayText());
 		}
 	}
+
 	void FilesystemBinding::ExecuteAsyncCopy(const ValueList& args, KValueRef result)
 	{
 		if (args.size()!=3)
@@ -437,6 +436,7 @@ namespace ti
 			this->timer->restart(100);
 		}
 	}
+
 	void FilesystemBinding::DeletePendingOperations(const ValueList& args, KValueRef result)
 	{
 		KR_DUMP_LOCATION
@@ -463,6 +463,7 @@ namespace ti
 		// return true to pause the timer
 		result->SetBool(asyncOperations.size()==0);
 	}
+
 	void FilesystemBinding::OnAsyncOperationTimer(Poco::Timer &timer)
 	{
 		START_KROLL_THREAD;

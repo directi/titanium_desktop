@@ -114,6 +114,11 @@ class App(object):
 			write_line(module[0] + ': ' + module[1])
 		f.close()
 
+	def install(self):
+		f = open(p.join(self.get_contents_dir(), '.installed'), 'w')
+		f.write("installed")
+		f.close()
+
 	def write_tiapp(self, path):
 		xml.etree.ElementTree._namespace_map['http://ti.appcelerator.org'] = 'ti'
 		xml.etree.ElementTree._namespace_map['http://www.appcelerator.org'] = 'appc'
@@ -179,6 +184,9 @@ class App(object):
 				target = p.join(contents, 'modules', module[0])
 				effess.lightweight_copy_tree(source, target,
 					exclude=self.env.get_excludes())
+
+	def run(self):
+		self.env.run(self.executable_path)
 
 	def get_installer_image(self, tag_name, default=None):
 		# Try to find 'tag_name' and also 'tag-name' (typical XML style)

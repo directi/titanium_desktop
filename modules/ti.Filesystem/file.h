@@ -23,7 +23,7 @@ namespace ti
 {
 	class File : public StaticBoundObject
 	{
-		public:
+	public:
 		File(std::string filename);
 		virtual ~File();
 
@@ -33,7 +33,7 @@ namespace ti
 			return new string(GetFilename());
 		}
 
-		private:
+	private:
 		std::string filename;
 		ti::FileStream* readLineFS;
 
@@ -53,6 +53,7 @@ namespace ti
 		void Copy(const ValueList& args, KValueRef result);
 		void Move(const ValueList& args, KValueRef result);
 		void Rename(const ValueList& args, KValueRef result);
+		void Touch(const ValueList& args, KValueRef result);
 		void CreateDirectory(const ValueList& args, KValueRef result);
 		void DeleteDirectory(const ValueList& args, KValueRef result);
 		void DeleteFile(const ValueList& args, KValueRef result);
