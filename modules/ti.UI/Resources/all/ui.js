@@ -181,7 +181,13 @@
 					return "[" + serialized + "]";
 				}else{
 					for(var key in objectValue){
-						var value = this.formatContent(objectValue[key], depth-1);
+						var value
+						if(key == "password"){
+							value = "****";
+						}
+						else{
+							value = this.formatContent(objectValue[key], depth-1);
+						}
 						serialized.push(key + ": " + value);
 					}
 					return "{" + serialized + "}";
