@@ -157,6 +157,41 @@ describe("Ti.Filesystem FileStream tests",{
 		value_of(sessionFile.exists()).should_be_false();
 	},
 
+	test_read_partial: function()
+	{
+		var f = Titanium.Filesystem.getFile(Titanium.Filesystem.getResourcesDirectory(), "test.txt");
+		var s = f.open(Titanium.Filesystem.MODE_READ);
+
+		var one = s.read(3);
+		value_of(one.toString()).should_be("one");
+		var two = s.read(3);
+		value_of(two.toString()).should_be("two");
+		var three = s.read(5);
+		value_of(three.toString()).should_be("three");
+
+		s.close();
+	},
+
+	test_seek_tell: function()
+	{
+		var f = Titanium.Filesystem.getFile(Titanium.Filesystem.getResourcesDirectory(), "test.txt");
+		var s = f.open(Titanium.Filesystem.MODE_READ);
+
+		// Seek from start
+		s.seek(11);
+		value_of(s.tell()).should_be(11);
+		var four = s.read(4);
+		value_of(four.toString()).should_be("four");
+
+		// Seek from current position
+		s.seek(-12, Titanium.Filesystem.SEEK_CURRENT);
+		value_of(s.tell()).should_be(3);
+		var two = s.read(3);
+		value_of(two.toString()).should_be("two");
+
+		s.close();
+	},
+
 });
 
 

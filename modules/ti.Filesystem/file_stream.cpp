@@ -13,7 +13,7 @@ namespace ti
 {
 	FileStream::FileStream(std::string filenameIn) :
 		StaticBoundObject("Filesystem.FileStream"),
-		stream(0)
+		istream(0), ostream(0), stream(0)
 	{
 #ifdef OS_OSX
 		// in OSX, we need to expand ~ in paths to their absolute path value
@@ -32,7 +32,11 @@ namespace ti
 		this->SetMethod("writeLine", &FileStream::WriteLine);
 		this->SetMethod("ready", &FileStream::Ready);
 		this->SetMethod("isOpen", &FileStream::IsOpen);
-		
+		this->SetMethod("seek", &FileStream::Seek);
+		this->SetMethod("tell", &FileStream::Tell);
+
+		// These should be depricated and no longer used.
+		// All constants should be kept on Ti.Filesystem object.
 		this->Set("MODE_READ", Value::NewInt(MODE_READ));
 		this->Set("MODE_APPEND", Value::NewInt(MODE_APPEND));
 		this->Set("MODE_WRITE", Value::NewInt(MODE_WRITE));
@@ -45,18 +49,11 @@ namespace ti
 
 	void FileStream::Open(const ValueList& args, KValueRef result)
 	{
-		FileStreamMode mode = MODE_READ;
-		bool binary = false;
-		bool append = false;
+		args.VerifyException("open", "?ibb");
 
-		if (args.size() >= 1)
-			mode = (FileStreamMode) args.at(0)->ToInt();
-
-		if (args.size() >= 2)
-				binary = args.at(1)->ToBool();
-
-		if (args.size() >= 3)
-			append = args.at(2)->ToBool();
+		FileStreamMode mode = (FileStreamMode) args.GetInt(0, MODE_READ);
+		bool binary = args.GetBool(1, false);
+		bool append = args.GetBool(2, false);
 
 		bool opened = this->Open(mode, binary, append);
 		result->SetBool(opened);
@@ -71,10 +68,12 @@ namespace ti
 		{
 			std::ios::openmode flags = (std::ios::openmode) 0;
 			bool output = false;
+
 			if (binary)
 			{
 				flags|=std::ios::binary;
 			}
+
 			if (mode == MODE_APPEND)
 			{
 				flags|=std::ios::out|std::ios::app;
@@ -89,17 +88,21 @@ namespace ti
 			{
 				flags |= std::ios::in;
 			}
+
 			if (output)
 			{
-				this->stream = new Poco::FileOutputStream(this->filename,flags);
+				this->ostream = new Poco::FileOutputStream(this->filename,flags);
+				this->stream = this->ostream;
 #ifndef OS_WIN32
 				chmod(this->filename.c_str(),S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
 #endif		
 			}
 			else
 			{
-				this->stream = new Poco::FileInputStream(this->filename,flags);
+				this->istream = new Poco::FileInputStream(this->filename,flags);
+				this->stream = this->istream;
 			}
+
 			return true;
 		}
 		catch (Poco::Exception& exc)
@@ -122,14 +125,17 @@ namespace ti
 		{
 			if (this->stream)
 			{
-				Poco::FileOutputStream* fos = dynamic_cast<Poco::FileOutputStream*>(this->stream);
-				if (fos)
+				if (this->ostream)
 				{
-					fos->flush();
+					this->ostream->flush();
 				}
+
 				this->stream->close();
 				delete this->stream;
 				this->stream = NULL;
+				this->istream = NULL;
+				this->ostream = NULL;
+
 				return true;
 			}
 		}
@@ -145,6 +151,8 @@ namespace ti
 
 	void FileStream::Write(const ValueList& args, KValueRef result)
 	{
+		args.VerifyException("write", "s|o|n");
+
 		char *text = NULL;
 		int size = 0;
 		if (args.at(0)->IsObject())
@@ -185,16 +193,12 @@ namespace ti
 			size = strlen(text);
 		}
 
-		if (text == NULL)
+		if (text == NULL || size <= 0)
 		{
 			result->SetBool(false);
 			return;
 		}
-		if (size <= 0)
-		{
-			result->SetBool(false);
-			return;
-		}
+
 		Write(text,size);
 		result->SetBool(true);
 	}
@@ -203,13 +207,12 @@ namespace ti
 	{
 		try
 		{
-			Poco::FileOutputStream* fos = dynamic_cast<Poco::FileOutputStream*>(this->stream);
-			if(!fos)
+			if(!this->ostream)
 			{
 				throw ValueException::FromString("FileStream must be opened for writing before calling write");
 			}
 
-			fos->write(text, size);
+			this->ostream->write(text, size);
 		}
 		catch (Poco::Exception& exc)
 		{
@@ -221,38 +224,60 @@ namespace ti
 
 	void FileStream::Read(const ValueList& args, KValueRef result)
 	{
-		if (!this->stream)
-		{
-			Logger* logger = Logger::Get("Filesystem.FileStream");
-			logger->Error("Error in read. FileStream must be opened before calling read");
-			throw ValueException::FromString("FileStream must be opened before calling read");
-		}
+		args.VerifyException("read", "?i");
 
 		try
 		{
-			Poco::FileInputStream* fileStream = dynamic_cast<Poco::FileInputStream*>(this->stream);
-			if (!fileStream)
+			if (!this->istream)
 			{
 				Logger* logger = Logger::Get("Filesystem.FileStream");
 				logger->Error("Error in read. FileInputStream is null");
 				throw ValueException::FromString("FileStream must be opened for reading before calling read");
 			}
-			
-			std::vector<char> buffer;
-			char data[4096];
 
-			while (!fileStream->eof())
+			if (args.size() >= 1)
 			{
-				fileStream->read((char*)&data, 4095);
-				int length = fileStream->gcount();
-				if (length > 0)
-				{
-					buffer.insert(buffer.end(), data, data+length);
-				}
-				else break;
-			}
+				int size = args.GetInt(0);
+				if (size <= 0)
+					throw ValueException::FromString("File.read() size must be greater than zero");
 
-			result->SetObject(new Bytes(&(buffer[0]), buffer.size()));
+				char* buffer = new char[size + 1];
+				this->istream->read(buffer, size);
+
+				int readCount = this->istream->gcount();
+				if (readCount > 0)
+				{
+					// Store read data into a byte blob
+					buffer[readCount] = '\0';
+					result->SetObject(new Bytes(buffer, readCount, false));
+				}
+				else
+				{
+					// No data read, must be at EOF
+					result->SetNull();
+				}
+			}
+			else
+			{
+				// If no read size is provided, read the entire file.
+				// TODO: this is not a very efficent method and should be deprecated
+				// and replaced by buffered stream transports
+				std::vector<char> buffer;
+				char data[4096];
+
+				while (!this->istream->eof())
+				{
+					this->istream->read((char*)&data, 4095);
+					int length = this->istream->gcount();
+					if (length > 0)
+					{
+						buffer.insert(buffer.end(), data, data+length);
+					}
+					else break;
+				}
+
+				result->SetObject(new Bytes(&(buffer[0]), buffer.size()));
+			}
 		}
 		catch (Poco::Exception& exc)
 		{
@@ -264,24 +289,16 @@ namespace ti
 
 	void FileStream::ReadLine(const ValueList& args, KValueRef result)
 	{
-		if (!this->stream)
-		{
-			Logger* logger = Logger::Get("Filesystem.FileStream");
-			logger->Error("Error in readLine. FileStream must be opened before calling read");
-			throw ValueException::FromString("FileStream must be opened before calling readLine");
-		}
-
 		try
 		{
-			Poco::FileInputStream* fis = dynamic_cast<Poco::FileInputStream*>(this->stream);
-			if (!fis)
+			if (!this->istream)
 			{
 				Logger* logger = Logger::Get("Filesystem.FileStream");
 				logger->Error("Error in readLine. FileInputStream is null");
 				throw ValueException::FromString("FileStream must be opened for reading before calling readLine");
 			}
 
-			if (fis->eof())
+			if (this->istream->eof())
 			{
 				// close the file
 				result->SetNull();
@@ -289,7 +306,7 @@ namespace ti
 			else
 			{
 				std::string line;
-				std::getline(*fis, line);
+				std::getline(*this->istream, line);
 #ifdef OS_WIN32
 				// In some cases std::getline leaves a CR on the end of the line in win32 -- why God, why?
 				if (!line.empty())
@@ -302,7 +319,7 @@ namespace ti
 #endif
 				if (line.empty() || line.size()==0)
 				{
-					if (fis->eof())
+					if (this->istream->eof())
 					{
 						// if this is EOF, return null
 						result->SetNull();
@@ -329,10 +346,13 @@ namespace ti
 
 	void FileStream::WriteLine(const ValueList& args, KValueRef result)
 	{
+		args.VerifyException("writeLine", "s|o|n");
+
 		if(! this->stream)
 		{
 			throw ValueException::FromString("FileStream must be opened before calling readLine");
 		}
+
 		char *text = NULL;
 		int size = 0;
 		if (args.at(0)->IsObject())
@@ -373,16 +393,12 @@ namespace ti
 			size = strlen(text);
 		}
 
-		if (text == NULL)
+		if (text == NULL || size <= 0)
 		{
 			result->SetBool(false);
 			return;
 		}
-		if (size <= 0)
-		{
-			result->SetBool(false);
-			return;
-		}
+
 		std::string astr = text;
 #ifdef OS_WIN32
 		astr += "\r\n";
@@ -395,21 +411,56 @@ namespace ti
 
 	void FileStream::Ready(const ValueList& args, KValueRef result)
 	{
-		Poco::FileIOS* fis = this->stream;
-		if(!fis)
+		if(!this->stream)
 		{
 			result->SetBool(false);
 		}
 		else
 		{
-			result->SetBool(fis->eof()==false);
+			result->SetBool(this->stream->eof()==false);
 		}
 	}
 
 	void FileStream::IsOpen(const ValueList& args, KValueRef result)
 	{
-		Poco::FileIOS* fis = this->stream;
-		result->SetBool(fis!=NULL);
+		result->SetBool(this->stream != NULL);
+	}
+
+	void FileStream::Seek(const ValueList& args, KValueRef result)
+	{
+		args.VerifyException("seek", "i?i");
+
+		int offset = args.GetInt(0);
+		std::ios::seekdir dir = (std::ios::seekdir)args.GetInt(1, std::ios::beg);
+
+		if (this->istream)
+		{
+			this->istream->seekg(offset, dir);
+		}
+		else if (this->ostream)
+		{
+			this->ostream->seekp(offset, dir);
+		}
+		else
+		{
+			throw ValueException::FromString("FileStream must be opened before seeking");
+		}
+	}
+
+	void FileStream::Tell(const ValueList& args, KValueRef result)
+	{
+		if (this->istream)
+		{
+			result->SetInt(this->istream->tellg());
+		}
+		else if (this->ostream)
+		{
+			result->SetInt(this->ostream->tellp());
+		}
+		else
+		{
+			throw ValueException::FromString("FileStream must be opend before using tell");
+		}
 	}
 
 }

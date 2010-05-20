@@ -8,6 +8,7 @@
 #include "filesystem_binding.h"
 #include "file.h"
 #include "Logger.h"
+#include "file_stream.h"
 #include "async_copy.h"
 #include "filesystem_utils.h"
 
@@ -137,9 +138,12 @@ namespace ti
 		 * @tiapi(property=True,immutable=True,name=Filesystem.MODE_READ, since=0.3, type=Number) File read constant
 		 */
 
-		this->Set("MODE_READ", Value::NewInt(MODE_READ));
-		this->Set("MODE_WRITE", Value::NewInt(MODE_WRITE));
-		this->Set("MODE_APPEND", Value::NewInt(MODE_APPEND));
+		this->SetInt("MODE_READ", MODE_READ);
+		this->SetInt("MODE_WRITE", MODE_WRITE);
+		this->SetInt("MODE_APPEND", MODE_APPEND);
+		this->SetInt("SEEK_START", std::ios::beg);
+		this->SetInt("SEEK_CURRENT", std::ios::cur);
+		this->SetInt("SEEK_END", std::ios::end);
 	}
 
 	FilesystemBinding::~FilesystemBinding()
