@@ -99,9 +99,7 @@ namespace ti
 		if (!mediaControl)
 			return;
 
-		if (state == PLAYING)
-			mediaControl->Stop();
-
+		mediaControl->Stop();
 		// Set the stream location to start at 0 (absolute beginning)
 		// and have it end at NoPosition i.e. keep playing.
 		LONGLONG newStartPosition = 0;
