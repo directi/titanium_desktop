@@ -51,9 +51,9 @@ namespace ti
 		modulePath = GetPath();
 
 		this->networkBinding = new NetworkBinding(host);
-		this->analyticsBinding = new AnalyticsBinding();
+		//this->analyticsBinding = new AnalyticsBinding();
 		GlobalObject::GetInstance()->SetObject("Network", this->networkBinding);
-		GlobalObject::GetInstance()->SetObject("Analytics", this->analyticsBinding);
+		//GlobalObject::GetInstance()->SetObject("Analytics", this->analyticsBinding);
 
 		curlShareHandle = curl_share_init();
 		curl_share_setopt(curlShareHandle, CURLSHOPT_SHARE, CURL_LOCK_DATA_COOKIE);
@@ -65,7 +65,7 @@ namespace ti
 	void NetworkModule::Stop()
 	{
 		networkBinding->Shutdown();
-		analyticsBinding->Shutdown();
+		//analyticsBinding->Shutdown();
 	}
 
 	/*static*/
