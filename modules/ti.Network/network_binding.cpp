@@ -140,13 +140,18 @@ namespace ti
 		// NOTE: this is only used internally and shouldn't be published
 		this->SetMethod("FireOnlineStatusChange",&NetworkBinding::FireOnlineStatusChange);
 
-		this->netStatus = new NetworkStatus(this);
-		this->netStatus->Start();
+		// disabling netstatus as its a crappy way of checking the network connectivity :P
+		// TODO: needs to come up with a proper way for checking network availability.
+		//this->netStatus = new NetworkStatus(this);
+		//this->netStatus->Start();
 	}
 
 	NetworkBinding::~NetworkBinding()
 	{
-		delete this->netStatus;
+		//if(this->netStatus)
+		//{
+		//	delete this->netStatus;
+		//}
 	}
 
 	void NetworkBinding::Shutdown()
