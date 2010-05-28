@@ -120,6 +120,8 @@ namespace ti
 		{
 			this->Unfocus();
 			[nativeWindow orderOut:nil];
+			// hidden windows should not show up in windows menu
+			[nativeWindow setExcludedFromWindowsMenu:YES];
 			this->FireEvent(Event::HIDDEN);
 		}
 	}
@@ -128,6 +130,8 @@ namespace ti
 	{
 		if (nativeWindow && ![nativeWindow isKeyWindow])
 		{
+			// visible windows should show up in windows menu
+			[nativeWindow setExcludedFromWindowsMenu:NO];
 			[NSApp arrangeInFront:nativeWindow];
 			[nativeWindow makeKeyAndOrderFront:nativeWindow];
 			[NSApp activateIgnoringOtherApps:YES];
