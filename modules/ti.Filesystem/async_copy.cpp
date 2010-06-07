@@ -120,6 +120,7 @@ namespace ti
 		int c = 0;
 		while (!ac->stopped && iter!=ac->files.end())
 		{
+			bool err_copy = false;
 			std::string file = (*iter++);
 			c++;
 
@@ -144,27 +145,51 @@ namespace ti
 				args.push_back(value);
 				args.push_back(Value::NewInt(c));
 				args.push_back(Value::NewInt(ac->files.size()));
+				args.push_back(Value::NewBool(true));
 				RunOnMainThread(ac->callback, args, false);
 
 				logger->Debug("Callback executed");
 			}
 			catch (ValueException &ex)
 			{
+				err_copy = true;
 				SharedString ss = ex.DisplayString();
 				logger->Error(std::string("Error: ") + *ss + " for file: " + file);
 			}
 			catch (Poco::Exception &ex)
 			{
+				err_copy = true;
 				logger->Error(std::string("Error: ") + ex.displayText() + " for file: " + file);
 			}
 			catch (std::exception &ex)
 			{
+				err_copy = true;
 				logger->Error(std::string("Error: ") + ex.what() + " for file: " + file);
 			}
 			catch (...)
 			{
+				err_copy = true;
 				logger->Error(std::string("Unknown error during copy: ") + file);
 			}
+			try
+			{
+				if(err_copy)
+				{
+					KValueRef value = Value::NewString(file);
+					ValueList args;
+					args.push_back(value);
+					args.push_back(Value::NewInt(c));
+					args.push_back(Value::NewInt(ac->files.size()));
+					args.push_back(Value::NewBool(false));
+					RunOnMainThread(ac->callback, args, false);
+				}
+			}
+			catch(...)
+			{
+				err_copy = true;
+				logger->Error(std::string("Unknown error during copy: ") + file);
+			}
+
 		}
 		ac->Set("running",Value::NewBool(false));
 		ac->stopped = true;
