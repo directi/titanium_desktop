@@ -33,17 +33,21 @@ namespace ti
 		private:
 			std::vector<std::string> files;
 			const std::string zipFileName;
-			KMethodRef callback;
+			KMethodRef onCompleteCallback;
+			KMethodRef progressCallback;
 			Poco::Thread *thread;
 			
 			void ToString(const ValueList& args, KValueRef result);
+			void GetFileCount(const ValueList& args, KValueRef result);
 
 			static void Run(void*);
+
+			int getFileCount();
 
 			void DecompressAll(const ValueList& args, KValueRef result);
 
 			// Internal functions
-			void DecompressAll(const std::string & destDir, KMethodRef callback);
+			void DecompressAll(const std::string & destDir, KMethodRef onCompleteCallback, KMethodRef progressCallback);
 			void onDecompressError(const void* pSender, std::pair<const Poco::Zip::ZipLocalFileHeader, const std::string>& info);
 			void onDecompressOk(const void* pSender, std::pair<const Poco::Zip::ZipLocalFileHeader, const Poco::Path>& val);
 			//void onDecompressOk(const void* pSender, std::pair<const Poco::Zip::ZipLocalFileHeader, const std::string>& info);

@@ -28,6 +28,11 @@ namespace ti
 			thread(NULL)
 	{
 		/**
+		 * @tiapi(method=True,name=ZipDecompress.getFileCount) gives count of number of files in the archieve
+		 */
+		this->SetMethod("getFileCount",&ZipDecompress::GetFileCount);
+
+		/**
 		 * @tiapi(method=True,name=ZipDecompress.decompressAllFiles) decompresses the zip file
 		 */
 		this->SetMethod("decompressAllFiles",&ZipDecompress::DecompressAll);
@@ -53,14 +58,38 @@ namespace ti
 
 	void ZipDecompress::ToString(const ValueList& args, KValueRef result)
 	{
-		result->SetString("[Zip Decompress]");
+		result->SetString("[Zip Decompress: " + this->zipFileName + "]");
+	}
+
+	void ZipDecompress::GetFileCount(const ValueList& args, KValueRef result)
+	{
+		result->SetDouble(getFileCount());
+	}
+
+	int ZipDecompress::getFileCount()
+	{
+		int count=0;
+		std::ifstream inp("c:\\test.zip", std::ios::binary);
+		if(!inp)
+		{
+			throw ValueException::FromString("unable to open file");
+		}
+
+		typedef Poco::Zip::ZipArchive za_t;
+		za_t za(inp);
+		for (za_t::FileInfos::const_iterator i = za.fileInfoBegin(); 
+			i != za.fileInfoEnd(); ++i)
+		{
+			if (!i->second.isDirectory()) ++count;
+		}
+		return count;
 	}
 	void ZipDecompress::DecompressAll(const ValueList& args, KValueRef result)
 	{
 		std::string destDir;
-		if (args.size()!=2)
+		if (args.size() < 2)
 		{
-			throw ValueException::FromString("invalid arguments - this method takes 2 arguments");
+			throw ValueException::FromString("please provide at least 2 args");
 		}
 		if (args.at(0)->IsString())
 		{
@@ -70,25 +99,40 @@ namespace ti
 		{
 			throw ValueException::FromString("invalid argument - first argument must be destDir(string)");
 		}
-		KMethodRef callback;
+
+		KMethodRef onCompleteCallback = NULL;
 		if (args.at(1)->IsMethod())
 		{
-			callback = args.at(1)->ToMethod();
+			onCompleteCallback = args.at(1)->ToMethod();
 		}
 		else
 		{
 			throw ValueException::FromString("invalid argument - second argument must be method callback");
 		}
 
+		KMethodRef progressCallback = NULL;
+		if (args.size() > 2)
+		{
+			if (args.at(2)->IsMethod())
+			{
+				progressCallback = args.at(2)->ToMethod();
+			}
+			else
+			{
+				throw ValueException::FromString("invalid argument - third argument must be method callback");
+			}
+		}
 
-		DecompressAll(destDir, callback);
+
+		DecompressAll(destDir, onCompleteCallback, progressCallback);
 		//this->thread = new Poco::Thread();
 		//this->thread->start(&ZipDecompress::Run,this);
 	}
 
-	void ZipDecompress::DecompressAll(const std::string & destDir, KMethodRef callback)
+	void ZipDecompress::DecompressAll(const std::string & destDir, KMethodRef onCompleteCallback, KMethodRef progressCallback)
 	{
-		this->callback = callback;
+		this->onCompleteCallback = onCompleteCallback;
+		this->progressCallback = progressCallback;
 		std::ifstream inp(zipFileName.c_str(), std::ios::binary);
 		if(!inp)
 		{
@@ -104,19 +148,30 @@ namespace ti
 		dec.EError -= Poco::Delegate<ZipDecompress, std::pair<const Poco::Zip::ZipLocalFileHeader, const std::string> >(this, &ZipDecompress::onDecompressError);
 		dec.EOk -= Poco::Delegate<ZipDecompress, std::pair<const Poco::Zip::ZipLocalFileHeader, const Poco::Path> >(this, &ZipDecompress::onDecompressOk);
 
+		// calling back oncomplete callback
+		ValueList args;
+		RunOnMainThread(this->onCompleteCallback, args, false);
+
 	}
 	void ZipDecompress::onDecompressError(const void* pSender, std::pair<const Poco::Zip::ZipLocalFileHeader, const std::string>& info)
 	{
 		ValueList args;
 		args.push_back(Value::NewBool(false));
-		RunOnMainThread(this->callback, args, false);
+		args.push_back(Value::NewString(info.second));
+		if (this->progressCallback)
+		{
+			RunOnMainThread(this->progressCallback, args, false);
+		}
 	}
 
 	void ZipDecompress::onDecompressOk(const void* pSender, std::pair<const Poco::Zip::ZipLocalFileHeader, const Poco::Path>& val)
 	{
 		ValueList args;
 		args.push_back(Value::NewBool(true));
-		RunOnMainThread(this->callback, args, false);
+		if (this->progressCallback)
+		{
+			RunOnMainThread(this->progressCallback, args, false);
+		}
 	}
 
 }
