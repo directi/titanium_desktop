@@ -10,6 +10,10 @@
 #include <Poco/Path.h>
 #include <Poco/FileStream.h>
 #include <Poco/Exception.h>
+#include <Poco/MD5Engine.h>
+#include <Poco/DigestStream.h>
+#include <Poco/StreamCopier.h>
+
 
 #ifndef OS_WIN32
 #include <sys/types.h>
@@ -225,6 +229,12 @@ namespace ti
 		 * @tiresult[Boolean] True if the operation was succesful, false otherwise.
 		 */
 		this->SetMethod("unzip",&File::Unzip);
+
+		/**
+		 * @tiapi(method=True,name=Filesystem.File.md5Digest,since=1.1.0)
+		 * @tiresult[String] MD5Digest String of File.
+		 */
+		this->SetMethod("MD5Digest",&File::MD5Digest);
 	}
 
 	File::~File()
@@ -1015,5 +1025,47 @@ namespace ti
 		{
 			throw ValueException::FromString(exc.displayText());
 		}
+	}
+
+	void File::MD5Digest(const ValueList& args, KValueRef result)
+	{
+		if (args.size() < 1)
+		{
+			throw ValueException::FromString("please provide call back as argument");
+		}
+
+		KMethodRef onCompleteCallback = NULL;
+		if (args.at(0)->IsMethod())
+		{
+			onCompleteCallback = args.at(0)->ToMethod();
+		}
+		else
+		{
+			throw ValueException::FromString("invalid argument - second argument must be method callback");
+		}
+
+		string md5 = this->getMD5Digest();
+
+		ValueList cb_args;
+		cb_args.push_back(Value::NewString(md5));
+		if (onCompleteCallback)
+		{
+			RunOnMainThread(onCompleteCallback, cb_args, false);
+		}
+	}
+
+	std::string File::getMD5Digest() const
+	{
+		std::ifstream istr(this->filename.c_str(), std::ios::binary);
+		if (!istr)
+		{
+			throw ValueException::FromString("cannot open input file: " + this->filename);
+		}
+
+		Poco::MD5Engine md5;
+		Poco::DigestOutputStream dos(md5);
+		Poco::StreamCopier::copyStream(istr, dos);
+		dos.close();
+		return Poco::DigestEngine::digestToHex(md5.digest());
 	}
 }
