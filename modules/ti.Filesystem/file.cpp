@@ -992,39 +992,93 @@ namespace ti
 	 */
 	void File::Unzip(const ValueList& args, KValueRef result)
 	{
-		if (args.size()!=1)
+		std::string destDir;
+		if (args.size() < 2)
 		{
-			throw ValueException::FromString("invalid arguments - expected destination");
+			throw ValueException::FromString("please provide at least 2 args");
 		}
+
+		destDir = * FileSystemUtils::GetFileName(args.at(0));
+		KMethodRef onCompleteCallback = NULL;
+		if (args.at(1)->IsMethod())
+		{
+			onCompleteCallback = args.at(1)->ToMethod();
+		}
+		else
+		{
+			throw ValueException::FromString("invalid argument - second argument must be method callback");
+		}
+
+		KMethodRef progressCallback = NULL;
+		if (args.size() > 2)
+		{
+			if (args.at(2)->IsMethod())
+			{
+				progressCallback = args.at(2)->ToMethod();
+			}
+			else
+			{
+				throw ValueException::FromString("invalid argument - third argument must be method callback");
+			}
+		}
+		this->Unzip(destDir, onCompleteCallback, progressCallback);
+	}
+
+	void File::Unzip(const std::string & destDir, KMethodRef onCompleteCallback, KMethodRef progressCallback) const
+	{
+		bool ret = false;
+		std::string err;
 		try
 		{
 			Poco::File from(this->filename);
-			Poco::File to(FileSystemUtils::GetFileName(args.at(0))->c_str());
+			Poco::File to(destDir.c_str());
 			std::string from_s = from.path();
 			std::string to_s = to.path();
+			bool dir_exists = true;
+
 			if (!to.exists())
 			{
-				to.createDirectory();
+				if (!to.createDirectory())
+				{
+					dir_exists = false;
+					err = "Error creating directory " + to_s;
+				}
 			}
-			if (!to.isDirectory())
+			else if (!to.isDirectory())
 			{
-				throw ValueException::FromString("destination must be a directory");
+				dir_exists = false;
+				err = "destination must be a directory";
 			}
-			kroll::FileUtils::Unzip(from_s,to_s);
-			result->SetBool(true);
+
+			if (dir_exists)
+			{
+				kroll::FileUtils::Unzip(from_s,to_s);
+				ret = true;
+			}
 		}
 		catch (Poco::FileNotFoundException &fnf)
 		{
-			result->SetBool(false);
+			err = "file not found";
 		}
 		catch (Poco::PathNotFoundException &fnf)
 		{
-			result->SetBool(false);
+			err = "path not found";
 		}
 		catch (Poco::Exception& exc)
 		{
-			throw ValueException::FromString(exc.displayText());
+			err = exc.displayText();
 		}
+
+		if (!onCompleteCallback)
+			return;
+
+		ValueList cb_args;
+		cb_args.push_back(Value::NewBool(ret));
+		if (!ret)
+		{
+			cb_args.push_back(Value::NewString(err));
+		}
+		RunOnMainThread(onCompleteCallback, cb_args, false);
 	}
 
 	void File::MD5Digest(const ValueList& args, KValueRef result)
@@ -1043,29 +1097,42 @@ namespace ti
 		{
 			throw ValueException::FromString("invalid argument - second argument must be method callback");
 		}
-
-		string md5 = this->getMD5Digest();
-
-		ValueList cb_args;
-		cb_args.push_back(Value::NewString(md5));
-		if (onCompleteCallback)
-		{
-			RunOnMainThread(onCompleteCallback, cb_args, false);
-		}
+		this->getMD5Digest(onCompleteCallback);
 	}
 
-	std::string File::getMD5Digest() const
+	void File::getMD5Digest(KMethodRef onCompleteCallback) const
 	{
 		std::ifstream istr(this->filename.c_str(), std::ios::binary);
+		bool ret = false;
+		std::string err;
+		std::string md5_string;
 		if (!istr)
 		{
-			throw ValueException::FromString("cannot open input file: " + this->filename);
+			err = "cannot open input file: " + this->filename;
+		}
+		else
+		{
+			Poco::MD5Engine md5;
+			Poco::DigestOutputStream dos(md5);
+			Poco::StreamCopier::copyStream(istr, dos);
+			dos.close();
+			md5_string = Poco::DigestEngine::digestToHex(md5.digest());
+			ret = true;
 		}
 
-		Poco::MD5Engine md5;
-		Poco::DigestOutputStream dos(md5);
-		Poco::StreamCopier::copyStream(istr, dos);
-		dos.close();
-		return Poco::DigestEngine::digestToHex(md5.digest());
+		if (!onCompleteCallback)
+			return;
+
+		ValueList cb_args;
+		cb_args.push_back(Value::NewBool(ret));
+		if (ret)
+		{
+			cb_args.push_back(Value::NewString(md5_string));
+		}
+		else
+		{
+			cb_args.push_back(Value::NewString(err));
+		}
+		RunOnMainThread(onCompleteCallback, cb_args, false);
 	}
 }

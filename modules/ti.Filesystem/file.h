@@ -74,7 +74,8 @@ namespace ti
 		void Unzip(const ValueList& args, KValueRef result);
 		void MD5Digest(const ValueList& args, KValueRef result);
 
-		std::string getMD5Digest() const;
+		void Unzip(const std::string & destDir, KMethodRef onCompleteCallback, KMethodRef progressCallback) const;
+		void getMD5Digest(KMethodRef onCompleteCallback) const;
 	};
 }
 
