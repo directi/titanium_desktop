@@ -241,17 +241,13 @@ describe("Ti.Filesystem File tests",
 			value_of(f.isExecutable()).should_be_false();
 		}
 
-		f.setReadonly(false);
-		value_of(f.isReadonly()).should_be_false();
-
-		f.setReadonly(true);
+		value_of(f.setReadonly()).should_be_true();
 		value_of(f.isReadonly()).should_be_true();
-		
-		f.setWriteable(false);
-		value_of(f.isWriteable()).should_be_false();
+		value_of(f.isWritable()).should_be_false();
 
-		f.setWriteable(true);
+		value_of(f.setWriteable()).should_be_true();
 		value_of(f.isWriteable()).should_be_true();
+		value_of(f.isReadonly()).should_be_false();
 	},
 	
 	test_file_readLine_isEmpty:function()
@@ -355,7 +351,11 @@ describe("Ti.Filesystem File tests",
 	{
 		var data = make_large_file();
 		var file = Titanium.Filesystem.getFile(data[0]);
-		var contents = file.read();
+
+		var fileStream = file.open();
+		var contents = fileStream.read();
+		fileStream.close();
+
 		file.deleteFile();
 		value_of(contents.length).should_be(data[1].length);
 		value_of(String(contents)).should_be(data[1]);

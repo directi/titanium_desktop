@@ -84,7 +84,7 @@ namespace ti
 		this->SetCloseable(config->IsCloseable());
 		this->SetMaximizable(config->IsMaximizable());
 		this->SetMinimizable(config->IsMinimizable());
-		[nativeWindow setupDecorations];
+		[nativeWindow setupDecorations:config];
 		this->SetTopMost(config->IsTopMost());
 
 		if (config->IsMaximized())
@@ -121,14 +121,18 @@ namespace ti
 		{
 			this->Unfocus();
 			[nativeWindow orderOut:nil];
+			// hidden windows should not show up in windows menu
+			[nativeWindow setExcludedFromWindowsMenu:YES];
 			this->FireEvent(Event::HIDDEN);
 		}
 	}
-
+	
 	void OSXUserWindow::Focus()
 	{
 		if (nativeWindow && ![nativeWindow isKeyWindow])
 		{
+			// visible windows should show up in windows menu
+			[nativeWindow setExcludedFromWindowsMenu:NO];
 			[NSApp arrangeInFront:nativeWindow];
 			[nativeWindow makeKeyAndOrderFront:nativeWindow];
 			[NSApp activateIgnoringOtherApps:YES];
@@ -315,12 +319,7 @@ namespace ti
 
 	void OSXUserWindow::SetX(double x)
 	{
-		if (!nativeWindow)
-			return;
-
-		NSRect newRect = CalculateWindowFrame(x, this->GetY(),
-			this->GetWidth(), this->GetHeight());
-		[nativeWindow setFrameOrigin:newRect.origin];
+		this->MoveTo(x, this->GetY());
 	}
 
 	double OSXUserWindow::GetY()
@@ -340,11 +339,15 @@ namespace ti
 
 	void OSXUserWindow::SetY(double y)
 	{
+		this->MoveTo(this->GetX(), y);
+	}
+
+	void OSXUserWindow::MoveTo(double x, double y)
+	{
 		if (!nativeWindow)
 			return;
 
-		NSRect newRect = CalculateWindowFrame(this->GetX(), y,
-			this->GetWidth(), this->GetHeight());
+		NSRect newRect = CalculateWindowFrame(x, y, this->GetWidth(), this->GetHeight());
 		[nativeWindow setFrameOrigin:newRect.origin];
 	}
 

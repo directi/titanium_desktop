@@ -43,6 +43,7 @@ namespace ti
 			this->filename.resize(length - 1);
 		}
 
+		this->SetMethod("open", &File::Open);
 		this->SetMethod("toString", &File::ToString);
 		this->SetMethod("toURL", &File::ToURL);
 		this->SetMethod("isFile", &File::IsFile);
@@ -75,12 +76,29 @@ namespace ti
 		this->SetMethod("setExecutable", &File::SetExecutable);
 		this->SetMethod("setReadonly", &File::SetReadonly);
 		this->SetMethod("setWriteable", &File::SetWritable);
-		this->SetMethod("setWrieable", &File::SetWritable);
+		this->SetMethod("setWritable", &File::SetWritable);
 		this->SetMethod("unzip", &File::Unzip);
 	}
 
 	File::~File()
 	{
+	}
+
+	void File::Open(const ValueList& args, KValueRef result)
+	{
+		args.VerifyException("open", "?ibb");
+
+		FileStream* stream = new FileStream(this->filename);
+		result->SetObject(stream);
+
+		// Perform open operation before returning stream object
+		KValueRef openResult(Value::NewUndefined());
+		stream->Open(args, openResult);
+		if (openResult->ToBool() == false)
+		{
+			// Failed to open stream, return null
+			result->SetNull();
+		}
 	}
 
 	void File::ToURL(const ValueList& args, KValueRef result)
@@ -208,22 +226,8 @@ namespace ti
 	{
 		try
 		{
-#ifdef OS_WIN32
 			Poco::File file(this->filename);
 			result->SetBool(file.canRead() && !file.canWrite());
-#else
-			struct stat sb;
-			stat(this->filename.c_str(),&sb);
-			// can others read it?
-			if ((sb.st_mode & S_IROTH)==S_IROTH)
-			{
-				result->SetBool(false);
-			}
-			else
-			{
-				result->SetBool(true);
-			}
-#endif
 		}
 		catch (Poco::FileNotFoundException&)
 		{
@@ -687,25 +691,9 @@ namespace ti
 	{
 		try
 		{
-			bool readonly = args.at(0)->ToBool();
-#ifndef OS_WIN32
-			mode_t mode = S_IRUSR|S_IWUSR;
-			Poco::File f(this->filename);
-			if (f.canExecute())
-			{
-				mode |= S_IXUSR|S_IXGRP|S_IXOTH;
-			}
-			if (!readonly)
-			{
-				mode |= S_IRGRP | S_IROTH;
-			}
-			chmod(this->filename.c_str(),mode);
-			result->SetBool(true);
-#else
 			Poco::File file(this->filename);
-			file.setReadOnly(readonly);
-			result->SetBool(!file.canRead());
-#endif		
+			file.setReadOnly(true);
+			result->SetBool(file.canRead() && !file.canWrite());	
 		}
 		catch (Poco::FileNotFoundException&)
 		{
@@ -726,7 +714,7 @@ namespace ti
 		try
 		{
 			Poco::File file(this->filename);
-			file.setWriteable(args.at(0)->ToBool());
+			file.setWriteable(true);
 			result->SetBool(file.canWrite());
 		}
 		catch (Poco::FileNotFoundException&)

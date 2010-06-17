@@ -301,7 +301,9 @@
 						case 'xml':
 						{
 							tiapp_found=true;
-							tiapp.write(src.read());
+							var srcIn = src.open();
+							tiapp.write(srcIn.read());
+							srcIn.close();
 							break;
 						}
 						case 'html':

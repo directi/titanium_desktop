@@ -47,6 +47,9 @@ namespace ti
 		void CreateProperties(const ValueList& args, KValueRef result);
 		void LoadProperties(const ValueList& args, KValueRef result);
 		void GetSystemProperties(const ValueList& args, KValueRef result);
+
+	protected:
+		void Setup();
 	};
 }
 
