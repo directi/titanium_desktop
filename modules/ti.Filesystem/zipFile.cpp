@@ -3,7 +3,7 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
-#include "zip_decompress.h"
+#include "zipFile.h"
 #include "filesystem_binding.h"
 #include <kroll/thread_manager.h>
 #include <Poco/Zip/Decompress.h>
@@ -22,20 +22,20 @@
 
 namespace ti
 {
-	ZipDecompress::ZipDecompress(const std::string & zipFileName) :
-			StaticBoundObject("Filesystem.ZipDecompress"),
+	ZipFile::ZipFile(const std::string & zipFileName) :
+			StaticBoundObject("Filesystem.ZipFile"),
 			zipFileName(zipFileName),
 			thread(NULL)
 	{
 		/**
-		 * @tiapi(method=True,name=ZipDecompress.getFileCount) gives count of number of files in the archieve
+		 * @tiapi(method=True,name=ZipFile.getFileCount) gives count of number of files in the archieve
 		 */
-		this->SetMethod("getFileCount",&ZipDecompress::GetFileCount);
+		this->SetMethod("getFileCount",&ZipFile::GetFileCount);
 
 		/**
-		 * @tiapi(method=True,name=ZipDecompress.decompressAllFiles) decompresses the zip file
+		 * @tiapi(method=True,name=ZipFile.decompressAllFiles) decompresses the zip file
 		 */
-		this->SetMethod("decompressAllFiles",&ZipDecompress::DecompressAll);
+		this->SetMethod("decompressAllFiles",&ZipFile::DecompressAll);
 
 		// Check weather the file exist or not
 		std::ifstream inp(zipFileName.c_str(), std::ios::binary);
@@ -45,7 +45,7 @@ namespace ti
 		}
 
 	}
-	ZipDecompress::~ZipDecompress()
+	ZipFile::~ZipFile()
 	{
 		abort();
 		/*if (this->thread)
@@ -56,17 +56,17 @@ namespace ti
 		}*/
 	}
 
-	void ZipDecompress::ToString(const ValueList& args, KValueRef result)
+	void ZipFile::ToString(const ValueList& args, KValueRef result)
 	{
 		result->SetString("[Zip Decompress: " + this->zipFileName + "]");
 	}
 
-	void ZipDecompress::GetFileCount(const ValueList& args, KValueRef result)
+	void ZipFile::GetFileCount(const ValueList& args, KValueRef result)
 	{
 		result->SetDouble(getFileCount());
 	}
 
-	int ZipDecompress::getFileCount()
+	int ZipFile::getFileCount()
 	{
 		int count=0;
 		std::ifstream inp("c:\\test.zip", std::ios::binary);
@@ -84,7 +84,7 @@ namespace ti
 		}
 		return count;
 	}
-	void ZipDecompress::DecompressAll(const ValueList& args, KValueRef result)
+	void ZipFile::DecompressAll(const ValueList& args, KValueRef result)
 	{
 		std::string destDir;
 		if (args.size() < 2)
@@ -126,10 +126,10 @@ namespace ti
 
 		DecompressAll(destDir, onCompleteCallback, progressCallback);
 		//this->thread = new Poco::Thread();
-		//this->thread->start(&ZipDecompress::Run,this);
+		//this->thread->start(&ZipFile::Run,this);
 	}
 
-	void ZipDecompress::DecompressAll(const std::string & destDir, KMethodRef onCompleteCallback, KMethodRef progressCallback)
+	void ZipFile::DecompressAll(const std::string & destDir, KMethodRef onCompleteCallback, KMethodRef progressCallback)
 	{
 		this->onCompleteCallback = onCompleteCallback;
 		this->progressCallback = progressCallback;
@@ -141,19 +141,19 @@ namespace ti
 
 		Poco::Zip::Decompress dec(inp, Poco::Path(destDir));
 
-		dec.EError += Poco::Delegate<ZipDecompress, std::pair<const Poco::Zip::ZipLocalFileHeader, const std::string> >(this, &ZipDecompress::onDecompressError);
-		dec.EOk += Poco::Delegate<ZipDecompress, std::pair<const Poco::Zip::ZipLocalFileHeader, const Poco::Path> >(this, &ZipDecompress::onDecompressOk);
+		dec.EError += Poco::Delegate<ZipFile, std::pair<const Poco::Zip::ZipLocalFileHeader, const std::string> >(this, &ZipFile::onDecompressError);
+		dec.EOk += Poco::Delegate<ZipFile, std::pair<const Poco::Zip::ZipLocalFileHeader, const Poco::Path> >(this, &ZipFile::onDecompressOk);
 
 		dec.decompressAllFiles();
-		dec.EError -= Poco::Delegate<ZipDecompress, std::pair<const Poco::Zip::ZipLocalFileHeader, const std::string> >(this, &ZipDecompress::onDecompressError);
-		dec.EOk -= Poco::Delegate<ZipDecompress, std::pair<const Poco::Zip::ZipLocalFileHeader, const Poco::Path> >(this, &ZipDecompress::onDecompressOk);
+		dec.EError -= Poco::Delegate<ZipFile, std::pair<const Poco::Zip::ZipLocalFileHeader, const std::string> >(this, &ZipFile::onDecompressError);
+		dec.EOk -= Poco::Delegate<ZipFile, std::pair<const Poco::Zip::ZipLocalFileHeader, const Poco::Path> >(this, &ZipFile::onDecompressOk);
 
 		// calling back oncomplete callback
 		ValueList args;
 		RunOnMainThread(this->onCompleteCallback, args, false);
 
 	}
-	void ZipDecompress::onDecompressError(const void* pSender, std::pair<const Poco::Zip::ZipLocalFileHeader, const std::string>& info)
+	void ZipFile::onDecompressError(const void* pSender, std::pair<const Poco::Zip::ZipLocalFileHeader, const std::string>& info)
 	{
 		ValueList args;
 		args.push_back(Value::NewBool(false));
@@ -164,7 +164,7 @@ namespace ti
 		}
 	}
 
-	void ZipDecompress::onDecompressOk(const void* pSender, std::pair<const Poco::Zip::ZipLocalFileHeader, const Poco::Path>& val)
+	void ZipFile::onDecompressOk(const void* pSender, std::pair<const Poco::Zip::ZipLocalFileHeader, const Poco::Path>& val)
 	{
 		ValueList args;
 		args.push_back(Value::NewBool(true));

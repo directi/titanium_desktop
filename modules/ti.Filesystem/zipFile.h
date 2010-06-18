@@ -24,11 +24,11 @@
 
 namespace ti
 {
-	class ZipDecompress : public StaticBoundObject
+	class ZipFile : public StaticBoundObject
 	{
 		public:
-			ZipDecompress(const std::string & zipFileName);
-			virtual ~ZipDecompress();
+			ZipFile(const std::string & zipFileName);
+			virtual ~ZipFile();
 
 		private:
 			std::vector<std::string> files;

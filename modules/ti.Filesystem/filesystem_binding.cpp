@@ -11,7 +11,7 @@
 #include "async_copy.h"
 #include "filesystem_utils.h"
 #include "app_config.h"
-#include "zip_decompress.h"
+#include "zipFile.h"
 
 #ifdef OS_OSX
 #include <Cocoa/Cocoa.h>
@@ -140,7 +140,7 @@ namespace ti
 		 * @tiapi(method=True,name=Filesystem.getZipDecompress) decompresses the given zip file in the destination folder
 		 * @tiarg(for=Filesystem.getZipDecompress,name=zipFileName,type=String)
 		 * @tiarg(for=Filesystem.getZipDecompress,name=destDir,type=String)
-		 * @tiresult(for=Filesystem.ZipDecompress,type=FileSystem.ZipDecompress) Zip Decompress object
+		 * @tiresult(for=Filesystem.ZipFile,type=FileSystem.ZipFile) Zip Decompress object
 		 */
 		this->SetMethod("getZipDecompress",&FilesystemBinding::GetZipDecompress);
 
@@ -500,7 +500,7 @@ namespace ti
 		{
 			throw ValueException::FromString("invalid argument - It must be zipFileName (string)");
 		}
-		KObjectRef zDecompressObj = new ti::ZipDecompress(zipFileName);
+		KObjectRef zDecompressObj = new ti::ZipFile(zipFileName);
 		result->SetObject(zDecompressObj);
 	}
 	void FilesystemBinding::DeletePendingOperations(const ValueList& args, KValueRef result)
