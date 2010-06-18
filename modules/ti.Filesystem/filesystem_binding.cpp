@@ -137,12 +137,12 @@ namespace ti
 		 */
 		this->SetMethod("asyncCopy",&FilesystemBinding::ExecuteAsyncCopy);
 		/**
-		 * @tiapi(method=True,name=Filesystem.getZipDecompress) decompresses the given zip file in the destination folder
-		 * @tiarg(for=Filesystem.getZipDecompress,name=zipFileName,type=String)
-		 * @tiarg(for=Filesystem.getZipDecompress,name=destDir,type=String)
+		 * @tiapi(method=True,name=Filesystem.getZipFile) decompresses the given zip file in the destination folder
+		 * @tiarg(for=Filesystem.getZipFile,name=zipFileName,type=String)
+		 * @tiarg(for=Filesystem.getZipFile,name=destDir,type=String)
 		 * @tiresult(for=Filesystem.ZipFile,type=FileSystem.ZipFile) Zip Decompress object
 		 */
-		this->SetMethod("getZipDecompress",&FilesystemBinding::GetZipDecompress);
+		this->SetMethod("getZipFile",&FilesystemBinding::GetZipFile);
 
 		/**
 		 * @tiapi(property=True,immutable=True,name=Filesystem.MODE_READ, since=0.3, type=Number) File read constant
@@ -484,24 +484,20 @@ namespace ti
 			this->timer->restart(100);
 		}
 	}
-	void FilesystemBinding::GetZipDecompress(const ValueList& args, KValueRef result)
+	void FilesystemBinding::GetZipFile(const ValueList& args, KValueRef result)
 	{
-		std::string zipFileName;
-		std::string destDir;
-		if (args.size()!=1)
+		if (args.size() != 1)
 		{
 			throw ValueException::FromString("invalid arguments - this method takes 1 arguments");
 		}
-		if (args.at(0)->IsString())
-		{
-			zipFileName = args.at(0)->ToString();
-		}
-		else
+
+		if (!args.at(0)->IsString())
 		{
 			throw ValueException::FromString("invalid argument - It must be zipFileName (string)");
 		}
-		KObjectRef zDecompressObj = new ti::ZipFile(zipFileName);
-		result->SetObject(zDecompressObj);
+
+		std::string zipFileName = args.at(0)->ToString();
+		result->SetObject(new ti::ZipFile(zipFileName));
 	}
 	void FilesystemBinding::DeletePendingOperations(const ValueList& args, KValueRef result)
 	{

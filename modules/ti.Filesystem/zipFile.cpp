@@ -8,6 +8,7 @@
 #include <kroll/thread_manager.h>
 #include <Poco/Zip/Decompress.h>
 #include <Poco/Delegate.h>
+#include <Poco/File.h>
 
 #include <iostream>
 #include <sstream>
@@ -25,7 +26,8 @@ namespace ti
 	ZipFile::ZipFile(const std::string & zipFileName) :
 			StaticBoundObject("Filesystem.ZipFile"),
 			zipFileName(zipFileName),
-			thread(NULL)
+			onDecompressCompleteCallback(NULL),
+			decompressProgressCallback(NULL)
 	{
 		/**
 		 * @tiapi(method=True,name=ZipFile.getFileCount) gives count of number of files in the archieve
@@ -66,7 +68,7 @@ namespace ti
 		result->SetDouble(getFileCount());
 	}
 
-	int ZipFile::getFileCount()
+	int ZipFile::getFileCount() const
 	{
 		int count=0;
 		std::ifstream inp("c:\\test.zip", std::ios::binary);
@@ -84,6 +86,7 @@ namespace ti
 		}
 		return count;
 	}
+
 	void ZipFile::DecompressAll(const ValueList& args, KValueRef result)
 	{
 		std::string destDir;
@@ -123,41 +126,61 @@ namespace ti
 			}
 		}
 
+		if(this->onDecompressCompleteCallback)
+		{
+			throw ValueException::FromString("Another decompress is already in progress please try after some time.");
+		}
 
-		DecompressAll(destDir, onCompleteCallback, progressCallback);
-		//this->thread = new Poco::Thread();
-		//this->thread->start(&ZipFile::Run,this);
+		this->onDecompressCompleteCallback = onCompleteCallback;
+		this->decompressProgressCallback = progressCallback;
+		DecompressAll(destDir);
 	}
 
-	void File::DecompressAll(const std::string & destDir, KMethodRef onCompleteCallback, KMethodRef progressCallback) const
+	bool ZipFile::createDirectory(const std::string & dir, std::string & error) const
+	{
+		Poco::File pocodir(dir.c_str());
+		if (!pocodir.exists())
+		{
+			if (!pocodir.createDirectory())
+			{
+				error = "Error creating directory " + pocodir.path();
+				return false;
+			}
+		}
+		else if (!pocodir.isDirectory())
+		{
+			error = "destination must be a directory";
+			return false;
+		}
+		return true;
+	}
+
+	void ZipFile::notifyDecompressComplete(bool ret, const std::string & err) const
+	{
+		if (this->onDecompressCompleteCallback)
+		{
+			ValueList cb_args;
+			cb_args.push_back(Value::NewBool(ret));
+			if (!ret)
+			{
+				cb_args.push_back(Value::NewString(err));
+			}
+			RunOnMainThread(this->onDecompressCompleteCallback, cb_args, false);
+		}
+	}
+
+	void ZipFile::DecompressAll(const std::string & destDir)
 	{
 		bool ret = false;
 		std::string err;
 		try
 		{
-			Poco::File from(this->filename);
-			Poco::File to(destDir.c_str());
-			std::string from_s = from.path();
-			std::string to_s = to.path();
-			bool dir_exists = true;
+			Poco::File from(this->zipFileName);
+			Poco::File to(destDir);
 
-			if (!to.exists())
+			if (createDirectory(destDir, err))
 			{
-				if (!to.createDirectory())
-				{
-					dir_exists = false;
-					err = "Error creating directory " + to_s;
-				}
-			}
-			else if (!to.isDirectory())
-			{
-				dir_exists = false;
-				err = "destination must be a directory";
-			}
-
-			if (dir_exists)
-			{
-				kroll::FileUtils::Unzip(from_s,to_s);
+				kroll::FileUtils::Unzip(from.path(), to.path());
 				ret = true;
 			}
 		}
@@ -173,63 +196,13 @@ namespace ti
 		{
 			err = exc.displayText();
 		}
-
-		if (!onCompleteCallback)
-			return;
-
-		ValueList cb_args;
-		cb_args.push_back(Value::NewBool(ret));
-		if (!ret)
+		catch (...)
 		{
-			cb_args.push_back(Value::NewString(err));
+			err = "unknown error";
 		}
-		RunOnMainThread(onCompleteCallback, cb_args, false);
+		notifyDecompressComplete(ret, err);
+
+		this->onDecompressCompleteCallback = NULL;
+		this->decompressProgressCallback = NULL;
 	}
-
-	
-/*	void ZipFile::DecompressAll(const std::string & destDir, KMethodRef onCompleteCallback, KMethodRef progressCallback)
-	{
-		this->onCompleteCallback = onCompleteCallback;
-		this->progressCallback = progressCallback;
-		std::ifstream inp(zipFileName.c_str(), std::ios::binary);
-		if(!inp)
-		{
-			throw ValueException::FromString("Error opening file: " + zipFileName);
-		}
-
-		Poco::Zip::Decompress dec(inp, Poco::Path(destDir));
-
-		dec.EError += Poco::Delegate<ZipFile, std::pair<const Poco::Zip::ZipLocalFileHeader, const std::string> >(this, &ZipFile::onDecompressError);
-		dec.EOk += Poco::Delegate<ZipFile, std::pair<const Poco::Zip::ZipLocalFileHeader, const Poco::Path> >(this, &ZipFile::onDecompressOk);
-
-		dec.decompressAllFiles();
-		dec.EError -= Poco::Delegate<ZipFile, std::pair<const Poco::Zip::ZipLocalFileHeader, const std::string> >(this, &ZipFile::onDecompressError);
-		dec.EOk -= Poco::Delegate<ZipFile, std::pair<const Poco::Zip::ZipLocalFileHeader, const Poco::Path> >(this, &ZipFile::onDecompressOk);
-
-		// calling back oncomplete callback
-		ValueList args;
-		RunOnMainThread(this->onCompleteCallback, args, false);
-
-	}*/
-	void ZipFile::onDecompressError(const void* pSender, std::pair<const Poco::Zip::ZipLocalFileHeader, const std::string>& info)
-	{
-		ValueList args;
-		args.push_back(Value::NewBool(false));
-		args.push_back(Value::NewString(info.second));
-		if (this->progressCallback)
-		{
-			RunOnMainThread(this->progressCallback, args, false);
-		}
-	}
-
-	void ZipFile::onDecompressOk(const void* pSender, std::pair<const Poco::Zip::ZipLocalFileHeader, const Poco::Path>& val)
-	{
-		ValueList args;
-		args.push_back(Value::NewBool(true));
-		if (this->progressCallback)
-		{
-			RunOnMainThread(this->progressCallback, args, false);
-		}
-	}
-
 }
