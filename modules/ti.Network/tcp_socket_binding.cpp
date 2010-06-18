@@ -418,6 +418,7 @@ namespace ti
 			//Once the socket is closed, its file descriptor will no longer be available.
 			this->socket.close();
 		}
+		this->notifier.stop();
 	}
 
 	void TCPSocketBinding::InitReactor(int connectTimeout)
