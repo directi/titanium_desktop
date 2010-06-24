@@ -230,7 +230,7 @@ namespace KrollBoot
 				i++;
 			}
 
-			NSURL* url = [NSURL URLWithString:[NSString stringWithFormat: @"https://%s", CRASH_REPORT_URL]];
+			NSURL* url = [NSURL URLWithString:[NSString stringWithFormat: @"http://%s", CRASH_REPORT_URL]];
 			NSLog(@"Sending crash report to %@",url);
 			HTTPMultipartUpload* uploader = [[HTTPMultipartUpload alloc] initWithURL:url];
 			[uploader addFileAtPath:[NSString stringWithUTF8String:dumpFilePath.c_str()] name:@"dump"];
