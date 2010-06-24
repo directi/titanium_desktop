@@ -14,13 +14,40 @@
 #endif
 
 #include <list>
+#include <vector>
 #include <string>
 
 
 namespace kroll
 {
-	class KROLL_API LoggerFile
+	class LoggerFile;
+
+	class LoggerWriter
 		: public Poco::Runnable
+	{
+		private:
+			static LoggerWriter * singleton;
+			std::vector<LoggerFile *> files;
+			bool bRunning;
+			Poco::Thread thread;
+			Poco::Event pendingMsgEvent;
+
+		protected:
+			LoggerWriter();
+
+		public:
+			static void addLoggerFile(LoggerFile * file);
+			static void removeLoggerFile(LoggerFile * file);
+			static void notify(LoggerFile * file);
+			void addFile(LoggerFile * file);
+			void removeFile(LoggerFile * file);
+			void start();
+			void stop();
+			void notify();
+			virtual void run();
+	};
+
+	class KROLL_API LoggerFile
 	{
 		public:
 			LoggerFile(const std::string &filename);
@@ -28,13 +55,8 @@ namespace kroll
 
 			void log(std::string& data);
 
-			virtual void run();
 			virtual void dumpToFile();
 
-		private:
-			Poco::Thread thread;
-			bool bRunning;
-			Poco::Event pendingMsgEvent;
 		protected:
 			std::string filename;
 			std::list<std::string> writeQueue;

@@ -16,9 +16,105 @@
 
 namespace kroll
 {
-	LoggerFile::LoggerFile(const std::string &filename) :
-		bRunning(false),
+	LoggerWriter * LoggerWriter::singleton = NULL;
+	LoggerWriter::LoggerWriter()
+		: bRunning(false),
+		thread(),
 		pendingMsgEvent(true)
+	{
+		thread.setName("LoggerWriter Thread");
+	}
+
+	void LoggerWriter::addLoggerFile(LoggerFile * file)
+	{
+		if(!singleton)
+		{
+			singleton = new LoggerWriter();
+		}
+		singleton->addFile(file);
+	}
+
+	void LoggerWriter::removeLoggerFile(LoggerFile * file)
+	{
+		if(singleton)
+		{
+			singleton->removeFile(file);
+		}
+	}
+
+	void LoggerWriter::addFile(LoggerFile * file)
+	{
+		if(file)
+		{
+			this->files.push_back(file);
+		}
+		this->start();
+	}
+
+	void LoggerWriter::removeFile(LoggerFile * file)
+	{
+		for(std::vector<LoggerFile *>::iterator
+			oIter = files.begin();
+			oIter != files.end();
+		oIter++)
+		{
+			if((*oIter) == file)
+			{
+				files.erase(oIter);
+			}
+		}
+	}
+
+
+	void LoggerWriter::start()
+	{
+		if(!thread.isRunning())
+		{
+			thread.start(*this);
+		}
+	}
+
+	void LoggerWriter::stop()
+	{
+		if(thread.isRunning())
+		{
+			this->bRunning = false;
+			this->pendingMsgEvent.set();
+			this->thread.join();
+		}
+	}
+
+	void LoggerWriter::notify(LoggerFile * file)
+	{
+		if(singleton)
+		{
+			singleton->notify();
+		}
+	}
+
+
+	void LoggerWriter::notify()
+	{
+		this->pendingMsgEvent.set();
+	}
+
+	void LoggerWriter::run()
+	{
+		bRunning = true;
+		while(bRunning)
+		{
+			pendingMsgEvent.wait();
+			for(std::vector<LoggerFile *>::iterator
+				oIter = files.begin();
+				oIter != files.end();
+			oIter++)
+			{
+				(*oIter)->dumpToFile();
+			}
+		}
+	}
+
+	LoggerFile::LoggerFile(const std::string &filename)
 	{
 		Poco::Path pocoPath(Poco::Path::expand(filename));
 		this->filename = pocoPath.absolute().toString();
@@ -31,21 +127,19 @@ namespace kroll
 			this->filename.resize(length - 1);
 		}
 
-		thread.start(*this);
+		LoggerWriter::addLoggerFile(this);
 	}
 
 	LoggerFile::~LoggerFile()
 	{
-		bRunning = false;
-		pendingMsgEvent.set();
-		thread.join();
+		LoggerWriter::removeLoggerFile(this);
 	}
 
 	void LoggerFile::log(std::string& data)
 	{
 		Poco::Mutex::ScopedLock lock(loggerMutex);
 		writeQueue.push_back(data);
-		pendingMsgEvent.set();
+		LoggerWriter::notify(this);
 	}
 
 	void LoggerFile::dumpToFile()
@@ -84,16 +178,6 @@ namespace kroll
 					delete tempWriteQueue;
 				throw;
 			}
-		}
-	}
-
-	void LoggerFile::run()
-	{
-		bRunning=true;
-		while(bRunning)
-		{
-			pendingMsgEvent.wait();
-			dumpToFile();
 		}
 	}
 }
