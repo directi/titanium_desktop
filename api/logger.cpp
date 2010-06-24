@@ -438,19 +438,6 @@ namespace kroll
 			}
 
 			logFile = new LoggerFile(logFilePath);
-//#ifdef OS_WIN32
-//			this->logFile.open(UTF8ToWide(logFilePath).c_str(),
-//				 std::ios::out | std::ios::trunc);
-//#else
-//			this->logFile.open(logFilePath.c_str(),
-//				 std::ios::out | std::ios::trunc);
-//#endif
-
-			// Couldn't open the file, perhaps there is contention?
-//			if (!this->logFile.is_open())
-//			{
-//				this->fileLogging = false;
-//			}
 		}
 	}
 
@@ -459,7 +446,6 @@ namespace kroll
 		if (fileLogging)
 		{
 			delete logFile;
-			//this->logFile.close();
 		}
 	}
 
@@ -470,11 +456,11 @@ namespace kroll
 		std::string line;
 		this->formatter->format(m, line);
 
-		if (fileLogging)
+		if (fileLogging && logFile)
 		{
-			logFile->log(line + "\n");
-			//this->logFile << line << std::endl;
-			//this->logFile.flush();
+			std::string newline = line;
+			newline += "\n";
+			logFile->log(newline);
 		}
 
 		if (consoleLogging)

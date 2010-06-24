@@ -57,6 +57,7 @@ namespace kroll
 		static std::string HTTP_DATA_SENT;
 		static std::string HTTP_DATA_RECEIVED;
 		static std::string OPEN_REQUEST;
+		static std::string DOCK_ICON_CLICKED;
 	};
 }
 #endif
