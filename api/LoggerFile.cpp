@@ -27,6 +27,7 @@ namespace kroll
 
 	void LoggerWriter::addLoggerFile(LoggerFile * file)
 	{
+		//Unsafe
 		if(!singleton)
 		{
 			singleton = new LoggerWriter();
@@ -36,6 +37,7 @@ namespace kroll
 
 	void LoggerWriter::removeLoggerFile(LoggerFile * file)
 	{
+		//Unsafe
 		if(singleton)
 		{
 			singleton->removeFile(file);
@@ -61,6 +63,7 @@ namespace kroll
 			if((*oIter) == file)
 			{
 				files.erase(oIter);
+				break;
 			}
 		}
 	}
