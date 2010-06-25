@@ -9,6 +9,7 @@ import sys
 import tempfile
 import types
 import uuid
+import subprocess
 from app import App
 from xml.sax.saxutils import quoteattr
 
@@ -29,6 +30,39 @@ class Win32App(App):
 		# The .installed file for Windows should always exist,
 		# since we only ever install via the MSI installer.
 		open(p.join(contents, '.installed'), 'a').close()
+
+		self.set_executable_icon()
+
+	def set_executable_icon(self):
+		if not hasattr(self, 'image'):
+			return
+
+		icon_path = str(p.join(self.contents, 'Resources', self.image))
+		if not p.exists(icon_path):
+			return
+
+		if not(icon_path.lower().endswith('.ico')):
+			# Assume that GraphicsMagick is on the path for now. This will change
+			# once the packaging server setup has been improved (running on drive C:\)
+			convert = 'convert.exe'
+			temp_dir = tempfile.mkdtemp()
+			new_ico_file = p.join(self.contents, 'Resources', '_converted_icon.ico')
+			ico_command = [convert]
+			for size in [16, 32, 64, 128]:
+				resolution = "%dx%d" % (size, size)
+				args = [convert, icon_path, '-resize', resolution + "^",
+					"-gravity", "center", "-background", "transparent",
+					"-extent", resolution, "%s\\%d.png" % (temp_dir, size)]
+				subprocess.check_call(args, shell=True)
+
+				ico_command.append('%s\\%d.png' % (temp_dir, size))
+
+			ico_command.append(new_ico_file)
+			subprocess.check_call(ico_command, shell=True)
+
+			icon_path = new_ico_file
+
+		self.env.run('%s "%s" "%s"' % (p.join(self.sdk_dir, 'ReplaceVistaIcon.exe'), self.executable_path, icon_path))
 
 	def package(self, package_dir, bundle):
 		contents = self.get_contents_dir()
