@@ -233,7 +233,7 @@ namespace KrollBoot
 			return __LINE__;
 		}
 
-		wstring url = L"https://";
+		wstring url = L"http://";
 		url += StringToWString(CRASH_REPORT_URL);
 
 		const std::map<wstring, wstring> parameters = GetCrashReportParametersW();

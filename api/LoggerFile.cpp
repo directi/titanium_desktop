@@ -16,9 +16,8 @@
 
 namespace kroll
 {
-	LoggerFile::LoggerFile(const std::string &filename) :
-		bRunning(false),
-		pendingMsgEvent(true)
+	LoggerFile::LoggerFile(const std::string &filename)
+		//: filename(absolutePath(filename))
 	{
 		Poco::Path pocoPath(Poco::Path::expand(filename));
 		this->filename = pocoPath.absolute().toString();
@@ -31,21 +30,19 @@ namespace kroll
 			this->filename.resize(length - 1);
 		}
 
-		thread.start(*this);
+		LoggerWriter::getInstance()->addLoggerFile(this);
 	}
 
 	LoggerFile::~LoggerFile()
 	{
-		bRunning = false;
-		pendingMsgEvent.set();
-		thread.join();
+		LoggerWriter::getInstance()->removeLoggerFile(this);
 	}
 
 	void LoggerFile::log(std::string& data)
 	{
 		Poco::Mutex::ScopedLock lock(loggerMutex);
 		writeQueue.push_back(data);
-		pendingMsgEvent.set();
+		LoggerWriter::getInstance()->notify(this);
 	}
 
 	void LoggerFile::dumpToFile()
@@ -84,16 +81,6 @@ namespace kroll
 					delete tempWriteQueue;
 				throw;
 			}
-		}
-	}
-
-	void LoggerFile::run()
-	{
-		bRunning=true;
-		while(bRunning)
-		{
-			pendingMsgEvent.wait();
-			dumpToFile();
 		}
 	}
 }

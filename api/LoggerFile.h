@@ -6,8 +6,6 @@
 #ifndef _KROLL_LOGGERFILE_H_
 #define _KROLL_LOGGERFILE_H_
 
-#include <Poco/Thread.h>
-#include <Poco/Event.h>
 
 #ifdef OS_OSX
 #import <Foundation/Foundation.h>
@@ -16,29 +14,22 @@
 #include <list>
 #include <string>
 
+#include "LoggerWriter.h"
 
 namespace kroll
 {
 	class KROLL_API LoggerFile
-		: public Poco::Runnable
 	{
 		public:
 			LoggerFile(const std::string &filename);
 			virtual ~LoggerFile();
-
 			void log(std::string& data);
-
-			virtual void run();
 			virtual void dumpToFile();
 
-		private:
-			Poco::Thread thread;
-			bool bRunning;
-			Poco::Event pendingMsgEvent;
 		protected:
 			std::string filename;
-			std::list<std::string> writeQueue;
 			Poco::Mutex loggerMutex;
+			std::list<std::string> writeQueue;			
 	};
 }
 
