@@ -87,7 +87,6 @@ namespace kroll
 		{
 			this->bRunning = false;
 			this->pendingMsgEvent.set();
-			this->thread.join();
 		}
 	}
 
