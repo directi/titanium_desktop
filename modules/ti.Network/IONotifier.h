@@ -87,8 +87,6 @@ namespace ti
 		{
 			readThread.setName("IONotifierRead");
 			writeThread.setName("IONotifierWrite");
-			readThread.start(IONotifier::_runReader, (void*) this);
-			writeThread.start(IONotifier::_runWriter, (void*) this);
 		}
 		~IONotifier()
 		{
@@ -114,6 +112,22 @@ namespace ti
 			IONotifier<C> *that = (IONotifier<C>*) (ioNotifier);
 			that->runWriter();
 		}
+		void start()
+		{
+			readThread.start(IONotifier::_runReader, (void*) this);
+			writeThread.start(IONotifier::_runWriter, (void*) this);
+		}
+
+		void stop()
+		{
+			_stop = true;
+			if (0 == (observerCount(IO_READ) + observerCount(IO_ERROR) + observerCount(IO_WRITE)))
+			{
+				waitForWriteFd.set();
+				waitForReadFd.set();
+			}
+		}
+
 	protected:
 		int select(bool read, bool write, bool error);
 		int prepareFdSet(IOEventType ev, fd_set &fdSet)
@@ -144,15 +158,6 @@ namespace ti
 			#else
 				return errno;
 			#endif
-		}
-		void stop()
-		{
-			_stop = true;
-			if (0 == observerCount())
-			{
-				waitForWriteFd.set();
-				waitForReadFd.set();
-			}
 		}
 
 		observer_t  observer_set[3]; 
