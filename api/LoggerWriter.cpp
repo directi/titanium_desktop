@@ -38,6 +38,11 @@ namespace kroll
 		thread.setName("LoggerWriter Thread");
 	}
 
+	LoggerWriter::~LoggerWriter()
+	{
+		this->stop();
+	}
+
 	void LoggerWriter::addLoggerFile(LoggerFile * file)
 	{
 		Poco::Mutex::ScopedLock lock(filesMutex);
@@ -100,14 +105,17 @@ namespace kroll
 		bRunning = true;
 		while(bRunning)
 		{
-			pendingMsgEvent.wait();
-			for(std::vector<LoggerFile *>::iterator
-				oIter = files.begin();
-				oIter != files.end();
-			oIter++)
 			{
-				(*oIter)->dumpToFile();
+				Poco::Mutex::ScopedLock lock(filesMutex);
+				for(std::vector<LoggerFile *>::iterator	
+					oIter = files.begin();
+					oIter != files.end();
+				oIter++)
+				{
+					(*oIter)->dumpToFile();
+				}
 			}
+			pendingMsgEvent.wait();
 		}
 	}
 }

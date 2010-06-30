@@ -39,6 +39,7 @@ namespace kroll
 
 		protected:
 			LoggerWriter();
+			~LoggerWriter();
 			virtual void run();
 			void start();
 			void stop();
