@@ -154,7 +154,12 @@ namespace kroll
 	double Value::ToDouble() const { return numberValue; }
 	double Value::ToNumber() const { return numberValue; }
 	bool Value::ToBool() const { return boolValue; }
-	const char* Value::ToString() const { return stringValue; }
+	const char* Value::ToString() const
+	{
+		if(!stringValue)
+			return "";
+		return stringValue;
+	}
 	KObjectRef Value::ToObject() const { return objectValue; }
 	KMethodRef Value::ToMethod() const { return objectValue.cast<KMethod>(); }
 	KListRef Value::ToList() const { return objectValue.cast<KList>(); }
