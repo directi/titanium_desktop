@@ -423,10 +423,11 @@ namespace ti
 
 	void TCPSocketBinding::InitReactor(int connectTimeout)
 	{
+		notifier.start();
 		RegisterForRead();
 		RegisterForWrite();
 		RegisterForTimeout();
-		RegisterForError();		
+		RegisterForError();
 	}
 
 	void TCPSocketBinding::SetReactorDescriptors()
@@ -465,6 +466,7 @@ namespace ti
 		UnregisterForError();
 		UnregisterForWrite();
 		UnregisterForTimeout();
+		notifier.stop();
 	}
 
 	void TCPSocketBinding::InvokeErrorHandler(const std::string &str)
