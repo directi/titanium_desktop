@@ -102,12 +102,6 @@ namespace ti
 		{
 			return observer_set[ev].size();
 		}
-		void stop()
-		{
-			_stop = true;
-			waitForWriteFd.set();
-			waitForReadFd.set();
-		}
 		void runReader();
 		void runWriter();
 		static void _runReader(void* ioNotifier){

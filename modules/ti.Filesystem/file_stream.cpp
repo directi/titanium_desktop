@@ -289,7 +289,15 @@ namespace ti
 				else break;
 			}
 
-			result->SetObject(new Blob(&(buffer[0]), buffer.size()));
+			if(buffer.size())
+			{
+				result->SetObject(new Blob(&(buffer[0]), buffer.size()));
+			}
+			else
+			{
+				char * buf = NULL;
+				result->SetObject(new Blob(buf, 0, true));
+			}
 		}
 		catch (Poco::Exception& exc)
 		{

@@ -87,6 +87,12 @@ namespace ti
 		return count;
 	}
 
+	bool MyUnzipCallback(char* message, int current,
+			int total, void* data)
+	{
+		return false;
+	}
+
 	void ZipFile::DecompressAll(const ValueList& args, KValueRef result)
 	{
 		std::string destDir;
