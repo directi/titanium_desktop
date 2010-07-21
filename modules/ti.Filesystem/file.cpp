@@ -9,6 +9,10 @@
 #include <Poco/File.h>
 #include <Poco/Path.h>
 #include <Poco/Exception.h>
+#include <Poco/MD5Engine.h>
+#include <Poco/DigestStream.h>
+#include <Poco/StreamCopier.h>
+
 
 #ifndef OS_WIN32
 #include <sys/types.h>
@@ -78,6 +82,7 @@ namespace ti
 		this->SetMethod("setWriteable", &File::SetWritable);
 		this->SetMethod("setWritable", &File::SetWritable);
 		this->SetMethod("unzip", &File::Unzip);
+		this->SetMethod("MD5Digest",&File::MD5Digest);
 	}
 
 	File::~File()
@@ -743,38 +748,157 @@ namespace ti
 	 */
 	void File::Unzip(const ValueList& args, KValueRef result)
 	{
-		if (args.size()!=1)
+		std::string destDir;
+		if (args.size() < 2)
 		{
-			throw ValueException::FromString("invalid arguments - expected destination");
+			throw ValueException::FromString("please provide at least 2 args");
 		}
+
+		Poco::Path pocoPath(Poco::Path::expand(args.at(0)->ToString()));
+		destDir = pocoPath.absolute().toString();
+
+		// If the filename we were given contains a trailing slash, just remove it
+		// so that users can count on reproducible results from toString.
+		size_t length = this->filename.length();
+		if (length > MIN_PATH_LENGTH && this->filename[length - 1] == Poco::Path::separator())
+		{
+			this->filename.resize(length - 1);
+		}
+
+		KMethodRef onCompleteCallback = NULL;
+		if (args.at(1)->IsMethod())
+		{
+			onCompleteCallback = args.at(1)->ToMethod();
+		}
+		else
+		{
+			throw ValueException::FromString("invalid argument - second argument must be method callback");
+		}
+
+		KMethodRef progressCallback = NULL;
+		if (args.size() > 2)
+		{
+			if (args.at(2)->IsMethod())
+			{
+				progressCallback = args.at(2)->ToMethod();
+			}
+			else
+			{
+				throw ValueException::FromString("invalid argument - third argument must be method callback");
+			}
+		}
+		this->Unzip(destDir, onCompleteCallback, progressCallback);
+	}
+
+	void File::Unzip(const std::string & destDir, KMethodRef onCompleteCallback, KMethodRef progressCallback) const
+	{
+		bool ret = false;
+		std::string err;
 		try
 		{
 			Poco::File from(this->filename);
-			Poco::File to(FilesystemUtils::FilenameFromValue(args.at(0)));
+			Poco::File to(destDir.c_str());
 			std::string from_s = from.path();
 			std::string to_s = to.path();
+			bool dir_exists = true;
+
 			if (!to.exists())
 			{
-				to.createDirectory();
+				if (!to.createDirectory())
+				{
+					dir_exists = false;
+					err = "Error creating directory " + to_s;
+				}
 			}
-			if (!to.isDirectory())
+			else if (!to.isDirectory())
 			{
-				throw ValueException::FromString("destination must be a directory");
+				dir_exists = false;
+				err = "destination must be a directory";
 			}
-			kroll::FileUtils::Unzip(from_s,to_s);
-			result->SetBool(true);
+
+			if (dir_exists)
+			{
+				kroll::FileUtils::Unzip(from_s,to_s);
+				ret = true;
+			}
 		}
 		catch (Poco::FileNotFoundException&)
 		{
-			result->SetBool(false);
+			err = "file not found";
 		}
 		catch (Poco::PathNotFoundException&)
 		{
-			result->SetBool(false);
+			err = "path not found";
 		}
 		catch (Poco::Exception& exc)
 		{
-			throw ValueException::FromString(exc.displayText());
+			err = exc.displayText();
 		}
+
+		if (!onCompleteCallback)
+			return;
+
+		ValueList cb_args;
+		cb_args.push_back(Value::NewBool(ret));
+		if (!ret)
+		{
+			cb_args.push_back(Value::NewString(err));
+		}
+		RunOnMainThread(onCompleteCallback, cb_args, false);
+	}
+
+	void File::MD5Digest(const ValueList& args, KValueRef result)
+	{
+		if (args.size() < 1)
+		{
+			throw ValueException::FromString("please provide call back as argument");
+		}
+
+		KMethodRef onCompleteCallback = NULL;
+		if (args.at(0)->IsMethod())
+		{
+			onCompleteCallback = args.at(0)->ToMethod();
+		}
+		else
+		{
+			throw ValueException::FromString("invalid argument - second argument must be method callback");
+		}
+		this->getMD5Digest(onCompleteCallback);
+	}
+
+	void File::getMD5Digest(KMethodRef onCompleteCallback) const
+	{
+		std::ifstream istr(this->filename.c_str(), std::ios::binary);
+		bool ret = false;
+		std::string err;
+		std::string md5_string;
+		if (!istr)
+		{
+			err = "cannot open input file: " + this->filename;
+		}
+		else
+		{
+			Poco::MD5Engine md5;
+			Poco::DigestOutputStream dos(md5);
+			Poco::StreamCopier::copyStream(istr, dos);
+			dos.close();
+			md5_string = Poco::DigestEngine::digestToHex(md5.digest());
+			ret = true;
+		}
+
+		if (!onCompleteCallback)
+			return;
+
+		ValueList cb_args;
+		cb_args.push_back(Value::NewBool(ret));
+		if (ret)
+		{
+			cb_args.push_back(Value::NewString(md5_string));
+		}
+		else
+		{
+			cb_args.push_back(Value::NewString(err));
+		}
+		RunOnMainThread(onCompleteCallback, cb_args, false);
 	}
 }

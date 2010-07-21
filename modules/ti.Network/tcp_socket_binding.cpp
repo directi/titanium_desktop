@@ -418,14 +418,16 @@ namespace ti
 			//Once the socket is closed, its file descriptor will no longer be available.
 			this->socket.close();
 		}
+		this->notifier.stop();
 	}
 
 	void TCPSocketBinding::InitReactor(int connectTimeout)
 	{
+		notifier.start();
 		RegisterForRead();
 		RegisterForWrite();
 		RegisterForTimeout();
-		RegisterForError();		
+		RegisterForError();
 	}
 
 	void TCPSocketBinding::SetReactorDescriptors()
@@ -464,6 +466,7 @@ namespace ti
 		UnregisterForError();
 		UnregisterForWrite();
 		UnregisterForTimeout();
+		notifier.stop();
 	}
 
 	void TCPSocketBinding::InvokeErrorHandler(const std::string &str)

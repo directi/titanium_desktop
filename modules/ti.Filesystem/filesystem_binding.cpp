@@ -11,6 +11,7 @@
 #include "file_stream.h"
 #include "async_copy.h"
 #include "filesystem_utils.h"
+#include "zipFile.h"
 
 #ifdef OS_OSX
 #include <Cocoa/Cocoa.h>
@@ -22,6 +23,8 @@
 #include <sys/types.h>
 #include <pwd.h>
 #endif
+
+#include <fstream>
 
 #include <Poco/TemporaryFile.h>
 #include <Poco/File.h>
@@ -133,6 +136,13 @@ namespace ti
 		 * @tiresult(for=Filesystem.asyncCopy,type=Filesystem.AsyncCopy) async copy object
 		 */
 		this->SetMethod("asyncCopy",&FilesystemBinding::ExecuteAsyncCopy);
+		/**
+		 * @tiapi(method=True,name=Filesystem.getZipFile) decompresses the given zip file in the destination folder
+		 * @tiarg(for=Filesystem.getZipFile,name=zipFileName,type=String)
+		 * @tiarg(for=Filesystem.getZipFile,name=destDir,type=String)
+		 * @tiresult(for=Filesystem.ZipFile,type=FileSystem.ZipFile) Zip Decompress object
+		 */
+		this->SetMethod("getZipFile",&FilesystemBinding::GetZipFile);
 
 		/**
 		 * @tiapi(property=True,immutable=True,name=Filesystem.MODE_READ, since=0.3, type=Number) File read constant
@@ -439,6 +449,22 @@ namespace ti
 		{
 			this->timer->restart(100);
 		}
+	}
+
+	void FilesystemBinding::GetZipFile(const ValueList& args, KValueRef result)
+	{
+		if (args.size() != 1)
+		{
+			throw ValueException::FromString("invalid arguments - this method takes 1 arguments");
+		}
+
+		if (!args.at(0)->IsString())
+		{
+			throw ValueException::FromString("invalid argument - It must be zipFileName (string)");
+		}
+
+		std::string zipFileName = args.at(0)->ToString();
+		result->SetObject(new ti::ZipFile(zipFileName));
 	}
 
 	void FilesystemBinding::DeletePendingOperations(const ValueList& args, KValueRef result)

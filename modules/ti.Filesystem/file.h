@@ -71,6 +71,10 @@ namespace ti
 		void SetReadonly(const ValueList& args, KValueRef result);
 		void SetWritable(const ValueList& args, KValueRef result);
 		void Unzip(const ValueList& args, KValueRef result);
+		void MD5Digest(const ValueList& args, KValueRef result);
+
+		void Unzip(const std::string & destDir, KMethodRef onCompleteCallback, KMethodRef progressCallback) const;
+		void getMD5Digest(KMethodRef onCompleteCallback) const;
 	};
 }
 

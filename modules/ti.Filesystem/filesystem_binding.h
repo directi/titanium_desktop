@@ -12,6 +12,7 @@
 #include <Poco/Mutex.h>
 #include <Poco/Timer.h>
 
+
 namespace ti
 {
 	class FilesystemBinding : public StaticBoundObject
@@ -44,6 +45,7 @@ namespace ti
 		void GetSeparator(const ValueList& args, KValueRef result);
 		void GetRootDirectories(const ValueList& args, KValueRef result);
 		void ExecuteAsyncCopy(const ValueList& args, KValueRef result);
+		void GetZipFile(const ValueList& args, KValueRef result);
 
 		//INTERNAL ONLY
 		void OnAsyncOperationTimer(Poco::Timer &timer);

@@ -35,6 +35,7 @@ namespace ti
 			GetSystemMetrics(SM_CXSMICON),
 			GetSystemMetrics(SM_CYSMICON));
 		notifyIconData->hIcon = icon;
+		notifyIconData->dwInfoFlags = NIIF_USER;
 
 		lstrcpy(notifyIconData->szTip, L"Titanium Application");
 		Shell_NotifyIcon(NIM_ADD, notifyIconData);
