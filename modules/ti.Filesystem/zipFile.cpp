@@ -60,7 +60,8 @@ namespace ti
 
 	void ZipFile::ToString(const ValueList& args, KValueRef result)
 	{
-		result->SetString("[Zip Decompress: " + this->zipFileName + "]");
+		std::string desc("[Zip Decompress: " + this->zipFileName + "]");
+		result->SetString(desc);
 	}
 
 	void ZipFile::GetFileCount(const ValueList& args, KValueRef result)
