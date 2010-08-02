@@ -122,6 +122,12 @@ namespace ti
 		this->SetMethod("exit", &AppBinding::Exit);
 
 		/**
+		 * @tiapi(method=True,name=App.exit,since=1.0.0)
+		 * @tiapi Exec the specified commandline
+		 */
+		this->SetMethod("exec", &AppBinding::Exec);
+
+		/**
 		 * @tiapi(method=True,name=App.restart,since=0.9)
 		 * @tiapi Restart the application.
 		 */
