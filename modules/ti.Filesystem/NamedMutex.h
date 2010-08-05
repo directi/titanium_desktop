@@ -3,8 +3,8 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
-#ifndef _TI_LOGGER_H_
-#define _TI_LOGGER_H_
+#ifndef _TI_NAMEDMUTEX_H_
+#define _TI_NAMEDMUTEX_H_
 
 #include <map>
 #include <kroll/kroll.h>
@@ -18,10 +18,10 @@ namespace ti
 		public:
 			Poco::Mutex referencesMutex;
 			int references;
-			NamedMutexFile * file;
+			NamedMutexFile * mutexFile;
 
-			ReferenceCountedNamedMutex(NamedMutexFile *_file = NULL)
-				: references(0), file(_file) { }
+			ReferenceCountedNamedMutex(NamedMutexFile *_mutexFile = NULL)
+				: references(0), mutexFile(_mutexFile) { }
 
 			void addRef()
 			{
@@ -46,16 +46,18 @@ namespace ti
 		: public StaticBoundObject
 	{
 		private:
-			std::string fileName;
+			std::string mutexname;
 
-			static std::map<std::string, ReferenceCountedNamedMutex *> files;
+			static std::map<std::string, ReferenceCountedNamedMutex *> namedMutexes;
 			static Poco::Mutex filesMutex;
 
 		public:
-			NamedMutex(const std::string &filename);
+			NamedMutex(const std::string &mutexname);
 			virtual ~NamedMutex();
 			
-			void Log(const ValueList& args, KValueRef result);
+			void Lock(const ValueList& args, KValueRef result);
+			void TryLock(const ValueList& args, KValueRef result);
+			void Unlock(const ValueList& args, KValueRef result);
 	};
 }
 

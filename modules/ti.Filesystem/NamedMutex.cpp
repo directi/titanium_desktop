@@ -26,47 +26,58 @@
 
 namespace ti
 {
-	std::map<std::string, ReferenceCountedNamedMutex *> NamedMutex::files;
+	std::map<std::string, ReferenceCountedNamedMutex *> NamedMutex::namedMutexes;
 	Poco::Mutex NamedMutex::filesMutex;
 
-	NamedMutex::NamedMutex(const std::string &filename)
-		: StaticBoundObject("Filesystem.NamedMutex")
+	NamedMutex::NamedMutex(const std::string &mutexname)
+		: StaticBoundObject("Filesystem.NamedMutex"),
+		mutexname(mutexname)
 	{
-		Poco::Path pocoPath(Poco::Path::expand(filename));
-		fileName = pocoPath.absolute().toString();
+		Poco::Mutex::ScopedLock lock(filesMutex);
+		std::map<std::string, ReferenceCountedNamedMutex *>::iterator oIter = namedMutexes.find(mutexname);
+		if(oIter == namedMutexes.end())
 		{
-			Poco::Mutex::ScopedLock lock(filesMutex);
-			std::map<std::string, ReferenceCountedNamedMutex *>::iterator oIter = files.find(fileName);
-			if(oIter == files.end())
-			{
-				files[fileName] = new ReferenceCountedNamedMutex(new NamedMutexFile(fileName));
-			}
+			namedMutexes[mutexname] = new ReferenceCountedNamedMutex(new NamedMutexFile(mutexname));
 		}
-		files[fileName]->addRef();
+		namedMutexes[mutexname]->addRef();
 
 		/**
-		 * @tiapi(method=True,name=Filesystem.NamedMutex.log,since=0.7) Writes data to the logfile
-		 * @tiarg(for=Filesystem.NamedMutex.log,type=String|Blob,name=data) data to log
+		 * @tiapi(method=True,name=Filesystem.NamedMutex.Lock,since=1.1.0) locks the NamedMutex
 		 */
-		this->SetMethod("log",&NamedMutex::Log);
+		this->SetMethod("lock",&NamedMutex::Lock);
+		/**
+		 * @tiapi(method=True,name=Filesystem.NamedMutex.Lock,since=1.1.0) tries locking the NamedMutex
+		 */
+		this->SetMethod("tryLock",&NamedMutex::TryLock);
+		/**
+		 * @tiapi(method=True,name=Filesystem.NamedMutex.Lock,since=1.1.0) unlocks the NamedMutex
+		 */
+		this->SetMethod("unlock",&NamedMutex::Unlock);
 	}
 
 	NamedMutex::~NamedMutex()
 	{
 		Poco::Mutex::ScopedLock lock(filesMutex);
-		files[fileName]->release();
-		if(files[fileName]->getReferencesCount() == 0)
+		namedMutexes[mutexname]->release();
+		if(namedMutexes[mutexname]->getReferencesCount() == 0)
 		{
-			delete files[fileName]->file;
-			files[fileName]->file = NULL;
-			files.erase(fileName);
+			delete namedMutexes[mutexname]->mutexFile;
+			namedMutexes[mutexname]->mutexFile = NULL;
+			namedMutexes.erase(mutexname);
 		}
 	}
 
-	void NamedMutex::Log(const ValueList& args, KValueRef result)
+	void NamedMutex::Lock(const ValueList& args, KValueRef result)
 	{
-		// TODO: create map of NamedMutexFile, select one of the required and call Log on that
-		std::string data = (char*)args.at(0)->ToString();
-//		files[fileName]->file->log(data);
+		namedMutexes[mutexname]->mutexFile->lock();
+	}
+	void NamedMutex::TryLock(const ValueList& args, KValueRef result)
+	{
+		bool ret = namedMutexes[mutexname]->mutexFile->tryLock();
+		result->SetBool(ret);
+	}
+	void NamedMutex::Unlock(const ValueList& args, KValueRef result)
+	{
+		namedMutexes[mutexname]->mutexFile->unlock();
 	}
 }

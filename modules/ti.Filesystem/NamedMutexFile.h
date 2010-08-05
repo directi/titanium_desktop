@@ -28,8 +28,7 @@ namespace ti
 		void unlock();
 
 	protected:
-		std::string filename;
-		Poco::NamedMutex * namedMutex;
+		Poco::NamedMutex namedMutex;
 	};
 }
 
