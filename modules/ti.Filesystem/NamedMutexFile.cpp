@@ -30,6 +30,7 @@ namespace ti
 
 	NamedMutexFile::~NamedMutexFile()
 	{
+		unlock();
 	}
 
 	void NamedMutexFile::lock()
