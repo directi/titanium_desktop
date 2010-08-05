@@ -60,8 +60,8 @@ namespace ti
 
 	void ZipFile::ToString(const ValueList& args, KValueRef result)
 	{
-		std::string desc("[Zip Decompress: " + this->zipFileName + "]");
-		result->SetString(desc);
+        std::string str("[Zip Decompress: " + this->zipFileName + "]");
+		result->SetString(str.c_str());
 	}
 
 	void ZipFile::GetFileCount(const ValueList& args, KValueRef result)
@@ -80,7 +80,7 @@ namespace ti
 
 		typedef Poco::Zip::ZipArchive za_t;
 		za_t za(inp);
-		for (za_t::FileInfos::const_iterator i = za.fileInfoBegin(); 
+		for (za_t::FileInfos::const_iterator i = za.fileInfoBegin();
 			i != za.fileInfoEnd(); ++i)
 		{
 			if (!i->second.isDirectory()) ++count;
