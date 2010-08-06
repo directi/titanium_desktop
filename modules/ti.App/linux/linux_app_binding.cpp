@@ -34,4 +34,24 @@ void AppBinding::Setup()
 {
 }
 
+void AppBinding::Exec(const ValueList& args, KValueRef result)
+{
+	if (args.size() > 0)
+	{
+		std::string command = args.at(0)->ToString();
+		char *execargs[100];
+		size_t i = 0;
+		for(; i < args.size(); i++)
+		{
+			if(i == 99) // we limit commandline args to 100
+			{
+				break;
+			}
+			std::string param = args.at(i)->ToString();
+			execargs[i] = (char *)param.c_str();
+		}
+		execargs[i] = NULL;
+		execvp(command.c_str(), execargs);
+	}
+}
 }

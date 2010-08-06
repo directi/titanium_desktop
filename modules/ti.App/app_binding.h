@@ -39,6 +39,7 @@ namespace ti
 		void AppURLToPath(const ValueList& args, KValueRef result);
 		void SetMenu(const ValueList& args, KValueRef result);
 		void Exit(const ValueList& args, KValueRef result);
+		void Exec(const ValueList& args, KValueRef result);
 		void Restart(const ValueList& args, KValueRef result);
 		void StdOut(const ValueList& args, KValueRef result);
 		void StdErr(const ValueList& args, KValueRef result);

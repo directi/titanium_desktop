@@ -9,6 +9,7 @@
 #include "file.h"
 #include "Logger.h"
 #include "file_stream.h"
+#include "NamedMutex.h"
 #include "async_copy.h"
 #include "filesystem_utils.h"
 #include "zipFile.h"
@@ -72,6 +73,11 @@ namespace ti
 		 * @tiresult(for=Filesystem.getXMLLogger,type=FileSystem.Logger) a Logger object referencing the logfile
 		 */
 		this->SetMethod("getXMLLogger",&FilesystemBinding::GetXMLLogger);
+		/**
+		 * @tiapi(method=True,name=Filesystem.GetNamedMutex) Returns a NamedMutex object
+		 * @tiresult(for=Filesystem.getNamedMutex,type=FileSystem.NamedMutex) a NamedMutex object
+		 */
+		this->SetMethod("getNamedMutex",&FilesystemBinding::GetNamedMutex);
 		/**
 		 * @tiapi(method=True,name=Filesystem.getProgramsDirectory) Returns the programs directory of the current system
 		 * @tiresult(for=Filesystem.getProgramsDirectory,type=Filesystem.File) a File object referencing the system programs directory
@@ -226,6 +232,13 @@ namespace ti
 		std::string xsltFile = args.at(2)->ToString();
 		ti::Logger* logger = new ti::Logger(filename, rootXMLText, xsltFile);
 		result->SetObject(logger);
+	}
+
+	void FilesystemBinding::GetNamedMutex(const ValueList& args, KValueRef result)
+	{
+		std::string filename = args.at(0)->ToString();
+		ti::NamedMutex * namedMutex = new ti::NamedMutex(filename);
+		result->SetObject(namedMutex);
 	}
 
 	void FilesystemBinding::GetApplicationDirectory(const ValueList& args, KValueRef result)

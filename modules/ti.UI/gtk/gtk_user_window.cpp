@@ -167,13 +167,13 @@ namespace ti
 		std::string appid(AppConfig::Instance()->GetAppID());
 		std::string dbPath(FileUtils::GetApplicationDataDirectory(appid).c_str());
 
-		g_object_set(G_OBJECT(settings), 
+		g_object_set(G_OBJECT(settings),
 			"enable-developer-extras", TRUE,
 			"enable-universal-access-from-file-uris", TRUE,
 			"enable-html5-local-storage", TRUE,
 			"enable-html5-database", TRUE,
 			"enable-html5-database", TRUE,
-			"local-storage-database-path", dbPath.c_str(), 
+			"html5-local-storage-path", dbPath.c_str(),
 			"enable-offline-web-application-cache", TRUE,
 			"tab-key-cycles-through-elements", TRUE,
 			"javascript-can-open-windows-automatically", TRUE,
