@@ -6,6 +6,8 @@
 #include "file.h"
 #include "filesystem_utils.h"
 
+#include "TiAsyncJobRunner.h"
+
 #include <Poco/File.h>
 #include <Poco/Path.h>
 #include <Poco/Exception.h>
@@ -787,7 +789,19 @@ namespace ti
 				throw ValueException::FromString("invalid argument - third argument must be method callback");
 			}
 		}
-		this->Unzip(destDir, onCompleteCallback, progressCallback);
+		struct UnzipStruct * str = new UnzipStruct(this, destDir, onCompleteCallback, progressCallback);
+		TiAsyncJobRunnerSingleton::Instance()->enqueue(new TiThreadTarget(&File::UnzipThread, str));
+
+		//this->Unzip(destDir, onCompleteCallback, progressCallback);
+	}
+
+	void File::UnzipThread(void * param)
+	{
+		struct UnzipStruct * str = static_cast<struct UnzipStruct *>(param);
+		if (str->file)
+		{
+			str->file->Unzip(str->destDir, str->onCompleteCallback, str->progressCallback);
+		}
 	}
 
 	void File::Unzip(const std::string & destDir, KMethodRef onCompleteCallback, KMethodRef progressCallback) const
@@ -847,6 +861,7 @@ namespace ti
 		RunOnMainThread(onCompleteCallback, cb_args, false);
 	}
 
+
 	void File::MD5Digest(const ValueList& args, KValueRef result)
 	{
 		if (args.size() < 1)
@@ -863,7 +878,18 @@ namespace ti
 		{
 			throw ValueException::FromString("invalid argument - second argument must be method callback");
 		}
-		this->getMD5Digest(onCompleteCallback);
+
+		struct MD5DigestStruct * str = new MD5DigestStruct(this, onCompleteCallback);
+		TiAsyncJobRunnerSingleton::Instance()->enqueue(new TiThreadTarget(&File::MD5DigestThread, str));
+	}
+
+	void File::MD5DigestThread(void * param)
+	{
+		struct MD5DigestStruct * str = static_cast<struct MD5DigestStruct *>(param);
+		if (str->file)
+		{
+			str->file->getMD5Digest(str->onCompleteCallback);
+		}
 	}
 
 	void File::getMD5Digest(KMethodRef onCompleteCallback) const
