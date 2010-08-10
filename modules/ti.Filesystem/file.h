@@ -21,6 +21,23 @@
 
 namespace ti
 {
+	class File;
+
+	struct MD5DigestThreadStruct {
+		ti::File * file;
+		KMethodRef onCompleteCallback;
+
+		MD5DigestThreadStruct()
+			: file(NULL), onCompleteCallback(NULL)
+		{
+		}
+
+		MD5DigestThreadStruct(ti::File * _file, KMethodRef _onCompleteCallback)
+			: file(_file), onCompleteCallback(_onCompleteCallback)
+		{
+		}
+	};
+
 	class File : public StaticBoundObject
 	{
 		public:
@@ -76,6 +93,8 @@ namespace ti
 
 		void Unzip(const std::string & destDir, KMethodRef onCompleteCallback, KMethodRef progressCallback) const;
 		void getMD5Digest(KMethodRef onCompleteCallback) const;
+
+		static void MD5DigestThread(void * param);
 	};
 }
 
