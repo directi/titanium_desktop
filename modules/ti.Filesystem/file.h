@@ -23,17 +23,43 @@ namespace ti
 {
 	class File;
 
-	struct MD5DigestThreadStruct {
+	struct MD5DigestStruct {
 		ti::File * file;
 		KMethodRef onCompleteCallback;
 
-		MD5DigestThreadStruct()
+		MD5DigestStruct()
 			: file(NULL), onCompleteCallback(NULL)
 		{
 		}
 
-		MD5DigestThreadStruct(ti::File * _file, KMethodRef _onCompleteCallback)
+		MD5DigestStruct(ti::File * _file, KMethodRef _onCompleteCallback)
 			: file(_file), onCompleteCallback(_onCompleteCallback)
+		{
+		}
+	};
+
+	struct UnzipStruct {
+		ti::File * file;
+		std::string destDir;
+		KMethodRef onCompleteCallback;
+		KMethodRef progressCallback;
+
+		UnzipStruct()
+			: file(NULL),
+			destDir(""),
+			onCompleteCallback(NULL),
+			progressCallback(NULL)
+		{
+		}
+
+		UnzipStruct(ti::File * _file,
+			const std::string & _destDir,
+			KMethodRef _onCompleteCallback,
+			KMethodRef _progressCallback)
+			: file(_file),
+			destDir(_destDir),
+			onCompleteCallback(_onCompleteCallback),
+			progressCallback(_progressCallback)
 		{
 		}
 	};
@@ -94,6 +120,7 @@ namespace ti
 		void Unzip(const std::string & destDir, KMethodRef onCompleteCallback, KMethodRef progressCallback) const;
 		void getMD5Digest(KMethodRef onCompleteCallback) const;
 
+		static void UnzipThread(void * param);
 		static void MD5DigestThread(void * param);
 	};
 }
