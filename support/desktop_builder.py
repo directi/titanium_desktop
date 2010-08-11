@@ -54,6 +54,10 @@ class DesktopBuilder(object):
 		tiapp = os.path.join(options.appdir,'tiapp.xml')
 		shutil.copy(tiapp, self.contents_dir)
 		
+		# copy the pwlauncher.sh
+		pwlauncher = os.path.join(options.appdir,'pwlauncher.sh')
+		shutil.copy(pwlauncher, self.contents_dir)
+		
 		# copy the manifest
 		manifest = os.path.join(options.appdir,'manifest')
 		shutil.copy(manifest, self.contents_dir)
