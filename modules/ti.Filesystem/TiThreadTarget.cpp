@@ -18,9 +18,5 @@ namespace ti
 
 	TiThreadTarget::~TiThreadTarget()
 	{
-		if (_param)
-		{
-			delete _param;
-		}
 	}
 }
