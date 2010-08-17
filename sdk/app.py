@@ -74,7 +74,8 @@ class App(object):
 
 		self.tiapp = ElementTree()
 		self.tiapp.parse(tiapp_path)
-		self.get_tiapp_element_as_prop('name', 'name')
+#Not reading name attribute as it ovverrides the manifest's name attribute: we don't want this.
+#self.get_tiapp_element_as_prop('name', 'name')
 		self.get_tiapp_element_as_prop('id', 'id')
 		self.get_tiapp_element_as_prop('version', 'version')
 		self.get_tiapp_element_as_prop('icon', 'image')
