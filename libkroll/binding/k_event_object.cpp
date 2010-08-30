@@ -125,7 +125,7 @@ namespace kroll
 			if (listener->Handles(event->eventName))
 			{
 				ValueList args(Value::NewObject(event));
-				bool result;
+				bool result = false;
 
 				try
 				{
