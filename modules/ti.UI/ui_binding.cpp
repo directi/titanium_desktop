@@ -381,11 +381,17 @@ namespace ti
 		result->SetDouble(this->GetIdleTime());
 	}
 
-	void UIBinding::Log(Logger::Level level, std::string& message)
-	{
+    void UIBinding::Log(Logger::Level level, std::string& message) {
 		if (level > Logger::LWARN)
 			return;
+        ValueList args = ValueList(Value::NewInt(level), Value::NewString(message));
+        RunOnMainThread(new KFunctionPtrMethod(&UIBinding::PrivateLog), 0, args, false);
+    }
 
+    KValueRef UIBinding::PrivateLog(const ValueList& args)
+    {
+        Logger::Level level = (Logger::Level) args[0]->ToInt();
+        KValueRef message = args[1];
 		std::string methodName("warn");
 		if (level < Logger::LWARN)
 			methodName = "error";
@@ -408,8 +414,9 @@ namespace ti
 			if (method.isNull())
 				method = console->GetMethod(methodName.c_str(), 0);
 
-			RunOnMainThread(method, ValueList(Value::NewString(message)), false);
-		}
+			method->Call(console, ValueList(message));
+        }
+		return Value::Undefined;
 	}
 }
 
