@@ -35,6 +35,7 @@ namespace ti
 		NOTIFYICONDATA* trayIconData;
 		static std::vector<AutoPtr<Win32TrayItem> > trayItems;
 		static UINT trayClickedMessage;
+		static UINT trayCreatedMessage;
 		bool is_double_clicked;
 	};
 }
