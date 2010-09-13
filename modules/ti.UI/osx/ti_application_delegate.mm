@@ -77,6 +77,7 @@
 {
 	// Attempt to close the main window when we should terminate
 	binding->GetMainWindow()->Close();
+	binding->GetHost()->Exit(0);
 
 	// By closing the main window, it should trigger the app to terminate.
 	// Do not allow termination to occur now since some cleanup in kroll
