@@ -1,0 +1,16 @@
+#!/usr/bin/env python
+from os import path
+Import('build env module')
+
+env.Append(CPPDEFINES = ('TITANIUM_DIFFIEHELLMAN_API_EXPORT', 1))
+
+build.add_thirdparty(env, 'poco')
+
+if build.is_win32():
+	env.Append(CCFLAGS=['/MD', '/DUNICODE', '/D_UNICODE'])
+
+elif build.is_osx():
+    env.Append(LIBS=['crypto'], CPPPATH='/usr/include', LIBPATH='/usr/lib')
+
+build.mark_build_target(env.SharedLibrary(
+	path.join(module.dir, 'tidiffiehellman'), Glob('*.cpp')))
