@@ -4,57 +4,25 @@
  * Copyright (c) 2008-2009 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "boot.h"
+#include "boot_win32.h"
 #include "popup_dialog_win32.h"
+
 #include <process.h>
 #include <windows.h>
-using std::wstring;
 
-#ifndef MAX_PATH
-#define MAX_PATH 512
-#endif
 
-#ifdef USE_BREAKPAD
-#include "client/windows/handler/exception_handler.h"
-#include "common/windows/http_upload.h"
-#endif
+int CrashReporter::argc;
+const char** CrashReporter::argv;
 
-namespace KrollBoot
-{
-	extern string applicationHome;
-	extern string updateFile;
-	extern SharedApplication app;
-	extern int argc;
-	extern const char** argv;
-	
-	inline void ShowError(string msg, bool fatal)
+
+	typedef int Executor(int, const char **);
+
+	KrollWin32Boot::KrollWin32Boot(int _argc, const char ** _argv)
+		: KrollBoot(_argc, _argv)
 	{
-		wstring wideMsg(L"Error: ");
-		wideMsg.append(KrollUtils::UTF8ToWide(msg));
-		wstring wideAppName = KrollUtils::UTF8ToWide(GetApplicationName());
-
-		MessageBoxW(0, wideMsg.c_str(), wideAppName.c_str(), MB_OK|MB_ICONERROR|MB_SYSTEMMODAL);
-		if (fatal)
-			exit(1);
 	}
 
-	string GetApplicationHomePath()
-	{
-		wchar_t widePath[MAX_PATH];
-		int size = GetModuleFileNameW(GetModuleHandle(0), widePath, MAX_PATH - 1);
-		if (size > 0)
-		{
-			widePath[size] = '\0';
-			string path = KrollUtils::WideToUTF8(widePath);
-			return FileUtils::Dirname(path);
-		}
-		else
-		{
-			ShowError("Could not determine application path.", true);
-		}
-	}
-
-	bool IsWindowsXP()
+	bool KrollWin32Boot::IsWindowsXP() const
 	{
 		OSVERSIONINFO osVersion;
 		osVersion.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
@@ -62,32 +30,7 @@ namespace KrollBoot
 		return osVersion.dwMajorVersion == 5;
 	}
 
-	void BootstrapPlatformSpecific(string path)
-	{
-		// Add runtime path and all module paths to PATH
-		path = app->runtime->path + ";" + path;
-		string currentPath(EnvironmentUtils::Get("PATH"));
-		EnvironmentUtils::Set("KR_ORIG_PATH", currentPath);
-
-		// make sure the runtime folder is used before system DLL directories
-		SetDllDirectoryW(KrollUtils::UTF8ToWide(app->runtime->path).c_str());
-		
-		if (!currentPath.empty())
-			path = path + ";" + currentPath;
-		EnvironmentUtils::Set("PATH", path);
-	}
-
-	string Blastoff()
-	{
-		// Windows boot does not normally need to restart itself,  so just
-		// launch the host here and exit with the appropriate return value.
-
-		// This may have been an install, so ensure that KR_HOME is correct
-		EnvironmentUtils::Set("KR_HOME", app->path);
-		exit(KrollBoot::StartHost());
-	}
-
-	static HMODULE SafeLoadRuntimeDLL(string& path)
+	HMODULE KrollWin32Boot::SafeLoadRuntimeDLL(string& path) const
 	{
 		if (!FileUtils::IsFile(path))
 		{
@@ -110,8 +53,7 @@ namespace KrollBoot
 		return module;
 	}
 
-	typedef int Executor(int, const char **);
-	int StartHost()
+	int KrollWin32Boot::StartHost()
 	{
 		string runtimePath(EnvironmentUtils::Get("KR_RUNTIME"));
 		string dll(FileUtils::Join(runtimePath.c_str(), "khost.dll", 0));
@@ -126,10 +68,40 @@ namespace KrollBoot
 			return __LINE__;
 		}
 
-		return executor(argc, (const char**)argv);
+		return executor(argc, argv);
 	}
 
-	bool RunInstaller(vector<SharedDependency> missing, bool forceInstall)
+
+	void KrollWin32Boot::ShowError(const string & msg, bool fatal) const
+	{
+		wstring wideMsg(L"Error: ");
+		wideMsg.append(KrollUtils::UTF8ToWide(msg));
+		wstring wideAppName = KrollUtils::UTF8ToWide(GetApplicationName());
+
+		MessageBoxW(0, wideMsg.c_str(), wideAppName.c_str(), MB_OK|MB_ICONERROR|MB_SYSTEMMODAL);
+		if (fatal)
+		{
+			exit(1);
+		}
+	}
+
+	string KrollWin32Boot::GetApplicationHomePath() const
+	{
+		wchar_t widePath[MAX_PATH];
+		int size = GetModuleFileNameW(GetModuleHandle(0), widePath, MAX_PATH - 1);
+		if (size > 0)
+		{
+			widePath[size] = '\0';
+			string path = KrollUtils::WideToUTF8(widePath);
+			return FileUtils::Dirname(path);
+		}
+		else
+		{
+			ShowError("Could not determine application path.", true);
+		}
+	}
+
+	bool KrollWin32Boot::RunInstaller(vector<SharedDependency> missing, bool forceInstall)
 	{
 
 		string installer(FileUtils::Join(app->path.c_str(), "installer", "installer.exe", 0));
@@ -141,7 +113,33 @@ namespace KrollBoot
 		return BootUtils::RunInstaller(missing, app, updateFile, "", false, forceInstall);
 	}
 
-	string GetApplicationName()
+	void KrollWin32Boot::BootstrapPlatformSpecific(string path)
+	{
+		// Add runtime path and all module paths to PATH
+		path = app->runtime->path + ";" + path;
+		string currentPath(EnvironmentUtils::Get("PATH"));
+		EnvironmentUtils::Set("KR_ORIG_PATH", currentPath);
+
+		// make sure the runtime folder is used before system DLL directories
+		SetDllDirectoryW(KrollUtils::UTF8ToWide(app->runtime->path).c_str());
+		
+		if (!currentPath.empty())
+			path = path + ";" + currentPath;
+		EnvironmentUtils::Set("PATH", path);
+	}
+
+	string KrollWin32Boot::Blastoff()
+	{
+		// Windows boot does not normally need to restart itself,  so just
+		// launch the host here and exit with the appropriate return value.
+
+		// This may have been an install, so ensure that KR_HOME is correct
+		EnvironmentUtils::Set("KR_HOME", app->path);
+		exit(StartHost());
+	}
+
+
+	string KrollWin32Boot::GetApplicationName() const
 	{
 		if (!app.isNull())
 		{
@@ -150,12 +148,24 @@ namespace KrollBoot
 		return PRODUCT_NAME;
 	}
 
-#ifdef USE_BREAKPAD
-	static google_breakpad::ExceptionHandler* breakpad;
-	extern string dumpFilePath;
 
-	wchar_t breakpadCallBuffer[MAX_PATH];
-	bool HandleCrash(
+#ifdef USE_BREAKPAD
+	google_breakpad::ExceptionHandler* CrashReporter::breakpad;
+	wchar_t CrashReporter::breakpadCallBuffer[MAX_PATH] = {0};
+
+	string CrashReporter::GetApplicationHomePath()
+	{
+		wchar_t widePath[MAX_PATH];
+		int size = GetModuleFileNameW(GetModuleHandle(0), widePath, MAX_PATH - 1);
+		if (size > 0)
+		{
+			widePath[size] = '\0';
+			string path = KrollUtils::WideToUTF8(widePath);
+			return FileUtils::Dirname(path);
+		}
+	}
+
+	bool CrashReporter::HandleCrash(
 		const wchar_t* dumpPath,
 		const wchar_t* id,
 		void* context,
@@ -193,17 +203,17 @@ namespace KrollBoot
 		return true;
 	}
 
-	wstring StringToWString(string in)
+	wstring CrashReporter::StringToWString(string in)
 	{
 		wstring out(in.length(), L' ');
 		copy(in.begin(), in.end(), out.begin());
 		return out;
 	}
 
-	map<wstring, wstring> GetCrashReportParametersW()
+	void CrashReporter::GetCrashReportParametersW(map<wstring, wstring> & paramsW)
 	{
-		map<wstring, wstring> paramsW;
-		map<string, string> params = GetCrashReportParameters();
+		map<string, string> params;
+		GetCrashReportParameters(params);
 		map<string, string>::iterator i = params.begin();
 		while (i != params.end())
 		{
@@ -213,10 +223,9 @@ namespace KrollBoot
 
 			paramsW[key] = val;
 		}
-		return paramsW;
 	}
 
-	int SendCrashReport()
+	int CrashReporter::SendCrashReport()
 	{
 		InitCrashDetection();
 		string title = GetCrashDetectionTitle();
@@ -236,7 +245,8 @@ namespace KrollBoot
 		wstring url = L"http://";
 		url += StringToWString(CRASH_REPORT_URL);
 
-		const std::map<wstring, wstring> parameters = GetCrashReportParametersW();
+		std::map<wstring, wstring> parameters;
+		GetCrashReportParametersW(parameters);
 		wstring dumpFilePathW = StringToWString(dumpFilePath);
 		wstring responseBody;
 		int responseCode;
@@ -252,9 +262,9 @@ namespace KrollBoot
 
 		if (!success)
 		{
-#ifdef DEBUG
-			ShowError("Error uploading crash dump.");
-#endif
+//#ifdef DEBUG
+//			KrollBoot::ShowError("Error uploading crash dump.");
+//#endif
 			return __LINE__;
 		}
 #ifdef DEBUG
@@ -266,7 +276,6 @@ namespace KrollBoot
 		return 0;
 	}
 #endif
-}
 
 #if defined(OS_WIN32) && !defined(WIN32_CONSOLE)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR command_line, int)
@@ -274,25 +283,26 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR command_line, int)
 int main(int __argc, const char* __argv[])
 #endif
 {
-	KrollBoot::argc = __argc;
-	KrollBoot::argv = (const char**) __argv;
+	KrollWin32Boot boot(__argc, __argv);
 
 #ifdef USE_BREAKPAD
 	// Don't install a handler if we are just handling an error.
 	if (__argc > 2 && !strcmp(CRASH_REPORT_OPT, __argv[1]))
 	{
-		return KrollBoot::SendCrashReport();
+		CrashReporter::argc = __argc;
+		CrashReporter::argv = __argv;
+		return CrashReporter::SendCrashReport();
 	}
 
 	wchar_t tempPath[MAX_PATH];
 	GetTempPathW(MAX_PATH, tempPath);
-	KrollBoot::breakpad = new google_breakpad::ExceptionHandler(
+	CrashReporter::breakpad = new google_breakpad::ExceptionHandler(
 		tempPath,
 		0,
-		KrollBoot::HandleCrash,
+		CrashReporter::HandleCrash,
 		0,
 		google_breakpad::ExceptionHandler::HANDLER_ALL);
 #endif
 
-	return KrollBoot::Bootstrap();
+	return boot.Bootstrap();
 }

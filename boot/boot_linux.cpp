@@ -176,7 +176,8 @@ namespace KrollBoot
 		msg.append(GetCrashDetectionMessage());
 
 		string url = string("http://") + CRASH_REPORT_URL;
-		const std::map<string, string> parameters = GetCrashReportParameters();
+		const std::map<string, string> parameters;
+		GetCrashReportParameters(parameters);
 
 		GtkWidget* dialog = gtk_message_dialog_new(
 			0,

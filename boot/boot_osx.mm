@@ -215,7 +215,8 @@ namespace KrollBoot
 
 		if (response == NSAlertFirstButtonReturn)
 		{
-			map<string, string> params = GetCrashReportParameters();
+			map<string, string> params;
+			GetCrashReportParameters(params);
 
 			NSMutableDictionary* nsParams = [[NSMutableDictionary alloc] init];
 			map<string, string>::iterator i = params.begin();
