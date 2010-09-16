@@ -20,6 +20,10 @@ KrollWin32Boot::KrollWin32Boot(int _argc, const char ** _argv)
 {
 }
 
+KrollWin32Boot::~KrollWin32Boot()
+{
+}
+
 bool KrollWin32Boot::IsWindowsXP() const
 {
 	OSVERSIONINFO osVersion;
