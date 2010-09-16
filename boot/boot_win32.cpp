@@ -148,7 +148,7 @@ string KrollWin32Boot::GetApplicationName() const
 
 
 #ifdef USE_BREAKPAD
-string Win32CrashHandler::app_exe_name;
+
 wchar_t Win32CrashHandler::breakpadCallBuffer[MAX_PATH]= {0};
 
 Win32CrashHandler::Win32CrashHandler(int _argc, const char ** _argv)
