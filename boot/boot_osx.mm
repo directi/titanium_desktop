@@ -38,7 +38,7 @@ KrollOSXBoot::~KrollOSXBoot()
 {
 }
 
-void KrollOSXBoot::ShowErrorImpl(const std::string& msg) const
+void KrollOSXBoot::ShowErrorImpl(const std::string& msg, bool fatal) const
 {
 	NSApplicationLoad();
 	NSString* buttonText = @"Continue";

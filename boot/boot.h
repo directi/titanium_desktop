@@ -71,7 +71,7 @@ protected:
 	virtual string Blastoff()=0;
 	virtual void BootstrapPlatformSpecific(const std::string & moduleList)=0;
 
-	virtual void ShowErrorImpl(const std::string & msg) const=0;
+	virtual void ShowErrorImpl(const std::string & msg, bool fatal) const=0;
 	virtual string GetApplicationName() const=0;
 	virtual std::string GetApplicationHomePath() const=0;
 	

@@ -15,7 +15,7 @@ KrollBoot::~KrollBoot()
 
 void KrollBoot::ShowError(const string & msg, bool fatal) const
 {
-	ShowErrorImpl(msg);
+	ShowErrorImpl(msg, fatal);
 	if(fatal)
 	{
 		exit(1);

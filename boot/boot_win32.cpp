@@ -70,7 +70,7 @@ int KrollWin32Boot::StartHost()
 }
 
 
-void KrollWin32Boot::ShowErrorImpl(const string & msg) const
+void KrollWin32Boot::ShowErrorImpl(const string & msg, bool fatal) const
 {
 	wstring wideMsg(L"Error: ");
 	wideMsg.append(KrollUtils::UTF8ToWide(msg));

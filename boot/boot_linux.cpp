@@ -20,7 +20,7 @@ KrollLinuxBoot::KrollLinuxBoot(int _argc, const char ** _argv)
 KrollLinuxBoot::~KrollLinuxBoot()
 {
 }
-void KrollLinuxBoot::ShowErrorImpl(const string & msg) const
+void KrollLinuxBoot::ShowErrorImpl(const string & msg, bool fatal) const
 {
 	std::cout << msg << std::endl;
 	int myargc = argc;
