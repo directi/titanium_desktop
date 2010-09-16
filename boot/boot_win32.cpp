@@ -11,132 +11,130 @@
 #include <windows.h>
 
 
-int CrashReporter::argc;
-const char** CrashReporter::argv;
 
 
-	typedef int Executor(int, const char **);
+typedef int Executor(int, const char **);
 
-	KrollWin32Boot::KrollWin32Boot(int _argc, const char ** _argv)
-		: KrollBoot(_argc, _argv)
+KrollWin32Boot::KrollWin32Boot(int _argc, const char ** _argv)
+	: KrollBoot(_argc, _argv)
+{
+}
+
+bool KrollWin32Boot::IsWindowsXP() const
+{
+	OSVERSIONINFO osVersion;
+	osVersion.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+	::GetVersionEx(&osVersion);
+	return osVersion.dwMajorVersion == 5;
+}
+
+HMODULE KrollWin32Boot::SafeLoadRuntimeDLL(string& path) const
+{
+	if (!FileUtils::IsFile(path))
 	{
+		ShowError(string("Couldn't find required file: ") + path);
+		return false;
 	}
 
-	bool KrollWin32Boot::IsWindowsXP() const
+	wstring widePath(KrollUtils::UTF8ToWide(path));
+	HMODULE module = LoadLibraryExW(widePath.c_str(),
+		0, LOAD_WITH_ALTERED_SEARCH_PATH);
+	if (!module)
 	{
-		OSVERSIONINFO osVersion;
-		osVersion.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-		::GetVersionEx(&osVersion);
-		return osVersion.dwMajorVersion == 5;
+		string msg("Couldn't load file (");
+		msg.append(path);
+		msg.append("): ");
+		msg.append(KrollUtils::Win32Utils::QuickFormatMessage(GetLastError()));
+		ShowError(msg);
 	}
 
-	HMODULE KrollWin32Boot::SafeLoadRuntimeDLL(string& path) const
+	return module;
+}
+
+int KrollWin32Boot::StartHost()
+{
+	string runtimePath(EnvironmentUtils::Get("KR_RUNTIME"));
+	string dll(FileUtils::Join(runtimePath.c_str(), "khost.dll", 0));
+	HMODULE khost = SafeLoadRuntimeDLL(dll);
+	if (!khost)
+		return __LINE__;
+
+	Executor *executor = (Executor*) GetProcAddress(khost, "Execute");
+	if (!executor)
 	{
-		if (!FileUtils::IsFile(path))
-		{
-			ShowError(string("Couldn't find required file: ") + path);
-			return false;
-		}
-
-		wstring widePath(KrollUtils::UTF8ToWide(path));
-		HMODULE module = LoadLibraryExW(widePath.c_str(),
-			0, LOAD_WITH_ALTERED_SEARCH_PATH);
-		if (!module)
-		{
-			string msg("Couldn't load file (");
-			msg.append(path);
-			msg.append("): ");
-			msg.append(KrollUtils::Win32Utils::QuickFormatMessage(GetLastError()));
-			ShowError(msg);
-		}
-
-		return module;
+		ShowError(string("Invalid entry point 'Execute' in khost.dll"));
+		return __LINE__;
 	}
 
-	int KrollWin32Boot::StartHost()
+	return executor(argc, argv);
+}
+
+
+void KrollWin32Boot::ShowError(const string & msg, bool fatal) const
+{
+	wstring wideMsg(L"Error: ");
+	wideMsg.append(KrollUtils::UTF8ToWide(msg));
+	wstring wideAppName = KrollUtils::UTF8ToWide(GetApplicationName());
+
+	MessageBoxW(0, wideMsg.c_str(), wideAppName.c_str(), MB_OK|MB_ICONERROR|MB_SYSTEMMODAL);
+	if (fatal)
 	{
-		string runtimePath(EnvironmentUtils::Get("KR_RUNTIME"));
-		string dll(FileUtils::Join(runtimePath.c_str(), "khost.dll", 0));
-		HMODULE khost = SafeLoadRuntimeDLL(dll);
-		if (!khost)
-			return __LINE__;
-
-		Executor *executor = (Executor*) GetProcAddress(khost, "Execute");
-		if (!executor)
-		{
-			ShowError(string("Invalid entry point 'Execute' in khost.dll"));
-			return __LINE__;
-		}
-
-		return executor(argc, argv);
+		exit(1);
 	}
+}
 
-
-	void KrollWin32Boot::ShowError(const string & msg, bool fatal) const
+string KrollWin32Boot::GetApplicationHomePath() const
+{
+	wchar_t widePath[MAX_PATH];
+	int size = GetModuleFileNameW(GetModuleHandle(0), widePath, MAX_PATH - 1);
+	if (size > 0)
 	{
-		wstring wideMsg(L"Error: ");
-		wideMsg.append(KrollUtils::UTF8ToWide(msg));
-		wstring wideAppName = KrollUtils::UTF8ToWide(GetApplicationName());
-
-		MessageBoxW(0, wideMsg.c_str(), wideAppName.c_str(), MB_OK|MB_ICONERROR|MB_SYSTEMMODAL);
-		if (fatal)
-		{
-			exit(1);
-		}
+		widePath[size] = '\0';
+		string path = KrollUtils::WideToUTF8(widePath);
+		return FileUtils::Dirname(path);
 	}
-
-	string KrollWin32Boot::GetApplicationHomePath() const
+	else
 	{
-		wchar_t widePath[MAX_PATH];
-		int size = GetModuleFileNameW(GetModuleHandle(0), widePath, MAX_PATH - 1);
-		if (size > 0)
-		{
-			widePath[size] = '\0';
-			string path = KrollUtils::WideToUTF8(widePath);
-			return FileUtils::Dirname(path);
-		}
-		else
-		{
-			ShowError("Could not determine application path.", true);
-		}
+		ShowError("Could not determine application path.", true);
 	}
+}
 
-	bool KrollWin32Boot::RunInstaller(vector<SharedDependency> missing, bool forceInstall)
+bool KrollWin32Boot::RunInstaller(vector<SharedDependency> missing, bool forceInstall)
+{
+
+	string installer(FileUtils::Join(app->path.c_str(), "installer", "installer.exe", 0));
+	if (!FileUtils::IsFile(installer))
 	{
-
-		string installer(FileUtils::Join(app->path.c_str(), "installer", "installer.exe", 0));
-		if (!FileUtils::IsFile(installer))
-		{
-			ShowError("Missing installer and application has additional modules that are needed.");
-			return false;
-		}
-		return BootUtils::RunInstaller(missing, app, updateFile, "", false, forceInstall);
+		ShowError("Missing installer and application has additional modules that are needed.");
+		return false;
 	}
+	return BootUtils::RunInstaller(missing, app, updateFile, "", false, forceInstall);
+}
 
-	void KrollWin32Boot::BootstrapPlatformSpecific(string path)
-	{
-		// Add runtime path and all module paths to PATH
-		path = app->runtime->path + ";" + path;
-		string currentPath(EnvironmentUtils::Get("PATH"));
-		EnvironmentUtils::Set("KR_ORIG_PATH", currentPath);
+void KrollWin32Boot::BootstrapPlatformSpecific(string path)
+{
+	// Add runtime path and all module paths to PATH
+	path = app->runtime->path + ";" + path;
+	string currentPath(EnvironmentUtils::Get("PATH"));
+	EnvironmentUtils::Set("KR_ORIG_PATH", currentPath);
 
-		// make sure the runtime folder is used before system DLL directories
-		SetDllDirectoryW(KrollUtils::UTF8ToWide(app->runtime->path).c_str());
-		
-		if (!currentPath.empty())
-			path = path + ";" + currentPath;
-		EnvironmentUtils::Set("PATH", path);
-	}
+	// make sure the runtime folder is used before system DLL directories
+	SetDllDirectoryW(KrollUtils::UTF8ToWide(app->runtime->path).c_str());
+	
+	if (!currentPath.empty())
+		path = path + ";" + currentPath;
+	EnvironmentUtils::Set("PATH", path);
+}
 
-	string KrollWin32Boot::Blastoff()
-	{
-		// Windows boot does not normally need to restart itself,  so just
-		// launch the host here and exit with the appropriate return value.
+string KrollWin32Boot::Blastoff()
+{
+	// Windows boot does not normally need to restart itself,  so just
+	// launch the host here and exit with the appropriate return value.
 
-		// This may have been an install, so ensure that KR_HOME is correct
-		EnvironmentUtils::Set("KR_HOME", app->path);
-		exit(StartHost());
-	}
+	// This may have been an install, so ensure that KR_HOME is correct
+	EnvironmentUtils::Set("KR_HOME", app->path);
+	exit(StartHost());
+}
 
 
 	string KrollWin32Boot::GetApplicationName() const
@@ -150,10 +148,20 @@ const char** CrashReporter::argv;
 
 
 #ifdef USE_BREAKPAD
-	google_breakpad::ExceptionHandler* CrashReporter::breakpad;
-	wchar_t CrashReporter::breakpadCallBuffer[MAX_PATH] = {0};
+	string Win32CrashHandler::app_exe_name;
 
-	string CrashReporter::GetApplicationHomePath()
+	Win32CrashHandler::Win32CrashHandler(int _argc, const char ** _argv)
+		: CrashHandler(_argc, _argv), breakpad(0)
+	{
+		app_exe_name = argv[0];
+	}
+
+	Win32CrashHandler::~Win32CrashHandler()
+	{
+	}
+
+	wchar_t Win32CrashHandler::breakpadCallBuffer[MAX_PATH]= {0};
+	string Win32CrashHandler::GetApplicationHomePath()
 	{
 		wchar_t widePath[MAX_PATH];
 		int size = GetModuleFileNameW(GetModuleHandle(0), widePath, MAX_PATH - 1);
@@ -165,7 +173,7 @@ const char** CrashReporter::argv;
 		}
 	}
 
-	bool CrashReporter::HandleCrash(
+	bool Win32CrashHandler::HandleCrash(
 		const wchar_t* dumpPath,
 		const wchar_t* id,
 		void* context,
@@ -180,7 +188,7 @@ const char** CrashReporter::argv;
 			PROCESS_INFORMATION processInformation;
 
 			_snwprintf(breakpadCallBuffer, MAX_PATH - 1, L"\"%S\" \"%S\" %s %s",
-				argv[0], CRASH_REPORT_OPT, dumpPath, id);
+				Win32CrashHandler::app_exe_name.c_str(), CRASH_REPORT_OPT, dumpPath, id);
 
 			CreateProcessW(
 				0,
@@ -203,14 +211,14 @@ const char** CrashReporter::argv;
 		return true;
 	}
 
-	wstring CrashReporter::StringToWString(string in)
+	wstring Win32CrashHandler::StringToWString(string in)
 	{
 		wstring out(in.length(), L' ');
 		copy(in.begin(), in.end(), out.begin());
 		return out;
 	}
 
-	void CrashReporter::GetCrashReportParametersW(map<wstring, wstring> & paramsW)
+	void Win32CrashHandler::GetCrashReportParametersW(map<wstring, wstring> & paramsW)
 	{
 		map<string, string> params;
 		GetCrashReportParameters(params);
@@ -225,7 +233,17 @@ const char** CrashReporter::argv;
 		}
 	}
 
-	int CrashReporter::SendCrashReport()
+	void Win32CrashHandler::createHandler(wchar_t tempPath[MAX_PATH])
+	{
+		breakpad = new google_breakpad::ExceptionHandler(
+			tempPath,
+			0,
+			Win32CrashHandler::HandleCrash,
+			0,
+			google_breakpad::ExceptionHandler::HANDLER_ALL);
+	}
+
+	int Win32CrashHandler::SendCrashReport()
 	{
 		InitCrashDetection();
 		string title = GetCrashDetectionTitle();
@@ -283,26 +301,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR command_line, int)
 int main(int __argc, const char* __argv[])
 #endif
 {
-	KrollWin32Boot boot(__argc, __argv);
-
 #ifdef USE_BREAKPAD
+	Win32CrashHandler reporter(__argc, __argv);
 	// Don't install a handler if we are just handling an error.
 	if (__argc > 2 && !strcmp(CRASH_REPORT_OPT, __argv[1]))
 	{
-		CrashReporter::argc = __argc;
-		CrashReporter::argv = __argv;
-		return CrashReporter::SendCrashReport();
+		return reporter.SendCrashReport();
 	}
 
 	wchar_t tempPath[MAX_PATH];
 	GetTempPathW(MAX_PATH, tempPath);
-	CrashReporter::breakpad = new google_breakpad::ExceptionHandler(
-		tempPath,
-		0,
-		CrashReporter::HandleCrash,
-		0,
-		google_breakpad::ExceptionHandler::HANDLER_ALL);
+	reporter.createHandler(tempPath);
 #endif
 
+	KrollWin32Boot boot(__argc, __argv);
 	return boot.Bootstrap();
 }

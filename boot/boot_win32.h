@@ -29,4 +29,36 @@ class KrollWin32Boot
 
 };
 
+#ifdef USE_BREAKPAD
+class Win32CrashHandler
+	: public CrashHandler
+{
+public:
+	Win32CrashHandler(int _argc, const char ** _argv);
+	~Win32CrashHandler();
+
+	virtual int SendCrashReport();
+	void createHandler(wchar_t tempPath[MAX_PATH]);
+
+private:
+	google_breakpad::ExceptionHandler* breakpad;
+
+	static string app_exe_name;
+	virtual string GetApplicationHomePath();
+	static wchar_t breakpadCallBuffer[MAX_PATH];
+
+	static bool HandleCrash(
+		const wchar_t* dumpPath,
+		const wchar_t* id,
+		void* context,
+		EXCEPTION_POINTERS* exinfo,
+		MDRawAssertionInfo* assertion,
+		bool succeeded);
+
+	static wstring StringToWString(string in);
+	void GetCrashReportParametersW(map<wstring, wstring> & paramsW);
+};
+
+#endif
+
 #endif // _KROLL_WIN32_BOOT_H_

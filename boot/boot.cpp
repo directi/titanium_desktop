@@ -157,34 +157,19 @@ void KrollBoot::FindUpdate()
 	}
 
 #ifdef USE_BREAKPAD
-
-	SharedApplication CrashReporter::app = NULL;
-	string CrashReporter::applicationHome;
-	string CrashReporter::dumpFilePath;
-
-	string CrashReporter::GetApplicationName()
+	CrashHandler::CrashHandler(int _argc, const char ** _argv)
+		: argc(_argc), argv(_argv), app(0)
 	{
-		return PRODUCT_NAME;
 	}
 
-	string CrashReporter::GetCrashDetectionTitle()
+	CrashHandler::~CrashHandler()
 	{
-		return CrashReporter::GetApplicationName() + " encountered an error";
 	}
 
-	string CrashReporter::GetCrashDetectionHeader()
-	{
-		return CrashReporter::GetApplicationName() + " appears to have encountered a fatal error and cannot continue.";
-	}
+	string CrashHandler::applicationHome;
+	string CrashHandler::dumpFilePath;
 
-	string CrashReporter::GetCrashDetectionMessage()
-	{
-		return "The application has collected information about the error"
-		" in the form of a detailed error report. If you send the crash report,"
-		" we will attempt to resolve this problem.";
-	}
-
-	void CrashReporter::InitCrashDetection()
+	void CrashHandler::InitCrashDetection()
 	{
 		// Load the application manifest so that we can get lots of debugging
 		// information for the crash report.
@@ -197,7 +182,24 @@ void KrollBoot::FindUpdate()
 		}
 	}
 
-	void CrashReporter::GetCrashReportParameters(map<string, string> & params)
+	string CrashHandler::GetCrashDetectionTitle()
+	{
+		return CrashHandler::GetApplicationName() + " encountered an error";
+	}
+
+	string CrashHandler::GetCrashDetectionHeader()
+	{
+		return CrashHandler::GetApplicationName() + " appears to have encountered a fatal error and cannot continue.";
+	}
+
+	string CrashHandler::GetCrashDetectionMessage()
+	{
+		return "The application has collected information about the error"
+		" in the form of a detailed error report. If you send the crash report,"
+		" we will attempt to resolve this problem.";
+	}
+
+	void CrashHandler::GetCrashReportParameters(map<string, string> & params)
 	{
 		if (argc > 3)
 		{
@@ -258,5 +260,10 @@ void KrollBoot::FindUpdate()
 			}
 		}
 	}
+	string CrashHandler::GetApplicationName()
+	{
+		return PRODUCT_NAME;
+	}
+
 #endif
 

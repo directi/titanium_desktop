@@ -90,39 +90,30 @@ protected:
 
 
 #ifdef USE_BREAKPAD
-class CrashReporter
+class CrashHandler
 {
 public:
-	static int argc;
-	static const char** argv;
+	CrashHandler(int _argc, const char ** _argv);
+	virtual ~CrashHandler();
+
+	virtual int SendCrashReport()=0;
+
+protected:
+	int argc;
+	const char** argv;
 	static string applicationHome;
-	static SharedApplication app;
+	SharedApplication app;
 	static string dumpFilePath;
 
-	static void InitCrashDetection();
+	void InitCrashDetection();
 	static string GetCrashDetectionTitle();
 	static string GetCrashDetectionHeader();
 	static string GetCrashDetectionMessage();
-	static void GetCrashReportParameters(map<string, string> & param);
+	void GetCrashReportParameters(map<string, string> & param);
 	static string GetApplicationName();
 
-	// TODO: Windows Specific
-	static string GetApplicationHomePath();
-	static wchar_t breakpadCallBuffer[MAX_PATH];
-	static google_breakpad::ExceptionHandler* breakpad;
-	static bool HandleCrash(
-		const wchar_t* dumpPath,
-		const wchar_t* id,
-		void* context,
-		EXCEPTION_POINTERS* exinfo,
-		MDRawAssertionInfo* assertion,
-		bool succeeded);
-	
-	static wstring StringToWString(string in);
-	static void GetCrashReportParametersW(map<wstring, wstring> & paramsW);
-	static int SendCrashReport();
-
+	virtual string GetApplicationHomePath()=0;
 };
-#endif // CRASH_REPORTER
+#endif // USE_BREAKPAD
 
 #endif
