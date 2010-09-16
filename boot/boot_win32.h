@@ -8,55 +8,65 @@ class KrollWin32Boot - win32 subclass of KrollBoot
 
 #include "boot.h"
 
+#ifndef MAX_PATH
+#define MAX_PATH 512
+#endif
+
+#ifdef USE_BREAKPAD
+#include "client/windows/handler/exception_handler.h"
+#include "common/windows/http_upload.h"
+#endif
+
 class KrollWin32Boot
 	: public KrollBoot
 {
 	public:
 		KrollWin32Boot(int _argc, const char ** _argv);
+		virtual ~KrollWin32Boot();
+		virtual int StartHost();
 
 	private:
-	bool IsWindowsXP() const;
-	HMODULE SafeLoadRuntimeDLL(string& path) const;
+		bool IsWindowsXP() const;
+		HMODULE SafeLoadRuntimeDLL(string& path) const;
 
-	virtual int StartHost();
-	virtual void ShowError(const string & msg, bool fatal = false) const;
-	virtual string GetApplicationName() const;
-	
-	virtual string Blastoff();
-	std::string GetApplicationHomePath() const;
-	void BootstrapPlatformSpecific(string moduleList);
-	virtual bool RunInstaller(vector<SharedDependency> missing, bool forceInstall=false);
+		virtual void ShowError(const string & msg, bool fatal = false) const;
+		virtual string GetApplicationName() const;
+
+		virtual string Blastoff();
+		virtual std::string GetApplicationHomePath() const;
+		virtual void BootstrapPlatformSpecific(const std::string & moduleList);
+		virtual bool RunInstaller(vector<SharedDependency> missing, bool forceInstall=false);
 
 };
 
 #ifdef USE_BREAKPAD
 class Win32CrashHandler
-	: public CrashHandler
+: public CrashHandler
 {
-public:
-	Win32CrashHandler(int _argc, const char ** _argv);
-	~Win32CrashHandler();
+	public:
+		Win32CrashHandler(int _argc, const char ** _argv);
+		~Win32CrashHandler();
 
-	virtual int SendCrashReport();
-	void createHandler(wchar_t tempPath[MAX_PATH]);
+		virtual int SendCrashReport();
+		void createHandler(wchar_t tempPath[MAX_PATH]);
 
-private:
-	google_breakpad::ExceptionHandler* breakpad;
+	private:
+		google_breakpad::ExceptionHandler* breakpad;
 
-	static string app_exe_name;
-	virtual string GetApplicationHomePath();
-	static wchar_t breakpadCallBuffer[MAX_PATH];
+		static string app_exe_name;
+		virtual string GetApplicationHomePath() const;
+		static wchar_t breakpadCallBuffer[MAX_PATH];
 
-	static bool HandleCrash(
-		const wchar_t* dumpPath,
-		const wchar_t* id,
-		void* context,
-		EXCEPTION_POINTERS* exinfo,
-		MDRawAssertionInfo* assertion,
-		bool succeeded);
+		static bool HandleCrash(
+				const wchar_t* dumpPath,
+				const wchar_t* id,
+				void* context,
+				EXCEPTION_POINTERS* exinfo,
+				MDRawAssertionInfo* assertion,
+				bool succeeded);
 
-	static wstring StringToWString(string in);
-	void GetCrashReportParametersW(map<wstring, wstring> & paramsW);
+		static wstring StringToWString(string in);
+		void GetCrashReportParametersW(map<wstring, wstring> & paramsW);
 };
 
 #endif

@@ -16,7 +16,7 @@
 typedef int Executor(int, const char **);
 
 KrollWin32Boot::KrollWin32Boot(int _argc, const char ** _argv)
-	: KrollBoot(_argc, _argv)
+: KrollBoot(_argc, _argv)
 {
 }
 
@@ -38,7 +38,7 @@ HMODULE KrollWin32Boot::SafeLoadRuntimeDLL(string& path) const
 
 	wstring widePath(KrollUtils::UTF8ToWide(path));
 	HMODULE module = LoadLibraryExW(widePath.c_str(),
-		0, LOAD_WITH_ALTERED_SEARCH_PATH);
+			0, LOAD_WITH_ALTERED_SEARCH_PATH);
 	if (!module)
 	{
 		string msg("Couldn't load file (");
@@ -111,19 +111,19 @@ bool KrollWin32Boot::RunInstaller(vector<SharedDependency> missing, bool forceIn
 	return BootUtils::RunInstaller(missing, app, updateFile, "", false, forceInstall);
 }
 
-void KrollWin32Boot::BootstrapPlatformSpecific(string path)
+void KrollWin32Boot::BootstrapPlatformSpecific(const std::string & path)
 {
 	// Add runtime path and all module paths to PATH
-	path = app->runtime->path + ";" + path;
+	std::string newpath = app->runtime->path + ";" + path;
 	string currentPath(EnvironmentUtils::Get("PATH"));
 	EnvironmentUtils::Set("KR_ORIG_PATH", currentPath);
 
 	// make sure the runtime folder is used before system DLL directories
 	SetDllDirectoryW(KrollUtils::UTF8ToWide(app->runtime->path).c_str());
-	
+
 	if (!currentPath.empty())
-		path = path + ";" + currentPath;
-	EnvironmentUtils::Set("PATH", path);
+		newpath = newpath + ";" + currentPath;
+	EnvironmentUtils::Set("PATH", newpath);
 }
 
 string KrollWin32Boot::Blastoff()
@@ -137,60 +137,60 @@ string KrollWin32Boot::Blastoff()
 }
 
 
-	string KrollWin32Boot::GetApplicationName() const
+string KrollWin32Boot::GetApplicationName() const
+{
+	if (!app.isNull())
 	{
-		if (!app.isNull())
-		{
-			return app->name.c_str();
-		}
-		return PRODUCT_NAME;
+		return app->name.c_str();
 	}
+	return PRODUCT_NAME;
+}
 
 
 #ifdef USE_BREAKPAD
-	string Win32CrashHandler::app_exe_name;
+string Win32CrashHandler::app_exe_name;
+wchar_t Win32CrashHandler::breakpadCallBuffer[MAX_PATH]= {0};
 
-	Win32CrashHandler::Win32CrashHandler(int _argc, const char ** _argv)
-		: CrashHandler(_argc, _argv), breakpad(0)
+Win32CrashHandler::Win32CrashHandler(int _argc, const char ** _argv)
+: CrashHandler(_argc, _argv), breakpad(0)
+{
+	app_exe_name = argv[0];
+}
+
+Win32CrashHandler::~Win32CrashHandler()
+{
+}
+
+string Win32CrashHandler::GetApplicationHomePath() const
+{
+	wchar_t widePath[MAX_PATH];
+	int size = GetModuleFileNameW(GetModuleHandle(0), widePath, MAX_PATH - 1);
+	if (size > 0)
 	{
-		app_exe_name = argv[0];
+		widePath[size] = '\0';
+		string path = KrollUtils::WideToUTF8(widePath);
+		return FileUtils::Dirname(path);
 	}
+}
 
-	Win32CrashHandler::~Win32CrashHandler()
-	{
-	}
-
-	wchar_t Win32CrashHandler::breakpadCallBuffer[MAX_PATH]= {0};
-	string Win32CrashHandler::GetApplicationHomePath()
-	{
-		wchar_t widePath[MAX_PATH];
-		int size = GetModuleFileNameW(GetModuleHandle(0), widePath, MAX_PATH - 1);
-		if (size > 0)
-		{
-			widePath[size] = '\0';
-			string path = KrollUtils::WideToUTF8(widePath);
-			return FileUtils::Dirname(path);
-		}
-	}
-
-	bool Win32CrashHandler::HandleCrash(
+bool Win32CrashHandler::HandleCrash(
 		const wchar_t* dumpPath,
 		const wchar_t* id,
 		void* context,
 		EXCEPTION_POINTERS* exinfo,
 		MDRawAssertionInfo* assertion,
 		bool succeeded)
+{
+	if (succeeded)
 	{
-		if (succeeded)
-		{
-			STARTUPINFOW startupInfo = {0};
-			startupInfo.cb = sizeof(startupInfo);
-			PROCESS_INFORMATION processInformation;
+		STARTUPINFOW startupInfo = {0};
+		startupInfo.cb = sizeof(startupInfo);
+		PROCESS_INFORMATION processInformation;
 
-			_snwprintf(breakpadCallBuffer, MAX_PATH - 1, L"\"%S\" \"%S\" %s %s",
+		_snwprintf(breakpadCallBuffer, MAX_PATH - 1, L"\"%S\" \"%S\" %s %s",
 				Win32CrashHandler::app_exe_name.c_str(), CRASH_REPORT_OPT, dumpPath, id);
 
-			CreateProcessW(
+		CreateProcessW(
 				0,
 				breakpadCallBuffer,
 				0,
@@ -201,75 +201,75 @@ string KrollWin32Boot::Blastoff()
 				0,
 				&startupInfo,
 				&processInformation);
-		}
-
-		// We would not normally need to do this, but on Windows XP it
-		// seems that this callback is called multiple times for a crash.
-		// We should probably try to remove the following line the next
-		// time we update breakpad.
-		exit(__LINE__);
-		return true;
 	}
 
-	wstring Win32CrashHandler::StringToWString(string in)
+	// We would not normally need to do this, but on Windows XP it
+	// seems that this callback is called multiple times for a crash.
+	// We should probably try to remove the following line the next
+	// time we update breakpad.
+	exit(__LINE__);
+	return true;
+}
+
+wstring Win32CrashHandler::StringToWString(string in)
+{
+	wstring out(in.length(), L' ');
+	copy(in.begin(), in.end(), out.begin());
+	return out;
+}
+
+void Win32CrashHandler::GetCrashReportParametersW(map<wstring, wstring> & paramsW)
+{
+	map<string, string> params;
+	GetCrashReportParameters(params);
+	map<string, string>::iterator i = params.begin();
+	while (i != params.end())
 	{
-		wstring out(in.length(), L' ');
-		copy(in.begin(), in.end(), out.begin());
-		return out;
+		wstring key = StringToWString(i->first);
+		wstring val = StringToWString(i->second);
+		i++;
+
+		paramsW[key] = val;
 	}
+}
 
-	void Win32CrashHandler::GetCrashReportParametersW(map<wstring, wstring> & paramsW)
-	{
-		map<string, string> params;
-		GetCrashReportParameters(params);
-		map<string, string>::iterator i = params.begin();
-		while (i != params.end())
-		{
-			wstring key = StringToWString(i->first);
-			wstring val = StringToWString(i->second);
-			i++;
-
-			paramsW[key] = val;
-		}
-	}
-
-	void Win32CrashHandler::createHandler(wchar_t tempPath[MAX_PATH])
-	{
-		breakpad = new google_breakpad::ExceptionHandler(
+void Win32CrashHandler::createHandler(wchar_t tempPath[MAX_PATH])
+{
+	breakpad = new google_breakpad::ExceptionHandler(
 			tempPath,
 			0,
 			Win32CrashHandler::HandleCrash,
 			0,
 			google_breakpad::ExceptionHandler::HANDLER_ALL);
+}
+
+int Win32CrashHandler::SendCrashReport()
+{
+	InitCrashDetection();
+	string title = GetCrashDetectionTitle();
+	string msg = GetCrashDetectionHeader();
+	msg.append("\n\n");
+	msg.append(GetCrashDetectionMessage());
+
+	Win32PopupDialog popupDialog(0);
+	popupDialog.SetTitle(title);
+	popupDialog.SetMessage(msg);
+	popupDialog.SetShowCancelButton(true);
+	if (popupDialog.Show() != IDYES)
+	{
+		return __LINE__;
 	}
 
-	int Win32CrashHandler::SendCrashReport()
-	{
-		InitCrashDetection();
-		string title = GetCrashDetectionTitle();
-		string msg = GetCrashDetectionHeader();
-		msg.append("\n\n");
-		msg.append(GetCrashDetectionMessage());
+	wstring url = L"http://";
+	url += StringToWString(CRASH_REPORT_URL);
 
-		Win32PopupDialog popupDialog(0);
-		popupDialog.SetTitle(title);
-		popupDialog.SetMessage(msg);
-		popupDialog.SetShowCancelButton(true);
-		if (popupDialog.Show() != IDYES)
-		{
-			return __LINE__;
-		}
+	std::map<wstring, wstring> parameters;
+	GetCrashReportParametersW(parameters);
+	wstring dumpFilePathW = StringToWString(dumpFilePath);
+	wstring responseBody;
+	int responseCode;
 
-		wstring url = L"http://";
-		url += StringToWString(CRASH_REPORT_URL);
-
-		std::map<wstring, wstring> parameters;
-		GetCrashReportParametersW(parameters);
-		wstring dumpFilePathW = StringToWString(dumpFilePath);
-		wstring responseBody;
-		int responseCode;
-
-		bool success = google_breakpad::HTTPUpload::SendRequest(
+	bool success = google_breakpad::HTTPUpload::SendRequest(
 			url,
 			parameters,
 			dumpFilePathW.c_str(),
@@ -278,21 +278,21 @@ string KrollWin32Boot::Blastoff()
 			&responseBody,
 			&responseCode);
 
-		if (!success)
-		{
-//#ifdef DEBUG
-//			KrollBoot::ShowError("Error uploading crash dump.");
-//#endif
-			return __LINE__;
-		}
-#ifdef DEBUG
-		else
-		{
-			MessageBoxW(0,L"Your crash report has been submitted. Thank You!",L"Error Reporting Status",MB_OK | MB_ICONINFORMATION);
-		}
-#endif
-		return 0;
+	if (!success)
+	{
+		//#ifdef DEBUG
+		//			KrollBoot::ShowError("Error uploading crash dump.");
+		//#endif
+		return __LINE__;
 	}
+#ifdef DEBUG
+	else
+	{
+		MessageBoxW(0,L"Your crash report has been submitted. Thank You!",L"Error Reporting Status",MB_OK | MB_ICONINFORMATION);
+	}
+#endif
+	return 0;
+}
 #endif
 
 #if defined(OS_WIN32) && !defined(WIN32_CONSOLE)

@@ -44,14 +44,6 @@ using std::wstring;
 #define MODULE_SEPARATOR ":"
 #endif
 
-#ifndef MAX_PATH
-#define MAX_PATH 512
-#endif
-
-#ifdef USE_BREAKPAD
-#include "client/windows/handler/exception_handler.h"
-#include "common/windows/http_upload.h"
-#endif
 
 class KrollBoot
 {
@@ -69,7 +61,7 @@ public:
 	 * Implemented platform independently
 	 */
 	int Bootstrap();
-	
+	virtual int StartHost()=0;
 
 protected:
 	void FindUpdate();
@@ -79,9 +71,8 @@ protected:
 	/**
 	 * Implemented platform specifically
 	 */	
-	virtual int StartHost()=0;
 	virtual string Blastoff()=0;
-	virtual void BootstrapPlatformSpecific(string moduleList)=0;
+	virtual void BootstrapPlatformSpecific(const std::string & moduleList)=0;
 	virtual string GetApplicationName() const=0;
 	virtual void ShowError(const string & msg, bool fatal=false) const=0;
 	virtual std::string GetApplicationHomePath() const=0;
@@ -112,7 +103,7 @@ protected:
 	void GetCrashReportParameters(map<string, string> & param);
 	static string GetApplicationName();
 
-	virtual string GetApplicationHomePath()=0;
+	virtual string GetApplicationHomePath() const=0;
 };
 #endif // USE_BREAKPAD
 
