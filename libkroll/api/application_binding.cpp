@@ -248,7 +248,7 @@ namespace kroll
 
 	void ApplicationBinding::_GetPath(const ValueList& args, KValueRef result)
 	{
-		result->SetString(this->application->path);
+		result->SetString(this->application->path.c_str());
 	}
 
 	void ApplicationBinding::_GetExecutablePath(const ValueList& args, KValueRef result)
@@ -271,13 +271,13 @@ namespace kroll
 
 	void ApplicationBinding::_GetManifestPath(const ValueList& args, KValueRef result)
 	{
-		result->SetString(this->application->manifestPath);
+		result->SetString(this->application->manifestPath.c_str());
 	}
 
 	void ApplicationBinding::_GetManifest(const ValueList& args, KValueRef result)
 	{
-		vector<pair<string, string> > manifest =
-			BootUtils::ReadManifestFile(this->application->manifestPath);
+		vector<pair<string, string> > manifest;
+		BootUtils::ReadManifestFile(this->application->manifestPath, manifest);
 
 		KListRef manifestList = APIBinding::ManifestToKList(manifest);
 		result->SetList(manifestList);

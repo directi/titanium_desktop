@@ -104,7 +104,7 @@ namespace UTILS_NS
 		 * @returns a vector of key-value pairs which represent the 
 		 *    manifest's contents or an empty vector if it cannot be read.
 		 */
-		KROLL_API vector<pair<string, string> > ReadManifestFile(std::string);
+		KROLL_API void ReadManifestFile(const std::string &path, vector<pair<string, string> > &manifest);
 
 		/**
 		 * Launch the intaller to install a list of dependencies. 

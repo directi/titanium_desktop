@@ -16,6 +16,8 @@
 
 #define BOOTSTRAP_ENV "KR_BOOTSTRAPPED"
 #define CRASH_REPORT_OPT "--crash_report"
+#define FORCE_INSTALL_OPT "--force-install"
+#define DEBUG_OPT "debug"
 
 #define CRASH_REPORT_URL  STRING(_CRASH_REPORT_URL)
 
@@ -38,11 +40,6 @@ using std::vector;
 using std::map;
 using std::wstring;
 
-#ifdef OS_WIN32
-#define MODULE_SEPARATOR ";"
-#else
-#define MODULE_SEPARATOR ":"
-#endif
 
 typedef int Executor(int argc, const char ** argv);
 

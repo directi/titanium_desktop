@@ -18,7 +18,7 @@ namespace UTILS_NS
 	}
 
 	/*static*/
-	SharedPtr<Application> Application::NewApplication(string appPath)
+	SharedApplication Application::NewApplication(const std::string &appPath)
 	{
 		string manifest(FileUtils::Join(appPath.c_str(), MANIFEST_FILENAME, NULL));
 		return Application::NewApplication(manifest, appPath);
@@ -33,12 +33,13 @@ namespace UTILS_NS
 	}
 	
 	/*static*/
-	SharedPtr<Application> Application::NewApplication(
-		string manifestPath,
-		string appPath)
+	SharedApplication Application::NewApplication(
+		const std::string &manifestPath,
+		const std::string &appPath)
 	{
-		vector<pair<string, string> > manifest =
-			BootUtils::ReadManifestFile(manifestPath);
+		vector<pair<string, string> > manifest;
+		BootUtils::ReadManifestFile(manifestPath, manifest);
+
 		if (manifest.empty())
 		{
 			return NULL;
@@ -119,7 +120,7 @@ namespace UTILS_NS
 			this->stream = EnvironmentUtils::Get("TITANIUM_STREAM");
 	}
 
-	Application::Application(string path, string manifestPath) :
+	Application::Application(const std::string &path, const std::string &manifestPath) :
 		path(path),
 		manifestPath(manifestPath),
 		stream("production")

@@ -228,35 +228,28 @@ namespace BootUtils
 		return BootUtils::CompareVersions(one->version, two->version) > 0;
 	}
 
-	vector<pair<string, string> > ReadManifestFile(std::string path)
+	void ReadManifestFile(const std::string &path, vector<pair<string, string> > &manifest)
 	{
-		vector<pair<string, string> > manifest;
-		if (!FileUtils::IsFile(path))
-			return manifest;
-
-		string manifestContents(FileUtils::ReadFile(path));
-		if (manifestContents.empty())
-			return manifest;
-
-		vector<string> manifestLines;
-		FileUtils::Tokenize(manifestContents, manifestLines, "\n");
-		for (size_t i = 0; i < manifestLines.size(); i++)
+		if (FileUtils::IsFile(path))
 		{
-			string line = FileUtils::Trim(manifestLines[i]);
+			string manifestContents(FileUtils::ReadFile(path));
+			if (!manifestContents.empty())
+			{
+				vector<string> manifestLines;
+				FileUtils::Tokenize(manifestContents, manifestLines, "\n");
+				for (size_t i = 0; i < manifestLines.size(); i++)
+				{
+					string line = FileUtils::Trim(manifestLines[i]);
+					vector<string> manifestLineData;
+					FileUtils::Tokenize(line, manifestLineData, ":");
 
-			size_t pos = line.find(":");
-			if (pos == 0 || pos == line.length() - 1)
-			{
-				continue;
-			}
-			else
-			{
-				manifest.push_back(pair<string, string>(
-					FileUtils::Trim(line.substr(0, pos)), // The key
-					FileUtils::Trim(line.substr(pos + 1, line.length())))); // The value.
+					if(manifestLineData.size() == 2)
+					{
+						manifest.push_back(pair<string, string>(manifestLineData[0], manifestLineData[1]));
+					}
+				}
 			}
 		}
-		return manifest;
 	}
 
 	SharedComponent ResolveDependency(SharedDependency dep, vector<SharedComponent>& components)

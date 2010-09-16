@@ -17,13 +17,13 @@ namespace UTILS_NS
 	 */
 	class KROLL_API Application
 	{
-		private:
-		Application(string appPath, string manifestPath);
+	private:
+		Application(const std::string &path, const std::string &manifestPath);
 		void ParseManifest(vector<pair<string, string> >& manifest);
-	
-		public:
-		string path;
-		string manifestPath;
+
+	public:
+		const string path;
+		const string manifestPath;
 		string name;
 		string version;
 		string id;
@@ -41,8 +41,8 @@ namespace UTILS_NS
 
 		vector<string> arguments;
 
-		static SharedApplication NewApplication(std::string applicationPath);
-		static SharedApplication NewApplication(std::string manifestPath, std::string applicationPath);
+		static SharedApplication NewApplication(const std::string &appPath);
+		static SharedApplication NewApplication(const std::string &manifestPath, const std::string &applicationPath);
 		// special in-memory constructor, no paths
 		static SharedApplication NewApplication(vector<pair<string, string> >& manifest);
 		~Application();
