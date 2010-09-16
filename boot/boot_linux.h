@@ -17,13 +17,14 @@ class KrollLinuxBoot
 		virtual ~KrollLinuxBoot();
 		virtual int StartHost();
 	private:
-		virtual void ShowError(const string & msg, bool fatal = false) const;
-		virtual string GetApplicationName() const;
-
+		
 		virtual string Blastoff();
-		virtual std::string GetApplicationHomePath() const;
 		virtual void BootstrapPlatformSpecific(const std::string & moduleList);
-		virtual bool RunInstaller(vector<SharedDependency> missing, bool forceInstall=false);
+
+		virtual string GetApplicationName() const;
+		virtual std::string GetApplicationHomePath() const;
+		virtual void ShowErrorImpl(const string & msg) const;
+		virtual bool RunInstaller(vector<SharedDependency> missing, bool forceInstall=false) const;
 };
 
 #ifdef USE_BREAKPAD

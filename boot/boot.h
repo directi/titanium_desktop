@@ -58,26 +58,24 @@ public:
 
 	KrollBoot(int _argc, const char ** _argv);
 	virtual ~KrollBoot();
-	/**
-	 * Implemented platform independently
-	 */
+
 	int Bootstrap();
 	virtual int StartHost()=0;
 
 protected:
+	void ShowError(const string & msg, bool fatal=false) const;
 	void FindUpdate();
 	vector<SharedDependency> FilterForSDKInstall(
 		vector<SharedDependency> dependencies);
 
-	/**
-	 * Implemented platform specifically
-	 */	
 	virtual string Blastoff()=0;
 	virtual void BootstrapPlatformSpecific(const std::string & moduleList)=0;
+
+	virtual void ShowErrorImpl(const std::string & msg) const=0;
 	virtual string GetApplicationName() const=0;
-	virtual void ShowError(const string & msg, bool fatal=false) const=0;
 	virtual std::string GetApplicationHomePath() const=0;
-	virtual bool RunInstaller(vector<SharedDependency> missing, bool forceInstall=false)=0;
+	
+	virtual bool RunInstaller(vector<SharedDependency> missing, bool forceInstall=false) const=0;
 };
 
 

@@ -13,6 +13,15 @@ KrollBoot::~KrollBoot()
 {
 }
 
+void KrollBoot::ShowError(const string & msg, bool fatal) const
+{
+	ShowErrorImpl(msg);
+	if(fatal)
+	{
+		exit(1);
+	}
+}
+
 void KrollBoot::FindUpdate()
 	{
 		// Search for an update file in the application data  directory.

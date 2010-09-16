@@ -23,19 +23,20 @@ class KrollWin32Boot
 	public:
 		KrollWin32Boot(int _argc, const char ** _argv);
 		virtual ~KrollWin32Boot();
+
 		virtual int StartHost();
 
 	private:
+		virtual string Blastoff();
+		virtual void BootstrapPlatformSpecific(const std::string & moduleList);
+
 		bool IsWindowsXP() const;
 		HMODULE SafeLoadRuntimeDLL(string& path) const;
 
-		virtual void ShowError(const string & msg, bool fatal = false) const;
 		virtual string GetApplicationName() const;
-
-		virtual string Blastoff();
 		virtual std::string GetApplicationHomePath() const;
-		virtual void BootstrapPlatformSpecific(const std::string & moduleList);
-		virtual bool RunInstaller(vector<SharedDependency> missing, bool forceInstall=false);
+		virtual void ShowErrorImpl(const string & msg) const;
+		virtual bool RunInstaller(vector<SharedDependency> missing, bool forceInstall=false) const;
 
 };
 

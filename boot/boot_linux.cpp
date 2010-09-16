@@ -20,7 +20,7 @@ KrollLinuxBoot::KrollLinuxBoot(int _argc, const char ** _argv)
 KrollLinuxBoot::~KrollLinuxBoot()
 {
 }
-void KrollLinuxBoot::ShowError(const string & msg, bool fatal) const
+void KrollLinuxBoot::ShowErrorImpl(const string & msg) const
 {
 	std::cout << msg << std::endl;
 	int myargc = argc;
@@ -35,10 +35,6 @@ void KrollLinuxBoot::ShowError(const string & msg, bool fatal) const
 	gtk_window_set_title(GTK_WINDOW(dialog), GetApplicationName().c_str());
 	gtk_dialog_run(GTK_DIALOG(dialog));
 	gtk_widget_destroy(dialog);
-	if (fatal)
-	{
-		exit(1);
-	}
 }
 
 string KrollLinuxBoot::GetApplicationHomePath() const
@@ -116,7 +112,7 @@ int KrollLinuxBoot::StartHost()
 	return executor(argc, argv);
 }
 
-bool KrollLinuxBoot::RunInstaller(vector<SharedDependency> missing, bool forceInstall)
+bool KrollLinuxBoot::RunInstaller(vector<SharedDependency> missing, bool forceInstall) const
 {
 	string exec = FileUtils::Join(
 		app->path.c_str(), "installer", "installer", 0);

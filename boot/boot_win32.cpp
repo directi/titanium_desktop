@@ -70,17 +70,13 @@ int KrollWin32Boot::StartHost()
 }
 
 
-void KrollWin32Boot::ShowError(const string & msg, bool fatal) const
+void KrollWin32Boot::ShowErrorImpl(const string & msg) const
 {
 	wstring wideMsg(L"Error: ");
 	wideMsg.append(KrollUtils::UTF8ToWide(msg));
 	wstring wideAppName = KrollUtils::UTF8ToWide(GetApplicationName());
 
 	MessageBoxW(0, wideMsg.c_str(), wideAppName.c_str(), MB_OK|MB_ICONERROR|MB_SYSTEMMODAL);
-	if (fatal)
-	{
-		exit(1);
-	}
 }
 
 string KrollWin32Boot::GetApplicationHomePath() const
@@ -99,7 +95,7 @@ string KrollWin32Boot::GetApplicationHomePath() const
 	}
 }
 
-bool KrollWin32Boot::RunInstaller(vector<SharedDependency> missing, bool forceInstall)
+bool KrollWin32Boot::RunInstaller(vector<SharedDependency> missing, bool forceInstall) const
 {
 
 	string installer(FileUtils::Join(app->path.c_str(), "installer", "installer.exe", 0));

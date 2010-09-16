@@ -38,10 +38,9 @@ KrollOSXBoot::~KrollOSXBoot()
 {
 }
 
-void KrollOSXBoot::ShowError(const std::string& msg, bool fatal) const
+void KrollOSXBoot::ShowErrorImpl(const std::string& msg) const
 {
 	NSApplicationLoad();
-
 	NSString* buttonText = @"Continue";
 	if (fatal)
 		buttonText = @"Quit";
@@ -49,9 +48,6 @@ void KrollOSXBoot::ShowError(const std::string& msg, bool fatal) const
 	NSRunCriticalAlertPanel(
 		[NSString stringWithUTF8String:GetApplicationName().c_str()],
 		[NSString stringWithUTF8String:msg.c_str()], buttonText, nil, nil);
-
-	if (fatal)
-		exit(1);
 }
 
 string KrollOSXBoot::GetApplicationHomePath() const
@@ -134,7 +130,7 @@ int KrollOSXBoot::StartHost()
 	return executor(argc, (const char**)argv);
 }
 
-bool KrollOSXBoot::RunInstaller(vector<SharedDependency> missing, bool forceInstall)
+bool KrollOSXBoot::RunInstaller(vector<SharedDependency> missing, bool forceInstall) const
 {
 	string exec = FileUtils::Join(
 			app->path.c_str(),
