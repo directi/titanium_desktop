@@ -44,6 +44,7 @@ using std::wstring;
 #define MODULE_SEPARATOR ":"
 #endif
 
+typedef int Executor(int argc, const char ** argv);
 
 class KrollBoot
 {
@@ -95,6 +96,8 @@ protected:
 	static string applicationHome;
 	SharedApplication app;
 	static string dumpFilePath;
+	static string executable_name;
+
 
 	void InitCrashDetection();
 	static string GetCrashDetectionTitle();

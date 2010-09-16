@@ -28,7 +28,6 @@
 }
 @end
 
-typedef int Executor(int argc, const char **argv);
 
 KrollOSXBoot::KrollOSXBoot(int _argc, const char ** _argv)
 : KrollBoot(_argc, _argv)
@@ -179,7 +178,6 @@ string KrollOSXBoot::GetApplicationName() const
 //	google_breakpad::ExceptionHandler* breakpad;
 
 char OSXCrashHandler::breakpadCallBuffer[PATH_MAX];
-string OSXCrashHandler::app_exe_name;
 
 OSXCrashHandler::OSXCrashHandler(int _argc, const char ** _argv)
 	: CrashHandler(_argc, _argv), breakpad(0)
@@ -196,7 +194,7 @@ bool OSXCrashHandler::HandleCrash(const char* dumpPath, const char* dumpId, void
 	if (succeeded)
 	{
 		snprintf(breakpadCallBuffer, PATH_MAX - 1,
-				"\"%s\" %s \"%s\" %s &", app_exe_name.c_str(), CRASH_REPORT_OPT, dumpPath, dumpId);
+				"\"%s\" %s \"%s\" %s &", CrashHandler::executable_name.c_str(), CRASH_REPORT_OPT, dumpPath, dumpId);
 		system(breakpadCallBuffer);
 	}
 	return true;

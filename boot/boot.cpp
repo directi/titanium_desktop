@@ -160,6 +160,7 @@ void KrollBoot::FindUpdate()
 	CrashHandler::CrashHandler(int _argc, const char ** _argv)
 		: argc(_argc), argv(_argv), app(0)
 	{
+		executable_name = argv[0];
 	}
 
 	CrashHandler::~CrashHandler()
@@ -168,6 +169,7 @@ void KrollBoot::FindUpdate()
 
 	string CrashHandler::applicationHome;
 	string CrashHandler::dumpFilePath;
+	string CrashHandler::executable_name;
 
 	void CrashHandler::InitCrashDetection()
 	{

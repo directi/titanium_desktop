@@ -5,17 +5,16 @@
 #include "boot.h"
 
 #ifdef USE_BREAKPAD
-#import "client/mac/handler/exception_handler.h"
-#import "common/mac/HTTPMultipartUpload.h"
-#include <Foundation/Foundation.h>
+#include "client/linux/handler/exception_handler.h"
+#include "common/linux/http_upload.h"
 #endif
 
-class KrollOSXBoot
+class KrollLinuxBoot
 : public KrollBoot
 {
 	public:
-		KrollOSXBoot(int _argc, const char ** _argv);
-		virtual ~KrollOSXBoot();
+		KrollLinuxBoot(int _argc, const char ** _argv);
+		virtual ~KrollLinuxBoot();
 		virtual int StartHost();
 	private:
 		virtual void ShowError(const string & msg, bool fatal = false) const;
@@ -28,12 +27,12 @@ class KrollOSXBoot
 };
 
 #ifdef USE_BREAKPAD
-class OSXCrashHandler
+class LinuxCrashHandler
 : public CrashHandler
 {
 	public:
-		OSXCrashHandler(int _argc, const char ** _argv);
-		~OSXCrashHandler();
+		LinuxCrashHandler(int _argc, const char ** _argv);
+		~LinuxCrashHandler();
 
 		virtual int SendCrashReport();
 		void createHandler(const std::string & tempPath);

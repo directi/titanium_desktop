@@ -11,10 +11,6 @@
 #include <windows.h>
 
 
-
-
-typedef int Executor(int, const char **);
-
 KrollWin32Boot::KrollWin32Boot(int _argc, const char ** _argv)
 : KrollBoot(_argc, _argv)
 {
@@ -158,7 +154,6 @@ wchar_t Win32CrashHandler::breakpadCallBuffer[MAX_PATH]= {0};
 Win32CrashHandler::Win32CrashHandler(int _argc, const char ** _argv)
 : CrashHandler(_argc, _argv), breakpad(0)
 {
-	app_exe_name = argv[0];
 }
 
 Win32CrashHandler::~Win32CrashHandler()
@@ -192,7 +187,7 @@ bool Win32CrashHandler::HandleCrash(
 		PROCESS_INFORMATION processInformation;
 
 		_snwprintf(breakpadCallBuffer, MAX_PATH - 1, L"\"%S\" \"%S\" %s %s",
-				Win32CrashHandler::app_exe_name.c_str(), CRASH_REPORT_OPT, dumpPath, id);
+				CrashHandler::executable_name.c_str(), CRASH_REPORT_OPT, dumpPath, id);
 
 		CreateProcessW(
 				0,

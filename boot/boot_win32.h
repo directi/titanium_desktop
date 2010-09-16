@@ -53,7 +53,6 @@ class Win32CrashHandler
 	private:
 		google_breakpad::ExceptionHandler* breakpad;
 
-		static string app_exe_name;
 		virtual string GetApplicationHomePath() const;
 		static wchar_t breakpadCallBuffer[MAX_PATH];
 
