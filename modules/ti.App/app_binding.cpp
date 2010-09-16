@@ -391,7 +391,7 @@ namespace ti
 
 	void AppBinding::GetHome(const ValueList& args, KValueRef result)
 	{
-		result->SetString(host->GetApplication()->path);
+		result->SetString(host->GetApplication()->path.c_str());
 	}
 
 	void AppBinding::GetArguments(const ValueList& args, KValueRef result)
