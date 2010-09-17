@@ -22,6 +22,7 @@ namespace UTILS_NS
 		Application(const std::string &path, const std::string &manifestPath);
 		void ParseManifest(const map<string, string>& manifest);
 
+
 	public:
 		const string path;
 		const string manifestPath;
@@ -44,9 +45,12 @@ namespace UTILS_NS
 		vector<SharedComponent> sdks;
 		SharedComponent runtime;
 
+		static bool doesManifestFileExistsAtDirectory(const std::string & dir);
+
+
 		static SharedApplication NewApplication(const std::string &appPath);
 		static SharedApplication NewApplication(const std::string &manifestPath, const std::string &applicationPath);
-		// special in-memor	y constructor, no paths
+		// special in-memory constructor, no paths
 		static SharedApplication NewApplication(map<string, string>& manifest);
 		~Application();
 
