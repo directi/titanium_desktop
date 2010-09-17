@@ -10,6 +10,7 @@ using KrollUtils::SharedApplication;
 using KrollUtils::KComponentType;
 using std::wstring;
 using std::string;
+using std::map;
 
 #include <msi.h>
 #include <msiquery.h>
@@ -61,7 +62,7 @@ SharedApplication CreateApplication(MSIHANDLE hInstall)
 
 	vector<wstring> tokens;
 	wstring dependencies(tokens[0]);
-	vector<pair<string, string> > manifest;
+	map<string, string> manifest;
 	Split(manifestString, L';', tokens);
 	for (size_t i = 0; i < tokens.size(); i++)
 	{
@@ -69,8 +70,7 @@ SharedApplication CreateApplication(MSIHANDLE hInstall)
 		wstring key = token.substr(0, token.find(L":"));
 		wstring value = token.substr(token.find(L":")+1);
 
-		manifest.push_back(pair<string,string>(
-			WideToUTF8(key), WideToUTF8(value)));
+		manifest[WideToUTF8(key)] = WideToUTF8(value);
 	}
 
 	return Application::NewApplication(manifest);
