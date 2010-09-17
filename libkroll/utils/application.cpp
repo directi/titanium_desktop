@@ -18,14 +18,14 @@ namespace UTILS_NS
 	}
 
 	/*static*/
-	SharedPtr<Application> Application::NewApplication(string appPath)
+	SharedApplication Application::NewApplication(const std::string &appPath)
 	{
 		string manifest(FileUtils::Join(appPath.c_str(), MANIFEST_FILENAME, NULL));
 		return Application::NewApplication(manifest, appPath);
 	}
 
 	/*static*/
-	SharedApplication Application::NewApplication(vector<pair<string, string> >& manifest)
+	SharedApplication Application::NewApplication(map<string, string>& manifest)
 	{
 		Application* application = new Application("", "");
 		application->ParseManifest(manifest);
@@ -33,12 +33,13 @@ namespace UTILS_NS
 	}
 	
 	/*static*/
-	SharedPtr<Application> Application::NewApplication(
-		string manifestPath,
-		string appPath)
+	SharedApplication Application::NewApplication(
+		const std::string &manifestPath,
+		const std::string &appPath)
 	{
-		vector<pair<string, string> > manifest =
-			BootUtils::ReadManifestFile(manifestPath);
+		map<string, string> manifest;
+		BootUtils::ReadManifestFile(manifestPath, manifest);
+
 		if (manifest.empty())
 		{
 			return NULL;
@@ -49,14 +50,15 @@ namespace UTILS_NS
 		return application;
 	}
 	
-	void Application::ParseManifest(vector<pair<string, string> >& manifest)
+	void Application::ParseManifest(const map<string, string>& manifest)
 	{
-		vector<pair<string, string> >::iterator i = manifest.begin();
-		while (i != manifest.end())
+		for(map<string, string>::const_iterator
+			oIter = manifest.begin();
+			oIter != manifest.end();
+		oIter++)
 		{
-			string key(i->first);
-			string value(i->second);
-			*i++;
+			string key(oIter->first);
+			string value(oIter->second);
 
 			if (key == "#appname")
 			{
@@ -119,7 +121,7 @@ namespace UTILS_NS
 			this->stream = EnvironmentUtils::Get("TITANIUM_STREAM");
 	}
 
-	Application::Application(string path, string manifestPath) :
+	Application::Application(const std::string &path, const std::string &manifestPath) :
 		path(path),
 		manifestPath(manifestPath),
 		stream("production")

@@ -877,17 +877,19 @@ namespace kroll
 		return dependencyList;
 	}
 
-	KListRef APIBinding::ManifestToKList(vector<pair<string, string> >& manifest)
+	KListRef APIBinding::ManifestToKList(const map<string, string>& manifest)
 	{
 		KListRef list = new StaticBoundList();
-		vector<pair<string, string> >::iterator i = manifest.begin();
-		while (i != manifest.end())
+
+		for(map<string, string>::const_iterator
+			oIter = manifest.begin();
+			oIter != manifest.end();
+		oIter++)
 		{
 			KListRef entry = new StaticBoundList();
-			entry->Append(Value::NewString(i->first));
-			entry->Append(Value::NewString(i->second));
+			entry->Append(Value::NewString(oIter->first));
+			entry->Append(Value::NewString(oIter->second));
 			list->Append(Value::NewList(entry));
-			*i++;
 		}
 		return list;
 	}

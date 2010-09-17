@@ -11,19 +11,21 @@ namespace UTILS_NS
 	using std::string;
 	using std::vector;
 	using std::pair;
+	using std::map;
 
 	/**
 	 * Represents a concrete Kroll application -- found on disk
 	 */
 	class KROLL_API Application
 	{
-		private:
-		Application(string appPath, string manifestPath);
-		void ParseManifest(vector<pair<string, string> >& manifest);
-	
-		public:
-		string path;
-		string manifestPath;
+	private:
+		Application(const std::string &path, const std::string &manifestPath);
+		void ParseManifest(const map<string, string>& manifest);
+
+	public:
+		const string path;
+		const string manifestPath;
+
 		string name;
 		string version;
 		string id;
@@ -32,19 +34,20 @@ namespace UTILS_NS
 		string url;
 		string image;
 		string stream;
+		string queryString;
 		string logLevel;
+
+		vector<string> arguments;
+
 		vector<SharedDependency> dependencies;
 		vector<SharedComponent> modules;
 		vector<SharedComponent> sdks;
 		SharedComponent runtime;
-		string queryString;
 
-		vector<string> arguments;
-
-		static SharedApplication NewApplication(std::string applicationPath);
-		static SharedApplication NewApplication(std::string manifestPath, std::string applicationPath);
-		// special in-memory constructor, no paths
-		static SharedApplication NewApplication(vector<pair<string, string> >& manifest);
+		static SharedApplication NewApplication(const std::string &appPath);
+		static SharedApplication NewApplication(const std::string &manifestPath, const std::string &applicationPath);
+		// special in-memor	y constructor, no paths
+		static SharedApplication NewApplication(map<string, string>& manifest);
 		~Application();
 
 		/**

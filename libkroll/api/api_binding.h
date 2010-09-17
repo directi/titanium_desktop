@@ -28,9 +28,7 @@ namespace kroll
 			KComponentType filter = UNKNOWN);
 		static KListRef DependencyVectorToKList(
 			std::vector<SharedDependency>&);
-		static KListRef ManifestToKList(
-			vector<pair<string, string> >&);
-
+		static KListRef ManifestToKList(const map<string, string>& manifest);
 
 		private:
 		Host* host;

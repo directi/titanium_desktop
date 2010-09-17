@@ -5,15 +5,31 @@
  */
 #include "boot.h"
 
-namespace KrollBoot
-{
-	string applicationHome;
-	string updateFile;
-	SharedApplication app = NULL;
-	int argc;
-	const char** argv;
+#ifdef OS_WIN32
+#define MODULE_SEPARATOR ";"
+#else
+#define MODULE_SEPARATOR ":"
+#endif
 
-	void FindUpdate()
+
+KrollBoot::KrollBoot(int _argc, const char ** _argv)
+: argc(_argc), argv(_argv), app(0), updateFile("")
+{
+}
+KrollBoot::~KrollBoot()
+{
+}
+
+void KrollBoot::ShowError(const string & msg, bool fatal) const
+{
+	ShowErrorImpl(msg, fatal);
+	if(fatal)
+	{
+		exit(1);
+	}
+}
+
+void KrollBoot::FindUpdate()
 	{
 		// Search for an update file in the application data  directory.
 		// It will be placed there by the update service. If it exists
@@ -38,143 +54,140 @@ namespace KrollBoot
 		}
 	}
 
-	vector<SharedDependency> FilterForSDKInstall(
-		vector<SharedDependency> dependencies)
+vector<SharedDependency> KrollBoot::FilterForSDKInstall(
+	vector<SharedDependency> dependencies)
+{
+	// If this list of dependencies incluces the SDKs, just install
+	// those -- we assume that they also supply our other dependencies.
+	vector<SharedDependency>::iterator i = dependencies.begin();
+	vector<SharedDependency> justSDKs;
+
+	while (i != dependencies.end())
 	{
-		// If this list of dependencies incluces the SDKs, just install
-		// those -- we assume that they also supply our other dependencies.
-		vector<SharedDependency>::iterator i = dependencies.begin();
-		vector<SharedDependency> justSDKs;
-
-		while (i != dependencies.end())
+		SharedDependency d = *i++;
+		if (d->type == KrollUtils::SDK || d->type == KrollUtils::MOBILESDK)
 		{
-			SharedDependency d = *i++;
-			if (d->type == KrollUtils::SDK || d->type == KrollUtils::MOBILESDK)
-			{
-				justSDKs.push_back(d);
-			}
-		}
-
-		if (!justSDKs.empty())
-		{
-			return justSDKs;
-		}
-		else
-		{
-			return dependencies;
+			justSDKs.push_back(d);
 		}
 	}
 
-	int Bootstrap()
+	if (!justSDKs.empty())
 	{
-		applicationHome = GetApplicationHomePath();
-		string manifestPath = FileUtils::Join(applicationHome.c_str(), MANIFEST_FILENAME, NULL);
-		if (!FileUtils::IsFile(manifestPath))
-		{
-			string error("Application packaging error: no manifest was found at: ");
-			error.append(manifestPath);
-			ShowError(error);
-			return __LINE__;
-		}
+		return justSDKs;
+	}
+	else
+	{
+		return dependencies;
+	}
+}
 
-		app = Application::NewApplication(applicationHome);
-		if (app.isNull())
-		{
-			string error("Application packaging error: could not read manifest at: ");
-			error.append(manifestPath);
-			ShowError(error);
-			return __LINE__;
-		}
-		app->SetArguments(argc, argv);
-
-		// Look for a .update file in the app data directory
-		FindUpdate();
-	
-		vector<SharedDependency> missing = app->ResolveDependencies();
-		if (app->HasArgument("debug"))
-		{
-			vector<SharedComponent> resolved = app->GetResolvedComponents();
-			for (size_t i = 0; i < resolved.size(); i++)
-			{
-				SharedComponent c = resolved[i];
-				std::cout << "Resolved: (" << c->name << " " 
-					<< c->version << ") " << c->path << std::endl;
-			}
-			for (size_t i = 0; i < missing.size(); i++)
-			{
-				SharedDependency d = missing.at(i);
-				std::cerr << "Unresolved: " << d->name << " " 
-					<< d->version << std::endl;
-			}
-		}
-
-		bool forceInstall = app->HasArgument("--force-install");
-		if (forceInstall || !missing.empty() || !app->IsInstalled() ||
-			!updateFile.empty())
-		{
-			// If this list of dependencies incluces the SDKs, just install
-			// those -- we assume that they also supply our other dependencies.
-			missing = FilterForSDKInstall(missing);
-
-			if (!RunInstaller(missing, forceInstall))
-			{
-				return __LINE__;
-			}
-
-			missing = app->ResolveDependencies();
-		}
-
-		if (missing.size() > 0 || !app->IsInstalled())
-		{
-			// The user cancelled or the installer encountered an error
-			// -- which is should have already reported. We're not checking
-			// for updateFile.empty() here, because if the user cancelled
-			// the update, we just want to start the application as usual.
-			return __LINE__;
-		}
-	
-		// Construct a list of module pathnames for setting up library paths
-		std::ostringstream moduleList;
-		vector<SharedComponent>::iterator i = app->modules.begin();
-		while (i != app->modules.end())
-		{
-			SharedComponent module = *i++;
-			moduleList << module->path << MODULE_SEPARATOR;
-		}
-
-		EnvironmentUtils::Set(BOOTSTRAP_ENV, "YES");
-		EnvironmentUtils::Set("KR_HOME", app->path);
-		EnvironmentUtils::Set("KR_RUNTIME", app->runtime->path);
-		EnvironmentUtils::Set("KR_MODULES", moduleList.str());
-
-		BootstrapPlatformSpecific(moduleList.str());
-		string error = Blastoff();
-
-		// If everything goes correctly, we should never get here
-		error = string("Launching application failed: ") + error;
-		ShowError(error, false);
+int KrollBoot::Bootstrap()
+{
+	string applicationHome = GetApplicationHomePath();
+	string manifestPath = FileUtils::Join(applicationHome.c_str(), MANIFEST_FILENAME, NULL);
+	if (!FileUtils::IsFile(manifestPath))
+	{
+		string error("Application packaging error: no manifest was found at: ");
+		error.append(manifestPath);
+		ShowError(error);
 		return __LINE__;
 	}
 
+	app = Application::NewApplication(applicationHome);
+	if (app.isNull())
+	{
+		string error("Application packaging error: could not read manifest at: ");
+		error.append(manifestPath);
+		ShowError(error);
+		return __LINE__;
+	}
+	app->SetArguments(argc, argv);
+
+	// Look for a .update file in the app data directory
+	FindUpdate();
+
+	vector<SharedDependency> missing = app->ResolveDependencies();
+	if (app->HasArgument(DEBUG_OPT))
+	{
+		vector<SharedComponent> resolved = app->GetResolvedComponents();
+		for (size_t i = 0; i < resolved.size(); i++)
+		{
+			SharedComponent c = resolved[i];
+			std::cout << "Resolved: (" << c->name << " " 
+				<< c->version << ") " << c->path << std::endl;
+		}
+		for (size_t i = 0; i < missing.size(); i++)
+		{
+			SharedDependency d = missing.at(i);
+			std::cerr << "Unresolved: " << d->name << " " 
+				<< d->version << std::endl;
+		}
+	}
+
+	bool forceInstall = app->HasArgument(FORCE_INSTALL_OPT);
+	if (forceInstall || !missing.empty() || !app->IsInstalled() ||
+		!updateFile.empty())
+	{
+		// If this list of dependencies incluces the SDKs, just install
+		// those -- we assume that they also supply our other dependencies.
+		missing = FilterForSDKInstall(missing);
+
+		if (!RunInstaller(missing, forceInstall))
+		{
+			return __LINE__;
+		}
+
+		missing = app->ResolveDependencies();
+	}
+
+	if (missing.size() > 0 || !app->IsInstalled())
+	{
+		// The user cancelled or the installer encountered an error
+		// -- which is should have already reported. We're not checking
+		// for updateFile.empty() here, because if the user cancelled
+		// the update, we just want to start the application as usual.
+		return __LINE__;
+	}
+
+	// Construct a list of module pathnames for setting up library paths
+	std::ostringstream moduleList;
+	vector<SharedComponent>::iterator i = app->modules.begin();
+	while (i != app->modules.end())
+	{
+		SharedComponent module = *i++;
+		moduleList << module->path << MODULE_SEPARATOR;
+	}
+
+	EnvironmentUtils::Set(BOOTSTRAP_ENV, "YES");
+	EnvironmentUtils::Set("KR_HOME", app->path);
+	EnvironmentUtils::Set("KR_RUNTIME", app->runtime->path);
+	EnvironmentUtils::Set("KR_MODULES", moduleList.str());
+
+	BootstrapPlatformSpecific(moduleList.str());
+	string error = Blastoff();
+
+	// If everything goes correctly, we should never get here
+	error = string("Launching application failed: ") + error;
+	ShowError(error, false);
+	return __LINE__;
+}
+
 #ifdef USE_BREAKPAD
-	string GetCrashDetectionTitle()
+	CrashHandler::CrashHandler(int _argc, const char ** _argv)
+		: argc(_argc), argv(_argv), app(0)
 	{
-		return GetApplicationName() + " encountered an error";
+		executable_name = argv[0];
 	}
 
-	string GetCrashDetectionHeader()
+	CrashHandler::~CrashHandler()
 	{
-		return GetApplicationName() + " appears to have encountered a fatal error and cannot continue.";
 	}
 
-	string GetCrashDetectionMessage()
-	{
-		return "The application has collected information about the error"
-		" in the form of a detailed error report. If you send the crash report,"
-		" we will attempt to resolve this problem.";
-	}
+	string CrashHandler::applicationHome;
+	string CrashHandler::dumpFilePath;
+	string CrashHandler::executable_name;
 
-	void InitCrashDetection()
+	void CrashHandler::InitCrashDetection()
 	{
 		// Load the application manifest so that we can get lots of debugging
 		// information for the crash report.
@@ -187,10 +200,25 @@ namespace KrollBoot
 		}
 	}
 
-	string dumpFilePath;
-	map<string, string> GetCrashReportParameters()
+	string CrashHandler::GetCrashDetectionTitle()
 	{
-		map<string, string> params;
+		return CrashHandler::GetApplicationName() + " encountered an error";
+	}
+
+	string CrashHandler::GetCrashDetectionHeader()
+	{
+		return CrashHandler::GetApplicationName() + " appears to have encountered a fatal error and cannot continue.";
+	}
+
+	string CrashHandler::GetCrashDetectionMessage()
+	{
+		return "The application has collected information about the error"
+		" in the form of a detailed error report. If you send the crash report,"
+		" we will attempt to resolve this problem.";
+	}
+
+	void CrashHandler::GetCrashReportParameters(map<string, string> & params)
+	{
 		if (argc > 3)
 		{
 			string dumpId = string(argv[3]) + ".dmp";
@@ -249,7 +277,11 @@ namespace KrollBoot
 				}
 			}
 		}
-		return params;
 	}
+	string CrashHandler::GetApplicationName()
+	{
+		return PRODUCT_NAME;
+	}
+
 #endif
-}
+

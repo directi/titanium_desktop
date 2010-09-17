@@ -6,6 +6,7 @@
 
 #define _KROLL_BOOT_ 1
 #ifndef _BOOT_H_
+#define _BOOT_H_
 
 // ensure that Kroll API is never included to create
 // an artificial dependency on kroll shared library
@@ -15,6 +16,8 @@
 
 #define BOOTSTRAP_ENV "KR_BOOTSTRAPPED"
 #define CRASH_REPORT_OPT "--crash_report"
+#define FORCE_INSTALL_OPT "--force-install"
+#define DEBUG_OPT "debug"
 
 #define CRASH_REPORT_URL  STRING(_CRASH_REPORT_URL)
 
@@ -35,40 +38,71 @@ using KrollUtils::SharedComponent;
 using std::string;
 using std::vector;
 using std::map;
+using std::wstring;
 
-#ifdef OS_WIN32
-#define MODULE_SEPARATOR ";"
-#else
-#define MODULE_SEPARATOR ":"
-#endif
 
-namespace KrollBoot
+typedef int Executor(int argc, const char ** argv);
+
+class KrollBoot
 {
-	/**
-	 * Implemented platform independently
-	 */
-	int Bootstrap();
-	void FindUpdate();
+protected:
+	int argc;
+	const char** argv;
 
-	/**
-	 * Implemented platform specifically
-	 */
-	void ShowError(std::string error, bool fatal=false);
-	std::string GetApplicationHomePath();
-	bool RunInstaller(vector<SharedDependency> missing, bool forceInstall=false);
-	void BootstrapPlatformSpecific(string moduleList);
-	int StartHost();
-	string Blastoff();
+	SharedApplication app;
+	string updateFile;
+public:
+
+	KrollBoot(int _argc, const char ** _argv);
+	virtual ~KrollBoot();
+
+	int Bootstrap();
+	virtual int StartHost()=0;
+
+protected:
+	void ShowError(const string & msg, bool fatal=false) const;
+	void FindUpdate();
 	vector<SharedDependency> FilterForSDKInstall(
 		vector<SharedDependency> dependencies);
-	string GetApplicationName();
+
+	virtual string Blastoff()=0;
+	virtual void BootstrapPlatformSpecific(const std::string & moduleList)=0;
+
+	virtual void ShowErrorImpl(const std::string & msg, bool fatal) const=0;
+	virtual string GetApplicationName() const=0;
+	virtual std::string GetApplicationHomePath() const=0;
+	
+	virtual bool RunInstaller(vector<SharedDependency> missing, bool forceInstall=false) const=0;
+};
+
 
 #ifdef USE_BREAKPAD
+class CrashHandler
+{
+public:
+	CrashHandler(int _argc, const char ** _argv);
+	virtual ~CrashHandler();
+
+	virtual int SendCrashReport()=0;
+
+protected:
+	int argc;
+	const char** argv;
+	static string applicationHome;
+	SharedApplication app;
+	static string dumpFilePath;
+	static string executable_name;
+
+
 	void InitCrashDetection();
-	string GetCrashDetectionTitle();
-	string GetCrashDetectionHeader();
-	string GetCrashDetectionMessage();
-	map<string, string> GetCrashReportParameters();
-#endif
-}
+	static string GetCrashDetectionTitle();
+	static string GetCrashDetectionHeader();
+	static string GetCrashDetectionMessage();
+	void GetCrashReportParameters(map<string, string> & param);
+	static string GetApplicationName();
+
+	virtual string GetApplicationHomePath() const=0;
+};
+#endif // USE_BREAKPAD
+
 #endif
