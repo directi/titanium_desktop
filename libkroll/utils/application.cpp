@@ -36,7 +36,7 @@ namespace UTILS_NS
 	}
 
 	/*static*/
-	SharedApplication Application::NewApplication(map<string, string>& manifest)
+	SharedApplication Application::NewApplication(const map<string, string>& manifest)
 	{
 		Application* application = new Application("", "");
 		application->ParseManifest(manifest);
@@ -147,7 +147,7 @@ namespace UTILS_NS
 		this->runtime = NULL;
 	}
 
-	string Application::GetExecutablePath()
+	string Application::GetExecutablePath() const
 	{
 		// TODO:
 		// If this application has arguments, it's probably the currently running
@@ -174,19 +174,22 @@ namespace UTILS_NS
 		return string();
 	}
 
-	string Application::GetComponentPath(string name)
+	string Application::GetComponentPath(const string &name) const
 	{
-		std::transform(name.begin(), name.end(), name.begin(), tolower);
-		if (name == "runtime")
+		string transName(name);
+		std::transform(transName.begin(), transName.end(), transName.begin(), tolower);
+		if (transName == "runtime")
 		{
 			return this->runtime->path;
 		}
 		else
 		{
-			vector<SharedComponent>::iterator i = this->modules.begin();
-			while (i != this->modules.end())
+			for(vector<SharedComponent>::const_iterator
+				i = this->modules.begin();
+				i != this->modules.end();
+			i++)
 			{
-				SharedComponent comp = *i++;
+				SharedComponent comp = *i;
 				if (comp->name == name)
 				{
 					return comp->path;
@@ -196,17 +199,17 @@ namespace UTILS_NS
 		return string();
 	}
 
-	string Application::GetDataPath()
+	string Application::GetDataPath() const
 	{
 		return FileUtils::GetApplicationDataDirectory(this->id);
 	}
 
-	string Application::GetResourcesPath()
+	string Application::GetResourcesPath() const
 	{
 		return FileUtils::Join(this->path.c_str(), "Resources", NULL);
 	}
 
-	bool Application::IsInstalled()
+	bool Application::IsInstalled() const
 	{
 		string dataDirMarker(FileUtils::Join(this->GetDataPath().c_str(),
 			INSTALLED_MARKER_FILENAME, NULL));
@@ -215,6 +218,18 @@ namespace UTILS_NS
 		return FileUtils::IsFile(dataDirMarker) ||
 			FileUtils::IsFile(appDirMarker);
 	}
+
+
+	string Application::GetLicenseText() const
+	{
+		string license(FileUtils::Join(this->path.c_str(),
+			LICENSE_FILENAME, NULL));
+		if (!FileUtils::IsFile(license))
+			return "";
+
+		return FileUtils::ReadFile(license);
+	}
+
 
 	vector<SharedDependency> Application::ResolveDependencies()
 	{
@@ -257,38 +272,36 @@ namespace UTILS_NS
 
 	string& Application::GetStreamURL(const char* scheme)
 	{
-		static string url;
-		if (!url.empty())
-			return url;
-
-		if (stream == "local" || stream == "l")
+		if (url.empty())
 		{
-			url = "http://localhost";
-		}
-		else
-		{
-			url = scheme;
-			url.append("://"STRING(_DISTRIBUTION_URL));
-			if (stream == "production" || stream == "p")
+			if (stream == "local" || stream == "l")
 			{
-				url.append("/p");
-			}
-			else if (stream == "dev" || stream == "d")
-			{
-				url.append("/d");
-			}
-			else if (stream == "test" || stream == "t")
-			{
-				url.append("/t");
+				url = "http://localhost";
 			}
 			else
 			{
-				url.append("/");
-				url.append(this->stream);
+				url = scheme;
+				url.append("://"STRING(_DISTRIBUTION_URL));
+				if (stream == "production" || stream == "p")
+				{
+					url.append("/p");
+				}
+				else if (stream == "dev" || stream == "d")
+				{
+					url.append("/d");
+				}
+				else if (stream == "test" || stream == "t")
+				{
+					url.append("/t");
+				}
+				else
+				{
+					url.append("/");
+					url.append(this->stream);
+				}
+				url.append("/v1");
 			}
-			url.append("/v1");
 		}
-
 		return url;
 	}
 
@@ -321,6 +334,7 @@ namespace UTILS_NS
 			return zipfile;
 
 		// Otherwise return a URL on the distribution site
+		// TODO: avoid Race Condition 
 		if (this->queryString.empty()) // Lazy caching of app query string
 		{
 			queryString = this->GetStreamURL();
@@ -360,18 +374,6 @@ namespace UTILS_NS
 		return url;
 	}
 
-	string Application::GetLicenseText()
-	{
-		string text;
-
-		string license(FileUtils::Join(this->path.c_str(),
-			LICENSE_FILENAME, NULL));
-		if (!FileUtils::IsFile(license))
-			return text;
-
-		return FileUtils::ReadFile(license);
-	}
-
 	string Application::GetUpdateURL()
 	{
 		SharedDependency d = Dependency::NewDependencyFromValues(
@@ -406,7 +408,10 @@ namespace UTILS_NS
 		
 	}
 
-	void Application::UsingModule(string name, string version, string path)
+	void Application::UsingModule(
+		const std::string &name,
+		const std::string &version,
+		const std::string &path)
 	{
 		// Ensure that this module is not already in our list of modules.
 		vector<SharedComponent>::iterator i = this->modules.begin();
@@ -435,9 +440,9 @@ namespace UTILS_NS
 		}
 	}
 
-	void Application::SetArguments(vector<string>& arguments)
+	void Application::SetArguments(const vector<string>& arguments)
 	{
-		this->arguments = arguments;
+		std::copy(arguments.begin(), arguments.end(), this->arguments.begin());
 	}
 
 	vector<string>& Application::GetArguments()
@@ -445,13 +450,15 @@ namespace UTILS_NS
 		return this->arguments;
 	}
 
-	bool Application::HasArgument(string needle)
+	bool Application::HasArgument(const string &needle) const
 	{
 		string dashNeedle(string("--") + needle);
-		vector<string>::iterator i = this->arguments.begin();
-		while (i != this->arguments.end())
+		for(vector<string>::const_iterator 
+			i = this->arguments.begin();
+			i != this->arguments.end();
+		i++)
 		{
-			string arg(*i++);
+			string arg(*i);
 			if (arg.find(needle) == 0 || arg.find(dashNeedle) == 0)
 			{
 				return true;
@@ -460,13 +467,15 @@ namespace UTILS_NS
 		return false;
 	}
 
-	string Application::GetArgumentValue(string needle)
+	string Application::GetArgumentValue(const string &needle) const
 	{
 		string dashNeedle(string("--") + needle);
-		vector<string>::iterator i = this->arguments.begin();
-		while (i != this->arguments.end())
+		for(vector<string>::const_iterator 
+			i = this->arguments.begin();
+			i != this->arguments.end();
+		i++)
 		{
-			string arg(*i++);
+			string arg(*i);
 			size_t start;
 			if ((arg.find(needle) == 0 || arg.find(dashNeedle) == 0)
 				 && (start = arg.find("=")) != string::npos)
@@ -482,17 +491,15 @@ namespace UTILS_NS
 		return string();
 	}
 
-	vector<SharedComponent> Application::GetResolvedComponents()
+	void Application::GetResolvedComponents(vector<SharedComponent> &resolved)
 	{
-		vector<SharedComponent> resolved;
-
 		if (this->runtime)
+		{
 			resolved.push_back(this->runtime);
+		}
 
 		resolved.reserve(resolved.size() + this->modules.size() + this->sdks.size());
 		resolved.insert(resolved.end(), this->modules.begin(), this->modules.end());
 		resolved.insert(resolved.end(), this->sdks.begin(), this->sdks.end());
-
-		return resolved;
 	}
 }

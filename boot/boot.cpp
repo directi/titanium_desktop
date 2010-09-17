@@ -109,7 +109,8 @@ int KrollBoot::Bootstrap()
 	vector<SharedDependency> missing = app->ResolveDependencies();
 	if (app->HasArgument(DEBUG_OPT))
 	{
-		vector<SharedComponent> resolved = app->GetResolvedComponents();
+		vector<SharedComponent> resolved;
+		app->GetResolvedComponents(resolved);
 		for (size_t i = 0; i < resolved.size(); i++)
 		{
 			SharedComponent c = resolved[i];
