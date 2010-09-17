@@ -228,7 +228,7 @@ namespace BootUtils
 		return BootUtils::CompareVersions(one->version, two->version) > 0;
 	}
 
-	void ReadManifestFile(const std::string &path, vector<pair<string, string> > &manifest)
+	void ReadManifestFile(const std::string &path, map<string, string> &manifest)
 	{
 		if (FileUtils::IsFile(path))
 		{
@@ -245,7 +245,7 @@ namespace BootUtils
 
 					if(manifestLineData.size() == 2)
 					{
-						manifest.push_back(pair<string, string>(manifestLineData[0], manifestLineData[1]));
+						manifest[manifestLineData[0] ] = manifestLineData[1];
 					}
 				}
 			}

@@ -25,7 +25,7 @@ namespace UTILS_NS
 	}
 
 	/*static*/
-	SharedApplication Application::NewApplication(vector<pair<string, string> >& manifest)
+	SharedApplication Application::NewApplication(map<string, string>& manifest)
 	{
 		Application* application = new Application("", "");
 		application->ParseManifest(manifest);
@@ -37,7 +37,7 @@ namespace UTILS_NS
 		const std::string &manifestPath,
 		const std::string &appPath)
 	{
-		vector<pair<string, string> > manifest;
+		map<string, string> manifest;
 		BootUtils::ReadManifestFile(manifestPath, manifest);
 
 		if (manifest.empty())
@@ -50,14 +50,15 @@ namespace UTILS_NS
 		return application;
 	}
 	
-	void Application::ParseManifest(vector<pair<string, string> >& manifest)
+	void Application::ParseManifest(const map<string, string>& manifest)
 	{
-		vector<pair<string, string> >::iterator i = manifest.begin();
-		while (i != manifest.end())
+		for(map<string, string>::const_iterator
+			oIter = manifest.begin();
+			oIter != manifest.end();
+		oIter++)
 		{
-			string key(i->first);
-			string value(i->second);
-			*i++;
+			string key(oIter->first);
+			string value(oIter->second);
 
 			if (key == "#appname")
 			{
