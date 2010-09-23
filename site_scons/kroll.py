@@ -50,9 +50,10 @@ class BuildConfig(object):
                         vars.Add('MSVC_VERSION', '', '8.0Exp')
                         # Assuming one has the right build environment in the PATH
                         vars.Add('PATH', '', os.environ['PATH'])
+			vars.Add('TARGET_ARCH', '', 'x86')
                 else:
                         vars.Add('MSVC_VERSION', '', '8.0')
-                                 
+			vars.Add('TARGET_ARCH', '', 'x86')                                 
 
 		self.env = SCons.Environment.Environment(variables = vars)
 		self.utils = utils.BuildUtils(self)
