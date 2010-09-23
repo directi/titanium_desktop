@@ -73,7 +73,7 @@ class BuildConfig(object):
 
 		self.dir = path.abspath(path.join(kwargs['BUILD_DIR'], self.os))
 		self.dist_dir = path.join(self.dir, 'dist')
-		self.runtime_build_dir = path.join(self.dir, 'runtime')
+		self.runtime_build_dir = path.join(self.dir, 'runtime', self.version)
 		self.runtime_template_dir = path.join(self.runtime_build_dir, 'template')
 
 		self.env.Append(LIBPATH=[self.dir])
