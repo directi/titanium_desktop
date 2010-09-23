@@ -14,9 +14,7 @@ env.Append(LIBS=[
 	'wininet',
 	'urlmon',
 	'ole32',
-	'gdi32',
-	'kernel32',
-	'comdlg32',
+	'gdi32'
 ])
 
 # Common sources for both the MSI DLL and the update installer.
