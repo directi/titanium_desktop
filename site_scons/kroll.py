@@ -88,7 +88,7 @@ class BuildConfig(object):
 
 		# SCons can't read the Visual Studio settings yet so we
 		# have to force it to use the Platform SDK directories
-		if self.is_win32() and ARGUMENTS.get('vcexpress', 0):
+		if self.is_win32():
 			self.env.Prepend(PATH=['C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2'])
 			self.env.Prepend(CPPPATH=['C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\include'])
 			self.env.Prepend(LIBPATH=['C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\lib'])
