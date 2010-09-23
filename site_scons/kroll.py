@@ -46,7 +46,13 @@ class BuildConfig(object):
 		vars.Add('CONFIG_FILENAME','The name of the Kroll config file', kwargs['CONFIG_FILENAME'])
 		vars.Add('DISTRIBUTION_URL','The base URL of all streams', kwargs['DISTRIBUTION_URL'])
 		vars.Add('CRASH_REPORT_URL','The URL to send crash dumps to', kwargs['CRASH_REPORT_URL'])
-		vars.Add('MSVC_VERSION', '', '8.0')
+		if ARGUMENTS.get('vcexpress', 0):
+                        vars.Add('MSVC_VERSION', '', '8.0Exp')
+                        # Assuming one has the right build environment in the PATH
+                        vars.Add('PATH', '', os.environ['PATH'])
+                else:
+                        vars.Add('MSVC_VERSION', '', '8.0')
+                                 
 
 		self.env = SCons.Environment.Environment(variables = vars)
 		self.utils = utils.BuildUtils(self)
@@ -81,15 +87,11 @@ class BuildConfig(object):
 
 		# SCons can't read the Visual Studio settings yet so we
 		# have to force it to use the Platform SDK directories
-		if self.is_win32():
+		if self.is_win32() and ARGUMENTS.get('vcexpress', 0):
 			self.env.Prepend(PATH=['C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2'])
 			self.env.Prepend(CPPPATH=['C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\include'])
 			self.env.Prepend(LIBPATH=['C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\lib'])
-
-			atlmfc_path = 'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\atlmfc'
-			if not path.exists(atlmfc_path):
-				atlmfc_path = 'C:\\Program Files (x86)\\Microsoft Visual Studio 8\\VC\\atlmfc'
-			self.env.Prepend(CPPPATH=[path.join(atlmfc_path, 'include')])
+			self.env.Prepend(CPPPATH=['C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include\mfc'])
 
 	def set_kroll_source_dir(self, dir):
 		self.kroll_source_dir = path.abspath(dir)
