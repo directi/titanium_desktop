@@ -84,11 +84,11 @@ vector<SharedDependency> KrollBoot::FilterForSDKInstall(
 int KrollBoot::Bootstrap()
 {
 	string applicationHome = GetApplicationHomePath();
-	string manifestPath = FileUtils::Join(applicationHome.c_str(), MANIFEST_FILENAME, NULL);
-	if (!FileUtils::IsFile(manifestPath))
+
+	if(!Application::doesManifestFileExistsAtDirectory(applicationHome))
 	{
-		string error("Application packaging error: no manifest was found at: ");
-		error.append(manifestPath);
+		string error("Application packaging error: no manifest was found from directory : " );
+		error.append(applicationHome);
 		ShowError(error);
 		return __LINE__;
 	}
@@ -96,8 +96,8 @@ int KrollBoot::Bootstrap()
 	app = Application::NewApplication(applicationHome);
 	if (app.isNull())
 	{
-		string error("Application packaging error: could not read manifest at: ");
-		error.append(manifestPath);
+		string error("Application packaging error: could not read manifest from directory : ");
+		error.append(applicationHome);
 		ShowError(error);
 		return __LINE__;
 	}
@@ -109,7 +109,8 @@ int KrollBoot::Bootstrap()
 	vector<SharedDependency> missing = app->ResolveDependencies();
 	if (app->HasArgument(DEBUG_OPT))
 	{
-		vector<SharedComponent> resolved = app->GetResolvedComponents();
+		vector<SharedComponent> resolved;
+		app->GetResolvedComponents(resolved);
 		for (size_t i = 0; i < resolved.size(); i++)
 		{
 			SharedComponent c = resolved[i];

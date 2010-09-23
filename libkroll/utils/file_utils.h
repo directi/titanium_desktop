@@ -108,7 +108,7 @@ namespace UTILS_NS
 		/**
 		 * @return the applications data directory
 		 */
-		KROLL_API std::string GetApplicationDataDirectory(std::string &appid);
+		KROLL_API std::string GetApplicationDataDirectory(const std::string &appid);
 
 		/**
 		 * This function indirectly uses the KR_HOME environment variable

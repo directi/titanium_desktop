@@ -22,6 +22,7 @@ namespace UTILS_NS
 		Application(const std::string &path, const std::string &manifestPath);
 		void ParseManifest(const map<string, string>& manifest);
 
+
 	public:
 		const string path;
 		const string manifestPath;
@@ -44,31 +45,47 @@ namespace UTILS_NS
 		vector<SharedComponent> sdks;
 		SharedComponent runtime;
 
+		static bool doesManifestFileExistsAtDirectory(const std::string & dir);
+
+
 		static SharedApplication NewApplication(const std::string &appPath);
 		static SharedApplication NewApplication(const std::string &manifestPath, const std::string &applicationPath);
-		// special in-memor	y constructor, no paths
-		static SharedApplication NewApplication(map<string, string>& manifest);
+		// special in-memory constructor, no paths
+		static SharedApplication NewApplication(const map<string, string>& manifest);
 		~Application();
-
-		/**
-		 * Whether or not this application has a .installed file in it's path
-		 */
-		bool IsInstalled();
 
 		/**
 		 * Get the path to this application's executablej
 		 */
-		string GetExecutablePath();
+		string GetExecutablePath() const;
+
+		/**
+		 * Get an active component path given a name.
+		 * @arg name a component name either the name of a module (e.g. 'tiui') or 'runtime'
+		 * @returns the path to the component with the given name or an empty string if not found
+		 */
+		string GetComponentPath(const string &name) const;
 
 		/**
 		 * Get the path to this application's user data directory.
 		 */
-		string GetDataPath();
+		string GetDataPath() const;
 
 		/**
 		 * Get the path to this application's resources directory.
 		 */
-		string GetResourcesPath();
+		string GetResourcesPath() const;
+
+		/**
+		 * Get the text of a license file for this application or an empty string if
+		 * no license is found.
+		 */
+		std::string GetLicenseText() const;
+
+		/**
+		 * Whether or not this application has a .installed file in it's path
+		 */
+		bool IsInstalled() const;
 
 		/**
 		 * Try to resolve all application dependencies with installed or bundled components.
@@ -90,12 +107,6 @@ namespace UTILS_NS
 		std::string GetUpdateURL();
 
 		/**
-		 * Get the text of a license file for this application or an empty string if
-		 * no license is found.
-		 */
-		std::string GetLicenseText();
-
-		/**
 		 * Get the stream URL for this application
 		 */
 		std::string& GetStreamURL(const char* scheme="http");
@@ -106,14 +117,18 @@ namespace UTILS_NS
 		 * in the bundle override directory.
 		 */
 		void GetAvailableComponents(
-			vector<SharedComponent>&, bool onlyBundled = false);
+			vector<SharedComponent>& components,
+			bool onlyBundled = false);
 
 		/**
 		 * Inform the application that it is using a module with the given
 		 * name and version. If this is a new module, it will be registered in
 		 * the application's module list.
 		 */
-		void UsingModule(string name, string version, string path);
+		void UsingModule(
+			const std::string &name,
+			const std::string &version,
+			const std::string &path);
 
 		/**
 		 * A mutator for this application's list of command-line arguments.
@@ -123,7 +138,7 @@ namespace UTILS_NS
 		/**
 		 * A mutator for this application's list of command-line arguments.
 		 */
-		void SetArguments(vector<string>& arguments);
+		void SetArguments(const vector<string>& arguments);
 
 		/**
 		 * An accessor for this application's list of command-line arguments.
@@ -134,26 +149,19 @@ namespace UTILS_NS
 		 * Whether or not the given argument was specified on the command-line. If "--arg"
 		 * was specified, a needle equalling "--arg" or "arg" will return true.
 		 */
-		bool HasArgument(string needle);
+		bool HasArgument(const string &needle) const;
 
 		/**
 		 * Get the value of an argument that was specified like arg=value or arg="value"
 		 * @returns argument value or an empty string if not found
 		 */
-		string GetArgumentValue(string needle);
-
-		/**
-		 * Get an active component path given a name.
-		 * @arg name a component name either the name of a module (e.g. 'tiui') or 'runtime'
-		 * @returns the path to the component with the given name or an empty string if not found
-		 */
-		string GetComponentPath(string name);
+		string GetArgumentValue(const string &needle) const;
 
 		/**
 		 * Get all resolved components for this application including
 		 * runtimes, sdks and modules.
 		 */
-		vector<SharedComponent> GetResolvedComponents();
+		void GetResolvedComponents(vector<SharedComponent> &resolved);
 	};
 }
 #endif
