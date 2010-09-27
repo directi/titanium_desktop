@@ -133,7 +133,7 @@ int KrollOSXBoot::StartHost()
 bool KrollOSXBoot::RunInstaller(vector<SharedDependency> missing, bool forceInstall) const
 {
 	string exec = FileUtils::Join(
-			app->path.c_str(),
+			app->getPath().c_str(),
 			"installer",
 			"Installer App.app",
 			"Contents", 
@@ -152,7 +152,7 @@ string KrollOSXBoot::GetApplicationName() const
 {
 	if (!app.isNull())
 	{
-		return app->name.c_str();
+		return app->getName().c_str();
 	}
 	else
 	{
@@ -207,7 +207,7 @@ void OSXCrashHandler::createHandler(const std::string &tempPath)
 
 int OSXCrashHandler::SendCrashReport()
 {
-	if (argc < 3)
+	if (dumpFilePath.empty())
 	{
 		//ShowError("Invalid number of arguments passed to crash reporter.");
 		std::cerr << "Invalid number of arguments passed to crash reporter." << std::endl;

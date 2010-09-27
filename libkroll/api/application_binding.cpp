@@ -228,47 +228,56 @@ namespace kroll
 
 	void ApplicationBinding::_GetID(const ValueList& args, KValueRef result)
 	{
-		result->SetString(this->application->getId());
+		std::string id = this->application->getId();
+		result->SetString(id);
 	}
 
 	void ApplicationBinding::_GetGUID(const ValueList& args, KValueRef result)
 	{
-		result->SetString(this->application->getGUID());
+		std::string guid = this->application->getGUID();
+		result->SetString(guid);
 	}
 
 	void ApplicationBinding::_GetName(const ValueList& args, KValueRef result)
 	{
-		result->SetString(this->application->getName());
+		std::string name = this->application->getName();
+		result->SetString(name);
 	}
 
 	void ApplicationBinding::_GetVersion(const ValueList& args, KValueRef result)
 	{
-		result->SetString(this->application->getVersion());
+		std::string version = this->application->getVersion();
+		result->SetString(version);
 	}
 
 	void ApplicationBinding::_GetPath(const ValueList& args, KValueRef result)
 	{
-		result->SetString(this->application->getPath());
+		std::string path = this->application->getPath();
+		result->SetString(path);
 	}
 
 	void ApplicationBinding::_GetExecutablePath(const ValueList& args, KValueRef result)
 	{
-		result->SetString(this->application->GetExecutablePath());
+		std::string executable_path = this->application->GetExecutablePath();
+		result->SetString(executable_path);
 	}
 
 	void ApplicationBinding::_GetResourcesPath(const ValueList& args, KValueRef result)
 	{
-		result->SetString(this->application->GetResourcesPath());
+		std::string resource_path = this->application->GetResourcesPath();
+		result->SetString(resource_path);
 	}
 
 	void ApplicationBinding::_GetDataPath(const ValueList& args, KValueRef result)
 	{
-		result->SetString(this->application->GetDataPath());
+		std::string data_path = this->application->GetDataPath();
+		result->SetString(data_path);
 	}
 
 	void ApplicationBinding::_GetManifestPath(const ValueList& args, KValueRef result)
 	{
-		result->SetString(this->application->getManifestPath());
+		std::string manifest_path = this->application->getManifestPath();
+		result->SetString(manifest_path);
 	}
 
 	void ApplicationBinding::_GetManifest(const ValueList& args, KValueRef result)

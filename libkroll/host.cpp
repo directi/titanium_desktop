@@ -186,7 +186,8 @@ namespace kroll
 		}
 
 		// If this application has no log level, we'll get a suitable default
-		Logger::Level level = Logger::GetLevel(this->application->getLogLevel());
+		std::string logLevel = this->application->getLogLevel();
+		Logger::Level level = Logger::GetLevel(logLevel);
 		Logger::Initialize(this->consoleLogging, this->logFilePath, level);
 		this->logger = Logger::Get("Host");
 	}

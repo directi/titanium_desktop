@@ -29,11 +29,11 @@ namespace UTILS_NS
 		string version;
 		string id;
 		string guid;
+		string url;
 		string publisher;
 		string image;
 		string logLevel;
 
-		string url;
 		string stream;
 		string queryString;
 
@@ -59,6 +59,7 @@ namespace UTILS_NS
 		string getVersion() const { return this->version; }
 		string getId() const { return this->id; }
 		string getGUID() const { return this->guid; }
+		string getURL() const { return this->url; }
 		string getPublisher() const { return this->publisher; }
 		string getImage() const { return this->image; }
 		string getLogLevel() const { return this->logLevel; }
