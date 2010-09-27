@@ -115,7 +115,7 @@ int KrollLinuxBoot::StartHost()
 bool KrollLinuxBoot::RunInstaller(vector<SharedDependency> missing, bool forceInstall) const
 {
 	string exec = FileUtils::Join(
-		app->path.c_str(), "installer", "installer", 0);
+		app->getPath().c_str(), "installer", "installer", 0);
 	if (!FileUtils::IsFile(exec))
 	{
 		ShowError("Missing installer and application has additional modules that are needed.");
@@ -128,7 +128,7 @@ string KrollLinuxBoot::GetApplicationName() const
 {
 	if (!app.isNull())
 	{
-		return app->name.c_str();
+		return app->getName().c_str();
 	}
 	return PRODUCT_NAME;
 }
@@ -138,7 +138,7 @@ string KrollLinuxBoot::GetApplicationName() const
 char LinuxCrashHandler::breakpadCallBuffer[PATH_MAX];
 
 LinuxCrashHandler::LinuxCrashHandler(int _argc, const char ** _argv)
-	: CrashHandler(_argc, _argv), breakpad(0)
+	: CrashHandler(_argc, _argv), argc(_argc), argv(_argv), breakpad(0)
 {
 }
 
@@ -183,7 +183,7 @@ void LinuxCrashHandler::createHandler(const std::string & tempPath)
 string LinuxCrashHandler::GetApplicationHomePath() const
 {
 	char* buffer = (char*) alloca(sizeof(char) * PATH_MAX);
-	char* realPath = realpath(argv[0], buffer);
+	char* realPath = realpath(executable_name.c_str(), buffer);
 	string realPathStr = realPath;
 	if (realPath != 0 && FileUtils::IsFile(realPathStr))
 	{

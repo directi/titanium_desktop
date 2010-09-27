@@ -44,7 +44,7 @@ namespace BootUtils
 	{
 		if (installerPath.empty())
 		{
-			installerPath = application->path;
+			installerPath = application->getPath();
 		}
 
 		string exec = FileUtils::Join(
@@ -57,7 +57,7 @@ namespace BootUtils
 
 		vector<string> args;
 		args.push_back("--apppath");
-		args.push_back(application->path);
+		args.push_back(application->getPath());
 
 		if (!updateFile.empty())
 		{

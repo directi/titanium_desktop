@@ -39,6 +39,8 @@ class LinuxCrashHandler
 		void createHandler(const std::string & tempPath);
 
 	private:
+		int argc;
+		const char ** argv;
 		google_breakpad::ExceptionHandler* breakpad;
 
 		virtual string GetApplicationHomePath() const;
