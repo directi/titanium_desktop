@@ -99,7 +99,7 @@ Installer::Installer(vector<Job*> jobs, int installType) :
 	this->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
 	GdkPixbuf* applicationIcon = NULL;
-	if (!app->image.empty())
+	if (!app->getImage().empty())
 	{
 		applicationIcon = this->GetApplicationPixbuf(ICON_MAX_DIMENSION);
 		gtk_window_set_icon(GTK_WINDOW(this->window), applicationIcon);
@@ -110,7 +110,7 @@ Installer::Installer(vector<Job*> jobs, int installType) :
 		gtk_window_set_icon(GTK_WINDOW(this->window), titanium_icon);
 	}
 
-	string title = this->app->name + " Installer";
+	string title = this->app->getName() + " Installer";
 	gtk_window_set_title(GTK_WINDOW(this->window), title.c_str());
 	g_signal_connect(
 		G_OBJECT(this->window),
@@ -184,15 +184,15 @@ void Installer::CreateInfoBox(GtkWidget* vbox)
 	GtkWidget* infoVbox = gtk_vbox_new(FALSE, 2);
 
 	string nameLabelText = "<span size=\"xx-large\">";
-	nameLabelText.append(this->app->name);
+	nameLabelText.append(this->app->getName());
 	nameLabelText.append("</span>");
 	GtkWidget* nameLabel = gtk_label_new(nameLabelText.c_str());
 	gtk_label_set_use_markup(GTK_LABEL(nameLabel), TRUE);
 	gtk_misc_set_alignment(GTK_MISC(nameLabel), 0.0, 0.0);
 	gtk_box_pack_start(GTK_BOX(infoVbox), nameLabel, FALSE, FALSE, 0);
-	if (!this->app->version.empty())
+	if (!this->app->getVersion().empty())
 	{
-		string versionLabelText = string("Version: ") + this->app->version;
+		string versionLabelText = string("Version: ") + this->app->getVersion();
 		if (!updateFilename.empty())
 			versionLabelText += "<span style=\"italic\"> (Update)</span>";
 		GtkWidget* versionLabel = gtk_label_new(versionLabelText.c_str());
@@ -200,16 +200,16 @@ void Installer::CreateInfoBox(GtkWidget* vbox)
 		gtk_misc_set_alignment(GTK_MISC(versionLabel), 0.0, 0.0);
 		gtk_box_pack_start(GTK_BOX(infoVbox), versionLabel, FALSE, FALSE, 0);
 	}
-	if (!this->app->publisher.empty())
+	if (!this->app->getPublisher().empty())
 	{
-		string publisherLabelText = string("Publisher: ") + this->app->publisher;
+		string publisherLabelText = string("Publisher: ") + this->app->getPublisher();
 		GtkWidget* publisherLabel = gtk_label_new(publisherLabelText.c_str());
 		gtk_misc_set_alignment(GTK_MISC(publisherLabel), 0.0, 0.0);
 		gtk_box_pack_start(GTK_BOX(infoVbox), publisherLabel, FALSE, FALSE, 0);
 	}
-	if (!this->app->url.empty())
+	if (!this->app->getURL().empty())
 	{
-		string urlLabelText = string("From: ") + this->app->url;
+		string urlLabelText = string("From: ") + this->app->getURL();
 		GtkWidget* urlLabel = gtk_label_new(urlLabelText.c_str());
 		gtk_misc_set_alignment(GTK_MISC(urlLabel), 0.0, 0.0);
 		gtk_box_pack_start(GTK_BOX(infoVbox), urlLabel, FALSE, FALSE, 0);
@@ -433,7 +433,7 @@ GtkWidget* Installer::GetTitaniumIcon()
 
 GdkPixbuf* Installer::GetApplicationPixbuf(int maxDimension)
 {
-	GdkPixbuf *iconPixbuf = gdk_pixbuf_new_from_file(this->app->image.c_str(), NULL);
+	GdkPixbuf *iconPixbuf = gdk_pixbuf_new_from_file(this->app->getImage().c_str(), NULL);
 	if (iconPixbuf == NULL)
 	{
 		return NULL;
@@ -466,7 +466,7 @@ GdkPixbuf* Installer::GetApplicationPixbuf(int maxDimension)
 GtkWidget* Installer::GetApplicationIcon()
 {
 	GdkPixbuf* appPixbuf;
-	if (this->app->image != ""
+	if (this->app->getImage() != ""
 		&& ((appPixbuf = this->GetApplicationPixbuf(BADGE_MAX_DIMENSION))))
 	{
 		return gtk_image_new_from_pixbuf(appPixbuf);
