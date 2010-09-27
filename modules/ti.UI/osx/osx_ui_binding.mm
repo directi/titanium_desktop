@@ -46,7 +46,7 @@ namespace ti
 		this->defaultMenu = [NSApp mainMenu];
 
 		NSString* appName = [NSString
-			stringWithUTF8String:host->GetApplication()->name.c_str()];
+			stringWithUTF8String:host->GetApplication()->getName().c_str()];
 		OSXMenu::ReplaceAppNameStandinInMenu(this->defaultMenu, appName);
 		OSXMenu::SetupInspectorItem(this->defaultMenu);
 		this->SetupMainMenu(true);

@@ -18,7 +18,7 @@
 -(void)setupPreferences
 {
 	NSString* appId = [NSString stringWithUTF8String:
-		Host::GetInstance()->GetApplication()->id.c_str()];
+		Host::GetInstance()->GetApplication()->getId().c_str()];
 	[[window webView] setPreferencesIdentifier:appId];
 	WebPreferences* webPrefs = [[WebPreferences alloc] initWithIdentifier:appId];
 

@@ -235,7 +235,8 @@ namespace ti
 	}
 	void AppBinding::GetGUID(const ValueList& args, KValueRef result)
 	{
-		result->SetString(host->GetApplication()->getGUID());
+		std::string guid = host->GetApplication()->getGUID();
+		result->SetString(guid);
 	}
 
 	void AppBinding::Exit(const ValueList& args, KValueRef result)
@@ -394,7 +395,8 @@ namespace ti
 
 	void AppBinding::GetHome(const ValueList& args, KValueRef result)
 	{
-		result->SetString(host->GetApplication()->getPath());
+		std::string path = host->GetApplication()->getPath();
+		result->SetString(path);
 	}
 
 	void AppBinding::GetArguments(const ValueList& args, KValueRef result)

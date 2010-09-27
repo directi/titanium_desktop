@@ -106,8 +106,8 @@ bool Notification::InitializeImpl()
 		return false;
 
 	SharedApplication app(Host::GetInstance()->GetApplication());
-	appName.reset(UTF8ToCFString(app->name));
-	appId.reset(UTF8ToCFString(app->id));
+	appName.reset(UTF8ToCFString(app->getName()));
+	appId.reset(UTF8ToCFString(app->getId()));
 
 	connection = [NSConnection
 		connectionWithRegisteredName:@"GrowlApplicationBridgePathway"
