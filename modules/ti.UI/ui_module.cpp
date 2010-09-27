@@ -48,7 +48,7 @@ namespace ti
 
 		try
 		{
-			std::string& appIcon = host->GetApplication()->image;
+			std::string& appIcon = host->GetApplication()->getImage();
 			if (!appIcon.empty())
 				this->uiBinding->_SetIcon(appIcon);
 		}

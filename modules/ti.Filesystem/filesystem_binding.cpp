@@ -243,7 +243,7 @@ namespace ti
 
 	void FilesystemBinding::GetApplicationDirectory(const ValueList& args, KValueRef result)
 	{
-		result->SetObject(new ti::File(host->GetApplication()->path));
+		result->SetObject(new ti::File(host->GetApplication()->getPath()));
 	}
 
 	void FilesystemBinding::GetApplicationDataDirectory(const ValueList& args, KValueRef result)

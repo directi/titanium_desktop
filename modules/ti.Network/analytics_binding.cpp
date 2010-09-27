@@ -43,10 +43,10 @@ AnalyticsBinding::AnalyticsBinding() :
 	this->url = app->GetStreamURL("https") + "/app-track";
 
 	AddQueryParameter(baseData, "mid", PlatformUtils::GetMachineId(), true);
-	AddQueryParameter(baseData, "guid", app->guid);
-	AddQueryParameter(baseData, "app_name", app->name);
-	AddQueryParameter(baseData, "app_id", app->id);
-	AddQueryParameter(baseData, "app_version", app->version);
+	AddQueryParameter(baseData, "guid", app->getGUID());
+	AddQueryParameter(baseData, "app_name", app->getName());
+	AddQueryParameter(baseData, "app_id", app->getId());
+	AddQueryParameter(baseData, "app_version", app->getVersion());
 	AddQueryParameter(baseData, "sid", DataUtils::GenerateUUID());
 	AddQueryParameter(baseData, "mac_addr", PlatformUtils::GetFirstMACAddress());
 	AddQueryParameter(baseData, "osver", Poco::Environment::osVersion().c_str());

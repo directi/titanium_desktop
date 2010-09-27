@@ -235,8 +235,7 @@ namespace ti
 	}
 	void AppBinding::GetGUID(const ValueList& args, KValueRef result)
 	{
-		std::string guid = host->GetApplication()->guid;
-		result->SetString(guid);
+		result->SetString(host->GetApplication()->getGUID());
 	}
 
 	void AppBinding::Exit(const ValueList& args, KValueRef result)
@@ -378,9 +377,13 @@ namespace ti
 		SharedApplication app = this->host->GetApplication();
 		result->SetNull();	
 
-		if (app && !app->image.empty())
+		if (app)
 		{
-			result->SetString(app->image);
+			std::string image = app->getImage();
+			if (!image.empty())
+			{
+				result->SetString(image);
+			}
 		}
 	}
 
@@ -391,7 +394,7 @@ namespace ti
 
 	void AppBinding::GetHome(const ValueList& args, KValueRef result)
 	{
-		result->SetString(host->GetApplication()->path.c_str());
+		result->SetString(host->GetApplication()->getPath());
 	}
 
 	void AppBinding::GetArguments(const ValueList& args, KValueRef result)

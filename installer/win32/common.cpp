@@ -1,4 +1,4 @@
-/**
+	/**
  * Appcelerator Titanium - licensed under the Apache Public License 2
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2009-2010 Appcelerator, Inc. All Rights Reserved.
@@ -321,7 +321,7 @@ bool InstallDependency(SharedApplication app, SharedDependency dependency)
 	{
 		// Application updates need to be unzipped into the application
 		// installation directory.
-		destination = app->path;
+		destination = app->getPath();
 	}
 	else
 	{

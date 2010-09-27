@@ -64,7 +64,7 @@ AppConfig* AppConfig::Instance()
 	if (!instance)
 	{
 		std::string configFilename(FileUtils::Join(
-			Host::GetInstance()->GetApplication()->path.c_str(),
+			Host::GetInstance()->GetApplication()->getPath().c_str(),
 			CONFIG_FILENAME, 0));
 		GetLogger()->Debug("Loading config file: %s", configFilename.c_str());
 		if (!FileUtils::IsFile(configFilename))
