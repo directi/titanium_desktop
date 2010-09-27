@@ -228,56 +228,53 @@ namespace kroll
 
 	void ApplicationBinding::_GetID(const ValueList& args, KValueRef result)
 	{
-		result->SetString(this->application->id);
+		result->SetString(this->application->getId());
 	}
 
 	void ApplicationBinding::_GetGUID(const ValueList& args, KValueRef result)
 	{
-		result->SetString(this->application->guid);
+		result->SetString(this->application->getGUID());
 	}
 
 	void ApplicationBinding::_GetName(const ValueList& args, KValueRef result)
 	{
-		result->SetString(this->application->name);
+		result->SetString(this->application->getName());
 	}
 
 	void ApplicationBinding::_GetVersion(const ValueList& args, KValueRef result)
 	{
-		result->SetString(this->application->version);
+		result->SetString(this->application->getVersion());
 	}
 
 	void ApplicationBinding::_GetPath(const ValueList& args, KValueRef result)
 	{
-		result->SetString(this->application->path.c_str());
+		result->SetString(this->application->getPath());
 	}
 
 	void ApplicationBinding::_GetExecutablePath(const ValueList& args, KValueRef result)
 	{
-		string executablePath = this->application->GetExecutablePath();
-		result->SetString(executablePath);
+		result->SetString(this->application->GetExecutablePath());
 	}
 
 	void ApplicationBinding::_GetResourcesPath(const ValueList& args, KValueRef result)
 	{
-		string resourcesPath = this->application->GetResourcesPath();
-		result->SetString(resourcesPath);
+		result->SetString(this->application->GetResourcesPath());
 	}
 
 	void ApplicationBinding::_GetDataPath(const ValueList& args, KValueRef result)
 	{
-		string dataPath = this->application->GetDataPath();
-		result->SetString(dataPath);
+		result->SetString(this->application->GetDataPath());
 	}
 
 	void ApplicationBinding::_GetManifestPath(const ValueList& args, KValueRef result)
 	{
-		result->SetString(this->application->manifestPath.c_str());
+		result->SetString(this->application->getManifestPath());
 	}
 
 	void ApplicationBinding::_GetManifest(const ValueList& args, KValueRef result)
 	{
 		map<string, string> manifest;
-		BootUtils::ReadManifestFile(this->application->manifestPath, manifest);
+		BootUtils::ReadManifestFile(this->application->getManifestPath(), manifest);
 
 		KListRef manifestList = APIBinding::ManifestToKList(manifest);
 		result->SetList(manifestList);

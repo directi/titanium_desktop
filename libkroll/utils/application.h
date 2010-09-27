@@ -22,8 +22,6 @@ namespace UTILS_NS
 		Application(const std::string &path, const std::string &manifestPath);
 		void ParseManifest(const map<string, string>& manifest);
 
-
-	public:
 		const string path;
 		const string manifestPath;
 
@@ -32,14 +30,16 @@ namespace UTILS_NS
 		string id;
 		string guid;
 		string publisher;
-		string url;
 		string image;
-		string stream;
-		string queryString;
 		string logLevel;
 
-		vector<string> arguments;
+		string url;
+		string stream;
+		string queryString;
 
+	public:
+
+		vector<string> arguments;
 		vector<SharedDependency> dependencies;
 		vector<SharedComponent> modules;
 		vector<SharedComponent> sdks;
@@ -47,12 +47,21 @@ namespace UTILS_NS
 
 		static bool doesManifestFileExistsAtDirectory(const std::string & dir);
 
-
 		static SharedApplication NewApplication(const std::string &appPath);
 		static SharedApplication NewApplication(const std::string &manifestPath, const std::string &applicationPath);
 		// special in-memory constructor, no paths
 		static SharedApplication NewApplication(const map<string, string>& manifest);
 		~Application();
+
+		string getPath() const { return this->path; }
+		string getManifestPath() const { return this->manifestPath; }
+		string getName() const { return this->name; }
+		string getVersion() const { return this->version; }
+		string getId() const { return this->id; }
+		string getGUID() const { return this->guid; }
+		string getPublisher() const { return this->publisher; }
+		string getImage() const { return this->image; }
+		string getLogLevel() const { return this->logLevel; }
 
 		/**
 		 * Get the path to this application's executablej

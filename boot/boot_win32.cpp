@@ -20,14 +20,6 @@ KrollWin32Boot::~KrollWin32Boot()
 {
 }
 
-bool KrollWin32Boot::IsWindowsXP() const
-{
-	OSVERSIONINFO osVersion;
-	osVersion.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-	::GetVersionEx(&osVersion);
-	return osVersion.dwMajorVersion == 5;
-}
-
 HMODULE KrollWin32Boot::SafeLoadRuntimeDLL(string& path) const
 {
 	if (!FileUtils::IsFile(path))
@@ -98,7 +90,7 @@ string KrollWin32Boot::GetApplicationHomePath() const
 bool KrollWin32Boot::RunInstaller(vector<SharedDependency> missing, bool forceInstall) const
 {
 
-	string installer(FileUtils::Join(app->path.c_str(), "installer", "installer.exe", 0));
+	string installer(FileUtils::Join(app->getPath().c_str(), "installer", "installer.exe", 0));
 	if (!FileUtils::IsFile(installer))
 	{
 		ShowError("Missing installer and application has additional modules that are needed.");
@@ -128,7 +120,7 @@ string KrollWin32Boot::Blastoff()
 	// launch the host here and exit with the appropriate return value.
 
 	// This may have been an install, so ensure that KR_HOME is correct
-	EnvironmentUtils::Set("KR_HOME", app->path);
+	EnvironmentUtils::Set("KR_HOME", app->getPath());
 	exit(StartHost());
 }
 
@@ -137,7 +129,7 @@ string KrollWin32Boot::GetApplicationName() const
 {
 	if (!app.isNull())
 	{
-		return app->name.c_str();
+		return app->getName().c_str();
 	}
 	return PRODUCT_NAME;
 }

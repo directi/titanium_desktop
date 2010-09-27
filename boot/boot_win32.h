@@ -30,7 +30,6 @@ class KrollWin32Boot
 		virtual string Blastoff();
 		virtual void BootstrapPlatformSpecific(const std::string & moduleList);
 
-		bool IsWindowsXP() const;
 		HMODULE SafeLoadRuntimeDLL(string& path) const;
 
 		virtual string GetApplicationName() const;

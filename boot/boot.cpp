@@ -35,7 +35,7 @@ void KrollBoot::FindUpdate()
 		// It will be placed there by the update service. If it exists
 		// and the version in the update file is greater than the
 		// current app version, we want to force an update.
-		string file = FileUtils::GetApplicationDataDirectory(app->id);
+		string file = FileUtils::GetApplicationDataDirectory(app->getId());
 		file = FileUtils::Join(file.c_str(), UPDATE_FILENAME, NULL);
 
 		if (FileUtils::IsFile(file))
@@ -44,7 +44,7 @@ void KrollBoot::FindUpdate()
 			// it requires and ignore our current manifest.
 			// On error: We should just continue on. A corrupt or old update manifest 
 			// doesn't imply that the original application is corrupt.
-			SharedApplication update = Application::NewApplication(file, app->path);
+			SharedApplication update = Application::NewApplication(file, app->getPath());
 			if (!update.isNull())
 			{
 				update->SetArguments(argc, argv);
@@ -160,7 +160,7 @@ int KrollBoot::Bootstrap()
 	}
 
 	EnvironmentUtils::Set(BOOTSTRAP_ENV, "YES");
-	EnvironmentUtils::Set("KR_HOME", app->path);
+	EnvironmentUtils::Set("KR_HOME", app->getPath());
 	EnvironmentUtils::Set("KR_RUNTIME", app->runtime->path);
 	EnvironmentUtils::Set("KR_MODULES", moduleList.str());
 
@@ -175,9 +175,14 @@ int KrollBoot::Bootstrap()
 
 #ifdef USE_BREAKPAD
 	CrashHandler::CrashHandler(int _argc, const char ** _argv)
-		: argc(_argc), argv(_argv), app(0)
+		: app(0)
 	{
-		executable_name = argv[0];
+		executable_name = _argv[0];
+		if (_argc > 3)
+		{
+			string dumpId = string(_argv[3]) + ".dmp";
+			dumpFilePath = FileUtils::Join(_argv[2], dumpId.c_str(), NULL);
+		}
 	}
 
 	CrashHandler::~CrashHandler()
@@ -220,11 +225,8 @@ int KrollBoot::Bootstrap()
 
 	void CrashHandler::GetCrashReportParameters(map<string, string> & params)
 	{
-		if (argc > 3)
+		if (!dumpFilePath.empty())
 		{
-			string dumpId = string(argv[3]) + ".dmp";
-			dumpFilePath = FileUtils::Join(argv[2], dumpId.c_str(), NULL);
-
 			// send all the stuff that will help us figure out 
 			// what the heck is going on and why the shiiiiiiiiit is
 			// crashing... probably gonna be microsoft's fault
@@ -243,10 +245,10 @@ int KrollBoot::Bootstrap()
 
 			if (!app.isNull())
 			{
-				params["app_name"] = app->name;
-				params["app_id"] = app->id;
-				params["app_ver"] = app->version;
-				params["app_guid"] = app->guid;
+				params["app_name"] = app->getName();
+				params["app_id"] = app->getId();
+				params["app_ver"] = app->getVersion();
+				params["app_guid"] = app->getGUID();
 				params["app_home"] = GetApplicationHomePath();
 
 				vector<SharedComponent> components;

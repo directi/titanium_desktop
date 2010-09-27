@@ -71,7 +71,7 @@ protected:
 	virtual void ShowErrorImpl(const std::string & msg, bool fatal) const=0;
 	virtual string GetApplicationName() const=0;
 	virtual std::string GetApplicationHomePath() const=0;
-	
+
 	virtual bool RunInstaller(vector<SharedDependency> missing, bool forceInstall=false) const=0;
 };
 
@@ -86,21 +86,19 @@ public:
 	virtual int SendCrashReport()=0;
 
 protected:
-	int argc;
-	const char** argv;
 	static string applicationHome;
-	SharedApplication app;
 	static string dumpFilePath;
 	static string executable_name;
 
-
-	void InitCrashDetection();
 	static string GetCrashDetectionTitle();
 	static string GetCrashDetectionHeader();
 	static string GetCrashDetectionMessage();
-	void GetCrashReportParameters(map<string, string> & param);
 	static string GetApplicationName();
 
+	SharedApplication app;
+
+	void InitCrashDetection();
+	void GetCrashReportParameters(map<string, string> & param);
 	virtual string GetApplicationHomePath() const=0;
 };
 #endif // USE_BREAKPAD

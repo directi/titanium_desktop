@@ -1,4 +1,4 @@
-/**
+	/**
  * Appcelerator Kroll - licensed under the Apache Public License 2
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
@@ -41,7 +41,7 @@ namespace BootUtils
 		string installerPath, bool quiet, bool forceInstall)
 	{
 		if (installerPath.empty())
-			installerPath = application->path;
+			installerPath = application->getPath();
 		string exec(FileUtils::Join(installerPath.c_str(), "installer",
 			 "installer.exe", 0));
 		if (!FileUtils::IsFile(exec))
@@ -49,7 +49,7 @@ namespace BootUtils
 
 		vector<string> args;
 		args.push_back("-app");
-		args.push_back(application->path);
+		args.push_back(application->getPath());
 
 		if (!updateFile.empty())
 		{

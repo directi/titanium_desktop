@@ -196,7 +196,7 @@ namespace URLUtils
 	static std::string NormalizeAppURL(const std::string& url)
 	{
 		size_t appLength = 6; // app://
-		std::string id(Host::GetInstance()->GetApplication()->id);
+		std::string id(Host::GetInstance()->GetApplication()->getId());
 		size_t idLength = id.size();
 		std::string idPart(url.substr(appLength, idLength));
 

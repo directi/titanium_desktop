@@ -18,13 +18,30 @@ public:
 	Win32PopupDialog(HWND _windowHandle);
 	virtual ~Win32PopupDialog();
 
-	void SetShowInputText(bool flag) { this->showInputText = flag; }
-	void SetTitle(std::string _title) { this->title = _title; }
-	void SetMessage(std::string _message) { this->message = _message; }
-	void SetInputText(std::string _inputText) { this->inputText = _inputText; }
-	std::string GetInputText() { return this->inputText; }
-	void SetShowCancelButton(bool flag) { this->showCancelButton = flag; }
-
+	void SetShowInputText(bool flag)
+	{
+		this->showInputText = flag;
+	}
+	void SetTitle(const std::string &_title)
+	{
+		this->title = _title;
+	}
+	void SetMessage(const std::string & _message)
+	{
+		this->message = _message;
+	}
+	void SetInputText(const std::string & _inputText)
+	{
+		this->inputText = _inputText;
+	}
+	std::string GetInputText() const
+	{
+		return this->inputText;
+	}
+	void SetShowCancelButton(bool flag)
+	{
+		this->showCancelButton = flag;
+	}
 	int Show();
 private:
 	HWND windowHandle;
@@ -39,7 +56,6 @@ private:
 	BOOL ShowMessageBox(HWND hwnd);
 
 	static std::map<DWORD, Win32PopupDialog*> popups;
-
 	static void HandleOKClick(HWND hDlg);
 	static INT_PTR CALLBACK CALLBACK Callback(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
 };

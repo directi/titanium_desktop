@@ -65,7 +65,6 @@ int Win32PopupDialog::Show()
 {
 	popups[GetCurrentThreadId()] = this;
 	ShowMessageBox(windowHandle);
-
 	return result;
 }
 

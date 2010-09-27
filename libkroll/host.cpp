@@ -181,12 +181,12 @@ namespace kroll
 		}
 		else if (this->logFilePath.empty())
 		{
-			string dataDir = FileUtils::GetApplicationDataDirectory(this->application->id);
+			string dataDir = FileUtils::GetApplicationDataDirectory(this->application->getId());
 			this->logFilePath = FileUtils::Join(dataDir.c_str(), "logs", "tiapp.log", NULL);
 		}
 
 		// If this application has no log level, we'll get a suitable default
-		Logger::Level level = Logger::GetLevel(this->application->logLevel);
+		Logger::Level level = Logger::GetLevel(this->application->getLogLevel());
 		Logger::Initialize(this->consoleLogging, this->logFilePath, level);
 		this->logger = Logger::Get("Host");
 	}
