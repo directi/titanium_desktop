@@ -326,8 +326,9 @@ namespace kroll
 
 	void ApplicationBinding::_GetDependencies(const ValueList& args, KValueRef result)
 	{
-		result->SetList(APIBinding::DependencyVectorToKList(
-			this->application->dependencies));
+		vector<SharedDependency> dependencies;
+		this->application->getDependencies(dependencies);
+		result->SetList(APIBinding::DependencyVectorToKList(dependencies));
 	}
 
 	void ApplicationBinding::_ResolveDependencies(const ValueList& args, KValueRef result)
@@ -340,17 +341,8 @@ namespace kroll
 	{
 		// Do not use a reference here, because we don't want to modify the
 		// application's modules list.
-		std::vector<SharedComponent> components = this->application->modules;
-
-		if (!this->application->runtime.isNull())
-		{
-			components.push_back(this->application->runtime);
-		}
-
-		for (size_t i = 0; i < this->application->sdks.size(); i++)
-		{
-			components.push_back(this->application->sdks[i]);
-		}
+		std::vector<SharedComponent> components;
+		this->application->getComponents(components);
 		KListRef componentList = APIBinding::ComponentVectorToKList(components);
 		result->SetList(componentList);
 	}

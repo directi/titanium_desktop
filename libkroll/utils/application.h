@@ -39,11 +39,12 @@ namespace UTILS_NS
 
 		vector<string> arguments;
 
+		vector<SharedComponent> sdks;
+		vector<SharedDependency> dependencies;
+
 	public:
 
-		vector<SharedDependency> dependencies;
 		vector<SharedComponent> modules;
-		vector<SharedComponent> sdks;
 		SharedComponent runtime;
 
 		static bool doesManifestFileExistsAtDirectory(const std::string & dir);
@@ -64,6 +65,10 @@ namespace UTILS_NS
 		string getPublisher() const { return this->publisher; }
 		string getImage() const { return this->image; }
 		string getLogLevel() const { return this->logLevel; }
+
+		void getDependencies(vector<SharedDependency> &_dependencies) const;
+		void getUnresolvedDependencies(vector<SharedDependency> & unresolved) const;
+		void getComponents(std::vector<SharedComponent> &components) const;
 
 		/**
 		 * Get the path to this application's executablej

@@ -147,6 +147,45 @@ namespace UTILS_NS
 		this->runtime = NULL;
 	}
 
+	void Application::getDependencies(vector<SharedDependency> &_dependencies) const
+	{
+		_dependencies.reserve(dependencies.size());
+		std::copy(dependencies.begin(), dependencies.end(), _dependencies.begin());
+	}
+
+	void Application::getUnresolvedDependencies(vector<SharedDependency> & unresolved) const
+	{
+		// We cannot resolve dependencies in the normal way, since we aren't
+		// installed yet. Instead, go through the dependencies and try to
+		// resolve them manuallly.
+		vector<SharedComponent>& components = BootUtils::GetInstalledComponents(true);
+		for (size_t i = 0; i < dependencies.size(); i++)
+		{
+			const SharedDependency dependency(dependencies[i]);
+			if (BootUtils::ResolveDependency(dependency, components).isNull())
+				unresolved.push_back(dependency);
+		}
+	}
+
+	void Application::getComponents(std::vector<SharedComponent> &components) const
+	{
+		// Do not use a reference here, because we don't want to modify the
+		// application's modules list.
+		components.reserve(modules.size());
+		std::copy(modules.begin(), modules.end(), components.begin());
+
+		if (!runtime.isNull())
+		{
+			components.push_back(runtime);
+		}
+
+		for (size_t i = 0; i < sdks.size(); i++)
+		{
+			components.push_back(sdks[i]);
+		}
+	}
+
+
 	string Application::GetExecutablePath() const
 	{
 		// TODO:
