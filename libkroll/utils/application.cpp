@@ -19,11 +19,6 @@ using std::pair;
 
 namespace UTILS_NS
 {
-	namespace BootUtils
-	{
-		extern void ScanBundledComponents(string, vector<SharedComponent>&);
-	}
-
 	/*static*/
 	bool Application::doesManifestFileExistsAtDirectory(const std::string & dir)
 	{

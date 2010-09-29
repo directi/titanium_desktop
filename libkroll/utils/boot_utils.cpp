@@ -13,13 +13,10 @@ namespace UTILS_NS
 {
 namespace BootUtils
 {
-	// These are also used in application.cpp
-	void ScanBundledComponents(string, vector<SharedComponent>&);
-
-	static void ScanRuntimesAtPath(string, vector<SharedComponent>&, bool=true);
-	static void ScanModulesAtPath(string, vector<SharedComponent>&, bool=true);
-	static void ScanSDKsAtPath(string, vector<SharedComponent>&, bool=true);
-	static void ScanMobileSDKsAtPath(string, vector<SharedComponent>&, bool=true);
+	static void ScanRuntimesAtPath(const std::string &path, vector<SharedComponent>&, bool=true);
+	static void ScanModulesAtPath(const std::string &path, vector<SharedComponent>&, bool=true);
+	static void ScanSDKsAtPath(const std::string &path, vector<SharedComponent>&, bool=true);
+	static void ScanMobileSDKsAtPath(const std::string &path, vector<SharedComponent>&, bool=true);
 	static void AddToComponentVector(vector<SharedComponent>&, SharedComponent);
 
 	static void AddToComponentVector(vector<SharedComponent>& components,
@@ -100,7 +97,7 @@ namespace BootUtils
 		return directories;
 	}
 
-	static void ScanRuntimesAtPath(string path, vector<SharedComponent>& results, bool bundled)
+	static void ScanRuntimesAtPath(const std::string &path, vector<SharedComponent>& results, bool bundled)
 	{
 		if (!FileUtils::IsDirectory(path))
 			return;
@@ -118,7 +115,7 @@ namespace BootUtils
 		}
 	}
 
-	static void ScanSDKsAtPath(string path, vector<SharedComponent>& results, bool bundled)
+	static void ScanSDKsAtPath(const std::string &path, vector<SharedComponent>& results, bool bundled)
 	{
 		if (!FileUtils::IsDirectory(path))
 			return;
@@ -137,7 +134,7 @@ namespace BootUtils
 		}
 	}
 
-	static void ScanMobileSDKsAtPath(string path, vector<SharedComponent>& results, bool bundled)
+	static void ScanMobileSDKsAtPath(const std::string &path, vector<SharedComponent>& results, bool bundled)
 	{
 		if (!FileUtils::IsDirectory(path))
 			return;
@@ -156,7 +153,7 @@ namespace BootUtils
 		}
 	}
 
-	static void ScanModulesAtPath(string path, vector<SharedComponent>& results, bool bundled)
+	static void ScanModulesAtPath(const std::string &path, vector<SharedComponent>& results, bool bundled)
 	{
 		if (!FileUtils::IsDirectory(path))
 			return;
@@ -182,7 +179,7 @@ namespace BootUtils
 		}
 	}
 
-	void ScanBundledComponents(string path, vector<SharedComponent>& results)
+	void ScanBundledComponents(const std::string &path, vector<SharedComponent>& results)
 	{
 		ScanRuntimesAtPath(path, results, true);
 		ScanMobileSDKsAtPath(path, results, true);

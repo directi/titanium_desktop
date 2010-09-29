@@ -87,6 +87,8 @@ namespace UTILS_NS
 
 	namespace BootUtils
 	{
+		KROLL_API void ScanBundledComponents(const std::string &path, vector<SharedComponent>& results);
+
 		/**
 		 * Compare two version strings in a piecewise way.
 		 * @returns 1 if the first is larger, 0 if they are equal,
