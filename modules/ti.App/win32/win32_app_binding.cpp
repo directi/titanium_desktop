@@ -14,7 +14,7 @@ namespace ti
 void AppBinding::Restart(const ValueList& args, KValueRef result)
 {
 	Host* host = Host::GetInstance();
-	std::wstring cmdline(::UTF8ToWide(host->GetApplication()->arguments.at(0)));
+	std::wstring cmdline(::UTF8ToWide(host->GetApplication()->GetExecutablePath()));
 
 	STARTUPINFO si;
 	ZeroMemory(&si, sizeof(si));
