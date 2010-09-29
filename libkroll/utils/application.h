@@ -37,9 +37,10 @@ namespace UTILS_NS
 		string stream;
 		string queryString;
 
+		vector<string> arguments;
+
 	public:
 
-		vector<string> arguments;
 		vector<SharedDependency> dependencies;
 		vector<SharedComponent> modules;
 		vector<SharedComponent> sdks;
