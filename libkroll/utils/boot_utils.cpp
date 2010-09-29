@@ -242,7 +242,7 @@ namespace BootUtils
 
 					if(manifestLineData.size() == 2)
 					{
-						manifest[manifestLineData[0] ] = manifestLineData[1];
+						manifest[FileUtils::Trim(manifestLineData[0]) ] = FileUtils::Trim(manifestLineData[1]);
 					}
 				}
 			}

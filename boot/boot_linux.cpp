@@ -51,7 +51,7 @@ string KrollLinuxBoot::GetApplicationHomePath() const
 
 void KrollLinuxBoot::BootstrapPlatformSpecific(const std::string & moduleList)
 {
-	std::string fullmoduleList = app->runtime->path + ":" + moduleList;
+	std::string fullmoduleList = app->getRuntime()->path + ":" + moduleList;
 
 	string path(fullmoduleList);
 	string current(EnvironmentUtils::Get("LD_LIBRARY_PATH"));
