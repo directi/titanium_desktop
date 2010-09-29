@@ -59,7 +59,7 @@ string KrollOSXBoot::GetApplicationHomePath() const
 
 void KrollOSXBoot::BootstrapPlatformSpecific(const string & moduleList)
 {
-	std::string fullModuleList = app->runtime->path + ":" + moduleList;
+	std::string fullModuleList = app->getRuntime()->path + ":" + moduleList;
 
 	string path(fullModuleList);
 	string currentFWPath(EnvironmentUtils::Get("DYLD_FRAMEWORK_PATH"));
