@@ -86,13 +86,15 @@ namespace kroll
 		SharedApplication app = Host::GetInstance()->GetApplication();
 		result->SetBool(false);
 
-		if (this->component.get() == app->runtime.get())
+		if (this->component.get() == app->getRuntime().get())
 		{
 			result->SetBool(true);
 		}
 
-		std::vector<SharedComponent>::iterator i = app->modules.begin();
-		while (i != app->modules.end())
+		std::vector<SharedComponent> modules;
+		app->getModules(modules);
+		std::vector<SharedComponent>::iterator i = modules.begin();
+		while (i != modules.end())
 		{
 			SharedComponent c = *i++;
 			if (c.get() == this->component.get())

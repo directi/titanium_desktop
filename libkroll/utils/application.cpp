@@ -10,6 +10,13 @@ using std::string;
 using std::vector;
 using std::pair;
 
+#ifdef OS_WIN32
+#define MODULE_SEPARATOR ";"
+#else
+#define MODULE_SEPARATOR ":"
+#endif
+
+
 namespace UTILS_NS
 {
 	namespace BootUtils
@@ -171,8 +178,7 @@ namespace UTILS_NS
 	{
 		// Do not use a reference here, because we don't want to modify the
 		// application's modules list.
-		components.reserve(modules.size());
-		std::copy(modules.begin(), modules.end(), components.begin());
+		this->getModules(components);
 
 		if (!runtime.isNull())
 		{
@@ -183,6 +189,43 @@ namespace UTILS_NS
 		{
 			components.push_back(sdks[i]);
 		}
+	}
+
+	void Application::getModules(vector<SharedComponent> &_modules) const
+	{
+		_modules.reserve(modules.size());
+		std::copy(modules.begin(), modules.end(), _modules.begin());
+	}
+
+	string Application::getModulePaths() const
+	{
+		std::ostringstream moduleList;
+		vector<SharedComponent>::const_iterator i = modules.begin();
+		while (i != modules.end())
+		{
+			SharedComponent module = *i++;
+			moduleList << module->path << MODULE_SEPARATOR;
+		}
+		return moduleList.str();
+	}
+
+	bool Application::removeModule(const string &modulePath)
+	{
+		bool bRet = false;
+		std::vector<SharedComponent>::iterator i = modules.begin();
+		while (i != modules.end())
+		{
+			if (modulePath == (*i)->path)
+			{
+				i = modules.erase(i);
+				bRet = true;
+			}
+			else
+			{
+				i++;
+			}
+		}
+		return bRet;
 	}
 
 
@@ -269,6 +312,14 @@ namespace UTILS_NS
 		return FileUtils::ReadFile(license);
 	}
 
+	void Application::setRuntimeProductVersion()
+	{
+		if (!runtime.isNull())
+		{
+			runtime->version = PRODUCT_VERSION;
+		}
+	}
+
 
 	vector<SharedDependency> Application::ResolveDependencies()
 	{
@@ -306,6 +357,7 @@ namespace UTILS_NS
 			}
 		}
 
+		setRuntimeProductVersion();
 		return unresolved;
 	}
 

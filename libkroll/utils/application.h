@@ -21,6 +21,7 @@ namespace UTILS_NS
 	private:
 		Application(const std::string &path, const std::string &manifestPath);
 		void ParseManifest(const map<string, string>& manifest);
+		void setRuntimeProductVersion();
 
 		const string path;
 		const string manifestPath;
@@ -39,13 +40,13 @@ namespace UTILS_NS
 
 		vector<string> arguments;
 
+		SharedComponent runtime;
+		vector<SharedComponent> modules;
+
 		vector<SharedComponent> sdks;
 		vector<SharedDependency> dependencies;
 
 	public:
-
-		vector<SharedComponent> modules;
-		SharedComponent runtime;
 
 		static bool doesManifestFileExistsAtDirectory(const std::string & dir);
 
@@ -66,9 +67,15 @@ namespace UTILS_NS
 		string getImage() const { return this->image; }
 		string getLogLevel() const { return this->logLevel; }
 
+		SharedComponent getRuntime() const { return this->runtime; }
+		void getModules(vector<SharedComponent> &_modules) const;
+
 		void getDependencies(vector<SharedDependency> &_dependencies) const;
 		void getUnresolvedDependencies(vector<SharedDependency> & unresolved) const;
 		void getComponents(std::vector<SharedComponent> &components) const;
+		string getModulePaths() const;
+		
+		bool removeModule(const string &modulePath);
 
 		/**
 		 * Get the path to this application's executablej

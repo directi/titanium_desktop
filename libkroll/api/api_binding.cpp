@@ -835,7 +835,7 @@ namespace kroll
 
 		SharedApplication app = host->GetApplication();
 		BootUtils::RunInstaller(
-			this->installerDependencies, app, "", app->runtime->path, true);
+			this->installerDependencies, app, "", app->getRuntime()->path, true);
 
 		if (!this->installerCallback.isNull())
 		{

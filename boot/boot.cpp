@@ -5,12 +5,6 @@
  */
 #include "boot.h"
 
-#ifdef OS_WIN32
-#define MODULE_SEPARATOR ";"
-#else
-#define MODULE_SEPARATOR ":"
-#endif
-
 
 KrollBoot::KrollBoot(int _argc, const char ** _argv)
 : argc(_argc), argv(_argv), app(0), updateFile("")
@@ -151,20 +145,14 @@ int KrollBoot::Bootstrap()
 	}
 
 	// Construct a list of module pathnames for setting up library paths
-	std::ostringstream moduleList;
-	vector<SharedComponent>::iterator i = app->modules.begin();
-	while (i != app->modules.end())
-	{
-		SharedComponent module = *i++;
-		moduleList << module->path << MODULE_SEPARATOR;
-	}
+	string modulePaths = app->getModulePaths();
 
 	EnvironmentUtils::Set(BOOTSTRAP_ENV, "YES");
 	EnvironmentUtils::Set("KR_HOME", app->getPath());
-	EnvironmentUtils::Set("KR_RUNTIME", app->runtime->path);
-	EnvironmentUtils::Set("KR_MODULES", moduleList.str());
+	EnvironmentUtils::Set("KR_RUNTIME", app->getRuntime()->path);
+	EnvironmentUtils::Set("KR_MODULES", modulePaths);
 
-	BootstrapPlatformSpecific(moduleList.str());
+	BootstrapPlatformSpecific(modulePaths);
 	string error = Blastoff();
 
 	// If everything goes correctly, we should never get here

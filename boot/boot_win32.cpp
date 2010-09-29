@@ -102,12 +102,12 @@ bool KrollWin32Boot::RunInstaller(vector<SharedDependency> missing, bool forceIn
 void KrollWin32Boot::BootstrapPlatformSpecific(const std::string & path)
 {
 	// Add runtime path and all module paths to PATH
-	std::string newpath = app->runtime->path + ";" + path;
+	std::string newpath = app->getRuntime()->path + ";" + path;
 	string currentPath(EnvironmentUtils::Get("PATH"));
 	EnvironmentUtils::Set("KR_ORIG_PATH", currentPath);
 
 	// make sure the runtime folder is used before system DLL directories
-	SetDllDirectoryW(KrollUtils::UTF8ToWide(app->runtime->path).c_str());
+	SetDllDirectoryW(KrollUtils::UTF8ToWide(app->getRuntime()->path).c_str());
 
 	if (!currentPath.empty())
 		newpath = newpath + ";" + currentPath;

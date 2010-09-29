@@ -162,10 +162,6 @@ namespace kroll
 		// Re-resolve module/runtime dependencies of the application so that the
 		// API module can introspect into the loaded components.
 		this->application->ResolveDependencies();
-		if (!this->application->runtime.isNull())
-		{
-			this->application->runtime->version = PRODUCT_VERSION;
-		}
 
 		// Parse the module paths, we'll later use this to load all the shared-objects.
 		FileUtils::Tokenize(modulePaths, this->modulePaths, KR_LIB_SEP, true);
@@ -263,10 +259,6 @@ namespace kroll
 			{
 				newApp->SetArguments(this->application->GetArguments());
 				newApp->ResolveDependencies();
-				if (!newApp->runtime.isNull())
-				{
-					newApp->runtime->version = PRODUCT_VERSION;
-				}
 				this->application = newApp;
 			}
 		}
@@ -585,18 +577,7 @@ namespace kroll
 			}
 		}
 
-		std::vector<SharedComponent>::iterator i = this->application->modules.begin();
-		while (i != this->application->modules.end())
-		{
-			if (module->GetPath() == (*i)->path)
-			{
-				i = this->application->modules.erase(i);
-			}
-			else
-			{
-				i++;
-			}
-		}
+		this->application->removeModule(module->GetPath());
 	}
 
 	int Host::Run()

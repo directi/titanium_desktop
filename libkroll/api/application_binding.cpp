@@ -349,16 +349,17 @@ namespace kroll
 
 	void ApplicationBinding::_GetModules(const ValueList& args, KValueRef result)
 	{
-		std::vector<SharedComponent>& components = this->application->modules;
-		KListRef componentList = APIBinding::ComponentVectorToKList(components);
-		result->SetList(componentList);
+		std::vector<SharedComponent> modules;
+		this->application->getModules(modules);
+		KListRef modulesList = APIBinding::ComponentVectorToKList(modules);
+		result->SetList(modulesList);
 	}
 
 	void ApplicationBinding::_GetRuntime(const ValueList& args, KValueRef result)
 	{
-		if (!this->application->runtime.isNull())
+		if (!this->application->getRuntime().isNull())
 		{
-			result->SetObject(new ComponentBinding(this->application->runtime));
+			result->SetObject(new ComponentBinding(this->application->getRuntime()));
 		}
 		else
 		{
