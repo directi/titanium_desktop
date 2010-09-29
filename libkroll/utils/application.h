@@ -66,7 +66,6 @@ namespace UTILS_NS
 		string getPublisher() const { return this->publisher; }
 		string getImage() const { return this->image; }
 		string getLogLevel() const { return this->logLevel; }
-
 		SharedComponent getRuntime() const { return this->runtime; }
 		void getModules(vector<SharedComponent> &_modules) const;
 
@@ -74,8 +73,44 @@ namespace UTILS_NS
 		void getUnresolvedDependencies(vector<SharedDependency> & unresolved) const;
 		void getComponents(std::vector<SharedComponent> &components) const;
 		string getModulePaths() const;
+
+		/**
+		 * Get all resolved components for this application including
+		 * runtimes, sdks and modules.
+		 */
+		void GetResolvedComponents(vector<SharedComponent> &resolved);
+
+		/**
+		 * Generate a list of all components available for this application
+		 * including bundled components and any components or all the components
+		 * in the bundle override directory.
+		 */
+		void GetAvailableComponents(
+			vector<SharedComponent>& components,
+			bool onlyBundled = false);
+
+		/**
+		 * Inform the application that it is using a module with the given
+		 * name and version. If this is a new module, it will be registered in
+		 * the application's module list.
+		 */
+		void UsingModule(
+			const std::string &name,
+			const std::string &version,
+			const std::string &path);
 		
 		bool removeModule(const string &modulePath);
+
+		/**
+		 * Whether or not this application has a .installed file in it's path
+		 */
+		bool IsInstalled() const;
+
+		/**
+		 * Try to resolve all application dependencies with installed or bundled components.
+		 * @returns a list of unresolved dependencies
+		 */
+		void ResolveDependencies(vector<SharedDependency> & unresolved);
 
 		/**
 		 * Get the path to this application's executablej
@@ -106,17 +141,6 @@ namespace UTILS_NS
 		std::string GetLicenseText() const;
 
 		/**
-		 * Whether or not this application has a .installed file in it's path
-		 */
-		bool IsInstalled() const;
-
-		/**
-		 * Try to resolve all application dependencies with installed or bundled components.
-		 * @returns a list of unresolved dependencies
-		 */
-		vector<SharedDependency> ResolveDependencies();
-
-		/**
 		 * Get the URL for a particular dependency or the path to a bundled .zip file
 		 * if it is found.
 		 */
@@ -133,25 +157,6 @@ namespace UTILS_NS
 		 * Get the stream URL for this application
 		 */
 		std::string& GetStreamURL(const char* scheme="http");
-
-		/**
-		 * Generate a list of all components available for this application
-		 * including bundled components and any components or all the components
-		 * in the bundle override directory.
-		 */
-		void GetAvailableComponents(
-			vector<SharedComponent>& components,
-			bool onlyBundled = false);
-
-		/**
-		 * Inform the application that it is using a module with the given
-		 * name and version. If this is a new module, it will be registered in
-		 * the application's module list.
-		 */
-		void UsingModule(
-			const std::string &name,
-			const std::string &version,
-			const std::string &path);
 
 		/**
 		 * A mutator for this application's list of command-line arguments.
@@ -179,12 +184,6 @@ namespace UTILS_NS
 		 * @returns argument value or an empty string if not found
 		 */
 		string GetArgumentValue(const string &needle) const;
-
-		/**
-		 * Get all resolved components for this application including
-		 * runtimes, sdks and modules.
-		 */
-		void GetResolvedComponents(vector<SharedComponent> &resolved);
 	};
 }
 #endif

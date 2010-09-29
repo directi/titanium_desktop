@@ -100,7 +100,9 @@ int KrollBoot::Bootstrap()
 	// Look for a .update file in the app data directory
 	FindUpdate();
 
-	vector<SharedDependency> missing = app->ResolveDependencies();
+	vector<SharedDependency> missing;
+	app->ResolveDependencies(missing);
+
 	if (app->HasArgument(DEBUG_OPT))
 	{
 		vector<SharedComponent> resolved;
@@ -132,7 +134,7 @@ int KrollBoot::Bootstrap()
 			return __LINE__;
 		}
 
-		missing = app->ResolveDependencies();
+		app->ResolveDependencies(missing);
 	}
 
 	if (missing.size() > 0 || !app->IsInstalled())

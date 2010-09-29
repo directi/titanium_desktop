@@ -321,7 +321,7 @@ namespace UTILS_NS
 	}
 
 
-	vector<SharedDependency> Application::ResolveDependencies()
+	void Application::ResolveDependencies(vector<SharedDependency> & unresolved)
 	{
 		this->modules.clear(); // Blank slate
 		this->sdks.clear();
@@ -329,7 +329,6 @@ namespace UTILS_NS
 		vector<SharedComponent> components;
 		this->GetAvailableComponents(components);
 
-		vector<SharedDependency> unresolved;
 		vector<SharedDependency>::iterator i = this->dependencies.begin();
 		while (i != this->dependencies.end())
 		{
@@ -356,9 +355,7 @@ namespace UTILS_NS
 				this->runtime = c;
 			}
 		}
-
 		setRuntimeProductVersion();
-		return unresolved;
 	}
 
 	string& Application::GetStreamURL(const char* scheme)

@@ -333,7 +333,8 @@ namespace kroll
 
 	void ApplicationBinding::_ResolveDependencies(const ValueList& args, KValueRef result)
 	{
-		std::vector<SharedDependency> unresolved = this->application->ResolveDependencies();
+		std::vector<SharedDependency> unresolved;
+		this->application->ResolveDependencies(unresolved);
 		result->SetList(APIBinding::DependencyVectorToKList(unresolved));
 	}
 
