@@ -127,14 +127,14 @@ namespace kroll
 		 * @param path The filesystem path of a module
 		 * @return true if the file is a native module (.dll / .dylib / .so)
 		 */
-		bool IsModule(std::string& path);
+		virtual bool IsModule(const std::string& path) const;
+
+		virtual Module* CreateModule(const std::string& path);
 
 		/*
 		 * Return true if this thread is the main thread.
 		 */
 		bool IsMainThread();
-
-		virtual Module* CreateModule(std::string& path);
 
 #ifdef OS_WIN32
 		HWND AddMessageHandler(MessageHandler handler);

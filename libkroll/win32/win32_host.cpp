@@ -99,7 +99,7 @@ namespace kroll
 	{
 	}
 
-	Module* Host::CreateModule(std::string& path)
+	Module* Host::CreateModule(const std::string& path)
 	{
 		std::wstring widePath(UTF8ToWide(path));
 		HMODULE module = LoadLibraryExW(widePath.c_str(),

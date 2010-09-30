@@ -78,7 +78,7 @@ namespace kroll
 	}
 
 
-	Module* Host::CreateModule(std::string& path)
+	Module* Host::CreateModule(const std::string& path)
 	{
 		void* handle = dlopen(path.c_str(), RTLD_LAZY | RTLD_GLOBAL);
 		if (!handle)

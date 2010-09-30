@@ -85,8 +85,8 @@ namespace kroll
 		void Initialize();
 		void Stop();
 
-		virtual bool IsModule(std::string& path);
-		virtual Module* CreateModule(std::string& path);
+		virtual bool IsModule(const std::string& path) const;
+		virtual Module* CreateModule(const std::string& path);
 		void InitializeBinding();
 
 		static PHPModule* Instance() { return instance_; }

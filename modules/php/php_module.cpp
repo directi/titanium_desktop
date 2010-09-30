@@ -117,12 +117,12 @@ namespace kroll
 	}
 
 
-	bool PHPModule::IsModule(std::string& path)
+	bool PHPModule::IsModule(const std::string& path) const
 	{
 		return (path.substr(path.length()-phpSuffix.length()) == phpSuffix);
 	}
 
-	Module* PHPModule::CreateModule(std::string& path)
+	Module* PHPModule::CreateModule(const std::string& path)
 	{
 		zend_first_try
 		{

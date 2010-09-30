@@ -341,7 +341,7 @@ namespace kroll
 		}
 	}
 
-	bool Host::IsModule(std::string& filename)
+	bool Host::IsModule(const std::string& filename) const
 	{
 		static std::string suffix("module."MODULE_SUFFIX);
 		bool isModule = (filename.length() > suffix.length() && filename.substr(

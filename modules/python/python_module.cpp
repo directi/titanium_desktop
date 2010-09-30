@@ -88,22 +88,22 @@ namespace kroll
 
 	const static std::string python_suffix = "module.py";
 
-	bool PythonModule::IsModule(std::string& path)
+	bool PythonModule::IsModule(const std::string& path) const
 	{
 		return (path.substr(path.length()-python_suffix.length()) == python_suffix);
 	}
 
-	Module* PythonModule::CreateModule(std::string& path)
+	Module* PythonModule::CreateModule(const std::string& path)
 	{
 		PyLockGIL lock;
-		path = UTF8ToSystem(path);
-		FILE* file = fopen(path.c_str(), "r");
-		PyRun_SimpleFileEx(file, path.c_str(), 1);
+		std::string newpath = UTF8ToSystem(path);
+		FILE* file = fopen(newpath.c_str(), "r");
+		PyRun_SimpleFileEx(file, newpath.c_str(), 1);
 
-		Poco::Path p(path);
+		Poco::Path p(newpath);
 		std::string basename = p.getBaseName();
 		std::string name = basename.substr(0,basename.length()-python_suffix.length()+3);
-		std::string moduledir = path.substr(0,path.length()-basename.length()-3);
-		return new PythonModuleInstance(host, path, moduledir, name);
+		std::string moduledir = newpath.substr(0,newpath.length()-basename.length()-3);
+		return new PythonModuleInstance(host, newpath, moduledir, name);
 	}
 }

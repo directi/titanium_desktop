@@ -35,7 +35,7 @@ namespace kroll
 		 * @param filename an absolute path to a file in the filesystem
 		 * @return if the passed-in absolute file path is a supported module or not
 		 */
-		virtual bool IsModule(std::string& filename) = 0;
+		virtual bool IsModule(const std::string& filename) const= 0;
 
 		/**
 		 * Create a module based on a path that was signified as "supported" by
@@ -45,7 +45,7 @@ namespace kroll
 		 * @param path an absolute path to a module file in the filesystem
 		 * @return The module that represents this path.
 		 */
-		virtual Module* CreateModule(std::string& path) = 0;
+		virtual Module* CreateModule(const std::string& path) = 0;
 	};
 }
 

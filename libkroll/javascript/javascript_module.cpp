@@ -26,7 +26,7 @@ namespace kroll
 	}
 
 	const static std::string jsSuffix = "module.js";
-	bool JavaScriptModule::IsModule(std::string& path)
+	bool JavaScriptModule::IsModule(const std::string& path) const
 	{
 		int plength = path.length();
 		int slength = jsSuffix.length();
@@ -40,7 +40,7 @@ namespace kroll
 		}
 	}
 
-	Module* JavaScriptModule::CreateModule(std::string& path)
+	Module* JavaScriptModule::CreateModule(const std::string& path)
 	{
 		Poco::Path p(path);
 		std::string basename = p.getBaseName();

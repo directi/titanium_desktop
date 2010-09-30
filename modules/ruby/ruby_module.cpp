@@ -55,24 +55,24 @@ namespace kroll
 	}
 
 	const static std::string ruby_suffix = "module.rb";
-	bool RubyModule::IsModule(std::string& path)
+	bool RubyModule::IsModule(const std::string& path) const
 	{
 		return (path.substr(path.length()-ruby_suffix.length()) == ruby_suffix);
 	}
 
-	Module* RubyModule::CreateModule(std::string& path)
+	Module* RubyModule::CreateModule(const std::string& path)
 	{
-		path = UTF8ToSystem(path);
-		rb_load_file(path.c_str());
+		std::string newpath = UTF8ToSystem(path);
+		rb_load_file(newpath.c_str());
 		ruby_exec();
 		// TODO: Do we need to call ruby_cleanup() here?
 
-		Poco::Path p(path);
+		Poco::Path p(newpath);
 		std::string basename = p.getBaseName();
 		std::string name = basename.substr(0,basename.length()-ruby_suffix.length()+3);
-		std::string moduledir = path.substr(0,path.length()-basename.length()-3);
+		std::string moduledir = newpath.substr(0,newpath.length()-basename.length()-3);
 
-		return new RubyModuleInstance(host, path, moduledir, name);
+		return new RubyModuleInstance(host, newpath, moduledir, name);
 	}
 
 }
