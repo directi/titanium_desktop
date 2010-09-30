@@ -19,9 +19,10 @@ namespace kroll
 	 * Class that is implemented by the OS to handle OS-specific
 	 * loading and unloading of Kroll.
 	 */
-	class KROLL_API Host : public ModuleProvider
+	class KROLL_API Host
+	 : public ModuleProvider
 	{
-		static Host* Host::hostInstance;
+		static Host* hostInstance;
 		Host(int argc, const char** argv);
 		~Host();
 		DISALLOW_EVIL_CONSTRUCTORS(Host);

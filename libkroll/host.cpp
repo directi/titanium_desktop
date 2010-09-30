@@ -115,8 +115,9 @@ namespace kroll
 		autoScan(false),
 		profile(false),
 		profileStream(0),
-		consoleLogging(true),
 		fileLogging(true),
+		logFilePath(""),
+		consoleLogging(true),
 		logger(0)
 	{
 #ifdef DEBUG
