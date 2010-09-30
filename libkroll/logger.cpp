@@ -30,14 +30,14 @@ namespace kroll
 	Poco::Mutex Logger::mutex;
 
 	/*static*/
-	Logger* Logger::Get(std::string name)
+	Logger* Logger::Get(const std::string &name)
 	{
-		name = std::string(PRODUCT_NAME) + "." + name;
-		return Logger::GetImpl(name);
+		std::string logger_name = std::string(PRODUCT_NAME) + "." + name;
+		return Logger::GetImpl(logger_name);
 	}
 
 	/*static*/
-	void Logger::Initialize(bool console, std::string logFilePath, Level level)
+	void Logger::Initialize(bool console, const std::string &logFilePath, Level level)
 	{
 		Logger::loggers[PRODUCT_NAME] = 
 			new RootLogger(console, logFilePath, level);
@@ -416,7 +416,7 @@ namespace kroll
 	}
 
 	RootLogger* RootLogger::instance = NULL;
-	RootLogger::RootLogger(bool consoleLogging, std::string logFilePath, Level level) :
+	RootLogger::RootLogger(bool consoleLogging, const std::string &logFilePath, Level level) :
 		Logger(PRODUCT_NAME, level),
 		consoleLogging(consoleLogging),
 		fileLogging(!logFilePath.empty())
@@ -426,17 +426,18 @@ namespace kroll
 
 		if (fileLogging)
 		{
+			std::string file_path(logFilePath);
 			// Before opening the logfile, ensure that a parent directory exists
-			string logDirectory = FileUtils::Dirname(logFilePath);
+			string logDirectory = FileUtils::Dirname(file_path);
 			File logDirectoryFile = File(logDirectory);
 			logDirectoryFile.createDirectories();
 			{
 				// appending timestamp for creating a new log file each time we run our application.
-				logFilePath += ".";
-				logFilePath += getCurrentTimeString();
+				file_path += ".";
+				file_path += getCurrentTimeString();
 			}
 
-			logFile = new LoggerFile(logFilePath);
+			logFile = new LoggerFile(file_path);
 		}
 	}
 

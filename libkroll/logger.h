@@ -32,9 +32,9 @@ namespace kroll
 		} Level;
 		typedef void (*LoggerCallback)(Level, std::string&);
 
-		static Logger* Get(std::string name);
+		static Logger* Get(const std::string &name);
 		static Logger* GetRootLogger();
-		static void Initialize(bool, std::string, Level);
+		static void Initialize(bool console, const std::string &logFilePath, Level level);
 		static void Shutdown();
 		static Level GetLevel(const std::string& level, bool debugEnabled = false);
 		static void AddLoggerCallback(LoggerCallback callback);
@@ -102,18 +102,18 @@ namespace kroll
 
 	class KROLL_API RootLogger : public Logger
 	{
-		public:
-		RootLogger(bool, std::string, Level);
+	public:
+		RootLogger(bool consoleLogging, const std::string &logFilePath, Level level);
 		~RootLogger();
 		static RootLogger* instance;
 		virtual void LogImpl(Poco::Message& m);
 		void AddLoggerCallback(LoggerCallback callback);
 
-		protected:
-		bool consoleLogging;
-		bool fileLogging;
+	protected:
+		const bool consoleLogging;
+		const bool fileLogging;
+
 		Poco::PatternFormatter* formatter;
-		std::string logFilePath;
 		Poco::Mutex mutex;
 		std::vector<LoggerCallback> callbacks;
 		kroll::LoggerFile * logFile;

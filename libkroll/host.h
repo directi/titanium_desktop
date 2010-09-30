@@ -151,30 +151,43 @@ namespace kroll
 		bool debug;
 		bool waitForDebugger;
 		bool autoScan;
+
+		// Profiling Related variables & methods
 		bool profile;
 		std::string profilePath;
-		std::string logFilePath;
 		Poco::FileOutputStream* profileStream;
-		bool consoleLogging;
+
+		void SetupProfiling();
+		void StopProfiling();
+
+		// Logging Related variables & methods
 		bool fileLogging;
+		std::string logFilePath;
+		bool consoleLogging;
 		Logger* logger;
+
+		std::string getLogFilePath();
+		void SetupLogging();
+
+		// other
 		Poco::Timestamp timeStarted;
 		Poco::Mutex jobQueueMutex;
 		std::vector<MainThreadJob*> mainThreadJobs;
 		std::vector<std::string> invalidModuleFiles;
 
 		ModuleProvider* FindModuleProvider(std::string& filename);
+		void UnloadModuleProviders();
+
+		void FindBasicModules(std::string& dir);
 		void ScanInvalidModuleFiles();
+
 		SharedPtr<Module> LoadModule(std::string& path, ModuleProvider* provider);
+		void StartModules(std::vector<SharedPtr<Module> > modules);
 		void LoadModules();
 		void UnloadModules();
-		void UnloadModuleProviders();
-		void FindBasicModules(std::string& dir);
-		void StartModules(std::vector<SharedPtr<Module> > modules);
+
 		void SetupApplication(int argc, const char* argv[]);
-		void SetupLogging();
-		void SetupProfiling();
-		void StopProfiling();
+
 		void AddInvalidModuleFile(std::string path);
 		void ParseCommandLineArguments();
 		void Shutdown();

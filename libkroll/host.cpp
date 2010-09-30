@@ -185,24 +185,29 @@ namespace kroll
 		FileUtils::Tokenize(modulePaths, this->modulePaths, KR_LIB_SEP, true);
 	}
 
-	void Host::SetupLogging()
+	std::string Host::getLogFilePath()
 	{
 		// Initialize the logger -- an empty logFilePath signfies no file logging,
 		// but don't turn it off unless that was specified via the command-line.
 		if (!this->fileLogging)
 		{
-			this->logFilePath = std::string();
+			this->logFilePath = "";
 		}
 		else if (this->logFilePath.empty())
 		{
 			string dataDir = FileUtils::GetApplicationDataDirectory(this->application->getId());
 			this->logFilePath = FileUtils::Join(dataDir.c_str(), "logs", "tiapp.log", NULL);
 		}
+		return this->logFilePath;
+	}
 
+	void Host::SetupLogging()
+	{
 		// If this application has no log level, we'll get a suitable default
 		std::string logLevel = this->application->getLogLevel();
 		Logger::Level level = Logger::GetLevel(logLevel, this->debug);
-		Logger::Initialize(this->consoleLogging, this->logFilePath, level);
+
+		Logger::Initialize(this->consoleLogging, getLogFilePath(), level);
 		this->logger = Logger::Get("Host");
 	}
 
