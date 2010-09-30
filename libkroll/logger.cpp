@@ -131,51 +131,6 @@ namespace kroll
 		this->level = level;
 	}
 
-	bool Logger::IsEnabled(Level level) const
-	{
-		return level <= this->level;
-	}
-
-	bool Logger::IsTraceEnabled() const
-	{
-		return this->IsEnabled(LTRACE);
-	}
-
-	bool Logger::IsDebugEnabled() const
-	{
-		return this->IsEnabled(LDEBUG);
-	}
-
-	bool Logger::IsInfoEnabled() const
-	{
-		return this->IsEnabled(LINFO);
-	}
-
-	bool Logger::IsNoticeEnabled() const
-	{
-		return this->IsEnabled(LNOTICE);
-	}
-
-	bool Logger::IsWarningEnabled() const
-	{
-		return this->IsEnabled(LWARN);
-	}
-
-	bool Logger::IsErrorEnabled() const
-	{
-		return this->IsEnabled(LERROR);
-	}
-
-	bool Logger::IsCriticalEnabled() const
-	{
-		return this->IsEnabled(LCRITICAL);
-	}
-
-	bool Logger::IsFatalEnabled() const
-	{
-		return this->IsEnabled(LFATAL);
-	}
-
 	Logger* Logger::GetChild(const std::string &name)
 	{
 		std::string childName = this->name + "." + name;
@@ -204,32 +159,12 @@ namespace kroll
 
 	void Logger::Log(Poco::Message& m)
 	{
-		// This check only happens at the entry logger and never in it's
-		// parents. This is so a child logger can have a more permissive level.
-		if ((Level) m.getPriority() <= this->level)
+		if (IsEnabled(level))
 		{
 			RootLogger* root = RootLogger::instance;
 			root->LogImpl(m);
 		}
 	}
-
-	void Logger::Log(Level level, const std::string& message)
-	{
-		Poco::Message m(this->name, message, (Poco::Message::Priority) level);
-		this->Log(m);
-	}
-
-	void Logger::Log(Level level, const char* format, va_list args)
-	{
-		// Don't do formatting when this logger filters the message.
-		// This prevents unecessary string manipulation.
-		if (level <= this->level)
-		{
-			std::string messageText = Logger::Format(format, args);
-			this->Log(level, messageText);
-		}
-	}
-
 	/*static*/
 	std::string Logger::Format(const char* format, va_list args)
 	{
@@ -240,6 +175,25 @@ namespace kroll
 		Logger::buffer[LOGGER_MAX_ENTRY_SIZE - 1] = '\0';
 		std::string text = buffer;
 		return text;
+	}
+
+
+	void Logger::Log(Level level, const std::string& message)
+	{
+		if (IsEnabled(level))
+		{
+			Poco::Message m(this->name, message, (Poco::Message::Priority) level);
+			this->Log(m);
+		}
+	}
+
+	void Logger::Log(Level level, const char* format, va_list args)
+	{
+		if (IsEnabled(level))
+		{
+			std::string messageText = Logger::Format(format, args);
+			this->Log(level, messageText);
+		}
 	}
 
 	void Logger::Log(Level level, const char* format, ...)
@@ -253,7 +207,7 @@ namespace kroll
 		}
 	}
 
-	void Logger::Trace(std::string message)
+	void Logger::Trace(const std::string &message)
 	{
 		if (IsTraceEnabled())
 		{
@@ -272,7 +226,7 @@ namespace kroll
 		}
 	}
 
-	void Logger::Debug(std::string message)
+	void Logger::Debug(const std::string &message)
 	{
 		if (IsDebugEnabled())
 		{
@@ -291,7 +245,7 @@ namespace kroll
 		}
 	}
 
-	void Logger::Info(std::string message)
+	void Logger::Info(const std::string &message)
 	{
 		if (IsInfoEnabled())
 		{
@@ -310,7 +264,7 @@ namespace kroll
 		}
 	}
 
-	void Logger::Notice(std::string message)
+	void Logger::Notice(const std::string &message)
 	{
 		if (IsNoticeEnabled())
 		{
@@ -329,7 +283,7 @@ namespace kroll
 		}
 	}
 
-	void Logger::Warn(std::string message)
+	void Logger::Warn(const std::string &message)
 	{
 		if (IsWarningEnabled())
 		{
@@ -348,7 +302,7 @@ namespace kroll
 		}
 	}
 
-	void Logger::Error(std::string message)
+	void Logger::Error(const std::string &message)
 	{
 		if (IsErrorEnabled())
 		{
@@ -367,7 +321,7 @@ namespace kroll
 		}
 	}
 
-	void Logger::Critical(std::string message)
+	void Logger::Critical(const std::string &message)
 	{
 		if (IsCriticalEnabled())
 		{
@@ -386,7 +340,7 @@ namespace kroll
 		}
 	}
 
-	void Logger::Fatal(std::string message)
+	void Logger::Fatal(const std::string &message)
 	{
 		if (IsFatalEnabled())
 		{

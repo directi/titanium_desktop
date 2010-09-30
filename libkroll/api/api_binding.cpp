@@ -633,12 +633,6 @@ namespace kroll
 	//---------------- IMPLEMENTATION METHODS
 	void APIBinding::Log(int severity, KValueRef value)
 	{
-		// optimize these calls since they're called a lot
-		if (false == logger->IsEnabled((Logger::Level)severity))
-		{
-			return;
-		}
-
 		if (value->IsString())
 		{
 			string message = value->ToString();

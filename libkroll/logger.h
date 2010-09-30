@@ -18,7 +18,7 @@ namespace kroll
 	class RootLogger;
 	class KROLL_API Logger
 	{
-		public:
+	public:
 		typedef enum
 		{
 			LFATAL = Poco::Message::PRIO_FATAL,
@@ -32,6 +32,34 @@ namespace kroll
 		} Level;
 		typedef void (*LoggerCallback)(Level, std::string&);
 
+	protected:
+		Logger() {}
+		Logger(const std::string &name);
+		Logger(const std::string &name, Level level);
+		virtual ~Logger() {}
+
+		std::string name;
+		Level level;
+		static Poco::Mutex mutex;
+		static char buffer[];
+
+		static Logger* GetImpl(const std::string &name);
+		static std::map<std::string, Logger*> loggers;
+
+	private:
+		bool IsEnabled(Level) const	{ return level <= this->level; }
+		bool IsTraceEnabled() const { return this->IsEnabled(LTRACE); }
+		bool IsDebugEnabled() const { return this->IsEnabled(LDEBUG); }
+		bool IsInfoEnabled() const { return this->IsEnabled(LINFO); }
+		bool IsNoticeEnabled() const { return this->IsEnabled(LNOTICE); }
+		bool IsWarningEnabled() const { return this->IsEnabled(LWARN); }
+		bool IsErrorEnabled() const { return this->IsEnabled(LERROR); }
+		bool IsCriticalEnabled() const { return this->IsEnabled(LCRITICAL); }
+		bool IsFatalEnabled() const { return this->IsEnabled(LFATAL); }
+
+		virtual void Log(Poco::Message& m);
+
+	public:
 		static Logger* Get(const std::string &name);
 		static Logger* GetRootLogger();
 		static void Initialize(bool console, const std::string &logFilePath, Level level);
@@ -40,64 +68,38 @@ namespace kroll
 		static void AddLoggerCallback(LoggerCallback callback);
 		static std::string Format(const char*, va_list);
 
-		Logger() {}
-		Logger(const std::string &name);
-		Logger(const std::string &name, Level level);
-		virtual ~Logger() {}
-
 		Level GetLevel() const { return this->level; }
 		void SetLevel(Logger::Level level);
 		std::string GetName() const { return this->name; }
 		Logger* GetChild(const std::string &name);
 		Logger* GetParent();
-		
-		bool IsEnabled(Level) const;
-		bool IsTraceEnabled() const;
-		bool IsDebugEnabled() const;
-		bool IsInfoEnabled() const;
-		bool IsNoticeEnabled() const;
-		bool IsWarningEnabled() const;
-		bool IsErrorEnabled() const;
-		bool IsCriticalEnabled() const;
-		bool IsFatalEnabled() const;
-
-		virtual void Log(Poco::Message& m);
 		void Log(Level, const std::string &);
 		void Log(Level, const char*, va_list);
 		void Log(Level, const char*, ...);
 
-		void Trace(std::string);
+		void Trace(const std::string&);
 		void Trace(const char*, ...);
 
-		void Debug(std::string);
+		void Debug(const std::string& );
 		void Debug(const char*, ...);
 
-		void Info(std::string);
+		void Info(const std::string&);
 		void Info(const char*, ...);
 
-		void Notice(std::string);
+		void Notice(const std::string&);
 		void Notice(const char*, ...);
 
-		void Warn(std::string);
+		void Warn(const std::string&);
 		void Warn(const char*, ...);
 
-		void Error(std::string);
+		void Error(const std::string&);
 		void Error(const char*, ...);
 
-		void Critical(std::string);
+		void Critical(const std::string&);
 		void Critical(const char*, ...);
 
-		void Fatal(std::string);
+		void Fatal(const std::string&);
 		void Fatal(const char*, ...);
-
-		protected:
-		std::string name;
-		Level level;
-		static Poco::Mutex mutex;
-		static char buffer[];
-
-		static Logger* GetImpl(const std::string &name);
-		static std::map<std::string, Logger*> loggers;
 	};
 
 	class KROLL_API RootLogger : public Logger
