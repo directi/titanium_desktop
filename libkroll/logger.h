@@ -38,33 +38,33 @@ namespace kroll
 		static void Shutdown();
 		static Level GetLevel(const std::string& level, bool debugEnabled = false);
 		static void AddLoggerCallback(LoggerCallback callback);
+		static std::string Format(const char*, va_list);
 
-		Logger() {};
-		virtual ~Logger() {};
-		Logger(std::string);
-		Logger(std::string, Level);
+		Logger() {}
+		Logger(const std::string &name);
+		Logger(const std::string &name, Level level);
+		virtual ~Logger() {}
 
-		Level GetLevel();
+		Level GetLevel() const { return this->level; }
 		void SetLevel(Logger::Level level);
-		std::string& GetName();
-		Logger* GetChild(std::string name);
+		std::string GetName() const { return this->name; }
+		Logger* GetChild(const std::string &name);
 		Logger* GetParent();
 		
-		bool IsEnabled(Level);
-		bool IsTraceEnabled();
-		bool IsDebugEnabled();
-		bool IsInfoEnabled();
-		bool IsNoticeEnabled();
-		bool IsWarningEnabled();
-		bool IsErrorEnabled();
-		bool IsCriticalEnabled();
-		bool IsFatalEnabled();
+		bool IsEnabled(Level) const;
+		bool IsTraceEnabled() const;
+		bool IsDebugEnabled() const;
+		bool IsInfoEnabled() const;
+		bool IsNoticeEnabled() const;
+		bool IsWarningEnabled() const;
+		bool IsErrorEnabled() const;
+		bool IsCriticalEnabled() const;
+		bool IsFatalEnabled() const;
 
 		virtual void Log(Poco::Message& m);
-		void Log(Level, std::string &);
+		void Log(Level, const std::string &);
 		void Log(Level, const char*, va_list);
 		void Log(Level, const char*, ...);
-		static std::string Format(const char*, va_list);
 
 		void Trace(std::string);
 		void Trace(const char*, ...);
@@ -96,7 +96,7 @@ namespace kroll
 		static Poco::Mutex mutex;
 		static char buffer[];
 
-		static Logger* GetImpl(std::string name);
+		static Logger* GetImpl(const std::string &name);
 		static std::map<std::string, Logger*> loggers;
 	};
 

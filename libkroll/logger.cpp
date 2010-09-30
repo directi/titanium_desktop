@@ -70,7 +70,7 @@ namespace kroll
 	}
 
 	/*static*/
-	Logger* Logger::GetImpl(std::string name)
+	Logger* Logger::GetImpl(const std::string &name)
 	{
 		if (loggers.find(name) == loggers.end())
 		{
@@ -114,79 +114,69 @@ namespace kroll
 		return Logger::LINFO;
 	}
 
-	Logger::Logger(std::string name) :
+	Logger::Logger(const std::string &name) :
 		name(name)
 	{
 		Logger* parent = this->GetParent();
 		this->level = parent->GetLevel();
 	}
 
-	Logger::Logger(std::string name, Level level) :
+	Logger::Logger(const std::string &name, Level level) :
 		name(name),
 		level(level)
 	{ }
 
-	std::string& Logger::GetName()
-	{
-		return this->name;
-	}
-
-	Logger::Level Logger::GetLevel()
-	{
-		return this->level;
-	}
-	
 	void Logger::SetLevel(Logger::Level level)
 	{
 		this->level = level;
 	}
 
-	bool Logger::IsEnabled(Level level)
+	bool Logger::IsEnabled(Level level) const
 	{
 		return level <= this->level;
 	}
 
-	bool Logger::IsTraceEnabled()
+	bool Logger::IsTraceEnabled() const
 	{
 		return this->IsEnabled(LTRACE);
 	}
 
-	bool Logger::IsDebugEnabled()
+	bool Logger::IsDebugEnabled() const
 	{
 		return this->IsEnabled(LDEBUG);
 	}
 
-	bool Logger::IsInfoEnabled()
+	bool Logger::IsInfoEnabled() const
 	{
 		return this->IsEnabled(LINFO);
 	}
 
-	bool Logger::IsNoticeEnabled()
+	bool Logger::IsNoticeEnabled() const
 	{
 		return this->IsEnabled(LNOTICE);
 	}
 
-	bool Logger::IsWarningEnabled()
+	bool Logger::IsWarningEnabled() const
 	{
 		return this->IsEnabled(LWARN);
 	}
 
-	bool Logger::IsErrorEnabled()
+	bool Logger::IsErrorEnabled() const
 	{
 		return this->IsEnabled(LERROR);
 	}
 
-	bool Logger::IsCriticalEnabled()
+	bool Logger::IsCriticalEnabled() const
 	{
 		return this->IsEnabled(LCRITICAL);
 	}
 
-	bool Logger::IsFatalEnabled()
+	bool Logger::IsFatalEnabled() const
 	{
 		return this->IsEnabled(LFATAL);
 	}
 
-	Logger* Logger::GetChild(std::string name)
+	Logger* Logger::GetChild(const std::string &name)
 	{
 		std::string childName = this->name + "." + name;
 		return Logger::GetImpl(childName);
@@ -223,7 +213,7 @@ namespace kroll
 		}
 	}
 
-	void Logger::Log(Level level, std::string& message)
+	void Logger::Log(Level level, const std::string& message)
 	{
 		Poco::Message m(this->name, message, (Poco::Message::Priority) level);
 		this->Log(m);
