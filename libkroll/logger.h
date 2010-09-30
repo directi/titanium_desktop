@@ -36,7 +36,7 @@ namespace kroll
 		static Logger* GetRootLogger();
 		static void Initialize(bool, std::string, Level);
 		static void Shutdown();
-		static Level GetLevel(std::string& level);
+		static Level GetLevel(const std::string& level, bool debugEnabled = false);
 		static void AddLoggerCallback(LoggerCallback callback);
 
 		Logger() {};

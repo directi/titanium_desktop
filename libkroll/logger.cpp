@@ -91,28 +91,27 @@ namespace kroll
 	}
 
 
-	Logger::Level Logger::GetLevel(std::string& levelString)
+	Logger::Level Logger::GetLevel(const std::string& level, bool debugEnabled)
 	{
-		if (levelString == "TRACE")
+		if (level == "TRACE")
 			return Logger::LTRACE;
-		else if (levelString == "DEBUG") 
+		else if (level == "DEBUG")
 			return Logger::LDEBUG;
-		else if (levelString == "INFO") 
+		else if (level == "INFO")
 			return Logger::LINFO;
-		else if (levelString == "NOTICE") 
+		else if (level == "NOTICE")
 			return Logger::LNOTICE;
-		else if (levelString == "WARN") 
+		else if (level == "WARN")
 			return Logger::LWARN;
-		else if (levelString == "ERROR") 
+		else if (level == "ERROR")
 			return Logger::LERROR;
-		else if (levelString == "CRITICAL") 
+		else if (level == "CRITICAL")
 			return Logger::LCRITICAL;
-		else if (levelString == "FATAL")
+		else if (level == "FATAL")
 			return Logger::LFATAL;
-		else if (Host::GetInstance()->DebugModeEnabled())
+		else if (debugEnabled)
 			return Logger::LDEBUG;
-		else
-			return Logger::LINFO;
+		return Logger::LINFO;
 	}
 
 	Logger::Logger(std::string name) :

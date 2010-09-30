@@ -21,19 +21,32 @@ namespace kroll
 	 */
 	class KROLL_API Host : public ModuleProvider
 	{
-	public:
+		static Host* Host::hostInstance;
 		Host(int argc, const char** argv);
 		~Host();
+		DISALLOW_EVIL_CONSTRUCTORS(Host);
 
-		inline SharedApplication GetApplication() { return this->application; }
-		inline bool DebugModeEnabled() { return this->debug; }
-		inline bool ProfilingEnabled() { return this->profile; }
-		inline Poco::Timestamp::TimeDiff GetElapsedTime() { return timeStarted.elapsed(); }
-		inline KObjectRef GetGlobalObject() { return GlobalObject::GetInstance(); }
+	public:
+		/**
+		 * Get the host singleton.
+		 */
+		static void InitializeHost(int argc, const char** argv);
+
+		/**
+		 * Get the host singleton.
+		 */
+		static void UnInitializeHost();
+
 		/**
 		 * Get the host singleton.
 		 */
 		static Host* GetInstance();
+
+		SharedApplication GetApplication() { return this->application; }
+		bool DebugModeEnabled() const { return this->debug; }
+		bool ProfilingEnabled() const { return this->profile; }
+		Poco::Timestamp::TimeDiff GetElapsedTime() const { return timeStarted.elapsed(); }
+		KObjectRef GetGlobalObject() { return GlobalObject::GetInstance(); }
 
 		/**
 		 * Called to run the host
@@ -165,7 +178,6 @@ namespace kroll
 		void AddInvalidModuleFile(std::string path);
 		void ParseCommandLineArguments();
 		void Shutdown();
-		DISALLOW_EVIL_CONSTRUCTORS(Host);
 
 		// Platform-specific
 		void Initialize(int argc, const char* argv[]);

@@ -53,8 +53,10 @@ extern "C"
 {
 	int Execute(int argc, const char **argv)
 	{
-		Host host(argc, argv);
-		return host.Run();
+		Host::InitializeHost(argc, argv);
+		int ret = Host::GetInstance()->Run();
+		Host::UnInitializeHost();
+		return ret;
 	}
 }
 
@@ -80,7 +82,29 @@ namespace kroll
 
 	}
 
-	static Host* hostInstance;
+	Host* Host::hostInstance;
+
+	/*static*/
+	void Host::InitializeHost(int argc, const char** argv)
+	{
+		hostInstance = new Host(argc, argv);
+	}
+
+	/*static*/
+	void Host::UnInitializeHost()
+	{
+		if (hostInstance)
+		{
+			delete hostInstance;
+			hostInstance = NULL;
+		}
+	}
+
+	/*static*/
+	Host* Host::GetInstance()
+	{
+		return hostInstance;
+	}
 
 	Host::Host(int argc, const char *argv[]) :
 		application(0),
@@ -95,8 +119,6 @@ namespace kroll
 		fileLogging(true),
 		logger(0)
 	{
-		hostInstance = this;
-
 #ifdef DEBUG
 		this->debug = true;
 #endif
@@ -116,11 +138,6 @@ namespace kroll
 
 		// Call into the platform-specific initialization.
 		this->Initialize(argc, argv);
-	}
-
-	Host* Host::GetInstance()
-	{
-		return hostInstance;
 	}
 
 	static void AssertEnvironmentVariable(std::string variable)
@@ -184,7 +201,7 @@ namespace kroll
 
 		// If this application has no log level, we'll get a suitable default
 		std::string logLevel = this->application->getLogLevel();
-		Logger::Level level = Logger::GetLevel(logLevel);
+		Logger::Level level = Logger::GetLevel(logLevel, this->debug);
 		Logger::Initialize(this->consoleLogging, this->logFilePath, level);
 		this->logger = Logger::Get("Host");
 	}
@@ -734,18 +751,18 @@ namespace kroll
 	KValueRef RunOnMainThread(KMethodRef method, const ValueList& args,
 		bool waitForCompletion)
 	{
-		return hostInstance->RunOnMainThread(method, args, waitForCompletion);
+		return Host::GetInstance()->RunOnMainThread(method, args, waitForCompletion);
 	}
 
 	KValueRef RunOnMainThread(KMethodRef method, KObjectRef thisObject,
 		const ValueList& args, bool waitForCompletion)
 	{
-		return hostInstance->RunOnMainThread(method, args, waitForCompletion);
+		return Host::GetInstance()->RunOnMainThread(method, args, waitForCompletion);
 	}
 
 	bool IsMainThread()
 	{
-		return hostInstance->IsMainThread();
+		return Host::GetInstance()->IsMainThread();
 	}
 
 }
