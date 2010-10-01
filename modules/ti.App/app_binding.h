@@ -32,7 +32,6 @@ namespace ti
 		void GetURL(const ValueList& args, KValueRef result);
 		void GetGUID(const ValueList& args, KValueRef result);
 		void GetIcon(const ValueList& args, KValueRef result);
-		void GetStreamURL(const ValueList& args, KValueRef result);
 		void GetPath(const ValueList& args, KValueRef result);
 		void GetHome(const ValueList& args, KValueRef result);
 		void GetArguments(const ValueList& args, KValueRef result);

@@ -77,15 +77,6 @@ namespace ti
 		this->SetMethod("getGUID", &AppBinding::GetGUID);
 
 		/**
-		 * @tiapi(method=True,name=App.getStreamURL,since=0.4)
-		 * @tiapi Return the stream URL for the application's updates.
-		 * @tiarg[String, ...] Any number of String arguments which will be
-		 * @tiarg appended as path components of the stream URL.
-		 * @tiresult[String] The stream URL for application updates.
-		 */
-		this->SetMethod("getStreamURL", &AppBinding::GetStreamURL);
-
-		/**
 		 * @tiapi(method=True,type=String,name=App.getPath,since=0.8)
 		 * @tiapi Return the full path to the application executable.
 		 * @tiresult[String] The full path to the application executable.
@@ -354,23 +345,6 @@ namespace ti
 
 		getline(std::cin, input, delimiter);
 		result->SetString(input);
-	}
-
-	void AppBinding::GetStreamURL(const ValueList& args, KValueRef result)
-	{
-		SharedApplication app = this->host->GetApplication();
-		std::string url(app->GetStreamURL("https"));
-
-		for (size_t c = 0; c < args.size(); c++)
-		{
-			KValueRef arg = args.at(c);
-			if (arg->IsString())
-			{
-				url.append("/");
-				url.append(arg->ToString());
-			}
-		}
-		result->SetString(url);
 	}
 
 	void AppBinding::GetIcon(const ValueList& args, KValueRef result)
