@@ -277,7 +277,7 @@ int main(int __argc, const char* __argv[])
 #endif
 {
 #ifdef USE_BREAKPAD
-	Win32CrashHandler reporter(__argc, __argv);
+	Win32CrashHandler reporter(__argc,(const char **) __argv);
 	// Don't install a handler if we are just handling an error.
 	if (__argc > 2 && !strcmp(CRASH_REPORT_OPT, __argv[1]))
 	{
@@ -289,6 +289,6 @@ int main(int __argc, const char* __argv[])
 	reporter.createHandler(tempPath);
 #endif
 
-	KrollWin32Boot boot(__argc, __argv);
+	KrollWin32Boot boot(__argc, (const char **)__argv);
 	return boot.Bootstrap();
 }

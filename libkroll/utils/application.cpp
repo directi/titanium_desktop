@@ -4,6 +4,7 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 #include "utils.h"
+#include <sstream>
 #define OVERRIDE_ARG "--bundled-component-override"
 
 using std::string;
