@@ -187,7 +187,17 @@ namespace BootUtils
 		ScanModulesAtPath(path, results, true);
 	}
 
-	int CompareVersions(string one, string two)
+	bool doesManifestFileExistsAtDirectory(const std::string & dir)
+	{
+		string manifestPath = FileUtils::Join(dir.c_str(), MANIFEST_FILENAME, NULL);
+		if (FileUtils::IsFile(manifestPath))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	int BootUtils::CompareVersions(const string &one, const string &two)
 	{
 		if (one.empty() && two.empty())
 			return 0;

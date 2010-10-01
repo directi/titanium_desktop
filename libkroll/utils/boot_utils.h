@@ -41,7 +41,7 @@ namespace UTILS_NS
 	 */
 	class KROLL_API Dependency
 	{
-		public:
+	public:
 		enum Requirement
 		{
 			EQ,
@@ -56,14 +56,14 @@ namespace UTILS_NS
 		Requirement requirement;
 
 		/**
-		 * Generate a dependency from a key/value pair found in a manifest
-		 */
+		* Generate a dependency from a key/value pair found in a manifest
+		*/
 		static SharedDependency NewDependencyFromManifestLine(
 			std::string key, std::string value);
 
 		/**
-		 * Generate a dependency from a set of values
-		 */
+		* Generate a dependency from a set of values
+		*/
 		static SharedDependency NewDependencyFromValues(
 			KComponentType type, std::string name, std::string version);
 	};
@@ -73,7 +73,7 @@ namespace UTILS_NS
 	 */
 	class KROLL_API KComponent
 	{
-		public:
+	public:
 		KComponentType type;
 		std::string name;
 		std::string version;
@@ -87,6 +87,8 @@ namespace UTILS_NS
 
 	namespace BootUtils
 	{
+		KROLL_API bool doesManifestFileExistsAtDirectory(const std::string & dir);
+
 		KROLL_API void ScanBundledComponents(const std::string &path, vector<SharedComponent>& results);
 
 		/**
@@ -94,7 +96,7 @@ namespace UTILS_NS
 		 * @returns 1 if the first is larger, 0 if they are equal,
 		 *     -1 if the second is larger
 		 */
-		KROLL_API int CompareVersions(std::string, std::string);
+		KROLL_API int CompareVersions(const string &one, const string &two);
 
 		/**
 		 * Compare two version strings in a piecewise way, weakly
@@ -108,18 +110,6 @@ namespace UTILS_NS
 		 *    manifest's contents or an empty vector if it cannot be read.
 		 */
 		KROLL_API void ReadManifestFile(const std::string &path, map<string, string> &manifest);
-
-		/**
-		 * Launch the intaller to install a list of dependencies. 
-		 * @returns false only if the installer cannot be found
-		 */
-		KROLL_API bool RunInstaller(
-			vector<SharedDependency> missing,
-			SharedApplication application,
-			std::string updatefile = "",
-			std::string installerPath = "",
-			bool quiet=false,
-			bool forceInstaller=false);
 
 		KROLL_API std::vector<std::string>& GetComponentSearchPaths();
 

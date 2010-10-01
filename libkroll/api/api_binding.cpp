@@ -23,13 +23,8 @@ namespace kroll
 		KAccessorObject("API"),
 		host(host),
 		global(host->GetGlobalObject()),
-		logger(Logger::Get("API")),
-		installerThread(0),
-		installerThreadAdapter(0)
+		logger(Logger::Get("API"))
 	{
-		this->installerThreadAdapter = new Poco::RunnableAdapter<APIBinding>(
-			*this, &APIBinding::RunInstaller);
-
 		/**
 		 * @tiapi(method=True,name=API.set,since=0.2)
 		 * @tiapi Set an attribute in the global object
@@ -155,14 +150,6 @@ namespace kroll
 		 * @tiresult[API.Dependency] A new Dependency.
 		 */
 		this->SetMethod("createDependency", &APIBinding::_CreateDependency);
-
-		/**
-		 * @tiapi(method=True,name=API.installDependencies,since=0.4)
-		 * @tiapi Invoke the installer to find and install a list of dependencies
-		 * @tiarg[Array<API.Dependency>, dependencies] a list of API.Dependency to find and install
-		 * @tiarg[method, callback] a callback to invoke when the installer is finished (may finish unsuccessfully)
-		 */
-		this->SetMethod("installDependencies", &APIBinding::_InstallDependencies);
 
 		this->SetMethod("componentGUIDToComponentType", &APIBinding::_ComponentGUIDToComponentType);
 
@@ -746,47 +733,6 @@ namespace kroll
 			result->SetObject(dBinding);
 		}
 	}
-
-	void APIBinding::_InstallDependencies(const ValueList& args, KValueRef result)
-	{
-		args.VerifyException("installDependencies", "l,m");
-		KListRef dependenciesList = args.GetList(0);
-		KMethodRef callback = args.GetMethod(1, 0);
-		vector<SharedDependency> dependencies;
-
-		for (unsigned int i = 0; i < dependenciesList->Size(); i++)
-		{
-			if (!dependenciesList->At(i)->IsObject())
-			{
-				continue;
-			}
-
-			AutoPtr<DependencyBinding> d =
-				dependenciesList->At(i)->ToObject().cast<DependencyBinding>();
-			if (!d.isNull())
-			{
-				dependencies.push_back(d->GetDependency());
-			}
-		}
-
-		if (dependencies.size() > 0)
-		{
-			if (!this->installerMutex.tryLock())
-			{
-				throw ValueException::FromString(
-					"Tried to launch more than one instance of the installer");
-			}
-
-			if (this->installerThread)
-			{
-				delete this->installerThread;
-			}
-			this->installerDependencies = dependencies;
-			this->installerCallback = callback;
-			this->installerThread = new Poco::Thread();
-			this->installerThread->start(*this->installerThreadAdapter);
-		}
-	}
 	
 	void APIBinding::_ComponentGUIDToComponentType(const ValueList& args, KValueRef result)
 	{
@@ -823,23 +769,6 @@ namespace kroll
 		result->SetObject(env);
 	}
 	
-	void APIBinding::RunInstaller()
-	{
-		START_KROLL_THREAD;
-
-		SharedApplication app = host->GetApplication();
-		BootUtils::RunInstaller(
-			this->installerDependencies, app, "", app->getRuntime()->path, true);
-
-		if (!this->installerCallback.isNull())
-		{
-			RunOnMainThread(this->installerCallback, ValueList(), false);
-		}
-		this->installerMutex.unlock();
-
-		END_KROLL_THREAD;
-	}
-
 	KListRef APIBinding::ComponentVectorToKList(
 		vector<SharedComponent>& components,
 		KComponentType filter)

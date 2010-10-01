@@ -35,16 +35,6 @@ namespace kroll
 		KObjectRef global;
 		Logger* logger;
 
-		// Use a FastMutex to protect the installer, because we are
-		// always trying to lock it in the same thread.
-		Poco::FastMutex installerMutex;
-		Poco::Thread* installerThread;
-		Poco::RunnableAdapter<APIBinding>* installerThreadAdapter;
-		vector<SharedDependency> installerDependencies;
-		KMethodRef installerCallback;
-
-		void RunInstaller();
-
 		void _Set(const ValueList& args, KValueRef result);
 		void _Get(const ValueList& args, KValueRef result);
 		void _AddEventListener(const ValueList& args, KValueRef result);
@@ -81,7 +71,6 @@ namespace kroll
 		void _GetEnvironment(const ValueList& args, KValueRef value);
 		
 		void _CreateDependency(const ValueList& args, KValueRef value);
-		void _InstallDependencies(const ValueList& args, KValueRef value);
 
 		void _CreateKObject(const ValueList& args, KValueRef result);
 		void _CreateKMethod(const ValueList& args, KValueRef result);

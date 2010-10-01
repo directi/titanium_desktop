@@ -47,9 +47,6 @@ namespace UTILS_NS
 		vector<SharedDependency> dependencies;
 
 	public:
-
-		static bool doesManifestFileExistsAtDirectory(const std::string & dir);
-
 		static SharedApplication NewApplication(const std::string &appPath);
 		static SharedApplication NewApplication(const std::string &manifestPath, const std::string &applicationPath);
 		// special in-memory constructor, no paths

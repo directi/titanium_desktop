@@ -20,17 +20,6 @@ using std::pair;
 namespace UTILS_NS
 {
 	/*static*/
-	bool Application::doesManifestFileExistsAtDirectory(const std::string & dir)
-	{
-		string manifestPath = FileUtils::Join(dir.c_str(), MANIFEST_FILENAME, NULL);
-		if (FileUtils::IsFile(manifestPath))
-		{
-			return true;
-		}
-		return false;
-	}
-
-	/*static*/
 	SharedApplication Application::NewApplication(const std::string &appPath)
 	{
 		string manifest(FileUtils::Join(appPath.c_str(), MANIFEST_FILENAME, NULL));

@@ -26,58 +26,5 @@ namespace BootUtils
 		}
 		return componentSearchPaths;
 	}
-
-	bool RunInstaller(
-		vector<SharedDependency> missing,
-		SharedApplication application,
-		std::string updateFile,
-		std::string installerPath,
-		bool quiet,
-		bool forceInstall)
-	{
-		if (installerPath.empty())
-		{
-			installerPath = application->getPath();
-		}
-
-		string exec = FileUtils::Join(
-			installerPath.c_str(),
-			"installer",
-			"Installer App.app",
-			"Contents", 
-			"MacOS",
-			"Installer App", NULL);
-
-		if (!FileUtils::IsFile(exec))
-		{
-			return false;
-		}
-
-		vector<string> args;
-		args.push_back("-appPath");
-		args.push_back(application->getPath());
-
-		if (!updateFile.empty())
-		{
-			args.push_back("-updateFile");
-			args.push_back(updateFile);
-		}
-
-		if (quiet)
-		{
-			args.push_back("-quiet");
-		}
-
-		std::vector<SharedDependency>::iterator di = missing.begin();
-		while (di != missing.end())
-		{
-			SharedDependency d = *di++;
-			string url = application->GetURLForDependency(d);
-			args.push_back(url);
-		}
-
-		FileUtils::RunAndWait(exec, args);
-		return true;
-	}
 }
 }
