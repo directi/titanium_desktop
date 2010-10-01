@@ -96,20 +96,6 @@ namespace kroll
 		this->SetMethod("getInstalledComponents", &APIBinding::_GetInstalledComponents);
 
 		/**
-		 * @tiapi(method=True,name=API.getInstalledSDKs,since=0.4)
-		 * @tiapi Get a list of the currently installed Kroll SDK components
-		 * @tiresult[Array<API.Component>] a list of API.Component of installed SDK components
-		 */
-		this->SetMethod("getInstalledSDKs", &APIBinding::_GetInstalledSDKs);
-
-		/**
-		 * @tiapi(method=True,name=API.getInstalledMobileSDKs,since=0.4)
-		 * @tiapi Get a list of the currently installed Kroll Mobile SDK components
-		 * @tiresult[Array<API.Component>] a list of API.Component of installed Mobile SDK components
-		 */
-		this->SetMethod("getInstalledMobileSDKs", &APIBinding::_GetInstalledMobileSDKs);
-
-		/**
 		 * @tiapi(method=True,name=API.getInstalledModules,since=0.4)
 		 * @tiapi Get a list of the currently installed Kroll module components
 		 * @tiresult[Array<API.Component>] a list of API.Component of installed module components
@@ -372,24 +358,6 @@ namespace kroll
 		 * @tiapi a constant representing a runtime component type
 		 */
 		this->Set("RUNTIME", Value::NewInt(RUNTIME));
-
-		/**
-		 * @tiapi(property=True,name=API.SDK,since=0.4)
-		 * @tiapi a constant representing an SDK component type
-		 */
-		this->Set("SDK", Value::NewInt(SDK));
-
-		/**
-		 * @tiapi(property=True,name=API.MOBILESDK,since=0.4)
-		 * @tiapi a constant representing a mobile SDK component type
-		 */
-		this->Set("MOBILESDK", Value::NewInt(MOBILESDK));
-
-		/**
-		 * @tiapi(property=True,name=API.APP_UPDATE,since=0.4)
-		 * @tiapi a constant representing an app update component type
-		 */
-		this->Set("APP_UPDATE", Value::NewInt(APP_UPDATE));
 
 		/**
 		 * @tiapi(property=True,name=API.UNKNOWN,since=0.4)
@@ -665,18 +633,6 @@ namespace kroll
 		_GetInstalledComponentsImpl(RUNTIME, args, result);
 	}
 
-	void APIBinding::_GetInstalledSDKs(const ValueList& args, KValueRef result)
-	{
-		args.VerifyException("getInstalledSDKs", "?b");
-		_GetInstalledComponentsImpl(SDK, args, result);
-	}
-
-	void APIBinding::_GetInstalledMobileSDKs(const ValueList& args, KValueRef result)
-	{
-		args.VerifyException("getInstalledMobileSDKs", "?b");
-		_GetInstalledComponentsImpl(MOBILESDK, args, result);
-	}
-
 	void APIBinding::_GetComponentSearchPaths(const ValueList& args, KValueRef result)
 	{
 		vector<string>& paths = BootUtils::GetComponentSearchPaths();
@@ -709,9 +665,7 @@ namespace kroll
 		string version = args.GetString(2);
 		int requirement = (int) args.GetNumber(3, Dependency::EQ);
 
-		if (type != MODULE && type != RUNTIME
-			&& type != SDK && type != MOBILESDK
-			&& type != APP_UPDATE)
+		if (type != MODULE && type != RUNTIME)
 		{
 			throw ValueException::FromString(
 				"Tried to create a dependency with an unknown dependency type");
@@ -744,18 +698,6 @@ namespace kroll
 		else if (type == MODULE_UUID)
 		{
 			result->SetInt(MODULE);
-		}
-		else if (type == SDK_UUID)
-		{
-			result->SetInt(SDK);
-		}
-		else if (type == MOBILESDK_UUID)
-		{
-			result->SetInt(MOBILESDK);
-		}
-		else if (type == APP_UPDATE_UUID)
-		{
-			result->SetInt(APP_UPDATE);
 		}
 		else
 		{

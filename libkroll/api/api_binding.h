@@ -62,8 +62,6 @@ namespace kroll
 		void _GetApplication(const ValueList& args, KValueRef value);
 		void _GetInstalledComponents(const ValueList& args, KValueRef value);
 		void _GetInstalledModules(const ValueList& args, KValueRef value);
-		void _GetInstalledSDKs(const ValueList& args, KValueRef value);
-		void _GetInstalledMobileSDKs(const ValueList& args, KValueRef value);
 		void _GetInstalledRuntimes(const ValueList& args, KValueRef value);
 		void _GetComponentSearchPaths(const ValueList& args, KValueRef value);
 		void _ReadApplicationManifest(const ValueList& args, KValueRef value);

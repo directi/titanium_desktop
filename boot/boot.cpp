@@ -188,14 +188,6 @@ int KrollBoot::Bootstrap()
 					{
 						type = "runtime";
 					}
-					else if (c->type == KrollUtils::SDK)
-					{
-						type = "sdk";
-					}
-					else if (c->type == KrollUtils::MOBILESDK)
-					{
-						type = "mobilesdk";
-					}
 					params[type + "_" + c->name + "_version"] = c->version;
 					params[type + "_" + c->name + "_path"] = c->path;
 					params[type + "_" + c->name + "_bundled"] = c->bundled ? "1":"0";

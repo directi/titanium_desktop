@@ -29,9 +29,6 @@ namespace UTILS_NS
 	{
 		MODULE,
 		RUNTIME,
-		SDK,
-		MOBILESDK,
-		APP_UPDATE,
 		UNKNOWN
 	};
 

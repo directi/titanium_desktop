@@ -15,8 +15,6 @@ namespace BootUtils
 {
 	static void ScanRuntimesAtPath(const std::string &path, vector<SharedComponent>&, bool=true);
 	static void ScanModulesAtPath(const std::string &path, vector<SharedComponent>&, bool=true);
-	static void ScanSDKsAtPath(const std::string &path, vector<SharedComponent>&, bool=true);
-	static void ScanMobileSDKsAtPath(const std::string &path, vector<SharedComponent>&, bool=true);
 	static void AddToComponentVector(vector<SharedComponent>&, SharedComponent);
 
 	static void AddToComponentVector(vector<SharedComponent>& components,
@@ -48,8 +46,6 @@ namespace BootUtils
 			{
 				string path(*i++);
 				ScanRuntimesAtPath(path, installedComponents, false);
-				ScanSDKsAtPath(path, installedComponents, false);
-				ScanMobileSDKsAtPath(path, installedComponents, false);
 				ScanModulesAtPath(path, installedComponents, false);
 			}
 
@@ -115,44 +111,6 @@ namespace BootUtils
 		}
 	}
 
-	static void ScanSDKsAtPath(const std::string &path, vector<SharedComponent>& results, bool bundled)
-	{
-		if (!FileUtils::IsDirectory(path))
-			return;
-
-		// Read everything that looks like <searchpath>/sdk/<os>/*
-		string sdkPath(FileUtils::Join(path.c_str(), "sdk", 0));
-		if (!bundled)
-			sdkPath = FileUtils::Join(sdkPath.c_str(), OS_NAME, 0);
-		vector<PathBits> versions(GetDirectoriesAtPath(sdkPath));
-
-		for (size_t i = 0; i < versions.size(); i++)
-		{
-			PathBits& b = versions[i];
-			AddToComponentVector(results,
-				KComponent::NewComponent(SDK, "sdk", b.name, b.fullPath, bundled));
-		}
-	}
-
-	static void ScanMobileSDKsAtPath(const std::string &path, vector<SharedComponent>& results, bool bundled)
-	{
-		if (!FileUtils::IsDirectory(path))
-			return;
-
-		// Read everything that looks like <searchpath>/mobilesdk/<os>/*
-		string sdkPath(FileUtils::Join(path.c_str(), "mobilesdk", 0));
-		if (!bundled)
-			sdkPath = FileUtils::Join(sdkPath.c_str(), OS_NAME, 0);
-		vector<PathBits> versions(GetDirectoriesAtPath(sdkPath));
-
-		for (size_t i = 0; i < versions.size(); i++)
-		{
-			PathBits& b = versions[i];
-			AddToComponentVector(results,
-				KComponent::NewComponent(MOBILESDK, "mobilesdk", b.name, b.fullPath, bundled));
-		}
-	}
-
 	static void ScanModulesAtPath(const std::string &path, vector<SharedComponent>& results, bool bundled)
 	{
 		if (!FileUtils::IsDirectory(path))
@@ -182,8 +140,6 @@ namespace BootUtils
 	void ScanBundledComponents(const std::string &path, vector<SharedComponent>& results)
 	{
 		ScanRuntimesAtPath(path, results, true);
-		ScanMobileSDKsAtPath(path, results, true);
-		ScanSDKsAtPath(path, results, true);
 		ScanModulesAtPath(path, results, true);
 	}
 
@@ -334,14 +290,6 @@ namespace BootUtils
 		if (key == "runtime")
 		{
 			d->type = RUNTIME;
-		}
-		else if (key == "sdk")
-		{
-			d->type = SDK;
-		}
-		else if (key == "mobilesdk")
-		{
-			d->type = MOBILESDK;
 		}
 		else
 		{

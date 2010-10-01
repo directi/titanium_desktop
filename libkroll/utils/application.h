@@ -43,7 +43,6 @@ namespace UTILS_NS
 		SharedComponent runtime;
 		vector<SharedComponent> modules;
 
-		vector<SharedComponent> sdks;
 		vector<SharedDependency> dependencies;
 
 	public:
@@ -73,7 +72,7 @@ namespace UTILS_NS
 
 		/**
 		 * Get all resolved components for this application including
-		 * runtimes, sdks and modules.
+		 * runtimes and modules.
 		 */
 		void GetResolvedComponents(vector<SharedComponent> &resolved);
 
@@ -136,24 +135,6 @@ namespace UTILS_NS
 		 * no license is found.
 		 */
 		std::string GetLicenseText() const;
-
-		/**
-		 * Get the URL for a particular dependency or the path to a bundled .zip file
-		 * if it is found.
-		 */
-		string GetURLForDependency(SharedDependency d);
-
-		/**
-		 * Construct an appropriate URL to get *this* version of the application. For instance,
-		 * to get an update for an application, construct it using the update manifest and
-		 * then call this method on the resulting Application.
-		 */
-		std::string GetUpdateURL();
-
-		/**
-		 * Get the stream URL for this application
-		 */
-		std::string& GetStreamURL(const char* scheme="http");
 
 		/**
 		 * A mutator for this application's list of command-line arguments.
