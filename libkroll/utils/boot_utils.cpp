@@ -197,7 +197,7 @@ namespace BootUtils
 		return false;
 	}
 
-	int BootUtils::CompareVersions(const string &one, const string &two)
+	int CompareVersions(const string &one, const string &two)
 	{
 		if (one.empty() && two.empty())
 			return 0;
