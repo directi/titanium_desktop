@@ -82,6 +82,7 @@ namespace kroll
 
 	}
 
+	/*static*/
 	Host* Host::hostInstance;
 
 	/*static*/

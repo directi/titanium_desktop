@@ -7,7 +7,7 @@
 
 
 KrollBoot::KrollBoot(int _argc, const char ** _argv)
-: argc(_argc), argv(_argv), app(0), updateFile("")
+: argc(_argc), argv(_argv), app(0)
 {
 }
 KrollBoot::~KrollBoot()
@@ -23,56 +23,30 @@ void KrollBoot::ShowError(const string & msg, bool fatal) const
 	}
 }
 
-void KrollBoot::FindUpdate()
-	{
-		// Search for an update file in the application data  directory.
-		// It will be placed there by the update service. If it exists
-		// and the version in the update file is greater than the
-		// current app version, we want to force an update.
-		string file = FileUtils::GetApplicationDataDirectory(app->getId());
-		file = FileUtils::Join(file.c_str(), UPDATE_FILENAME, NULL);
-
-		if (FileUtils::IsFile(file))
-		{
-			// If we find an update file, we want to resolve the modules that
-			// it requires and ignore our current manifest.
-			// On error: We should just continue on. A corrupt or old update manifest 
-			// doesn't imply that the original application is corrupt.
-			SharedApplication update = Application::NewApplication(file, app->getPath());
-			if (!update.isNull())
-			{
-				update->SetArguments(argc, argv);
-				app = update;
-				updateFile = file;
-			}
-		}
-	}
-
-vector<SharedDependency> KrollBoot::FilterForSDKInstall(
-	vector<SharedDependency> dependencies)
+bool KrollBoot::allDependenciesResolved()
 {
-	// If this list of dependencies incluces the SDKs, just install
-	// those -- we assume that they also supply our other dependencies.
-	vector<SharedDependency>::iterator i = dependencies.begin();
-	vector<SharedDependency> justSDKs;
+	bool allResolved = true;
+	vector<SharedDependency> missing;
+	app->ResolveDependencies(missing);
 
-	while (i != dependencies.end())
+	if (app->HasArgument(DEBUG_OPT))
 	{
-		SharedDependency d = *i++;
-		if (d->type == KrollUtils::SDK || d->type == KrollUtils::MOBILESDK)
+		vector<SharedComponent> resolved;
+		app->GetResolvedComponents(resolved);
+		for (size_t i = 0; i < resolved.size(); i++)
 		{
-			justSDKs.push_back(d);
+			SharedComponent c = resolved[i];
+			std::cout << "Resolved: (" << c->name << " " 
+				<< c->version << ") " << c->path << std::endl;
 		}
 	}
-
-	if (!justSDKs.empty())
+	for (size_t i = 0; i < missing.size(); i++)
 	{
-		return justSDKs;
+		SharedDependency d = missing.at(i);
+		std::cerr << "Unresolved: " << d->name << " " 
+			<< d->version << std::endl;
 	}
-	else
-	{
-		return dependencies;
-	}
+	return (missing.size() == 0);
 }
 
 int KrollBoot::Bootstrap()
@@ -97,52 +71,10 @@ int KrollBoot::Bootstrap()
 	}
 	app->SetArguments(argc, argv);
 
-	// Look for a .update file in the app data directory
-	FindUpdate();
+	// Find all the modules and runtime are resolved with path.
 
-	vector<SharedDependency> missing;
-	app->ResolveDependencies(missing);
-
-	if (app->HasArgument(DEBUG_OPT))
+	if (!allDependenciesResolved())
 	{
-		vector<SharedComponent> resolved;
-		app->GetResolvedComponents(resolved);
-		for (size_t i = 0; i < resolved.size(); i++)
-		{
-			SharedComponent c = resolved[i];
-			std::cout << "Resolved: (" << c->name << " " 
-				<< c->version << ") " << c->path << std::endl;
-		}
-		for (size_t i = 0; i < missing.size(); i++)
-		{
-			SharedDependency d = missing.at(i);
-			std::cerr << "Unresolved: " << d->name << " " 
-				<< d->version << std::endl;
-		}
-	}
-
-	bool forceInstall = app->HasArgument(FORCE_INSTALL_OPT);
-	if (forceInstall || !missing.empty() || !app->IsInstalled() ||
-		!updateFile.empty())
-	{
-		// If this list of dependencies incluces the SDKs, just install
-		// those -- we assume that they also supply our other dependencies.
-		missing = FilterForSDKInstall(missing);
-
-		if (!RunInstaller(missing, forceInstall))
-		{
-			return __LINE__;
-		}
-
-		app->ResolveDependencies(missing);
-	}
-
-	if (missing.size() > 0 || !app->IsInstalled())
-	{
-		// The user cancelled or the installer encountered an error
-		// -- which is should have already reported. We're not checking
-		// for updateFile.empty() here, because if the user cancelled
-		// the update, we just want to start the application as usual.
 		return __LINE__;
 	}
 

@@ -112,17 +112,6 @@ int KrollLinuxBoot::StartHost()
 	return executor(argc, argv);
 }
 
-bool KrollLinuxBoot::RunInstaller(vector<SharedDependency> missing, bool forceInstall) const
-{
-	string exec = FileUtils::Join(
-		app->getPath().c_str(), "installer", "installer", 0);
-	if (!FileUtils::IsFile(exec))
-	{
-		ShowError("Missing installer and application has additional modules that are needed.");
-		return false;
-	}
-	return BootUtils::RunInstaller(missing, app, updateFile);
-}
 
 string KrollLinuxBoot::GetApplicationName() const
 {

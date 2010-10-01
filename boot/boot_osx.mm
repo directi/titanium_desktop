@@ -130,24 +130,6 @@ int KrollOSXBoot::StartHost()
 	return executor(argc, (const char**)argv);
 }
 
-bool KrollOSXBoot::RunInstaller(vector<SharedDependency> missing, bool forceInstall) const
-{
-	string exec = FileUtils::Join(
-			app->getPath().c_str(),
-			"installer",
-			"Installer App.app",
-			"Contents", 
-			"MacOS",
-			"Installer App", 0);
-	if (!FileUtils::IsFile(exec))
-	{
-		ShowError("Missing installer and application has additional modules that are needed.");
-		return false;
-	}
-
-	return BootUtils::RunInstaller(missing, app, updateFile);
-}
-
 string KrollOSXBoot::GetApplicationName() const
 {
 	if (!app.isNull())

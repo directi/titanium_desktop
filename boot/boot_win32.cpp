@@ -87,18 +87,6 @@ string KrollWin32Boot::GetApplicationHomePath() const
 	}
 }
 
-bool KrollWin32Boot::RunInstaller(vector<SharedDependency> missing, bool forceInstall) const
-{
-
-	string installer(FileUtils::Join(app->getPath().c_str(), "installer", "installer.exe", 0));
-	if (!FileUtils::IsFile(installer))
-	{
-		ShowError("Missing installer and application has additional modules that are needed.");
-		return false;
-	}
-	return BootUtils::RunInstaller(missing, app, updateFile, "", false, forceInstall);
-}
-
 void KrollWin32Boot::BootstrapPlatformSpecific(const std::string & path)
 {
 	// Add runtime path and all module paths to PATH

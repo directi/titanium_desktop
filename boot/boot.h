@@ -16,7 +16,6 @@
 
 #define BOOTSTRAP_ENV "KR_BOOTSTRAPPED"
 #define CRASH_REPORT_OPT "--crash_report"
-#define FORCE_INSTALL_OPT "--force-install"
 #define DEBUG_OPT "debug"
 
 #define CRASH_REPORT_URL  STRING(_CRASH_REPORT_URL)
@@ -50,7 +49,6 @@ protected:
 	const char** argv;
 
 	SharedApplication app;
-	string updateFile;
 public:
 
 	KrollBoot(int _argc, const char ** _argv);
@@ -61,9 +59,7 @@ public:
 
 protected:
 	void ShowError(const string & msg, bool fatal=false) const;
-	void FindUpdate();
-	vector<SharedDependency> FilterForSDKInstall(
-		vector<SharedDependency> dependencies);
+	bool allDependenciesResolved();
 
 	virtual string Blastoff()=0;
 	virtual void BootstrapPlatformSpecific(const std::string & moduleList)=0;
@@ -71,8 +67,6 @@ protected:
 	virtual void ShowErrorImpl(const std::string & msg, bool fatal) const=0;
 	virtual string GetApplicationName() const=0;
 	virtual std::string GetApplicationHomePath() const=0;
-
-	virtual bool RunInstaller(vector<SharedDependency> missing, bool forceInstall=false) const=0;
 };
 
 

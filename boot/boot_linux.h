@@ -24,7 +24,6 @@ class KrollLinuxBoot
 		virtual string GetApplicationName() const;
 		virtual std::string GetApplicationHomePath() const;
 		virtual void ShowErrorImpl(const string & msg, bool fatal) const;
-		virtual bool RunInstaller(vector<SharedDependency> missing, bool forceInstall=false) const;
 };
 
 #ifdef USE_BREAKPAD
