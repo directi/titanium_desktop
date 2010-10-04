@@ -81,9 +81,7 @@ AppConfig* AppConfig::Instance()
 	return instance;
 }
 
-AppConfig::AppConfig(std::string& xmlfile) :
-	analyticsEnabled(true),
-	updateMonitorEnabled(true)
+AppConfig::AppConfig(const std::string& xmlfile)
 {
 	systemProperties = new PropertiesBinding();
 	xmlParserCtxtPtr context = xmlNewParserCtxt();
@@ -151,16 +149,6 @@ AppConfig::AppConfig(std::string& xmlfile) :
 		else if (nodeName == "window")
 		{
 			this->windows.push_back(WindowConfig::FromXMLNode(node));
-		}
-		else if (nodeName == "analytics")
-		{
-			std::string nodeValue(ConfigUtils::GetNodeValue(node));
-			analyticsEnabled = ConfigUtils::StringToBool(nodeValue);
-		}
-		else if (nodeName == "update-monitor")
-		{
-			std::string nodeValue(ConfigUtils::GetNodeValue(node));
-			updateMonitorEnabled = ConfigUtils::StringToBool(nodeValue);
 		}
 		else if (nodeName == "icon")
 		{

@@ -19,18 +19,17 @@ public:
 	~AppConfig() {}
 	AutoPtr<WindowConfig> GetWindowByURL(const std::string& url);
 	AutoPtr<WindowConfig> GetMainWindow();
-	std::string& GetAppName() { return appName; }
-	std::string& GetAppTitle() { return appTitle; }
-	std::string& GetAppID() { return appID; }
-	std::string& GetDescription() { return description; }
-	std::string& GetCopyright() { return copyright; }
-	std::string& GetURL() { return url; }
-	std::string& GetVersion() { return version; }
-	std::string& GetPublisher() { return publisher; }
-	AutoPtr<PropertiesBinding> GetSystemProperties() { return systemProperties; }
+	std::string GetAppName() const { return appName; }
+	std::string GetAppTitle() const { return appTitle; }
+	std::string GetAppID() const { return appID; }
+	std::string GetDescription() const { return description; }
+	std::string GetCopyright() const { return copyright; }
+	std::string GetURL() const { return url; }
+	std::string GetVersion() const { return version; }
+	std::string GetPublisher() const { return publisher; }
+	AutoPtr<PropertiesBinding> GetSystemProperties() const { return systemProperties; }
 	std::string& GetIcon() { return icon; }
-	bool IsAnalyticsEnabled() { return analyticsEnabled; }
-	bool IsUpdateMonitorEnabled() { return updateMonitorEnabled; }
+
 	static AppConfig* Instance();
 
 private:
@@ -45,10 +44,10 @@ private:
 	std::string version;
 	std::string publisher;
 	std::string icon;
-	bool analyticsEnabled;
-	bool updateMonitorEnabled;
+
 	static AppConfig* instance_;
-	AppConfig(std::string& xmlfile);
+
+	AppConfig(const std::string& xmlfile);
 };
 }
 #endif
