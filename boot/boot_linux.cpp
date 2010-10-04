@@ -37,17 +37,6 @@ void KrollLinuxBoot::ShowErrorImpl(const string & msg, bool fatal) const
 	gtk_widget_destroy(dialog);
 }
 
-string KrollLinuxBoot::GetApplicationHomePath() const
-{
-	char* buffer = (char*) alloca(sizeof(char) * PATH_MAX);
-	char* realPath = realpath(argv[0], buffer);
-	string realPathStr = realPath;
-	if (realPath != 0 && FileUtils::IsFile(realPathStr))
-	{
-		return dirname(realPath);
-	}
-	return FileUtils::GetExecutableDirectory();
-}
 
 void KrollLinuxBoot::BootstrapPlatformSpecific(const std::string & moduleList)
 {
@@ -167,18 +156,6 @@ void LinuxCrashHandler::createHandler(const std::string & tempPath)
 		0,
 		true);
 
-}
-
-string LinuxCrashHandler::GetApplicationHomePath() const
-{
-	char* buffer = (char*) alloca(sizeof(char) * PATH_MAX);
-	char* realPath = realpath(executable_name.c_str(), buffer);
-	string realPathStr = realPath;
-	if (realPath != 0 && FileUtils::IsFile(realPathStr))
-	{
-		return dirname(realPath);
-	}
-	return FileUtils::GetExecutableDirectory();
 }
 
 

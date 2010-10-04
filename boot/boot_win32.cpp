@@ -71,21 +71,6 @@ void KrollWin32Boot::ShowErrorImpl(const string & msg, bool fatal) const
 	MessageBoxW(0, wideMsg.c_str(), wideAppName.c_str(), MB_OK|MB_ICONERROR|MB_SYSTEMMODAL);
 }
 
-string KrollWin32Boot::GetApplicationHomePath() const
-{
-	wchar_t widePath[MAX_PATH];
-	int size = GetModuleFileNameW(GetModuleHandle(0), widePath, MAX_PATH - 1);
-	if (size > 0)
-	{
-		widePath[size] = '\0';
-		string path = KrollUtils::WideToUTF8(widePath);
-		return FileUtils::Dirname(path);
-	}
-	else
-	{
-		ShowError("Could not determine application path.", true);
-	}
-}
 
 void KrollWin32Boot::BootstrapPlatformSpecific(const std::string & path)
 {
@@ -136,17 +121,6 @@ Win32CrashHandler::~Win32CrashHandler()
 {
 }
 
-string Win32CrashHandler::GetApplicationHomePath() const
-{
-	wchar_t widePath[MAX_PATH];
-	int size = GetModuleFileNameW(GetModuleHandle(0), widePath, MAX_PATH - 1);
-	if (size > 0)
-	{
-		widePath[size] = '\0';
-		string path = KrollUtils::WideToUTF8(widePath);
-		return FileUtils::Dirname(path);
-	}
-}
 
 bool Win32CrashHandler::HandleCrash(
 		const wchar_t* dumpPath,

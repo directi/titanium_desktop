@@ -33,10 +33,7 @@ namespace FileUtils
 			// in which case the callee just wants to know if the path exists.
 			return (findFileData.dwFileAttributes & attributes) == attributes;
 		}
-		else
-		{
-			return false;
-		}
+		return false;
 	}
 
 	static bool FileHasAttributes(const std::string& path, DWORD attributes)
@@ -49,10 +46,15 @@ namespace FileUtils
 	{
 		wchar_t path[MAX_PATH];
 		path[MAX_PATH-1] = '\0';
-		GetModuleFileNameW(NULL, path, MAX_PATH - 1);
-		std::string fullPath(UTILS_NS::WideToUTF8(path));
-		return Dirname(fullPath);
+		int size = GetModuleFileNameW(NULL, path, MAX_PATH - 1);
+		if (size > 0)
+		{
+			std::string fullPath(UTILS_NS::WideToUTF8(path));
+			return Dirname(fullPath);
+		}
+		return string("");
 	}
+
 
 	std::string GetTempDirectory()
 	{

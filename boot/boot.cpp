@@ -51,7 +51,7 @@ bool KrollBoot::allDependenciesResolved()
 
 int KrollBoot::Bootstrap()
 {
-	string applicationHome = GetApplicationHomePath();
+	string applicationHome = FileUtils::GetExecutableDirectory();
 
 	if(!BootUtils::doesManifestFileExistsAtDirectory(applicationHome))
 	{
@@ -119,7 +119,7 @@ int KrollBoot::Bootstrap()
 	{
 		// Load the application manifest so that we can get lots of debugging
 		// information for the crash report.
-		applicationHome = GetApplicationHomePath();
+		applicationHome = FileUtils::GetExecutableDirectory();
 		string manifestPath = FileUtils::Join(applicationHome.c_str(), MANIFEST_FILENAME, NULL);
 
 		if (FileUtils::IsFile(manifestPath))
@@ -171,7 +171,7 @@ int KrollBoot::Bootstrap()
 				params["app_id"] = app->getId();
 				params["app_ver"] = app->getVersion();
 				params["app_guid"] = app->getGUID();
-				params["app_home"] = GetApplicationHomePath();
+				params["app_home"] = FileUtils::GetExecutableDirectory();
 
 				vector<SharedComponent> components;
 				app->GetAvailableComponents(components);

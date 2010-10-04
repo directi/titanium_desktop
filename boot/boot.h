@@ -66,7 +66,6 @@ protected:
 
 	virtual void ShowErrorImpl(const std::string & msg, bool fatal) const=0;
 	virtual string GetApplicationName() const=0;
-	virtual std::string GetApplicationHomePath() const=0;
 };
 
 
@@ -93,7 +92,6 @@ protected:
 
 	void InitCrashDetection();
 	void GetCrashReportParameters(map<string, string> & param);
-	virtual string GetApplicationHomePath() const=0;
 };
 #endif // USE_BREAKPAD
 

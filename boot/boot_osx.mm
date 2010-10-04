@@ -50,13 +50,6 @@ void KrollOSXBoot::ShowErrorImpl(const std::string& msg, bool fatal) const
 		[NSString stringWithUTF8String:msg.c_str()], buttonText, nil, nil);
 }
 
-string KrollOSXBoot::GetApplicationHomePath() const
-{
-	NSString *bundle = [[NSBundle mainBundle] bundlePath];
-	NSString *contents = [NSString stringWithFormat:@"%@/Contents", bundle];
-	return std::string([contents UTF8String]);
-}
-
 void KrollOSXBoot::BootstrapPlatformSpecific(const string & moduleList)
 {
 	std::string fullModuleList = app->getRuntime()->path + ":" + moduleList;
@@ -246,12 +239,6 @@ int OSXCrashHandler::SendCrashReport()
 	return 0;
 }
 
-string OSXCrashHandler::GetApplicationHomePath() const
-{
-	NSString *bundle = [[NSBundle mainBundle] bundlePath];
-	NSString *contents = [NSString stringWithFormat:@"%@/Contents", bundle];
-	return std::string([contents UTF8String]);
-}
 #endif
 
 int main(int argc, const char* argv[])

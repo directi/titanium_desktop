@@ -22,7 +22,6 @@ class KrollLinuxBoot
 		virtual void BootstrapPlatformSpecific(const std::string & moduleList);
 
 		virtual string GetApplicationName() const;
-		virtual std::string GetApplicationHomePath() const;
 		virtual void ShowErrorImpl(const string & msg, bool fatal) const;
 };
 
@@ -42,7 +41,6 @@ class LinuxCrashHandler
 		const char ** argv;
 		google_breakpad::ExceptionHandler* breakpad;
 
-		virtual string GetApplicationHomePath() const;
 		static char breakpadCallBuffer[PATH_MAX];
 
 		static bool HandleCrash(const char* dumpPath,

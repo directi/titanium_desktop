@@ -33,7 +33,6 @@ class KrollWin32Boot
 		HMODULE SafeLoadRuntimeDLL(string& path) const;
 
 		virtual string GetApplicationName() const;
-		virtual std::string GetApplicationHomePath() const;
 		virtual void ShowErrorImpl(const string & msg, bool fatal) const;
 };
 
@@ -51,7 +50,6 @@ class Win32CrashHandler
 	private:
 		google_breakpad::ExceptionHandler* breakpad;
 
-		virtual string GetApplicationHomePath() const;
 		static wchar_t breakpadCallBuffer[MAX_PATH];
 
 		static bool HandleCrash(
