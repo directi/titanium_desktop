@@ -11,6 +11,90 @@ using std::pair;
 
 namespace UTILS_NS
 {
+
+	ManifestHandler::ManifestHandler(const std::string &_manifestPath)
+		: manifestPath(_manifestPath)
+	{
+	}
+
+	ManifestHandler::~ManifestHandler()
+	{
+	}
+
+
+	void ManifestHandler::ParseManifest(const map<string, string>& manifest)
+	{
+		for(map<string, string>::const_iterator
+			oIter = manifest.begin();
+			oIter != manifest.end();
+		oIter++)
+		{
+			string key(oIter->first);
+			string value(oIter->second);
+
+			if (key == "#appname")
+			{
+				this->name = value;
+				continue;
+			}
+			else if (key == "#appid")
+			{
+				this->id = value;
+				continue;
+			}
+			else if (key == "#guid")
+			{
+				this->guid = value;
+				continue;
+			}
+			else if (key == "#image")
+			{
+				this->image = value;
+				continue;
+			}
+			else if (key == "#publisher")
+			{
+				this->publisher = value;
+				continue;
+			}
+			else if (key == "#url")
+			{
+				this->url = value;
+				continue;
+			}
+			else if (key == "#version")
+			{
+				this->version = value;
+				continue;
+			}
+			else if (key == "#loglevel")
+			{
+				this->logLevel = value;
+				continue;
+			}
+			else if (key[0] == '#')
+			{
+				continue;
+			}
+			else
+			{
+				dep[key] = value;
+			}
+		}
+	}
+
+	void ManifestHandler::getDependencies(map<string, string> & _dep)
+	{
+		for(map<string, string>::const_iterator
+			oIter = dep.begin();
+			oIter != dep.end();
+		oIter++)
+		{
+			_dep[oIter->first] = oIter->second;
+		}
+	}
+
+
 	string ManifestHandler::getManifestPathAtDirectory(const string &dir)
 	{
 		string manifestpath(FileUtils::Join(dir.c_str(), MANIFEST_FILENAME, NULL));

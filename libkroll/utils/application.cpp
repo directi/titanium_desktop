@@ -52,85 +52,34 @@ namespace UTILS_NS
 		application->ParseManifest(manifest);
 		return application;
 	}
+
+	string Application::getImage() const
+	{
+		return FileUtils::Join(this->GetResourcesPath().c_str(),
+			this->manifestHandler.getImage().c_str(), NULL);
+	}
 	
 	void Application::ParseManifest(const map<string, string>& manifest)
 	{
+		manifestHandler.ParseManifest(manifest);
+
+		map<string, string> dep;
+		manifestHandler.getDependencies(dep);
 		for(map<string, string>::const_iterator
-			oIter = manifest.begin();
-			oIter != manifest.end();
+			oIter = dep.begin();
+			oIter != dep.end();
 		oIter++)
 		{
-			string key(oIter->first);
-			string value(oIter->second);
-
-			if (key == "#appname")
-			{
-				this->name = value;
-				continue;
-			}
-			else if (key == "#appid")
-			{
-				this->id = value;
-				continue;
-			}
-			else if (key == "#guid")
-			{
-				this->guid = value;
-				continue;
-			}
-			else if (key == "#image")
-			{
-				this->image =
-					 FileUtils::Join(this->GetResourcesPath().c_str(), value.c_str(), NULL);
-				continue;
-			}
-			else if (key == "#publisher")
-			{
-				this->publisher = value;
-				continue;
-			}
-			else if (key == "#url")
-			{
-				this->url = value;
-				continue;
-			}
-			else if (key == "#version")
-			{
-				this->version = value;
-				continue;
-			}
-			else if (key == "#stream")
-			{
-				this->stream = value;
-				continue;
-			}
-			else if (key == "#loglevel")
-			{
-				this->logLevel = value;
-				continue;
-			}
-			else if (key[0] == '#')
-			{
-				continue;
-			}
-			else
-			{
-				SharedDependency d = Dependency::NewDependencyFromManifestLine(key, value);
-				this->dependencies.push_back(d);
-			}
+			 SharedDependency d = Dependency::NewDependencyFromManifestLine(oIter->first, oIter->second);
+			 this->dependencies.push_back(d);
 		}
-
-		if (EnvironmentUtils::Has("TITANIUM_STREAM"))
-			this->stream = EnvironmentUtils::Get("TITANIUM_STREAM");
 	}
 
-	Application::Application(const std::string &path, const std::string &manifestPath) :
-		path(path),
-		manifestPath(manifestPath),
-		stream("production")
+	Application::Application(const std::string &path, const std::string &manifestPath)
+		: path(path),
+		manifestHandler(manifestPath),
+		componentManager()
 	{
-		// Default stream is production and is optional and doesn't have to be 
-		// in the manifest unless switching from production to test or dev
 	}
 
 	Application::~Application()
@@ -214,20 +163,20 @@ namespace UTILS_NS
 		// TODO:
 		// If this application has arguments, it's probably the currently running
 		// application, so we can try to get the executable path based on argv[0]
-		string exeName(this->name + ".exe");
+		string exeName(this->getName() + ".exe");
 		string path(FileUtils::Join(this->path.c_str(), exeName.c_str(), NULL));
 		if (FileUtils::IsFile(path))
 		{
 			return path;
 		}
 
-		path = FileUtils::Join(this->path.c_str(), "MacOS", this->name.c_str(), NULL);
+		path = FileUtils::Join(this->path.c_str(), "MacOS", this->getName().c_str(), NULL);
 		if (FileUtils::IsFile(path))
 		{
 			return path;
 		}
 
-		path = FileUtils::Join(this->path.c_str(), this->name.c_str(), NULL);
+		path = FileUtils::Join(this->path.c_str(), this->getName().c_str(), NULL);
 		if (FileUtils::IsFile(path))
 		{
 			return path;
@@ -263,7 +212,7 @@ namespace UTILS_NS
 
 	string Application::GetDataPath() const
 	{
-		return FileUtils::GetApplicationDataDirectory(this->id);
+		return FileUtils::GetApplicationDataDirectory(this->getId());
 	}
 
 	string Application::GetResourcesPath() const

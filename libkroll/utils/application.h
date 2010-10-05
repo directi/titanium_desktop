@@ -26,19 +26,6 @@ namespace UTILS_NS
 		void setRuntimeProductVersion();
 
 		const string path;
-		const string manifestPath;
-
-		string name;
-		string version;
-		string id;
-		string guid;
-		string url;
-		string publisher;
-		string image;
-		string logLevel;
-
-		string stream;
-		string queryString;
 
 		vector<string> arguments;
 
@@ -46,6 +33,7 @@ namespace UTILS_NS
 		vector<SharedComponent> modules;
 
 		vector<SharedDependency> dependencies;
+		ManifestHandler manifestHandler;
 		ComponentManager componentManager;
 
 
@@ -56,16 +44,17 @@ namespace UTILS_NS
 		static SharedApplication NewApplication(const map<string, string>& manifest);
 		~Application();
 
+		string getManifestPath() const { return this->manifestHandler.getManifestPath(); }
+		string getName() const { return this->manifestHandler.getName(); }
+		string getVersion() const { return this->manifestHandler.getVersion(); }
+		string getId() const { return this->manifestHandler.getId(); }
+		string getGUID() const { return this->manifestHandler.getGUID(); }
+		string getURL() const { return this->manifestHandler.getURL(); }
+		string getPublisher() const { return this->manifestHandler.getPublisher(); }
+		string getLogLevel() const { return this->manifestHandler.getLogLevel(); }
+		string getImage() const;
+
 		string getPath() const { return this->path; }
-		string getManifestPath() const { return this->manifestPath; }
-		string getName() const { return this->name; }
-		string getVersion() const { return this->version; }
-		string getId() const { return this->id; }
-		string getGUID() const { return this->guid; }
-		string getURL() const { return this->url; }
-		string getPublisher() const { return this->publisher; }
-		string getImage() const { return this->image; }
-		string getLogLevel() const { return this->logLevel; }
 		SharedComponent getRuntime() const { return this->runtime; }
 		void getModules(vector<SharedComponent> &_modules) const;
 

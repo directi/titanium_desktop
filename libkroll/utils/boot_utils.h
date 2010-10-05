@@ -103,7 +103,37 @@ namespace UTILS_NS
 
 	class KROLL_API ManifestHandler
 	{
+		const std::string manifestPath;
+
+		string name;
+		string version;
+		string id;
+		string guid;
+		string url;
+		string publisher;
+		string image;
+		string logLevel;
+
+		map<string, string> dep;
+
 	public:
+		ManifestHandler(const std::string &_manifestPath);
+		~ManifestHandler();
+
+		void ParseManifest(const map<string, string>& manifest);
+
+		std::string getManifestPath() const { return manifestPath; }
+		string getName() const { return this->name; }
+		string getVersion() const { return this->version; }
+		string getId() const { return this->id; }
+		string getGUID() const { return this->guid; }
+		string getURL() const { return this->url; }
+		string getPublisher() const { return this->publisher; }
+		string getImage() const { return this->image; }
+		string getLogLevel() const { return this->logLevel; }
+
+		void getDependencies(map<string, string> & _dep);
+
 		/**
 		 * checks for the existance of manifest file in given directory
 		 * @param: dir: the directory for checking the manifest file.
