@@ -6,6 +6,8 @@
 #ifndef _KR_UTILS_APPLICATION_H_
 #define _KR_UTILS_APPLICATION_H_
 
+#include "boot_utils.h"
+
 namespace UTILS_NS
 {
 	using std::string;
@@ -44,6 +46,8 @@ namespace UTILS_NS
 		vector<SharedComponent> modules;
 
 		vector<SharedDependency> dependencies;
+		ComponentManager componentManager;
+
 
 	public:
 		static SharedApplication NewApplication(const std::string &appPath);

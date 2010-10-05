@@ -379,7 +379,6 @@ namespace kroll
 			this->application->UsingModule(module->GetName(), module->GetVersion(), path);
 			logger->Info("Loaded module = %s", module->GetName().c_str());
 
-			this->application->UsingModule(module->GetName(), module->GetVersion(), path);
 			return module;
 		}
 		catch (kroll::ValueException& e)

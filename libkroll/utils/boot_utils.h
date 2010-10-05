@@ -87,6 +87,20 @@ namespace UTILS_NS
 			std::string path, bool bundled=false);
 	};
 
+
+	class KROLL_API ComponentManager
+	{
+	public:
+		ComponentManager();
+		~ComponentManager();
+
+		static void GetAvailableComponentsAt(
+			const std::string& path,
+			vector<SharedComponent>& components,
+			bool onlyBundled);
+	};
+
+
 	class KROLL_API ManifestHandler
 	{
 	public:
@@ -127,8 +141,7 @@ namespace UTILS_NS
 
 		KROLL_API std::vector<std::string>& GetComponentSearchPaths();
 
-		KROLL_API std::vector<SharedComponent>& GetInstalledComponents(
-			bool force=false);
+		KROLL_API std::vector<SharedComponent>& GetInstalledComponents(bool force=false);
 		
 		KROLL_API SharedComponent ResolveDependency(SharedDependency dep, std::vector<SharedComponent>&);
 

@@ -246,88 +246,89 @@ namespace BootUtils
 }
 
 
-Dependency::Dependency(KComponentType type,
-	const std::string &name,
-	const std::string &version)
-	: type(type),
-	name(name),
-	version(version),
-	requirement(EQ)
-{
-}
-
-Dependency::Dependency(const std::string &key, const std::string &value)
-	: type(UNKNOWN),
-	name(key),
-	version(""),
-	requirement(EQ)
-{
-	parseInfo(value);
-	if (key == "runtime")
+	Dependency::Dependency(KComponentType type,
+		const std::string &name,
+		const std::string &version)
+		: type(type),
+		name(name),
+		version(version),
+		requirement(EQ)
 	{
-		this->type = RUNTIME;
-	}
-	else
-	{
-		this->type = MODULE;
 	}
 
-}
+	Dependency::Dependency(const std::string &key, const std::string &value)
+		: type(UNKNOWN),
+		name(key),
+		version(""),
+		requirement(EQ)
+	{
+		parseInfo(value);
+		if (key == "runtime")
+		{
+			this->type = RUNTIME;
+		}
+		else
+		{
+			this->type = MODULE;
+		}
 
-Dependency::~Dependency()
-{
-}
-
-void Dependency::parseInfo(const std::string &value)
-{
-	size_t versionStart;
-	if (value.find(">=") != string::npos)
-	{
-		this->requirement = GTE;
-		versionStart = 2;
-	}
-	else if (value.find("<=") != string::npos)
-	{
-		this->requirement = LTE;
-		versionStart = 2;
-	}
-	else if (value.find("<") != string::npos)
-	{
-		this->requirement = LT;
-		versionStart = 1;
-	}
-	else if (value.find(">") != string::npos)
-	{
-		this->requirement = GT;
-		versionStart = 1;
-	}
-	else if (value.find("=") != string::npos)
-	{
-		this->requirement = EQ;
-		versionStart = 1;
-	}
-	else
-	{
-		this->requirement = EQ;
-		versionStart = 0;
 	}
 
-	this->version = value.substr(versionStart);
-}
+	Dependency::~Dependency()
+	{
+	}
 
-SharedDependency Dependency::NewDependencyFromValues(
-	KComponentType type, const std::string &name, const std::string &version)
-{
-	Dependency* d = new Dependency(type, name, version);
-	return d;
-}
+	void Dependency::parseInfo(const std::string &value)
+	{
+		size_t versionStart;
+		if (value.find(">=") != string::npos)
+		{
+			this->requirement = GTE;
+			versionStart = 2;
+		}
+		else if (value.find("<=") != string::npos)
+		{
+			this->requirement = LTE;
+			versionStart = 2;
+		}
+		else if (value.find("<") != string::npos)
+		{
+			this->requirement = LT;
+			versionStart = 1;
+		}
+		else if (value.find(">") != string::npos)
+		{
+			this->requirement = GT;
+			versionStart = 1;
+		}
+		else if (value.find("=") != string::npos)
+		{
+			this->requirement = EQ;
+			versionStart = 1;
+		}
+		else
+		{
+			this->requirement = EQ;
+			versionStart = 0;
+		}
 
-SharedDependency Dependency::NewDependencyFromManifestLine(
-	const std::string &key, const std::string &value)
-{
-	Dependency* d = new Dependency(key, value);
-	return d;
-}
+		this->version = value.substr(versionStart);
+	}
+
+	SharedDependency Dependency::NewDependencyFromValues(
+		KComponentType type, const std::string &name, const std::string &version)
+	{
+		Dependency* d = new Dependency(type, name, version);
+		return d;
+	}
+
+	SharedDependency Dependency::NewDependencyFromManifestLine(
+		const std::string &key, const std::string &value)
+	{
+		Dependency* d = new Dependency(key, value);
+		return d;
+	}
+
 
 	SharedComponent KComponent::NewComponent(KComponentType type, string name,
 		string version, string path, bool bundled)
@@ -339,5 +340,33 @@ SharedDependency Dependency::NewDependencyFromManifestLine(
 		c->path = path;
 		c->bundled = true;
 		return c;
+	}
+
+
+	ComponentManager::ComponentManager()
+	{
+	}
+
+	ComponentManager::~ComponentManager()
+	{
+	}
+
+	void ComponentManager::GetAvailableComponentsAt(
+		const std::string& path,
+		vector<SharedComponent>& components,
+		bool onlyBundled)
+	{
+		// Merge bundled and installed components
+		BootUtils::ScanBundledComponents(path, components);
+
+		if (!onlyBundled)
+		{
+			vector<SharedComponent>& installedComponents =
+				BootUtils::GetInstalledComponents(true);
+			for (size_t i = 0; i < installedComponents.size(); i++)
+			{
+				components.push_back(installedComponents.at(i));
+			}
+		}
 	}
 }
