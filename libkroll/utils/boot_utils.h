@@ -34,7 +34,16 @@ namespace UTILS_NS
 	 */
 	class KROLL_API Dependency
 	{
+		Dependency(KComponentType type,
+			const std::string &name,
+			const std::string &version);
+		Dependency(const std::string &key, const std::string &value);
+
+		void parseInfo(const std::string &value);
+
 	public:
+		~Dependency();
+
 		enum Requirement
 		{
 			EQ,
@@ -52,13 +61,13 @@ namespace UTILS_NS
 		* Generate a dependency from a key/value pair found in a manifest
 		*/
 		static SharedDependency NewDependencyFromManifestLine(
-			std::string key, std::string value);
+			const std::string &key, const std::string &value);
 
 		/**
 		* Generate a dependency from a set of values
 		*/
 		static SharedDependency NewDependencyFromValues(
-			KComponentType type, std::string name, std::string version);
+			KComponentType type, const std::string &name, const std::string &version);
 	};
 
 	/**
@@ -78,9 +87,28 @@ namespace UTILS_NS
 			std::string path, bool bundled=false);
 	};
 
+	class KROLL_API ManifestHandler
+	{
+	public:
+		/**
+		 * checks for the existance of manifest file in given directory
+		 * @param: dir: the directory for checking the manifest file.
+		 * @return bool: true if the manifest file exists, false otherwise.
+		 */
+		static bool doesManifestFileExistsAtDirectory(const std::string & dir);
+
+		static string getManifestPathAtDirectory(const string &dir);
+
+		/**
+		 * Read a manifest file. 
+		 * @returns a vector of key-value pairs which represent the 
+		 *    manifest's contents or an empty vector if it cannot be read.
+		 */
+		static void ReadManifestFile(const std::string &path, map<string, string> &manifest);
+	};
+
 	namespace BootUtils
 	{
-		KROLL_API bool doesManifestFileExistsAtDirectory(const std::string & dir);
 
 		KROLL_API void ScanBundledComponents(const std::string &path, vector<SharedComponent>& results);
 
@@ -96,13 +124,6 @@ namespace UTILS_NS
 		 * @returns true if the first is larger or false otherwise
 		 */
 		KROLL_API bool WeakCompareComponents(SharedComponent, SharedComponent);
-
-		/**
-		 * Read a manifest file. 
-		 * @returns a vector of key-value pairs which represent the 
-		 *    manifest's contents or an empty vector if it cannot be read.
-		 */
-		KROLL_API void ReadManifestFile(const std::string &path, map<string, string> &manifest);
 
 		KROLL_API std::vector<std::string>& GetComponentSearchPaths();
 

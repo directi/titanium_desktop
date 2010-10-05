@@ -23,25 +23,17 @@ namespace UTILS_NS
 	/*static*/
 	SharedApplication Application::NewApplication(const std::string &appPath)
 	{
-		string manifest(FileUtils::Join(appPath.c_str(), MANIFEST_FILENAME, NULL));
-		return Application::NewApplication(manifest, appPath);
+		string manifest_path = ManifestHandler::getManifestPathAtDirectory(appPath);
+		return Application::NewApplication(manifest_path, appPath);
 	}
 
-	/*static*/
-	SharedApplication Application::NewApplication(const map<string, string>& manifest)
-	{
-		Application* application = new Application("", "");
-		application->ParseManifest(manifest);
-		return application;
-	}
-	
 	/*static*/
 	SharedApplication Application::NewApplication(
 		const std::string &manifestPath,
 		const std::string &appPath)
 	{
 		map<string, string> manifest;
-		BootUtils::ReadManifestFile(manifestPath, manifest);
+		ManifestHandler::ReadManifestFile(manifestPath, manifest);
 
 		if (manifest.empty())
 		{
@@ -49,6 +41,14 @@ namespace UTILS_NS
 		}
 
 		Application* application = new Application(appPath, manifestPath);
+		application->ParseManifest(manifest);
+		return application;
+	}
+
+	/*static*/
+	SharedApplication Application::NewApplication(const map<string, string>& manifest)
+	{
+		Application* application = new Application("", "");
 		application->ParseManifest(manifest);
 		return application;
 	}

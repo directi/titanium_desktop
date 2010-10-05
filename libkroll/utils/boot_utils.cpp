@@ -11,6 +11,47 @@ using std::pair;
 
 namespace UTILS_NS
 {
+	string ManifestHandler::getManifestPathAtDirectory(const string &dir)
+	{
+		string manifestpath(FileUtils::Join(dir.c_str(), MANIFEST_FILENAME, NULL));
+		return manifestpath;
+	}
+
+	bool ManifestHandler::doesManifestFileExistsAtDirectory(const std::string & dir)
+	{
+		string manifestPath = FileUtils::Join(dir.c_str(), MANIFEST_FILENAME, NULL);
+		if (FileUtils::IsFile(manifestPath))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	void ManifestHandler::ReadManifestFile(const std::string &path, map<string, string> &manifest)
+	{
+		if (FileUtils::IsFile(path))
+		{
+			string manifestContents(FileUtils::ReadFile(path));
+			if (!manifestContents.empty())
+			{
+				vector<string> manifestLines;
+				FileUtils::Tokenize(manifestContents, manifestLines, "\n");
+				for (size_t i = 0; i < manifestLines.size(); i++)
+				{
+					string line = FileUtils::Trim(manifestLines[i]);
+					vector<string> manifestLineData;
+					FileUtils::Tokenize(line, manifestLineData, ":");
+
+					if(manifestLineData.size() == 2)
+					{
+						manifest[FileUtils::Trim(manifestLineData[0]) ] = FileUtils::Trim(manifestLineData[1]);
+					}
+				}
+			}
+		}
+	}
+
+
 namespace BootUtils
 {
 	static void ScanRuntimesAtPath(const std::string &path, vector<SharedComponent>&, bool=true);
@@ -143,16 +184,6 @@ namespace BootUtils
 		ScanModulesAtPath(path, results, true);
 	}
 
-	bool doesManifestFileExistsAtDirectory(const std::string & dir)
-	{
-		string manifestPath = FileUtils::Join(dir.c_str(), MANIFEST_FILENAME, NULL);
-		if (FileUtils::IsFile(manifestPath))
-		{
-			return true;
-		}
-		return false;
-	}
-
 	int CompareVersions(const string &one, const string &two)
 	{
 		if (one.empty() && two.empty())
@@ -191,30 +222,6 @@ namespace BootUtils
 		return BootUtils::CompareVersions(one->version, two->version) > 0;
 	}
 
-	void ReadManifestFile(const std::string &path, map<string, string> &manifest)
-	{
-		if (FileUtils::IsFile(path))
-		{
-			string manifestContents(FileUtils::ReadFile(path));
-			if (!manifestContents.empty())
-			{
-				vector<string> manifestLines;
-				FileUtils::Tokenize(manifestContents, manifestLines, "\n");
-				for (size_t i = 0; i < manifestLines.size(); i++)
-				{
-					string line = FileUtils::Trim(manifestLines[i]);
-					vector<string> manifestLineData;
-					FileUtils::Tokenize(line, manifestLineData, ":");
-
-					if(manifestLineData.size() == 2)
-					{
-						manifest[FileUtils::Trim(manifestLineData[0]) ] = FileUtils::Trim(manifestLineData[1]);
-					}
-				}
-			}
-		}
-	}
-
 	SharedComponent ResolveDependency(SharedDependency dep, vector<SharedComponent>& components)
 	{
 		vector<SharedComponent>::iterator i = components.begin();
@@ -237,66 +244,90 @@ namespace BootUtils
 		return NULL;
 	} 
 }
-	SharedDependency Dependency::NewDependencyFromValues(
-		KComponentType type, std::string name, std::string version)
+
+
+Dependency::Dependency(KComponentType type,
+	const std::string &name,
+	const std::string &version)
+	: type(type),
+	name(name),
+	version(version),
+	requirement(EQ)
+{
+}
+
+Dependency::Dependency(const std::string &key, const std::string &value)
+	: type(UNKNOWN),
+	name(key),
+	version(""),
+	requirement(EQ)
+{
+	parseInfo(value);
+	if (key == "runtime")
 	{
-		Dependency* d = new Dependency();
-		d->type = type;
-		d->name = name;
-		d->version = version;
-		d->requirement = EQ;
-		return d;
+		this->type = RUNTIME;
+	}
+	else
+	{
+		this->type = MODULE;
 	}
 
-	SharedDependency Dependency::NewDependencyFromManifestLine(
-		string key, string value)
+}
+
+Dependency::~Dependency()
+{
+}
+
+void Dependency::parseInfo(const std::string &value)
+{
+	size_t versionStart;
+	if (value.find(">=") != string::npos)
 	{
-		Dependency* d = new Dependency();
-		size_t versionStart;
-		if (value.find(">=") != string::npos)
-		{
-			d->requirement = GTE;
-			versionStart = 2;
-		}
-		else if (value.find("<=") != string::npos)
-		{
-			d->requirement = LTE;
-			versionStart = 2;
-		}
-		else if (value.find("<") != string::npos)
-		{
-			d->requirement = LT;
-			versionStart = 1;
-		}
-		else if (value.find(">") != string::npos)
-		{
-			d->requirement = GT;
-			versionStart = 1;
-		}
-		else if (value.find("=") != string::npos)
-		{
-			d->requirement = EQ;
-			versionStart = 1;
-		}
-		else
-		{
-			d->requirement = EQ;
-			versionStart = 0;
-		}
-
-		d->name = key;
-		d->version = value.substr(versionStart);
-
-		if (key == "runtime")
-		{
-			d->type = RUNTIME;
-		}
-		else
-		{
-			d->type = MODULE;
-		}
-		return d;
+		this->requirement = GTE;
+		versionStart = 2;
 	}
+	else if (value.find("<=") != string::npos)
+	{
+		this->requirement = LTE;
+		versionStart = 2;
+	}
+	else if (value.find("<") != string::npos)
+	{
+		this->requirement = LT;
+		versionStart = 1;
+	}
+	else if (value.find(">") != string::npos)
+	{
+		this->requirement = GT;
+		versionStart = 1;
+	}
+	else if (value.find("=") != string::npos)
+	{
+		this->requirement = EQ;
+		versionStart = 1;
+	}
+	else
+	{
+		this->requirement = EQ;
+		versionStart = 0;
+	}
+
+	this->version = value.substr(versionStart);
+}
+
+SharedDependency Dependency::NewDependencyFromValues(
+	KComponentType type, const std::string &name, const std::string &version)
+{
+	Dependency* d = new Dependency(type, name, version);
+	return d;
+}
+
+SharedDependency Dependency::NewDependencyFromManifestLine(
+	const std::string &key, const std::string &value)
+{
+	Dependency* d = new Dependency(key, value);
+	return d;
+}
 
 	SharedComponent KComponent::NewComponent(KComponentType type, string name,
 		string version, string path, bool bundled)

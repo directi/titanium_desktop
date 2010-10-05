@@ -283,7 +283,7 @@ namespace kroll
 	void ApplicationBinding::_GetManifest(const ValueList& args, KValueRef result)
 	{
 		map<string, string> manifest;
-		BootUtils::ReadManifestFile(this->application->getManifestPath(), manifest);
+		ManifestHandler::ReadManifestFile(this->application->getManifestPath(), manifest);
 
 		KListRef manifestList = APIBinding::ManifestToKList(manifest);
 		result->SetList(manifestList);

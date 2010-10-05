@@ -53,7 +53,7 @@ int KrollBoot::Bootstrap()
 {
 	string applicationHome = FileUtils::GetExecutableDirectory();
 
-	if(!BootUtils::doesManifestFileExistsAtDirectory(applicationHome))
+	if(!ManifestHandler::doesManifestFileExistsAtDirectory(applicationHome))
 	{
 		string error("Application packaging error: no manifest was found from directory : " );
 		error.append(applicationHome);
