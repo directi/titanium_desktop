@@ -83,7 +83,7 @@ int KrollBoot::Bootstrap()
 
 	EnvironmentUtils::Set(BOOTSTRAP_ENV, "YES");
 	EnvironmentUtils::Set("KR_HOME", app->getPath());
-	EnvironmentUtils::Set("KR_RUNTIME", app->getRuntime()->path);
+	EnvironmentUtils::Set("KR_RUNTIME", app->getRuntimePath());
 	EnvironmentUtils::Set("KR_MODULES", modulePaths);
 
 	BootstrapPlatformSpecific(modulePaths);

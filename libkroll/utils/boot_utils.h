@@ -6,11 +6,13 @@
 #ifndef _KR_BOOT_UTILS_H_
 #define _KR_BOOT_UTILS_H_
 
+#include "../base.h"
+
+
 // These UUIDs should never change and uniquely identify a package type
 #define DISTRIBUTION_UUID "7F7FA377-E695-4280-9F1F-96126F3D2C2A"
 #define RUNTIME_UUID "A2AC5CB5-8C52-456C-9525-601A5B0725DA"
 #define MODULE_UUID "1ACE5D3A-2B52-43FB-A136-007BD166CFD0"
-#define MANIFEST_FILENAME "manifest"
 #define LICENSE_FILENAME "LICENSE.txt"
 #define INSTALLED_MARKER_FILENAME ".installed"
 
@@ -28,10 +30,14 @@ namespace UTILS_NS
 		UNKNOWN
 	};
 
+
 	/**
 	 * Represents a single component dependency -- 
 	 * one line in the application manifest
 	 */
+	class Dependency;
+	typedef SharedPtr<Dependency> SharedDependency;
+
 	class KROLL_API Dependency
 	{
 		Dependency(KComponentType type,
@@ -70,9 +76,14 @@ namespace UTILS_NS
 			KComponentType type, const std::string &name, const std::string &version);
 	};
 
+
+
 	/**
 	 * Represents a concrete Kroll components -- a runtime or module found on disk
 	 */
+	class KComponent;
+	typedef SharedPtr<UTILS_NS::KComponent> SharedComponent;
+
 	class KROLL_API KComponent
 	{
 	public:
@@ -98,57 +109,6 @@ namespace UTILS_NS
 			const std::string& path,
 			vector<SharedComponent>& components,
 			bool onlyBundled);
-	};
-
-
-	class KROLL_API ManifestHandler
-	{
-		const std::string manifestPath;
-
-		string name;
-		string version;
-		string id;
-		string guid;
-		string url;
-		string publisher;
-		string image;
-		string logLevel;
-
-		map<string, string> dep;
-
-	public:
-		ManifestHandler(const std::string &_manifestPath);
-		~ManifestHandler();
-
-		void ParseManifest(const map<string, string>& manifest);
-
-		std::string getManifestPath() const { return manifestPath; }
-		string getName() const { return this->name; }
-		string getVersion() const { return this->version; }
-		string getId() const { return this->id; }
-		string getGUID() const { return this->guid; }
-		string getURL() const { return this->url; }
-		string getPublisher() const { return this->publisher; }
-		string getImage() const { return this->image; }
-		string getLogLevel() const { return this->logLevel; }
-
-		void getDependencies(map<string, string> & _dep);
-
-		/**
-		 * checks for the existance of manifest file in given directory
-		 * @param: dir: the directory for checking the manifest file.
-		 * @return bool: true if the manifest file exists, false otherwise.
-		 */
-		static bool doesManifestFileExistsAtDirectory(const std::string & dir);
-
-		static string getManifestPathAtDirectory(const string &dir);
-
-		/**
-		 * Read a manifest file. 
-		 * @returns a vector of key-value pairs which represent the 
-		 *    manifest's contents or an empty vector if it cannot be read.
-		 */
-		static void ReadManifestFile(const std::string &path, map<string, string> &manifest);
 	};
 
 	namespace BootUtils

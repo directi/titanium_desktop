@@ -58,6 +58,11 @@ namespace UTILS_NS
 		return FileUtils::Join(this->GetResourcesPath().c_str(),
 			this->manifestHandler.getImage().c_str(), NULL);
 	}
+
+	std::string Application::getRuntimePath() const
+	{
+		return this->runtime->path;
+	}
 	
 	void Application::ParseManifest(const map<string, string>& manifest)
 	{

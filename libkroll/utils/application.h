@@ -7,6 +7,7 @@
 #define _KR_UTILS_APPLICATION_H_
 
 #include "boot_utils.h"
+#include "ManifestHandler.h"
 
 namespace UTILS_NS
 {
@@ -18,6 +19,9 @@ namespace UTILS_NS
 	/**
 	 * Represents a concrete Kroll application -- found on disk
 	 */
+	class Application;
+	typedef SharedPtr<Application> SharedApplication;
+
 	class KROLL_API Application
 	{
 	private:
@@ -56,6 +60,7 @@ namespace UTILS_NS
 
 		string getPath() const { return this->path; }
 		SharedComponent getRuntime() const { return this->runtime; }
+		std::string getRuntimePath() const;
 		void getModules(vector<SharedComponent> &_modules) const;
 
 		void getDependencies(vector<SharedDependency> &_dependencies) const;

@@ -6,6 +6,7 @@
 #ifndef _KR_URL_UTILS_H_
 #define _KR_URL_UTILS_H_
 #include <string>
+#include "../base.h"
 namespace UTILS_NS
 {
 	namespace URLUtils

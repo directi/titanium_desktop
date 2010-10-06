@@ -15,11 +15,9 @@
 #define _KROLL_H_
 
 #include "base.h"
-#include <Poco/SharedPtr.h>
 #include <Poco/AutoPtr.h>
 #include <vector>
 
-using Poco::SharedPtr;
 using Poco::AutoPtr;
 
 #ifndef OS_WIN32
@@ -63,13 +61,6 @@ namespace kroll
 	typedef ArgList ValueList;
 
 	class Module;
-	class Application;
-	class KComponent;
-	class Dependency;
-
-	typedef SharedPtr<KComponent> SharedComponent;
-	typedef SharedPtr<Application> SharedApplication;
-	typedef SharedPtr<Dependency> SharedDependency;
 }
 
 #ifndef OS_WIN32

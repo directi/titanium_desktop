@@ -142,6 +142,8 @@ namespace kroll
 		this->Initialize(argc, argv);
 	}
 
+	SharedApplication Host::GetApplication() { return this->application; }
+
 	static void AssertEnvironmentVariable(std::string variable)
 	{
 		if (!Environment::has(variable))

@@ -6,6 +6,9 @@
 #ifndef _KR_FILE_UTILS_H_
 #define _KR_FILE_UTILS_H_
 
+
+#include "../base.h"
+
 #ifdef OS_WIN32
 #include <windows.h>
 #undef CreateDirectory

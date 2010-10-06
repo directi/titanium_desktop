@@ -7,6 +7,8 @@
 #ifndef _KR_VALUE_H_
 #define _KR_VALUE_H_
 
+#include <Poco/SharedPtr.h>
+
 /**
  * The toplevel kroll namespace.
  */

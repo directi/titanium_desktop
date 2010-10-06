@@ -10,6 +10,8 @@
 #include <Poco/Timestamp.h>
 #include <Poco/Mutex.h>
 
+#include "utils/application.h"
+
 namespace kroll
 {
 	class Module;
@@ -43,7 +45,7 @@ namespace kroll
 		 */
 		static Host* GetInstance();
 
-		SharedApplication GetApplication() { return this->application; }
+		SharedApplication GetApplication();
 		bool DebugModeEnabled() const { return this->debug; }
 		bool ProfilingEnabled() const { return this->profile; }
 		Poco::Timestamp::TimeDiff GetElapsedTime() const { return timeStarted.elapsed(); }

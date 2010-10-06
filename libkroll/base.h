@@ -135,4 +135,19 @@
 #define PRINTD(x)
 #endif
 
+#if defined(KROLL_API_EXPORT) || defined(_KROLL_H_)
+	#ifdef OS_WIN32
+		#include <winsock2.h>
+		#include <windows.h>
+	#endif
+
+	#include <Poco/SharedPtr.h>
+	using Poco::SharedPtr;
+	#define UTILS_NS kroll
+#else
+	#define UTILS_NS KrollUtils
+	#include "utils/poco/KSharedPtr.h"
+	using KPoco::SharedPtr;
+#endif
+
 #endif

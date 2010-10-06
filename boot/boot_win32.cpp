@@ -75,12 +75,12 @@ void KrollWin32Boot::ShowErrorImpl(const string & msg, bool fatal) const
 void KrollWin32Boot::BootstrapPlatformSpecific(const std::string & path)
 {
 	// Add runtime path and all module paths to PATH
-	std::string newpath = app->getRuntime()->path + ";" + path;
+	std::string newpath = app->getRuntimePath() + ";" + path;
 	string currentPath(EnvironmentUtils::Get("PATH"));
 	EnvironmentUtils::Set("KR_ORIG_PATH", currentPath);
 
 	// make sure the runtime folder is used before system DLL directories
-	SetDllDirectoryW(KrollUtils::UTF8ToWide(app->getRuntime()->path).c_str());
+	SetDllDirectoryW(KrollUtils::UTF8ToWide(app->getRuntimePath()).c_str());
 
 	if (!currentPath.empty())
 		newpath = newpath + ";" + currentPath;

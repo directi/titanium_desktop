@@ -7,6 +7,8 @@
 #define _KR_ENVIRONMENT_UTILS_H_
 #include <string>
 
+#include "../base.h"
+
 namespace UTILS_NS
 {
 

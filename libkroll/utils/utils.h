@@ -10,30 +10,7 @@
 // If this is a version of the utils which doesn't
 // include libkroll, we should use our simple version
 // of SharedPtr -- if not use Poco's which is thread-safe.
-#if defined(KROLL_API_EXPORT) || defined(_KROLL_H_)
-	#ifdef OS_WIN32
-		#include <winsock2.h>
-		#include <windows.h>
-	#endif
 
-	#include "../kroll.h"
-	using Poco::SharedPtr;
-	#define UTILS_NS kroll
-#else
-	#define UTILS_NS KrollUtils
-	#include "poco/KSharedPtr.h"
-	using KPoco::SharedPtr;
-	
-	namespace KrollUtils
-	{
-		class KComponent;
-		class Application;
-		class Dependency;
-		typedef SharedPtr<UTILS_NS::KComponent> SharedComponent;
-		typedef SharedPtr<UTILS_NS::Application> SharedApplication;
-		typedef SharedPtr<UTILS_NS::Dependency> SharedDependency;
-	}
-#endif
 
 #include "application.h"
 #include "file_utils.h"

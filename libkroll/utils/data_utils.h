@@ -6,6 +6,10 @@
 #ifndef _KR_DATA_UTILS_H_
 #define _KR_DATA_UTILS_H_
 #include <string>
+
+#include "../base.h"
+
+
 namespace UTILS_NS
 {
 	namespace DataUtils
