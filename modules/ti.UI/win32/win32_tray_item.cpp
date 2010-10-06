@@ -225,7 +225,7 @@ namespace ti
 			UINT position = (UINT) wParam;
 			return Win32MenuItem::HandleClickEvent(nativeMenu, position);
 		}
-		else if (message = trayCreatedMessage) 
+		else if (message == trayCreatedMessage) 
 		{
 			for (size_t i = 0; i < trayItems.size(); i++)
 			{
