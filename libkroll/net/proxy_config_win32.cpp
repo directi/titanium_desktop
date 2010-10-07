@@ -3,19 +3,30 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
-#include "../kroll.h"
-#include "net.h"
+
+// TODO: fix the win32_utils.h dependency to base.h
+#include "../base.h"
+#include "../utils/win32/win32_utils.h"
+
 #define _WINSOCKAPI_
 #include <winsock2.h>
 #include <windows.h>
-#include <new.h>
-#include <objbase.h>
 #include <winhttp.h>
+
+#include <string>
+#include <vector>
+
 using std::string;
 using std::wstring;
 using std::vector;
-using Poco::URI;
+
+#include <Poco/UTF8String.h>
+#include <Poco/StringTokenizer.h>
+
 using Poco::StringTokenizer;
+
+#include "proxy_config.h"
+
 
 namespace kroll
 {

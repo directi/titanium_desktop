@@ -3,7 +3,7 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
-#include "../kroll.h"
+
 #include "net.h"
 #include <libproxy/proxy.h>
 using std::string;

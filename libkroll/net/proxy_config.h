@@ -5,8 +5,20 @@
  */
 #ifndef _KR_PROXY_CONFIG_H_
 #define _KR_PROXY_CONFIG_H_
+
+#include "../base.h"
+#include "../logger.h"
+
+#include <Poco/URI.h>
+
+using Poco::URI;
+typedef SharedPtr<Poco::URI> SharedURI;
+
 namespace kroll
 {
+	class Proxy;
+	typedef SharedPtr<Proxy> SharedProxy;
+
 	class KROLL_API BypassEntry
 	{
 	public:

@@ -5,12 +5,17 @@
  */
 
 #include "php_module.h"
-#include <sstream>
+
 #include <map>
+#include <sstream>
 #include <algorithm>
  
-using std::string;
 using std::map;
+using std::string;
+
+#include <Poco/StringTokenizer.h>
+
+using Poco::StringTokenizer;
 
 namespace kroll
 {

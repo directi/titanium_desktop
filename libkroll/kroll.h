@@ -33,9 +33,9 @@ using Poco::AutoPtr;
 	#pragma GCC visibility pop
 #endif
 
+#include "net/net.h"
 #include "binding/binding.h"
 #include "utils/utils.h"
-#include "net/net.h"
 #include "reference_counted.h"
 #include "logger.h"
 
