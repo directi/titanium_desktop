@@ -4,7 +4,7 @@
  * Copyright (c) 2008-2010 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "../Host.h"
+#include "../host.h"
 
 #include "value.h"
 #include "arg_list.h"

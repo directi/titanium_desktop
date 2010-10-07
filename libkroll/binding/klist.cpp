@@ -7,6 +7,7 @@
 #include <sstream>
 #include <cmath>
 #include <climits>
+#include <string.h>
 
 #include "klist.h"
 #include "value.h"

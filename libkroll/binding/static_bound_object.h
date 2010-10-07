@@ -15,6 +15,7 @@
 
 #include "../base.h"
 
+#include "value.h"
 #include "kobject.h"
 #include "static_bound_method.h"
 
