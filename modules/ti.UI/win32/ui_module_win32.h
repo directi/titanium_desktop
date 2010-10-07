@@ -31,7 +31,6 @@ namespace ti
 
 #include <WebKit/WebKit.h>
 #include <WebKit/WebKitCOMAPI.h>
-#include <WebKit/WebKitTitanium.h>
 #include <cairo/cairo.h>
 #include <cairo/cairo-win32.h>
 #include "../url/url.h"

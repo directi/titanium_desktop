@@ -1,6 +1,22 @@
 #!/usr/bin/env python
 from os import path
-Import('build build_module_from_directory')
+from kroll import Module
+Import('build')
+
+def build_module_from_directory(dir):
+	name = dir.lower().replace('.', '')
+	module = Module(name, build.version, path.join(build.dir, 'modules', name, build.version))
+	build.modules.append(module)
+
+	env = build.env.Clone()
+	env.Append(CPPDEFINES=[('MODULE_NAME', name), ('MODULE_VERSION', build.version)])
+
+	SConscript(
+		path.join(dir, 'SConscript'),
+		variant_dir=path.join(build.dir, 'objs', 'modules', name, build.version),
+		exports='build module env',
+		duplicate=0)
+
 
 # These each have their own line because we can comment
 # them out easily if we need temporarily disable one.
@@ -12,9 +28,5 @@ for dir in [
 	'ti.Media',
 	'ti.Platform',
 	'ti.Process',
-	'ti.Monkey',
-	'ti.Database',
-	'ti.Worker',
-	'ti.Codec'
 ]:
 	build_module_from_directory(dir)

@@ -39,6 +39,7 @@ namespace ti
 		std::wstring var = L"CURL_CA_BUNDLE_PATH=" + pemPath;
 		_wputenv(var.c_str());
 
+		/* CARL: Needs to fix this
 		// Hook app:// and ti:// URL support to WebKit
 		setNormalizeURLCallback(NormalizeURLCallback);
 		setURLToFileURLCallback(URLToFileURLCallback);
@@ -49,7 +50,7 @@ namespace ti
 		std::string cookieJarFilename(FileUtils::Join(
 			Host::GetInstance()->GetApplication()->GetDataPath().c_str(),
 			"cookies.dat", 0));
-		setCookieJarFilename(cookieJarFilename.c_str());
+		setCookieJarFilename(cookieJarFilename.c_str());*/
 	}
 	
 	Win32UIBinding::~Win32UIBinding()
