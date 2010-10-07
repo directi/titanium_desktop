@@ -19,8 +19,8 @@ using std::map;
 #include <sstream>
 #include "common.h"
 
-#pragma comment(linker, "/EXPORT:NetInstall=_NetInstall@4")
-#pragma comment(linker, "/EXPORT:Clean=_Clean@4")
+//#pragma comment(linker, "/EXPORT:NetInstall=_NetInstall@4")
+//#pragma comment(linker, "/EXPORT:Clean=_Clean@4")
 
 wstring MsiProperty(MSIHANDLE hInstall, const wchar_t* property)
 {

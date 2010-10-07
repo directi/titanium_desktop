@@ -10,6 +10,8 @@ namespace ti
 	std::vector<AutoPtr<Win32TrayItem> > Win32TrayItem::trayItems;
 	UINT Win32TrayItem::trayClickedMessage =
 		::RegisterWindowMessageA(PRODUCT_NAME"TrayClicked");
+	UINT Win32TrayItem::trayCreatedMessage =
+		::RegisterWindowMessageA("TaskbarCreated");
 
 	Win32TrayItem::Win32TrayItem(std::string& iconURL, KMethodRef cbSingleClick) :
 		TrayItem(iconURL),
@@ -222,6 +224,15 @@ namespace ti
 			HMENU nativeMenu = (HMENU) lParam;
 			UINT position = (UINT) wParam;
 			return Win32MenuItem::HandleClickEvent(nativeMenu, position);
+		}
+		else if (message == trayCreatedMessage) 
+		{
+			for (size_t i = 0; i < trayItems.size(); i++)
+			{
+				AutoPtr<Win32TrayItem> item = trayItems[i];
+				Shell_NotifyIcon(NIM_ADD, item->trayIconData);
+			}
+			return false;
 		}
 		else
 		{
