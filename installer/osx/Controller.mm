@@ -176,7 +176,7 @@ static int totalJobs = 0;
 	{
 		type = KrollUtils::APP_UPDATE;
 		name = @"update";
-		version = [NSString stringWithUTF8String:app->version.c_str()];
+		version = [NSString stringWithUTF8String:app->getVersion().c_str()];
 	}
 	else if (url == nil)
 	{
@@ -270,7 +270,7 @@ static int totalJobs = 0;
 	}
 	else if (type == KrollUtils::APP_UPDATE)
 	{
-		destDir = [NSString stringWithUTF8String:app->path.c_str()];
+		destDir = [NSString stringWithUTF8String:app->getPath().c_str()];
 	}
 	else
 	{
@@ -517,27 +517,27 @@ static int totalJobs = 0;
 -(void)setupDialogs
 {
 	NSString* appName = @"Unknown";
-	if (!app->name.empty())
-		appName = [NSString stringWithUTF8String:app->name.c_str()];
+	if (!app->getName().empty())
+		appName = [NSString stringWithUTF8String:app->getName().c_str()];
 
 	NSString* appVersion = @"Unknown";
-	if (!app->version.empty() && updateFile == nil)
+	if (!app->getVersion().empty() && updateFile == nil)
 	{
-		appVersion = [NSString stringWithUTF8String:app->version.c_str()];
+		appVersion = [NSString stringWithUTF8String:app->getVersion().c_str()];
 	}
-	else if (!app->version.empty())
+	else if (!app->getVersion().empty())
 	{
-		appVersion = [NSString stringWithUTF8String:app->version.c_str()];
+		appVersion = [NSString stringWithUTF8String:app->getVersion().c_str()];
 		appVersion = [appVersion stringByAppendingString:@" (Update)"];
 	}
 
 	NSString* appPublisher = @"Unknown";
-	if (!app->publisher.empty())
-		appPublisher = [NSString stringWithUTF8String:app->publisher.c_str()];
+	if (!app->getPublisher().empty())
+		appPublisher = [NSString stringWithUTF8String:app->getPublisher().c_str()];
 
 	NSString* appURL = @"Unknown";
-	if (!app->url.empty())
-		appURL = [NSString stringWithUTF8String:app->url.c_str()];
+	if (!app->getURL().empty())
+		appURL = [NSString stringWithUTF8String:app->getURL().c_str()];
 
 	[self createInstallerMenu:appName];
 	[progressAppName setStringValue:appName];
@@ -553,10 +553,10 @@ static int totalJobs = 0;
 	[introAppPublisher setFont:[NSFont boldSystemFontOfSize:12]];
 	[introAppURL setFont:[NSFont boldSystemFontOfSize:12]];
 
-	if (!app->image.empty())
+	if (!app->getImage().empty())
 	{
 		NSImage* img = [[NSImage alloc] initWithContentsOfFile:
-			[NSString stringWithUTF8String:app->image.c_str()]];
+			[NSString stringWithUTF8String:app->getImage().c_str()]];
 		if ([img isValid])
 		{
 			[progressImage setImage:img];
@@ -567,7 +567,7 @@ static int totalJobs = 0;
 
 -(void)showIntroDialog
 {
-	string licensePathString(FileUtils::Join(app->path.c_str(), LICENSE_FILENAME, 0));
+	string licensePathString(FileUtils::Join(app->getPath().c_str(), LICENSE_FILENAME, 0));
 	NSString* licensePath = [NSString stringWithUTF8String:licensePathString.c_str()];
 	NSFileManager* fm = [NSFileManager defaultManager];
 	if ([fm fileExistsAtPath:licensePath])

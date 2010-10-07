@@ -76,21 +76,6 @@ SharedApplication CreateApplication(MSIHANDLE hInstall)
 	return Application::NewApplication(manifest);
 }
 
-vector<SharedDependency> FindUnresolvedDependencies(SharedApplication app)
-{
-	// We cannot resolve dependencies in the normal way, since we aren't
-	// installed yet. Instead, go through the dependencies and try to
-	// resolve them manuallly.
-	vector<SharedDependency> unresolved;
-	vector<SharedComponent>& components = BootUtils::GetInstalledComponents(true);
-	for (size_t i = 0; i < app->dependencies.size(); i++)
-	{
-		SharedDependency dependency(app->dependencies[i]);
-		if (BootUtils::ResolveDependency(dependency, components).isNull())
-			unresolved.push_back(dependency);
-	}
-	return unresolved;
-}
 
 // A helper function that sends a progress message to the installer, returns
 // false if the user has cancelled the action.
@@ -236,7 +221,8 @@ extern "C" UINT __stdcall NetInstall(MSIHANDLE hInstall)
 	}
 
 	// If the SDK is listed, we need to ignore other non-SDK components below.
-	vector<SharedDependency> unresolved = FindUnresolvedDependencies(app);
+	vector<SharedDependency> unresolved;
+	app->getUnresolvedDependencies(unresolved);
 	bool sdkInstalled = false;
 	for (size_t i = 0; i < unresolved.size(); i++)
 	{

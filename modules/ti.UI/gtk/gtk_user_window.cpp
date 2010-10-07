@@ -1486,7 +1486,7 @@ namespace ti
 		}
 
 		gtk_window_set_title(GTK_WINDOW(dialog),
-			Host::GetInstance()->GetApplication()->name.c_str());
+			Host::GetInstance()->GetApplication()->getName().c_str());
 
 		gint response = gtk_dialog_run(GTK_DIALOG(dialog));
 		bool toReturn = ((type == PROMPT && response == GTK_RESPONSE_OK) ||

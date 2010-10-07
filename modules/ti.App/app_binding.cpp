@@ -77,15 +77,6 @@ namespace ti
 		this->SetMethod("getGUID", &AppBinding::GetGUID);
 
 		/**
-		 * @tiapi(method=True,name=App.getStreamURL,since=0.4)
-		 * @tiapi Return the stream URL for the application's updates.
-		 * @tiarg[String, ...] Any number of String arguments which will be
-		 * @tiarg appended as path components of the stream URL.
-		 * @tiresult[String] The stream URL for application updates.
-		 */
-		this->SetMethod("getStreamURL", &AppBinding::GetStreamURL);
-
-		/**
 		 * @tiapi(method=True,type=String,name=App.getPath,since=0.8)
 		 * @tiapi Return the full path to the application executable.
 		 * @tiresult[String] The full path to the application executable.
@@ -184,13 +175,6 @@ namespace ti
 		 * @tiresult[String] The application icon path.
 		 */
 		this->SetMethod("getIcon", &AppBinding::GetIcon);
-
-		// Don't document these temporary API points. This will be replaced by
-		// a generic method of reading arbitrary property values from tiapp.xml.
-		this->SetBool("analyticsEnabled",
-			AppConfig::Instance()->IsAnalyticsEnabled());
-		this->SetBool("updateMonitorEnabled",
-			AppConfig::Instance()->IsUpdateMonitorEnabled());
 			
 		this->Setup();	
 	}
@@ -235,7 +219,7 @@ namespace ti
 	}
 	void AppBinding::GetGUID(const ValueList& args, KValueRef result)
 	{
-		std::string guid = host->GetApplication()->guid;
+		std::string guid = host->GetApplication()->getGUID();
 		result->SetString(guid);
 	}
 
@@ -356,31 +340,18 @@ namespace ti
 		result->SetString(input);
 	}
 
-	void AppBinding::GetStreamURL(const ValueList& args, KValueRef result)
-	{
-		SharedApplication app = this->host->GetApplication();
-		std::string url(app->GetStreamURL("https"));
-
-		for (size_t c = 0; c < args.size(); c++)
-		{
-			KValueRef arg = args.at(c);
-			if (arg->IsString())
-			{
-				url.append("/");
-				url.append(arg->ToString());
-			}
-		}
-		result->SetString(url);
-	}
-
 	void AppBinding::GetIcon(const ValueList& args, KValueRef result)
 	{
 		SharedApplication app = this->host->GetApplication();
 		result->SetNull();	
 
-		if (app && !app->image.empty())
+		if (app)
 		{
-			result->SetString(app->image);
+			std::string image = app->getImage();
+			if (!image.empty())
+			{
+				result->SetString(image);
+			}
 		}
 	}
 
@@ -391,7 +362,8 @@ namespace ti
 
 	void AppBinding::GetHome(const ValueList& args, KValueRef result)
 	{
-		result->SetString(host->GetApplication()->path.c_str());
+		std::string path = host->GetApplication()->getPath();
+		result->SetString(path);
 	}
 
 	void AppBinding::GetArguments(const ValueList& args, KValueRef result)

@@ -125,7 +125,7 @@ WindowConfig::WindowConfig()
 	this->maxHeight = -1;
 
 	this->url = URLUtils::BlankPageURL();
-	this->title = Host::GetInstance()->GetApplication()->name;
+	this->title = Host::GetInstance()->GetApplication()->getName();
 }
 
 /*static*/

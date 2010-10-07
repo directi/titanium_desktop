@@ -10,7 +10,6 @@
 #include <kroll/kroll.h>
 #include <curl/curl.h>
 #include "network_binding.h"
-#include "analytics_binding.h"
 
 #if defined(OS_OSX) || defined(OS_LINUX)
 #define EXPORT __attribute__((visibility("default")))
@@ -37,7 +36,6 @@ namespace ti
 
 	private:
 		AutoPtr<NetworkBinding> networkBinding;
-		AutoPtr<AnalyticsBinding> analyticsBinding;
 	};
 
 }

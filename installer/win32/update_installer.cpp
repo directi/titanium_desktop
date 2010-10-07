@@ -181,7 +181,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		// If this is an application update, add a job for the update to
 		// this list of necessary jobs.
 		jobs.push_back(Dependency::NewDependencyFromValues(
-			APP_UPDATE, "appupdate", app->version));
+			APP_UPDATE, "appupdate", app->getVersion()));
 	}
  
 	if (app.isNull())
@@ -203,7 +203,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		ExitWithError("The installer could not initialize COM.", __LINE__);
 
 	dialog = new ProgressDialog();
-	dialog->SetTitle(KrollUtils::UTF8ToWide(app->name));
+	dialog->SetTitle(KrollUtils::UTF8ToWide(app->getName()));
 	dialog->SetCancelMessage(L"Aborting installation...");
 	dialog->SetLineText(1, L"Installing components", false);
 	dialog->Show();

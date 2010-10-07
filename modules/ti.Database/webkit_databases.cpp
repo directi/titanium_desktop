@@ -41,7 +41,7 @@ namespace ti
 			// This code is loosely based on:
 			//http://www.opensource.apple.com/darwinsource/Current/WebCore-5525.18.1/platform/SecurityOrigin.cpp
 			origin.append("app_"); // Protocol
-			origin.append(Host::GetInstance()->GetApplication()->id);
+			origin.append(Host::GetInstance()->GetApplication()->getId());
 			origin.append("_0"); // Port
 		}
 		return origin;

@@ -13,7 +13,7 @@ namespace ti
 /*static*/
 bool Notification::InitializeImpl()
 {
-	std::string& appName = Host::GetInstance()->GetApplication()->name;
+	std::string appName = Host::GetInstance()->GetApplication()->getName();
 	return notify_init(appName.c_str());
 }
 
