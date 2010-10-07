@@ -4,7 +4,11 @@
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "../kroll.h"
+#include "value.h"
+#include "klist.h"
+#include "static_bound_object.h"
+#include "k_function_ptr_method.h"
+
 
 namespace kroll
 {

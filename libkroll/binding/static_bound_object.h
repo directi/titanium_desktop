@@ -13,6 +13,11 @@
 
 #include <Poco/Mutex.h>
 
+#include "../base.h"
+
+#include "kobject.h"
+#include "static_bound_method.h"
+
 namespace kroll
 {
 	/**

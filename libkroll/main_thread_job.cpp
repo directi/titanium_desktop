@@ -5,7 +5,12 @@
  */
 
 #include <Poco/Semaphore.h>
-#include "kroll.h"
+
+#include "binding/kmethod.h"
+
+#include "logger.h"
+#include "main_thread_job.h"
+
 
 namespace kroll
 {

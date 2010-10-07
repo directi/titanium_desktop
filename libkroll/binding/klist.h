@@ -10,11 +10,17 @@
 #include <string>
 #include <cctype>
 
+#include "../base.h"
+
+#include "kobject.h"
+#include "binding_declaration.h"
+
 namespace kroll
 {
 	/**
-	 * A binding that represents a list§
+	 * A binding that represents a list
 	 */
+
 	class KROLL_API KList : public KObject
 	{
 	public:

@@ -4,13 +4,16 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "../kroll.h"
+
 #include <cstdio>
 #include <cstring>
 #include <iostream>
 #include <sstream>
 #include <Poco/Stopwatch.h>
 #include <Poco/ScopedLock.h>
+
+#include "value.h"
+#include "profiled_global_object.h"
 
 namespace kroll
 {

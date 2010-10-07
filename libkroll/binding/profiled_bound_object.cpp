@@ -4,13 +4,22 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "../kroll.h"
+
 #include <cstdio>
 #include <cstring>
 #include <iostream>
 #include <sstream>
+
+#include <Poco/Mutex.h>
 #include <Poco/Stopwatch.h>
 #include <Poco/ScopedLock.h>
+#include <Poco/FileStream.h>
+
+#include "../host.h"
+
+#include "value.h"
+#include "profiled_bound_list.h"
+#include "profiled_bound_method.h"
 
 namespace kroll
 {

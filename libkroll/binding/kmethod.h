@@ -8,6 +8,13 @@
 #define _K_METHOD_H_
 #include <cstdarg>
 
+#include "../base.h"
+
+#include "kobject.h"
+#include "callback.h"
+#include "binding_declaration.h"
+
+
 namespace kroll
 {
 	typedef Callback2<const ValueList&, KValueRef>::Type MethodCallback;

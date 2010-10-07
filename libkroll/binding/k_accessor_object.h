@@ -7,6 +7,11 @@
 #ifndef _KR_ACCESSOR_BOUND_OBJECT_H_
 #define _KR_ACCESSOR_BOUND_OBJECT_H_
 
+#include "../base.h"
+
+#include "k_accessor.h"
+#include "static_bound_object.h"
+
 namespace kroll
 {
 	class KROLL_API KAccessorObject : public StaticBoundObject, public KAccessor

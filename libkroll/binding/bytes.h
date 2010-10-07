@@ -7,18 +7,23 @@
 #ifndef _KR_BYTES_OBJECT_H_
 #define _KR_BYTES_OBJECT_H_
 
-#include "../kroll.h"
 #include <vector>
 #include <string>
 #include <map>
 #include <cstring>
+
 #include <Poco/Data/BLOB.h>
+
+#include "../base.h"
+
+#include "static_bound_object.h"
 
 namespace kroll
 {
 	/**
-	 * An object that represents an arbitrary amount of binary data§
+	 * An object that represents an arbitrary amount of binary data
 	 */
+
 	class KROLL_API Bytes : public StaticBoundObject
 	{
 	public:

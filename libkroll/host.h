@@ -7,14 +7,25 @@
 #ifndef _KR_HOST_H_
 #define _KR_HOST_H_
 
-#include <Poco/Timestamp.h>
+#ifdef OS_WIN32
+#include "win32/event_window.h"
+#endif
+
+
 #include <Poco/Mutex.h>
+#include <Poco/Timestamp.h>
+#include <Poco/FileStream.h>
 
 #include "utils/application.h"
 
+#include "binding/global_object.h"
+
+#include "module.h"
+#include "module_provider.h"
+#include "main_thread_job.h"
+
 namespace kroll
 {
-	class Module;
 	typedef std::vector<SharedPtr<Module> > ModuleList;
 
 	/**

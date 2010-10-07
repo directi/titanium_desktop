@@ -10,6 +10,10 @@
 #include <Poco/StringTokenizer.h>
 #include <Poco/Data/BLOB.h>
 
+#include "value.h"
+#include "arg_list.h"
+#include "static_bound_list.h"
+
 namespace kroll
 {
 	Bytes::Bytes() : StaticBoundObject("Bytes")

@@ -3,6 +3,10 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
+
+#ifndef _LOGGER_H_
+#define _LOGGER_H_
+
 #include <Poco/Logger.h>
 #include <Poco/Message.h>
 #include <Poco/Mutex.h>
@@ -11,6 +15,7 @@
 #include <iostream>
 #include <fstream>
 
+#include "base.h"
 #include "LoggerFile.h"
 
 namespace kroll
@@ -123,3 +128,4 @@ namespace kroll
 
 }
 
+#endif // _LOGGER_H_

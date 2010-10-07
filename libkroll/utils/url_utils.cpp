@@ -8,7 +8,7 @@
 #include <Poco/URI.h>
 #include <Poco/TemporaryFile.h>
 #include <Poco/FileStream.h>
-#include "../kroll.h"
+#include "../Host.h"
 #endif
 namespace UTILS_NS
 {

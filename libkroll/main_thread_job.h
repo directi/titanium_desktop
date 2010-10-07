@@ -8,6 +8,12 @@
 
 #include <Poco/Semaphore.h>
 
+#include "base.h"
+#include "binding/arg_list.h"
+#include "binding/value_exception.h"
+#include "binding/binding_declaration.h"
+
+
 namespace kroll
 {
 	class KROLL_API MainThreadJob

@@ -29,50 +29,16 @@ using Poco::AutoPtr;
 	#pragma GCC visibility push(default)
 #endif
 
-namespace kroll
-{
-	class Value;
-	class KObject;
-	class KMethod;
-	class KList;
-
-	class StaticBoundObject;
-	class StaticBoundMethod;
-	class StaticBoundList;
-
-	class GlobalObject;
-	class ScopeMethodDelegate;
-	class Bytes;
-	class VoidPtr;
-	class ValueReleasePolicy;
-	class Logger;
-	class ArgList;
-
-	typedef AutoPtr<Value> KValueRef;
-	typedef AutoPtr<KObject> KObjectRef;
-	typedef AutoPtr<KMethod> KMethodRef;
-	typedef AutoPtr<KList> KListRef;
-	typedef AutoPtr<Bytes> BytesRef;
-
-	typedef SharedPtr<std::string> SharedString;
-	typedef std::vector<SharedString> StringList;
-	typedef SharedPtr<StringList> SharedStringList;
-
-	typedef ArgList ValueList;
-
-	class Module;
-}
-
 #ifndef OS_WIN32
 	#pragma GCC visibility pop
 #endif
 
+#include "binding/binding.h"
 #include "utils/utils.h"
 #include "net/net.h"
 #include "reference_counted.h"
 #include "logger.h"
 
-#include "binding/binding.h"
 #include "module_provider.h"
 #include "module.h"
 #include "async_job.h"

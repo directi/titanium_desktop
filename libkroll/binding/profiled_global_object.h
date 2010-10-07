@@ -7,6 +7,9 @@
 #ifndef _KR_PROFILED_GLOBAL_OBJECT_H_
 #define _KR_PROFILED_GLOBAL_OBJECT_H_
 
+#include "global_object.h"
+#include "profiled_bound_object.h"
+
 namespace kroll
 {
 	class KROLL_API ProfiledGlobalObject : public GlobalObject

@@ -7,6 +7,11 @@
 #ifndef _KR_FUNCTION_PTR_METHOD_H_
 #define _KR_FUNCTION_PTR_METHOD_H_
 
+#include "../base.h"
+
+#include "value.h"
+#include "kmethod.h"
+
 namespace kroll
 {
 

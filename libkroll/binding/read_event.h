@@ -7,6 +7,12 @@
 #ifndef _KR_READ_EVENT_H_
 #define _KR_READ_EVENT_H_
 
+#include "../base.h"
+
+#include "event.h"
+#include "binding_declaration.h"
+
+
 namespace kroll
 {
 	class KROLL_API ReadEvent : public Event

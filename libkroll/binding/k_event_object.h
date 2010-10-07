@@ -10,6 +10,10 @@
 #include <list>
 #include <Poco/Mutex.h>
 
+#include "../base.h"
+
+#include "event.h"
+
 namespace kroll
 {
 	class EventListener;

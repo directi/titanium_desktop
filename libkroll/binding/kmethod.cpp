@@ -4,9 +4,14 @@
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "../kroll.h"
+
 #include <sstream>
 #include <cmath>
+
+#include "value.h"
+#include "arg_list.h"
+#include "kmethod.h"
+#include "profiled_bound_method.h"
 
 namespace kroll
 {

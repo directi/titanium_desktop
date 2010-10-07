@@ -4,9 +4,12 @@
  * Copyright (c) 2008, 2009 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "../kroll.h"
+
 #include <cstdio>
 #include <cstring>
+
+#include "value.h"
+#include "k_accessor_method.h"
 
 namespace kroll
 {

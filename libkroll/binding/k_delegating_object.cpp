@@ -4,8 +4,13 @@
  * Copyright (c) 2008, 2009 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "../kroll.h"
+
 #include <cstring>
+
+#include "value.h"
+#include "k_delegating_object.h"
+#include "static_bound_object.h"
+
 
 namespace kroll
 {

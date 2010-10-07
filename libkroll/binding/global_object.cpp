@@ -4,7 +4,13 @@
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "../kroll.h"
+#include "../script.h"
+
+#include "value.h"
+#include "global_object.h"
+#include "profiled_global_object.h"
+
+
 namespace kroll
 {
 	AutoPtr<GlobalObject> GlobalObject::instance;

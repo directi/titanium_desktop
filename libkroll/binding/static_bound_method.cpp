@@ -4,7 +4,9 @@
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "../kroll.h"
+#include "value.h"
+#include "static_bound_list.h"
+
 
 namespace kroll
 {

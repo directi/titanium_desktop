@@ -6,13 +6,10 @@
 #ifndef _KROLL_LOGGERFILE_H_
 #define _KROLL_LOGGERFILE_H_
 
-
-#ifdef OS_OSX
-#import <Foundation/Foundation.h>
-#endif
-
 #include <list>
 #include <string>
+
+#include "base.h"
 
 #include "LoggerWriter.h"
 

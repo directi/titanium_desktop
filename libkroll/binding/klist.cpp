@@ -4,10 +4,14 @@
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "../kroll.h"
 #include <sstream>
 #include <cmath>
 #include <climits>
+
+#include "klist.h"
+#include "value.h"
+#include "value_exception.h"
+#include "profiled_bound_list.h"
 
 namespace kroll
 {

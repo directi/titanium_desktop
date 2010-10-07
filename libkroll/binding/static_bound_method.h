@@ -7,6 +7,12 @@
 #ifndef _KR_STATIC_BOUND_METHOD_H_
 #define _KR_STATIC_BOUND_METHOD_H_
 
+
+#include "../base.h"
+
+#include "kmethod.h"
+#include "binding_declaration.h"
+
 namespace kroll
 {
 

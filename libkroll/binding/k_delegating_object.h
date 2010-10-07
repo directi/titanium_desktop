@@ -10,6 +10,8 @@
 #include <string>
 #include <map>
 
+#include "../base.h"
+
 #include <Poco/Mutex.h>
 
 namespace kroll

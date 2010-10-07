@@ -4,7 +4,13 @@
  * Copyright (c) 2008-2010 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "../kroll.h"
+#include "../Host.h"
+
+#include "value.h"
+#include "arg_list.h"
+#include "global_object.h"
+#include "k_event_object.h"
+#include "value_exception.h"
 
 namespace kroll
 {

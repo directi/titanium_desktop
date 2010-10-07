@@ -47,8 +47,6 @@
 #ifdef OS_WIN32
 #ifndef WINVER
 #define WINVER 0x0502
-#pragma warning(disable: 4005)  // turn off #define redefinition warnings
-#pragma warning(disable: 4996)
 //#define _CRT_SECURE_NO_WARNINGS  // turn off string safe warnings
 #endif
 
@@ -136,11 +134,6 @@
 #endif
 
 #if defined(KROLL_API_EXPORT) || defined(_KROLL_H_)
-	#ifdef OS_WIN32
-		#include <winsock2.h>
-		#include <windows.h>
-	#endif
-
 	#include <Poco/SharedPtr.h>
 	using Poco::SharedPtr;
 	#define UTILS_NS kroll
@@ -150,4 +143,11 @@
 	using KPoco::SharedPtr;
 #endif
 
+
+namespace kroll
+{
+	typedef SharedPtr<std::string> SharedString;
+	typedef std::vector<SharedString> StringList;
+	typedef SharedPtr<StringList> SharedStringList;
+};
 #endif

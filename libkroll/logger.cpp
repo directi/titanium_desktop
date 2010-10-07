@@ -3,19 +3,17 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
-#include "kroll.h"
-#include <cstdarg>
-#include <cstdio>
-#include <iostream>
-#include <fstream>
-#include <Poco/Mutex.h>
 #include <Poco/ScopedLock.h>
 #include <Poco/PatternFormatter.h>
 #include <Poco/Path.h>
 #include <Poco/File.h>
 
+#include <cstdio>
 #include <sstream>
 #include <cstring>
+
+#include "logger.h"
+#include "utils/file_utils.h"
 
 #define LOGGER_MAX_ENTRY_SIZE 2048
 
@@ -372,7 +370,7 @@ namespace kroll
 		{
 			std::string file_path(logFilePath);
 			// Before opening the logfile, ensure that a parent directory exists
-			string logDirectory = FileUtils::Dirname(file_path);
+			std::string logDirectory = FileUtils::Dirname(file_path);
 			File logDirectoryFile = File(logDirectory);
 			logDirectoryFile.createDirectories();
 			{

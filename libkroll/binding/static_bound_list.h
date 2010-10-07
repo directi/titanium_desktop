@@ -7,6 +7,10 @@
 #ifndef _KR_STATIC_BOUND_LIST_H_
 #define _KR_STATIC_BOUND_LIST_H_
 
+#include "klist.h"
+#include "static_bound_object.h"
+
+
 namespace kroll
 {
 

@@ -10,7 +10,12 @@
 #include <vector>
 #include <string>
 #include <map>
+
+#include "../base.h"
+
+#include "value.h"
 #include "callback.h"
+#include "binding_declaration.h"
 
 namespace kroll
 {

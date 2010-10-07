@@ -4,9 +4,13 @@
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "../kroll.h"
+
 #include <sstream>
 #include <cstring>
+
+#include "../host.h"
+
+#include "value.h"
 
 namespace kroll
 {

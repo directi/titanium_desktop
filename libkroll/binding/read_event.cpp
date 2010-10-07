@@ -4,7 +4,11 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "../kroll.h"
+#include "bytes.h"
+#include "value.h"
+#include "read_event.h"
+#include "k_event_object.h"
+
 namespace kroll
 {
 	ReadEvent::ReadEvent(AutoPtr<KEventObject> target, BytesRef data) :

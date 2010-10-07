@@ -4,7 +4,10 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "../kroll.h"
+#include "event.h"
+#include "value.h"
+#include "k_event_object.h"
+
 namespace kroll
 {
 	std::string Event::ALL = "all";

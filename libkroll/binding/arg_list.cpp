@@ -4,8 +4,11 @@
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "../kroll.h"
 #include <sstream>
+
+#include "kmethod.h"
+#include "arg_list.h"
+#include "value_exception.h"
 
 namespace kroll
 {

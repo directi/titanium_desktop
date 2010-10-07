@@ -7,8 +7,15 @@
 #ifndef _KR_EVENT_H_
 #define _KR_EVENT_H_
 
+#include "../base.h"
+
+#include "k_accessor_object.h"
+
 namespace kroll
 {
+	//TODO: remove this fwd declaration..
+	class KEventObject;
+
 	class KROLL_API Event : public KAccessorObject
 	{
 	public:

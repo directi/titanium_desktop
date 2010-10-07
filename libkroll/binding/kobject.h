@@ -10,7 +10,13 @@
 #include <vector>
 #include <string>
 #include <map>
+
+#include "../base.h"
+#include "../logger.h"
+#include "../reference_counted.h"
+
 #include "callback.h"
+#include "binding_declaration.h"
 
 namespace kroll
 {
@@ -25,6 +31,7 @@ namespace kroll
 	 *   This implementation uses an internal map to bind property names
 	 *   to \link Value Values\endlink (objects, methods, etc).
 	 */
+
 	class KROLL_API KObject : public ReferenceCounted
 	{
 	public:

@@ -4,10 +4,13 @@
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "../kroll.h"
+
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+
+#include "value.h"
+#include "static_bound_list.h"
 
 namespace kroll
 {
