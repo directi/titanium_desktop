@@ -16,5 +16,3 @@ SConscript('libkroll/SConscript', build_dir=path.join(build.dir,'objs','libkroll
 # before here.
 build.env.Append(LIBS=['khost'])
 build.env.Append(LIBPATH=[build.runtime_build_dir])
-
-SConscript('modules/SConscript')
