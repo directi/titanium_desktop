@@ -3,13 +3,18 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
-#include "../kroll.h"
-#include "net.h"
+
+#include "proxy_config.h"
+
 #include <libproxy/proxy.h>
+
+#include <string.h>
+
 using std::string;
 using std::wstring;
 using std::vector;
-using Poco::URI;
+
+#include <Poco/StringTokenizer.h>
 using Poco::StringTokenizer;
 
 namespace kroll

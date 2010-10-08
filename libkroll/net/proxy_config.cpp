@@ -3,16 +3,27 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
-#include "../kroll.h"
-#include "net.h"
+
+#include <string>
+#include <vector>
 #include <sstream>
 
 using std::string;
 using std::vector;
+
+#include <Poco/String.h>
+#include <Poco/NumberParser.h>
+#include <Poco/Net/IPAddress.h>
+#include <Poco/StringTokenizer.h>
+
 using Poco::Net::IPAddress;
 using Poco::StringTokenizer;
 using Poco::NumberParser;
-using Poco::URI;
+
+#include "../utils/file_utils.h"
+#include "../utils/environment_utils.h"
+
+#include "proxy_config.h"
 
 namespace kroll
 {

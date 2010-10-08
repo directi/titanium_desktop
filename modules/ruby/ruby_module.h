@@ -39,6 +39,8 @@
 
 #include <kroll/kroll.h>
 
+#include <Poco/Net/IPAddress.h>
+
 #include <ruby.h>
 
 #include "k_ruby_object.h"
