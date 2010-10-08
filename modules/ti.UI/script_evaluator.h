@@ -8,6 +8,7 @@
 #define _SCRIPT_EVALUATOR_H_
 
 #include <kroll/kroll.h>
+
 #if defined(OS_OSX)
 #	import <WebKit/WebKit.h>
 #	import <WebKit/WebViewPrivate.h>
@@ -24,6 +25,8 @@
 #	include <WebKit/WebKitCOMAPI.h>
 #	include <WebKit/WebKitTitanium.h>
 #	include <comutil.h>
+#	include "com_reference_counted.h"
+
 #endif
 #include <Poco/URI.h>
 
