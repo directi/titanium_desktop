@@ -49,6 +49,11 @@ using Poco::Environment;
 #include <kroll/javascript/javascript_module.h>
 #include <kroll/api/api_module.h>
 
+#ifdef OS_OSX
+#include <kroll/osx/osx.h>
+#endif
+
+			
 extern "C"
 {
 	int Execute(int argc, const char **argv)

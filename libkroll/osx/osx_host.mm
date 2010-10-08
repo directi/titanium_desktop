@@ -3,7 +3,12 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
-#include "../kroll.h"
+
+#include "../base.h"
+#include "../host.h"
+
+#include "../utils/file_utils.h"
+#include "../utils/environment_utils.h"
 
 #import <iostream>
 #import <vector>

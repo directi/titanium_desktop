@@ -4,7 +4,9 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "../kroll.h"
+#include "nslog_channel.h"
+
+#include <Foundation/Foundation.h>
 
 namespace kroll
 {
