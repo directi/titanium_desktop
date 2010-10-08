@@ -107,32 +107,6 @@
   TypeName(const TypeName&);                    \
   void operator=(const TypeName&)
 
-
-#if defined(OS_WIN32)
-#ifndef WINVER
-#define WINVER 0x0501
-#endif
-
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0501
-#endif
-
-#ifndef _WIN32_WINDOWS
-#define _WIN32_WINDOWS 0x0410
-#endif
-
-#ifndef _WIN32_IE
-#define _WIN32_IE 0x600
-#endif
-#endif
-
-#ifdef DEBUG
-#include <sstream>
-#define PRINTD(x) { std::ostringstream ostr; ostr << x; kroll::Logger* logger = kroll::Logger::GetRootLogger(); logger->Debug(ostr.str()); };
-#else
-#define PRINTD(x)
-#endif
-
 #if defined(KROLL_API_EXPORT) || defined(_KROLL_H_)
 	#include <Poco/SharedPtr.h>
 	using Poco::SharedPtr;

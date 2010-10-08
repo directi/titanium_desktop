@@ -4,12 +4,17 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "net.h"
+#include "proxy_config.h"
+
 #include <libproxy/proxy.h>
+
+#include <string.h>
+
 using std::string;
 using std::wstring;
 using std::vector;
-using Poco::URI;
+
+#include <Poco/StringTokenizer.h>
 using Poco::StringTokenizer;
 
 namespace kroll

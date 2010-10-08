@@ -6,6 +6,8 @@
 
 #include "script_binding.h"
 
+#include <kroll/script.h>
+
 namespace kroll
 {
 	ScriptBinding::ScriptBinding()

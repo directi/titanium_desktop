@@ -18,7 +18,7 @@
 #include <Poco/Mutex.h>
 #include <Poco/Event.h>
 
-#include "kroll.h"
+#include "base.h"
 
 namespace kroll
 {

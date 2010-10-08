@@ -7,12 +7,16 @@
 #ifndef _API_BINDING_H_
 #define _API_BINDING_H_
 
-#include <kroll/kroll.h>
 #include <map>
 #include <vector>
 #include <string>
 #include <Poco/Thread.h>
 #include <Poco/RunnableAdapter.h>
+
+#include <kroll/binding/value.h>
+#include <kroll/binding/k_accessor_object.h>
+
+#include <kroll/host.h>
 
 namespace kroll
 {

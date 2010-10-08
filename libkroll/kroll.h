@@ -3,13 +3,6 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
-/**
- * This file is the easiest way to gain access to the full Kroll API
- * To use it, just do the following:
- * \code
- * #include <kroll/kroll.h>
- * \endcode
- */
 
 #ifndef _KROLL_H_
 #define _KROLL_H_
