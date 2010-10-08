@@ -6,7 +6,8 @@
 #ifndef _API_PLUGIN_H
 #define _API_PLUGIN_H
 
-#include <kroll/kroll.h>
+#include <kroll/host.h>
+
 #include "api_binding.h"
 
 namespace kroll

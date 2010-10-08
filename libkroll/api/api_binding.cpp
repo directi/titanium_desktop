@@ -9,8 +9,14 @@
 #include "dependency_binding.h"
 #include "environment_binding.h"
 #include "script_binding.h"
-#include <kroll/thread_manager.h>
 #include <algorithm>
+
+#include <kroll/thread_manager.h>
+
+#include <kroll/binding/bytes.h>
+#include <kroll/binding/static_bound_list.h>
+
+#include <kroll/utils/file_utils.h>
 
 using std::string;
 using std::vector;

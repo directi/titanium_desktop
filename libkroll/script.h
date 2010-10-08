@@ -7,7 +7,9 @@
 #ifndef _KR_SCRIPT_H_
 #define _KR_SCRIPT_H_
 
-#include <kroll/kroll.h>
+#include "binding/binding.h"
+
+#include "reference_counted.h"
 
 namespace kroll
 {

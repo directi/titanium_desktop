@@ -7,10 +7,13 @@
 #ifndef _COMPONENT_BINDING_H_
 #define _COMPONENT_BINDING_H_
 
-#include <kroll/kroll.h>
 #include <map>
 #include <vector>
 #include <string>
+
+#include <kroll/binding/value.h>
+#include <kroll/binding/k_accessor_object.h>
+
 
 namespace kroll
 {

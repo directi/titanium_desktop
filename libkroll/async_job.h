@@ -8,6 +8,11 @@
 #include <Poco/Thread.h>
 #include <Poco/RunnableAdapter.h>
 
+#include "base.h"
+#include "host.h"
+#include "binding/binding.h"
+
+
 namespace kroll
 {
 	class KROLL_API AsyncJob : public StaticBoundObject

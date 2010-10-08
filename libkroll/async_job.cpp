@@ -3,9 +3,11 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
-#include "kroll.h"
+
 #include "thread_manager.h"
 #include <Poco/Bugcheck.h>
+
+#include "async_job.h"
 
 namespace kroll
 {

@@ -3,7 +3,10 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
-#include "kroll.h"
+
+#include "LoggerFile.h"
+#include "LoggerWriter.h"
+
 #include <fstream>
 #include <Poco/Path.h>
 
