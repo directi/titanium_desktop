@@ -7,7 +7,8 @@
 #ifndef _KR_VOID_PTR_OBJECT_H_
 #define _KR_VOID_PTR_OBJECT_H_
 
-#include "../kroll.h"
+#include "../base.h"
+#include "../binding/static_bound_object.h"
 
 namespace kroll
 {
