@@ -4,7 +4,6 @@
  * Copyright (c) 2008, 2009 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "../kroll.h"
 
 #include <dlfcn.h>
 #include <gcrypt.h>
@@ -13,9 +12,19 @@
 #include <gtk/gtk.h>
 #include <pthread.h>
 
+#include <Poco/Mutex.h>
+#include <Poco/ScopedLock.h>
+
+#include "../host.h"
+
+#include "../utils/file_utils.h"
+#include "../utils/environment_utils.h"
+
+
 GCRY_THREAD_OPTION_PTHREAD_IMPL;
-using Poco::ScopedLock;
+
 using Poco::Mutex;
+using Poco::ScopedLock;
 
 namespace kroll
 {
