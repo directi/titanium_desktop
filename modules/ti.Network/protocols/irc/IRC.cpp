@@ -27,6 +27,14 @@
 	get it working well under Titanium
 */
 
+#ifdef DEBUG
+#include <sstream>
+#define PRINTD(x) { std::ostringstream ostr; ostr << x; kroll::Logger* logger = kroll::Logger::GetRootLogger(); logger->Debug(ostr.str()); };
+#else
+#define PRINTD(x)
+#endif
+
+
 #include "IRC.h"
 #ifdef OS_WIN32
 #include <windows.h>
