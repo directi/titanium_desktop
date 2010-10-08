@@ -4,8 +4,8 @@
  * Copyright (c) 2008-2010 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include <kroll/kroll.h>
 #include "javascript_methods.h"
+#include <kroll/host.h>
 #include <Poco/Timer.h>
 
 namespace kroll

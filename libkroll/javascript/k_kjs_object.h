@@ -7,11 +7,18 @@
 #ifndef _KJS_KOBJECT_H_
 #define _KJS_KOBJECT_H_
 
-#include "javascript_module.h"
-
 #include <vector>
 #include <string>
 #include <map>
+
+#include <JavaScriptCore/JSObjectRef.h>
+#include <JavaScriptCore/JSStringRef.h>
+#include <JavaScriptCore/JSContextRef.h>
+
+#include <kroll/base.h>
+#include <kroll/binding/binding.h>
+
+#include "kjs_util.h"
 
 namespace kroll
 {

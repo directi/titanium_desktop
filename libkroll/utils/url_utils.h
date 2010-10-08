@@ -6,7 +6,9 @@
 #ifndef _KR_URL_UTILS_H_
 #define _KR_URL_UTILS_H_
 #include <string>
+
 #include "../base.h"
+
 namespace UTILS_NS
 {
 	namespace URLUtils
@@ -43,7 +45,7 @@ namespace UTILS_NS
 		 * Convert a URL to a path if it is an app://, ti:// or file://
 		 * URL. If this URL cannot be converted to a path, return the original URL
 		 */
-		KROLL_API std::string URLToPath(const string& url);
+		KROLL_API std::string URLToPath(const std::string& url);
 
 		/**
 		 * Path portion of URL which is guauranteed to be a local and * blank file.

@@ -6,6 +6,10 @@
 #ifndef _JAVASCRIPT_MODULE_INSTANCE_H_
 #define _JAVASCRIPT_MODULE_INSTANCE_H_
 
+#include <kroll/base.h>
+#include <kroll/host.h>
+#include <kroll/module.h>
+#include <kroll/utils/file_utils.h>
 namespace kroll
 {
 	class KROLL_API JavaScriptModuleInstance : public Module

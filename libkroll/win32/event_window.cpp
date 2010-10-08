@@ -4,7 +4,11 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "../kroll.h"
+#include "event_window.h"
+
+#include "../logger.h"
+
+#include "../utils/win32/win32_utils.h"
 
 namespace kroll
 {

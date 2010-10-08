@@ -3,7 +3,7 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
-#include "javascript_module.h"
+#include "k_kjs_object.h"
 
 namespace kroll
 {

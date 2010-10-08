@@ -47,8 +47,9 @@
 #ifdef OS_WIN32
 #ifndef WINVER
 #define WINVER 0x0502
-//#define _CRT_SECURE_NO_WARNINGS  // turn off string safe warnings
 #endif
+
+//#define _CRT_SECURE_NO_WARNINGS  // turn off string safe warnings
 
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x0502
