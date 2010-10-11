@@ -39,7 +39,7 @@ namespace ti
 		std::wstring var = L"CURL_CA_BUNDLE_PATH=" + pemPath;
 		_wputenv(var.c_str());
 
-		/* CARL: Needs to fix this
+		/* TODO: CARL Needs to fix this
 		// Hook app:// and ti:// URL support to WebKit
 		setNormalizeURLCallback(NormalizeURLCallback);
 		setURLToFileURLCallback(URLToFileURLCallback);

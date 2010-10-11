@@ -8,6 +8,7 @@
 
 namespace ti
 {
+typedef std::map<unsigned long, IWebURLRequest *> GeneratedRequestsMap;
 
 class Win32WebKitResourceLoadDelegate : public IWebResourceLoadDelegate
 {
@@ -75,6 +76,7 @@ public:
 private:
 	Win32UserWindow* userWindow;
 	int refCount;
+	IWebURLRequest* CreateRequest(unsigned long identifier, BSTR path); 
 };
 
 }

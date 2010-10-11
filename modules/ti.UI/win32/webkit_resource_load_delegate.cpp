@@ -63,7 +63,19 @@ HRESULT STDMETHODCALLTYPE Win32WebKitResourceLoadDelegate::willSendRequest(
 	request->URL(&u);
 	std::wstring u2(u);
 	std::string url(::WideToUTF8(u2));
-	return E_NOTIMPL;
+	if (url.find("app://") == 0 || url.find("ti://") == 0)
+	{
+		std::string path1 = URLUtils::URLToPath(url);
+		std::string path2 = URLUtils::PathToFileURL(path1);
+		_bstr_t path3(path2.c_str());
+		BSTR path = path3.copy();
+
+		*newRequest = CreateRequest(identifier, path);
+	} else {
+		*newRequest = request;	
+		request->AddRef();
+	}
+	return S_OK;
 }
 
 HRESULT STDMETHODCALLTYPE Win32WebKitResourceLoadDelegate::didReceiveAuthenticationChallenge(
@@ -125,5 +137,24 @@ HRESULT STDMETHODCALLTYPE Win32WebKitResourceLoadDelegate::plugInFailedWithError
 	/* [in] */ IWebDataSource *dataSource)
 {
 	return E_NOTIMPL;
+}
+
+IWebURLRequest* Win32WebKitResourceLoadDelegate::CreateRequest(unsigned long identifier, BSTR path) {
+	IWebURLRequest *newRequest;
+	HRESULT hr = WebKitCreateInstance(CLSID_WebURLRequest,
+							0,
+							IID_IWebURLRequest,
+							(void**) &newRequest);
+	if(hr != S_OK)
+		return 0;
+
+	hr = newRequest->initWithURL(path,
+									 WebURLRequestUseProtocolCachePolicy,
+									 60);
+	if(hr != S_OK) {
+		newRequest->Release();
+		newRequest = 0;
+	}
+	return newRequest;
 }
 }

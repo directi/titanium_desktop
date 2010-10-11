@@ -91,8 +91,9 @@ static LRESULT CALLBACK UserWindowWndProc(HWND hWnd, UINT message, WPARAM wParam
 			IWebView* webView = window->GetWebView();
 			if (webView)
 			{
-				handled = webView->forwardingWindowProc(
-					reinterpret_cast<OLE_HANDLE>(hWnd), message, wParam, lParam);
+				// TODO: CARL Needs to fix this.
+				//handled = webView->forwardingWindowProc(
+				//	reinterpret_cast<OLE_HANDLE>(hWnd), message, wParam, lParam);
 
 				// WebKit sometimes causes WM_PAINT messages to fire. We need to ensure
 				// we call DefWindowProc in this case, otherwise Windows will assume
@@ -321,7 +322,7 @@ void Win32UserWindow::InitWebKit()
 			HandleHResultError("Error setting host window", hr, true);
 	}
 
-	hr = webView->initWithFrame(clientRect, 0, 0, oleWindowHandle);
+	hr = webView->initWithFrame(clientRect, 0, 0); //TODO: CARL needs to fix this, oleWindowHandle);
 	if (FAILED(hr))
 		HandleHResultError("Could not intialize WebView with frame", hr, true);
 
@@ -381,8 +382,9 @@ void Win32UserWindow::InitWebKit()
 
 	webViewPrivate->Release();
 
-	_bstr_t inspector_url("ti://runtime/WebKit.resources/inspector/inspector.html");
-	webInspector->setInspectorURL(inspector_url.copy());
+	// TODO: CARL needs to fix this.
+	//_bstr_t inspector_url("ti://runtime/WebKit.resources/inspector/inspector.html");
+	//webInspector->setInspectorURL(inspector_url.copy());
 
 	hr = webView->mainFrame(&mainFrame);
 	if (FAILED(hr) || !webInspector)
