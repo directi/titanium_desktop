@@ -65,8 +65,9 @@ HRESULT STDMETHODCALLTYPE Win32WebKitResourceLoadDelegate::willSendRequest(
 	std::string url(::WideToUTF8(u2));
 	if (url.find("app://") == 0 || url.find("ti://") == 0)
 	{
-		std::string path1 = URLUtils::URLToPath(url);
-		std::string path2 = URLUtils::PathToFileURL(path1);
+		string path0 = URLUtils::NormalizeURL(url);
+		string path1 = URLUtils::URLToPath(path0);
+		string path2 = URLUtils::PathToFileURL(path1);
 		_bstr_t path3(path2.c_str());
 		BSTR path = path3.copy();
 
