@@ -7,17 +7,19 @@
 #ifndef _JAVASCRIPT_METHODS_H_
 #define _JAVASCRIPT_METHODS_H_
 
+#include <kroll/binding/binding.h>
+
 namespace kroll
 {
-namespace JavaScriptMethods
-{
+	namespace JavaScriptMethods
+	{
+		void Bind(KObjectRef global);
+		KValueRef SetTimeout(const ValueList& args);
+		KValueRef SetInterval(const ValueList& args);
+		KValueRef ClearTimeout(const ValueList& args);
+		KValueRef ClearInterval(const ValueList& args);
 
-void Bind(KObjectRef global);
-KValueRef SetTimeout(const ValueList& args);
-KValueRef SetInterval(const ValueList& args);
-KValueRef ClearTimeout(const ValueList& args);
-KValueRef ClearInterval(const ValueList& args);
+	}
+}
 
-}
-}
 #endif

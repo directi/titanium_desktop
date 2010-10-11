@@ -5,8 +5,11 @@
  */
 #include <iostream>
 #include <signal.h>
-#include "javascript_module.h"
+
 #include <Poco/Path.h>
+
+#include "javascript_module.h"
+#include "javascript_methods.h"
 
 namespace kroll
 {

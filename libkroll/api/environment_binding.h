@@ -6,7 +6,9 @@
 #ifndef _ENVIRONMENT_BINDING_H_
 #define _ENVIRONMENT_BINDING_H_
 
-#include <kroll/kroll.h>
+#include <kroll/binding/value.h>
+#include <kroll/binding/kobject.h>
+
 
 namespace kroll
 {

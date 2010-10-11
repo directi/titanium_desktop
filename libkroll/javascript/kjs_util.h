@@ -7,6 +7,13 @@
 #ifndef _KJS_UTIL_H_
 #define _KJS_UTIL_H_
 
+#include <JavaScriptCore/JSObjectRef.h>
+#include <JavaScriptCore/JSStringRef.h>
+#include <JavaScriptCore/JSContextRef.h>
+
+#include <kroll/base.h>
+#include <kroll/binding/binding.h>
+
 namespace kroll
 {
 namespace KJSUtil

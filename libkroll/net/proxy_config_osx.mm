@@ -14,9 +14,6 @@
  * http://developer.apple.com/mac/library/samplecode/CFProxySupportTool/
  */
 
-
-#include "net.h"
-
 #include <Poco/Thread.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <CoreServices/CoreServices.h>
@@ -24,7 +21,12 @@
 
 using std::string;
 using std::vector;
-using Poco::URI;
+
+#include "proxy_config.h"
+#include "../utils/osx/osx_utils.h"
+
+
+#include <Poco/StringTokenizer.h>
 using Poco::StringTokenizer;
 
 namespace kroll

@@ -6,6 +6,8 @@
 
 #include "environment_binding.h"
 
+#include <kroll/utils/environment_utils.h>
+
 namespace kroll
 {
 	KValueRef EnvironmentBinding::Get(const char *name)

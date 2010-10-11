@@ -7,7 +7,8 @@
 #ifndef _SCRIPT_BINDING_H
 #define _SCRIPT_BINDING_H
 
-#include <kroll/kroll.h>
+#include <kroll/binding/value.h>
+#include <kroll/binding/static_bound_object.h>
 
 namespace kroll
 {

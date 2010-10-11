@@ -15,6 +15,5 @@ SConscript('libkroll/SConscript', variant_dir=path.join(build.dir,'objs','libkro
 # that should not depend on libkroll should be built
 # before here.
 build.env.Append(LIBS=['khost'])
-build.env.Append(LIBPATH=[build.runtime_build_dir])
 
-# SConscript('modules/SConscript')
+build.env.Append(LIBPATH=[build.runtime_build_dir])

@@ -3,11 +3,13 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2008-2009 Appcelerator, Inc. All Rights Reserved.
  */
-#include <kroll/kroll.h>
+
 #include "api_binding.h"
 #include "application_binding.h"
 #include "component_binding.h"
 #include "dependency_binding.h"
+
+#include <kroll/binding/static_bound_list.h>
 
 #ifdef _MSC_VER
 #include <process.h>

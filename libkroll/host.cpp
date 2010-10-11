@@ -10,8 +10,6 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include "kroll.h"
-#include "thread_manager.h"
 #include <Poco/DirectoryIterator.h>
 #include <Poco/File.h>
 #include <Poco/FileStream.h>
@@ -25,6 +23,8 @@
 using Poco::File;
 using Poco::Path;
 using Poco::Environment;
+
+#include "thread_manager.h"
 
 #define HOME_ENV "KR_HOME"
 #define RUNTIME_ENV "KR_RUNTIME"
@@ -49,6 +49,11 @@ using Poco::Environment;
 #include <kroll/javascript/javascript_module.h>
 #include <kroll/api/api_module.h>
 
+#ifdef OS_OSX
+#include <kroll/osx/osx.h>
+#endif
+
+			
 extern "C"
 {
 	int Execute(int argc, const char **argv)
