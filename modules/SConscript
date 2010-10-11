@@ -21,7 +21,7 @@ def build_module_from_directory(dir):
 # These each have their own line because we can comment
 # them out easily if we need temporarily disable one.
 for dir in [
-	'ti.App', 
+	'ti.App',
 	'ti.UI',
 	'ti.Network',
 	'ti.Filesystem',
