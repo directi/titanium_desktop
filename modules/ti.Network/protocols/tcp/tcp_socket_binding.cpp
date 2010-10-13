@@ -282,15 +282,6 @@ namespace ti
 		TCPSocketBinding::removeWriteListener(this);
 	}
 
-	void TCPSocketBinding::OnTimeout(TimeoutNotification * notification)
-	{
-		if (!this->onTimeout.isNull())
-		{
-			ValueList args;
-			ti_host->RunOnMainThread(this->onTimeout, args, false);
-		}
-	}
-
 	void TCPSocketBinding::OnError(ErrorNotification * notification)
 	{
 		GetLogger()->Debug("Socket Error on %s:%d ", this->host.c_str(), this->port);
@@ -417,14 +408,13 @@ namespace ti
 	{
 		if(! pollThread.isRunning()) 
 		{
+			reactor.setTimeout(Poco::Timespan(10, 0));
 			pollThread.start(reactor);
 		}
-		Poco::Observer<TCPSocketBinding, ReadableNotification> o1(*tsb, &TCPSocketBinding::OnReadReady);
-		reactor.addEventHandler(*(tsb->socket), o1);
 		Poco::Observer<TCPSocketBinding, WritableNotification> o2(*tsb, &TCPSocketBinding::OnWriteReady);
 		reactor.addEventHandler(*(tsb->socket), o2);
-		Poco::Observer<TCPSocketBinding, TimeoutNotification> o3(*tsb, &TCPSocketBinding::OnTimeout);
-		reactor.addEventHandler(*(tsb->socket), o3);
+		Poco::Observer<TCPSocketBinding, ReadableNotification> o1(*tsb, &TCPSocketBinding::OnReadReady);
+		reactor.addEventHandler(*(tsb->socket), o1);
 		Poco::Observer<TCPSocketBinding, ErrorNotification> o4(*tsb, &TCPSocketBinding::OnError);
 		reactor.addEventHandler(*(tsb->socket), o4);
 	}
@@ -435,8 +425,6 @@ namespace ti
 		reactor.removeEventHandler(*(tsb->socket), o1);
 		Poco::Observer<TCPSocketBinding, WritableNotification> o2(*tsb, &TCPSocketBinding::OnWriteReady);
 		reactor.removeEventHandler(*(tsb->socket), o2);
-		Poco::Observer<TCPSocketBinding, TimeoutNotification> o3(*tsb, &TCPSocketBinding::OnTimeout);
-		reactor.removeEventHandler(*(tsb->socket), o3);
 		Poco::Observer<TCPSocketBinding, ErrorNotification> o4(*tsb, &TCPSocketBinding::OnError);
 		reactor.removeEventHandler(*(tsb->socket), o4);
 	}
