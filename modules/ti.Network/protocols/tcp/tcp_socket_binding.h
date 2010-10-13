@@ -26,6 +26,7 @@
 #include <kroll/kroll.h>
 #include <Poco/Thread.h>
 #include <Poco/Net/StreamSocket.h>
+#include <Poco/Net/SecureStreamSocket.h>
 #include <Poco/Net/SocketReactor.h>
 #include <Poco/Net/SocketNotification.h>
 #include <Poco/Semaphore.h>
@@ -38,140 +39,69 @@ using namespace Poco::Net;
 
 namespace ti
 {
-
-	class TiStreamSocket : public StreamSocket {
-	public:
-		int sockfd()
-		{
-			return StreamSocket::sockfd();
-		}
-	};
-
 	class TCPSocketBinding : public StaticBoundObject
 	{
 	public:
 		TCPSocketBinding(Host *ti_host, const std::string & host, const int port);
 		virtual ~TCPSocketBinding();
+		void setSocketObject(StreamSocket *socket) { this->socket = socket; }
+		StreamSocket* getSocketObject() { return this->socket; }
+
+		static void shutdown();
+		static void addSocket(TCPSocketBinding* tsb);
+		static void removeSocket(TCPSocketBinding* tsb);
+		static void addWriteListener(TCPSocketBinding* tsb);
+		static void removeWriteListener(TCPSocketBinding* tsb);
+
 	private:
 		static kroll::Logger* GetLogger()
 		{
 			return kroll::Logger::Get("Network.TCPSocket");
 		}
+		static Poco::Net::SocketReactor reactor;
+		static Poco::Thread pollThread;
 
 		Host* ti_host;
 		const std::string host;
 		const int port;
-		TiStreamSocket socket;
-		std::string buffer;
-		Poco::Mutex bufferMutex; 
-		Poco::Semaphore semWaitForConnect;
+		StreamSocket *socket;
+		bool nonBlocking;
 
 		enum SOCK_STATE_en {SOCK_CLOSED, SOCK_CONNECTING, SOCK_CONNECTED } sock_state;
-		enum ERROR_STATE_en {ERROR_OFF, ERROR_ON } error_state;
-		enum READ_STATE_en { READ_OPEN, READ_CLOSED } read_state;
-		enum WRITE_STATE_en { WRITE_OPEN, WRITE_WAITING, WRITE_CLOSED } write_state;
-		IONotifier<TCPSocketBinding> notifier;
 
 		KMethodRef onConnect;
 		KMethodRef onRead;
 		KMethodRef onWrite;
 		KMethodRef onTimeout;
 		KMethodRef onError;
-		KMethodRef onReadComplete;
+		KMethodRef onClose;
 
-		void InitReactor(int secs);
-		void ClearReactor();
-		void CompleteClose();
-
-		void Connect(const ValueList& args, KValueRef result);
-		void ConnectNB(const ValueList& args, KValueRef result);
-		bool _connect(int timeout, bool nonBlocking);
-		
-		void OnNonBlockingConnect();
-		void OnNonBlockingConnectFailure();
-		void blockForConnectionOrTimeout(int secs);
-		void unBlockOnConnectionOrTimeout();
-
-		void Write(const ValueList& args, KValueRef result);
-		void Close(const ValueList& args, KValueRef result);
-		void ClearError(const ValueList& args, KValueRef result);
-
-		void IsClosed(const ValueList& args, KValueRef result);
 		void SetOnConnect(const ValueList& args, KValueRef result);
 		void SetOnRead(const ValueList& args, KValueRef result);
 		void SetOnWrite(const ValueList& args, KValueRef result);
 		void SetOnTimeout(const ValueList& args, KValueRef result);
 		void SetOnError(const ValueList& args, KValueRef result);
-		void SetOnReadComplete(const ValueList& args, KValueRef result);
+		void SetOnClose(const ValueList& args, KValueRef result);
 
-		void OnReadReady(IONotification * notification);
-		void OnWriteReady(IONotification * notification);
-		void OnTimeout(IONotification * notification);
-		void OnError(IONotification * notification);
+		void Connect(const ValueList& args, KValueRef result);
+		void ConnectNB(const ValueList& args, KValueRef result);
+		void Write(const ValueList& args, KValueRef result);
+		void Read(const ValueList& args, KValueRef result);
+		void Close(const ValueList& args, KValueRef result);
+		void IsClosed(const ValueList& args, KValueRef result);
 
-		void RegisterForRead()
-		{
-			int sockfd = this->socket.sockfd();
-			IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnReadReady);
-			bool status = this->notifier.addObserver(IO_READ, observer);
-			if(status) GetLogger()->Debug("Added Read EventHandler on Socket: %s:%d ", this->host.c_str(), this->port);
-		}
-		void UnregisterForRead()
-		{
-			int sockfd = this->socket.sockfd();
-			IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnReadReady);
-			bool status = this->notifier.removeObserver(IO_READ, observer);
-			if(status) GetLogger()->Debug("Removed Read EventHandler on Socket: %s:%d ", this->host.c_str(), this->port);
-		}
-		void RegisterForWrite()
-		{
-			int sockfd = this->socket.sockfd();
-			IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnWriteReady);
-			bool status=this->notifier.addObserver(IO_WRITE, observer);
-			if(status) GetLogger()->Debug("Added Write EventHandler on Socket: %s:%d ", this->host.c_str(), this->port);
-		}
+		void OnReadReady(ReadableNotification * notification);
+		void OnWriteReady(WritableNotification * notification);
+		void OnTimeout(TimeoutNotification * notification);
+		void OnError(ErrorNotification * notification);
 
-		void UnregisterForWrite()
-		{
-			int sockfd = this->socket.sockfd();
-			IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnWriteReady);
-			bool status=this->notifier.removeObserver(IO_WRITE, observer);
-			if(status) GetLogger()->Debug("Removed Write EventHandler on Socket: %s:%d ", this->host.c_str(), this->port);
-		}
-
-		// TODO: add timeouts only for connectNB()
-		void RegisterForTimeout()
-		{
-			//int sockfd = this->socket.sockfd();
-			//IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnTimeout);
-			//this->notifier.addObserver(IO_TIMEOUT, observer);
-		}
-
-		void UnregisterForTimeout()
-		{
-			//int sockfd = this->socket.sockfd();
-			//IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnTimeout);
-			//this->notifier.removeObserver(IO_TIMEOUT, observer);
-		}
-
-		void RegisterForError()
-		{
-			int sockfd = this->socket.sockfd();
-			IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnError);
-			bool status = this->notifier.addObserver(IO_ERROR, observer);
-			if(status) GetLogger()->Debug("Added Error EventHandler on Socket: %s:%d ", this->host.c_str(), this->port);
-		}
-
-		void UnregisterForError()
-		{
-			int sockfd = this->socket.sockfd();
-			IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnError);
-			bool status = this->notifier.removeObserver(IO_ERROR, observer);
-			if(status) GetLogger()->Debug("Removed Error EventHandler on Socket: %s:%d ", this->host.c_str(), this->port);
-		}
-
-		void InvokeErrorHandler(const std::string &str);
-		void SetReactorDescriptors();
+		void OnConnect();
+		void OnWrite();
+		void OnRead(char * data, int size);
+		void OnError(const std::string& error_text);
+		SocketAddress* beforeConnect();
+		void OnClose();
+		void CompleteClose();
 	};
 }
 
