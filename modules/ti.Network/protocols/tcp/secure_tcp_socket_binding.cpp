@@ -41,12 +41,9 @@ namespace ti
 			Context::CLIENT_USE, privateKeyFile, certificateFile,
 			caLocation,	Context::VERIFY_RELAXED, 9, loadDefaultCAs);
 
-		// UnRegisterAllObservers
-		socket->UnRegisterObservers();
-
+		TCPSocketBinding::removeSocket(socket);
 		StreamSocket * old_socket = socket->getSocketObject();
 		SecureStreamSocket *secureSocket = new SecureStreamSocket(SecureStreamSocket::attach(*old_socket, ctx));
-		
 		secureSocket->setLazyHandshake(false);
 		int ret = secureSocket->completeHandshake();
 
@@ -54,7 +51,7 @@ namespace ti
 		delete old_socket;
 
 		// ReRegisterAllObservers
-		socket->RegisterObservers();
+		TCPSocketBinding::addSocket(socket);
 	}
 }
 
