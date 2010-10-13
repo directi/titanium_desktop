@@ -92,7 +92,6 @@ namespace ti
 
 		void OnReadReady(ReadableNotification * notification);
 		void OnWriteReady(WritableNotification * notification);
-		void OnTimeout(TimeoutNotification * notification);
 		void OnError(ErrorNotification * notification);
 
 		void OnConnect();
