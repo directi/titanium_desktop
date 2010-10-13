@@ -16,8 +16,9 @@ namespace ti
 		ti_host(ti_host),
 		host(host),
 		port(port),
-		socket(),
+		socket(0),
 		semWaitForConnect(0,1),
+		sockfd(-1),
 		sock_state(SOCK_CLOSED),
 		error_state(ERROR_OFF),
 		read_state(READ_CLOSED),
@@ -30,6 +31,7 @@ namespace ti
 		onError(0),
 		onReadComplete(0)
 	{
+		socket = new TiStreamSocket();
 		/**
 		 * @tiapi(method=True,name=Network.TCPSocket.connect,since=0.2) Connects a Socket object to the host specified during creation. 
 		 * @tiarg(for=Network.TCPSocket.connect,type=Integer,name=timeout) the time in seconds to wait before the connect timesout 
@@ -104,6 +106,10 @@ namespace ti
 	TCPSocketBinding::~TCPSocketBinding()
 	{
 		this->CompleteClose();
+		if (socket)
+		{
+			delete socket;
+		}
 	}
 	void TCPSocketBinding::SetOnConnect(const ValueList& args, KValueRef result)
 	{
@@ -162,8 +168,8 @@ namespace ti
 		{
 			SocketAddress a(this->host.c_str(), this->port);
 			this->sock_state = SOCK_CONNECTING;
-			this->socket.connectNB(a);
-			this->InitReactor(connectTimeout);
+			this->socket->connectNB(a);
+			this->InitReactor();
 			if(nonBlocking)
 			{
 				GetLogger()->Debug("Connecting non Blocking.");
@@ -201,7 +207,7 @@ namespace ti
 
 	void TCPSocketBinding::OnReadReady(IONotification * notification)
 	{
-		GetLogger()->Debug("Ready for Read with %d bytes on %s", this->socket.available(), this->socket.peerAddress().toString().c_str());
+		GetLogger()->Debug("Ready for Read with %d bytes on %s", this->socket->available(), this->socket->peerAddress().toString().c_str());
 		if(this->sock_state == SOCK_CONNECTING)
 		{
 			this->OnNonBlockingConnect();
@@ -210,7 +216,7 @@ namespace ti
 		bool error = false;
 		try
 		{
-			if(this->socket.available() == 0 )
+			if(this->socket->available() == 0 )
 			{
 				this->read_state = READ_CLOSED;
 				this->SetReactorDescriptors();
@@ -223,8 +229,8 @@ namespace ti
 			}
 			// Always read bytes, so that the tubes get cleared.
 			char data[BUFFER_SIZE + 1];
-			int size = socket.receiveBytes(&data, BUFFER_SIZE);
-			GetLogger()->Debug("Read %d bytes on %s", size, this->socket.peerAddress().toString().c_str());
+			int size = socket->receiveBytes(&data, BUFFER_SIZE);
+			GetLogger()->Debug("Read %d bytes on %s", size, this->socket->peerAddress().toString().c_str());
 
 			if (!this->onRead.isNull() && size > 0)
 			{
@@ -255,7 +261,7 @@ namespace ti
 
 	void TCPSocketBinding::OnWriteReady(IONotification * notification)
 	{
-		GetLogger()->Debug("Ready for Write on Socket: "  + this->socket.peerAddress().toString());
+		GetLogger()->Debug("Ready for Write on Socket: "  + this->socket->peerAddress().toString());
 		if(this->sock_state == SOCK_CONNECTING)
 		{
 			this->OnNonBlockingConnect();
@@ -269,7 +275,7 @@ namespace ti
 			Poco::Mutex::ScopedLock lock(bufferMutex);
 			if (!buffer.empty())
 			{
-				count = this->socket.sendBytes(buffer.c_str(), buffer.length());
+				count = this->socket->sendBytes(buffer.c_str(), buffer.length());
 				//GetLogger()->Debug("TCPSocketBinding::OnWriteReady: SendBytes Complete: "  + buffer.substr(0,count));
 				GetLogger()->Debug("Written to socket %d bytes", count);
 				buffer = buffer.substr(count);
@@ -359,7 +365,7 @@ namespace ti
 
 	void TCPSocketBinding::OnNonBlockingConnect()
 	{
-		this->socket.setKeepAlive(true);
+		this->socket->setKeepAlive(true);
 		this->sock_state = SOCK_CONNECTED;
 		this->read_state = READ_OPEN;
 		this->write_state = WRITE_OPEN;
@@ -396,7 +402,6 @@ namespace ti
 			GetLogger()->Debug("Timeout in a blocking connect to: %s:%d ", this->host.c_str(), this->port);
 		}
 	}
-	
 	void TCPSocketBinding::unBlockOnConnectionOrTimeout()
 	{
 		this->semWaitForConnect.set();
@@ -416,18 +421,29 @@ namespace ti
 			GetLogger()->Debug("Closing socket to: %s:%d ", this->host.c_str(), this->port);
 			//Ensure Reactor Descriptors are updated before the socket is closed
 			//Once the socket is closed, its file descriptor will no longer be available.
-			this->socket.close();
+			this->socket->close();
 		}
 		this->notifier.stop();
 	}
 
-	void TCPSocketBinding::InitReactor(int connectTimeout)
+	void TCPSocketBinding::InitReactor()
 	{
 		notifier.start();
+		RegisterObservers();
+	}
+	void TCPSocketBinding::RegisterObservers()
+	{
 		RegisterForRead();
 		RegisterForWrite();
 		RegisterForTimeout();
 		RegisterForError();
+	}
+	void TCPSocketBinding::UnRegisterObservers()
+	{
+		UnregisterForRead();
+		UnregisterForError();
+		UnregisterForWrite();
+		UnregisterForTimeout();
 	}
 
 	void TCPSocketBinding::SetReactorDescriptors()
@@ -462,10 +478,7 @@ namespace ti
 
 	void TCPSocketBinding::ClearReactor()
 	{
-		UnregisterForRead();
-		UnregisterForError();
-		UnregisterForWrite();
-		UnregisterForTimeout();
+		UnRegisterObservers();
 		notifier.stop();
 	}
 

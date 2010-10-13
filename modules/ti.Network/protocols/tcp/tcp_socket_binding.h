@@ -26,6 +26,7 @@
 #include <kroll/kroll.h>
 #include <Poco/Thread.h>
 #include <Poco/Net/StreamSocket.h>
+#include <Poco/Net/SecureStreamSocket.h>
 #include <Poco/Net/SocketReactor.h>
 #include <Poco/Net/SocketNotification.h>
 #include <Poco/Semaphore.h>
@@ -47,11 +48,33 @@ namespace ti
 		}
 	};
 
+	class TiSecureStreamSocket : public SecureStreamSocket {
+	public:
+		int sockfd()
+		{
+			return SecureStreamSocket::sockfd();
+		}
+	};
+
 	class TCPSocketBinding : public StaticBoundObject
 	{
 	public:
 		TCPSocketBinding(Host *ti_host, const std::string & host, const int port);
 		virtual ~TCPSocketBinding();
+
+		void RegisterObservers();
+		void UnRegisterObservers();
+
+		StreamSocket * getSocketObject() { return socket; }
+		StreamSocket * setSocketObject(StreamSocket * newSocket)
+		{
+			// we no more maintain the older socket pointer
+			// older socket handler should now be managed by the callee of this function
+			StreamSocket * old = socket;
+			socket = newSocket;
+			return old;
+		}
+
 	private:
 		static kroll::Logger* GetLogger()
 		{
@@ -61,10 +84,11 @@ namespace ti
 		Host* ti_host;
 		const std::string host;
 		const int port;
-		TiStreamSocket socket;
+		StreamSocket *socket;
 		std::string buffer;
 		Poco::Mutex bufferMutex; 
 		Poco::Semaphore semWaitForConnect;
+		int sockfd;
 
 		enum SOCK_STATE_en {SOCK_CLOSED, SOCK_CONNECTING, SOCK_CONNECTED } sock_state;
 		enum ERROR_STATE_en {ERROR_OFF, ERROR_ON } error_state;
@@ -79,7 +103,7 @@ namespace ti
 		KMethodRef onError;
 		KMethodRef onReadComplete;
 
-		void InitReactor(int secs);
+		void InitReactor();
 		void ClearReactor();
 		void CompleteClose();
 
@@ -109,23 +133,36 @@ namespace ti
 		void OnTimeout(IONotification * notification);
 		void OnError(IONotification * notification);
 
+
+		int getSockFDFrom(StreamSocket * _socket)
+		{
+			if(sockfd == -1)
+			{
+				TiStreamSocket* sockref = dynamic_cast<TiStreamSocket *>(_socket);
+				if (sockref)
+				{
+					sockfd = sockref->sockfd();
+				}
+			}
+			return sockfd;
+		}
 		void RegisterForRead()
 		{
-			int sockfd = this->socket.sockfd();
+			int sockfd = getSockFDFrom(this->socket);
 			IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnReadReady);
 			bool status = this->notifier.addObserver(IO_READ, observer);
 			if(status) GetLogger()->Debug("Added Read EventHandler on Socket: %s:%d ", this->host.c_str(), this->port);
 		}
 		void UnregisterForRead()
 		{
-			int sockfd = this->socket.sockfd();
+			int sockfd = getSockFDFrom(this->socket);
 			IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnReadReady);
 			bool status = this->notifier.removeObserver(IO_READ, observer);
 			if(status) GetLogger()->Debug("Removed Read EventHandler on Socket: %s:%d ", this->host.c_str(), this->port);
 		}
 		void RegisterForWrite()
 		{
-			int sockfd = this->socket.sockfd();
+			int sockfd = getSockFDFrom(this->socket);
 			IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnWriteReady);
 			bool status=this->notifier.addObserver(IO_WRITE, observer);
 			if(status) GetLogger()->Debug("Added Write EventHandler on Socket: %s:%d ", this->host.c_str(), this->port);
@@ -133,7 +170,7 @@ namespace ti
 
 		void UnregisterForWrite()
 		{
-			int sockfd = this->socket.sockfd();
+			int sockfd = getSockFDFrom(this->socket);
 			IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnWriteReady);
 			bool status=this->notifier.removeObserver(IO_WRITE, observer);
 			if(status) GetLogger()->Debug("Removed Write EventHandler on Socket: %s:%d ", this->host.c_str(), this->port);
@@ -142,21 +179,21 @@ namespace ti
 		// TODO: add timeouts only for connectNB()
 		void RegisterForTimeout()
 		{
-			//int sockfd = this->socket.sockfd();
+			//int sockfd = getSockFDFrom(this->socket);
 			//IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnTimeout);
 			//this->notifier.addObserver(IO_TIMEOUT, observer);
 		}
 
 		void UnregisterForTimeout()
 		{
-			//int sockfd = this->socket.sockfd();
+			//int sockfd = getSockFDFrom(this->socket);
 			//IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnTimeout);
 			//this->notifier.removeObserver(IO_TIMEOUT, observer);
 		}
 
 		void RegisterForError()
 		{
-			int sockfd = this->socket.sockfd();
+			int sockfd = getSockFDFrom(this->socket);
 			IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnError);
 			bool status = this->notifier.addObserver(IO_ERROR, observer);
 			if(status) GetLogger()->Debug("Added Error EventHandler on Socket: %s:%d ", this->host.c_str(), this->port);
@@ -164,7 +201,7 @@ namespace ti
 
 		void UnregisterForError()
 		{
-			int sockfd = this->socket.sockfd();
+			int sockfd = getSockFDFrom(this->socket);
 			IOObserver<TCPSocketBinding> observer(sockfd, *this, &TCPSocketBinding::OnError);
 			bool status = this->notifier.removeObserver(IO_ERROR, observer);
 			if(status) GetLogger()->Debug("Removed Error EventHandler on Socket: %s:%d ", this->host.c_str(), this->port);
