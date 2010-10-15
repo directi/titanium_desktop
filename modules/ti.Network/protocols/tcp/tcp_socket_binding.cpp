@@ -10,7 +10,8 @@
 
 namespace ti
 {
-	Poco::Net::SocketReactor TCPSocketBinding::reactor;
+	const Poco::Timespan selectTime(0, SELECT_TIME_MICRO);
+	QuieterSocketReactor TCPSocketBinding::reactor(selectTime);
 	Poco::Thread TCPSocketBinding::pollThread;
 
 	TCPSocketBinding::TCPSocketBinding(Host* ti_host, const std::string& host, const int port) :
@@ -23,8 +24,6 @@ namespace ti
 		sock_state(SOCK_CLOSED),
 		onConnect(0),
 		onRead(0),
-		onWrite(0),
-		onTimeout(0),
 		onError(0),
 		onClose(0)
 	{
@@ -114,11 +113,11 @@ namespace ti
 	}
 	void TCPSocketBinding::SetOnWrite(const ValueList& args, KValueRef result)
 	{
-		this->onWrite = args.at(0)->ToMethod();
+		GetLogger()->Warn("OnWrite events are never fired, event handler ignored");
 	}
 	void TCPSocketBinding::SetOnTimeout(const ValueList& args, KValueRef result)
 	{
-		this->onTimeout = args.at(0)->ToMethod();
+		GetLogger()->Warn("OnTimeout events are never fired, event handler ignored");
 	}
 	void TCPSocketBinding::SetOnError(const ValueList& args, KValueRef result)
 	{
@@ -139,31 +138,33 @@ namespace ti
 		const std::string eprefix = "Connect exception: ";
 		int timeout = (args.size() > 0)?args.at(0)->ToInt():10;
 	
-		SocketAddress* a = this->beforeConnect();
 		GetLogger()->Debug("Connecting Blocking.");
+		SocketAddress* a = NULL;
+
 		try 
 		{
+			a = this->beforeConnect();
 			this->socket->connect(*a);
 			delete a;
-			this->OnConnect();
+			this->sock_state = SOCK_CONNECTED;
 			result->SetBool(true);
 		}
 		catch(Poco::IOException &e)
 		{
 			this->sock_state = SOCK_CLOSED;
-			delete a;
+			if(a != NULL) delete a;
 			throw ValueException::FromString(eprefix + e.displayText());
 		}
 		catch(std::exception &e)
 		{
 			this->sock_state = SOCK_CLOSED;
-			delete a;
+			if(a != NULL) delete a;
 			throw ValueException::FromString(eprefix + e.what());
 		}
 		catch(...)
 		{
 			this->sock_state = SOCK_CLOSED;
-			delete a;
+			if(a != NULL) delete a;
 			throw ValueException::FromString(eprefix + "Unknown exception");
 		}
 	}
@@ -174,10 +175,11 @@ namespace ti
 		const std::string eprefix = "Connect exception: ";
 		int timeout = (args.size() > 0)?args.at(0)->ToInt():10;
 
-		SocketAddress* a = this->beforeConnect();
+		SocketAddress* a = NULL;
 		GetLogger()->Debug("Connecting non Blocking.");
 		try 
 		{
+			a = this->beforeConnect();
 			TCPSocketBinding::addSocket(this);
 			this->socket->connectNB(*a);
 			delete a;
@@ -186,19 +188,19 @@ namespace ti
 		catch(Poco::IOException &e)
 		{
 			this->sock_state = SOCK_CLOSED;
-			delete a;
+			if(a != NULL) delete a;
 			throw ValueException::FromString(eprefix + e.displayText());
 		}
 		catch(std::exception &e)
 		{
 			this->sock_state = SOCK_CLOSED;
-			delete a;
+			if(a != NULL) delete a;
 			throw ValueException::FromString(eprefix + e.what());
 		}
 		catch(...)
 		{
 			this->sock_state = SOCK_CLOSED;
-			delete a;
+			if(a != NULL) delete a;
 			throw ValueException::FromString(eprefix + "Unknown exception");
 		}
 	}
@@ -217,39 +219,25 @@ namespace ti
 
 	void TCPSocketBinding::OnReadReady(ReadableNotification * notification)
 	{
-		bool justConnected = false;
 		GetLogger()->Debug("Ready for Read with %d bytes on %s", this->socket->available(), this->socket->peerAddress().toString().c_str());
 		if(this->sock_state == SOCK_CONNECTING)
 		{
 			this->OnConnect();
-			justConnected = true;
-		}
+		} 
+		else if(this->socket->available() == 0 )
+		{
+			this->OnClose();
+			return;
+		} 
 		std::string error_text("Read failed: ");
 		bool error = false;
 		try
 		{
-			if(!justConnected && this->socket->available() == 0 )
-			{
-				this->OnClose();
-				return;
-			}
-
 			// Always read bytes, so that the tubes get cleared.
 			char data[BUFFER_SIZE + 1];
 			int size = socket->receiveBytes(&data, BUFFER_SIZE);
 			GetLogger()->Debug("Read %d bytes on %s", size, this->socket->peerAddress().toString().c_str());
-			if(size > 0) 
-			{
-				this->OnRead(data, size);
-			} 
-			else
-			{
-				// Theoretically impossible.
-				if(! justConnected) 
-				{
-					this->OnClose();
-				}
-			}
+			if(size > 0) this->OnRead(data, size);
 		}
 		catch(Poco::Exception &e)
 		{
@@ -273,13 +261,9 @@ namespace ti
 		GetLogger()->Debug("Ready for Write on Socket: "  + this->socket->peerAddress().toString());
 		if(this->sock_state == SOCK_CONNECTING)
 		{
+			TCPSocketBinding::removeWriteListener(this);
 			this->OnConnect();
 		} 
-		else 
-		{		
-			this->OnWrite();
-		}
-		TCPSocketBinding::removeWriteListener(this);
 	}
 
 	void TCPSocketBinding::OnError(ErrorNotification * notification)
@@ -290,7 +274,7 @@ namespace ti
 
 	void TCPSocketBinding::OnError(const std::string& error_text) 
 	{
-		this->sock_state = SOCK_CLOSED;
+		this->CompleteClose();
 		if(!this->onError.isNull()) 
 		{
 			ValueList args (Value::NewString(error_text.c_str()));
@@ -319,15 +303,6 @@ namespace ti
 		}
 	}
 
-	void TCPSocketBinding::OnWrite() 
-	{
-		if(!this->onWrite.isNull()) 
-		{
-			ValueList args;
-			RunOnMainThread(this->onWrite, args, false);
-		}
-	}
-
 	void TCPSocketBinding::OnClose() 
 	{
 		this->CompleteClose();
@@ -348,10 +323,6 @@ namespace ti
 		try
 		{
 			std::string buffer = args.at(0)->ToString();
-			if(nonBlocking) 
-			{
-				TCPSocketBinding::addWriteListener(this);
-			}
 			this->socket->sendBytes(buffer.c_str(), buffer.length());
 			result->SetBool(true);
 		}
@@ -387,6 +358,7 @@ namespace ti
 		bool bResult = false;
 		if (this->sock_state != SOCK_CLOSED)
 		{
+			GetLogger()->Debug("Closing socket to: %s:%d ", this->host.c_str(), this->port);
 			this->CompleteClose();
 			bResult = true;
 		}
@@ -395,9 +367,9 @@ namespace ti
 
 	void TCPSocketBinding::CompleteClose()
 	{
-		if(this->sock_state != SOCK_CLOSED)
+		if(this->sock_state == SOCK_CONNECTED || this->sock_state == SOCK_CONNECTING) 
 		{
-			GetLogger()->Debug("Closing socket to: %s:%d ", this->host.c_str(), this->port);
+			this->sock_state = SOCK_CLOSING;
 			TCPSocketBinding::removeSocket(this);
 			this->socket->close();
 			this->sock_state = SOCK_CLOSED;
@@ -408,6 +380,7 @@ namespace ti
 	{
 		if(! pollThread.isRunning()) 
 		{
+			pollThread.setName(std::string("Reactor Notification Thread"));
 			reactor.setTimeout(Poco::Timespan(10, 0));
 			pollThread.start(reactor);
 		}
@@ -417,6 +390,7 @@ namespace ti
 		reactor.addEventHandler(*(tsb->socket), o1);
 		Poco::Observer<TCPSocketBinding, ErrorNotification> o4(*tsb, &TCPSocketBinding::OnError);
 		reactor.addEventHandler(*(tsb->socket), o4);
+		reactor.wakeup();
 	}
 
 	void TCPSocketBinding::removeSocket(TCPSocketBinding* tsb)
@@ -427,12 +401,6 @@ namespace ti
 		reactor.removeEventHandler(*(tsb->socket), o2);
 		Poco::Observer<TCPSocketBinding, ErrorNotification> o4(*tsb, &TCPSocketBinding::OnError);
 		reactor.removeEventHandler(*(tsb->socket), o4);
-	}
-
-	void TCPSocketBinding::addWriteListener(TCPSocketBinding* tsb)
-	{
-		Poco::Observer<TCPSocketBinding, WritableNotification> o2(*tsb, &TCPSocketBinding::OnWriteReady);
-		reactor.addEventHandler(*(tsb->socket), o2);
 	}
 
 	void TCPSocketBinding::removeWriteListener(TCPSocketBinding* tsb)
@@ -447,5 +415,23 @@ namespace ti
 		reactor.stop();
 		pollThread.join();
 	}
-}
 
+	QuieterSocketReactor::QuieterSocketReactor(const Poco::Timespan& t) 
+		: SocketReactor(t),
+		waiting(false)
+	{
+	}
+
+	void QuieterSocketReactor::wakeup() 
+	{
+		if(waiting) idle.broadcast();
+	}
+
+	void QuieterSocketReactor::onIdle() 
+	{
+		Poco::FastMutex::ScopedLock l(conditionLock);
+		waiting = true;
+		idle.wait(conditionLock);
+		waiting = false;
+	}
+}

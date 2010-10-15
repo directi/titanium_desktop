@@ -7,22 +7,6 @@
 #ifndef _TCP_SOCKET_BINDING_H_
 #define _TCP_SOCKET_BINDING_H_
 
-#ifndef WINVER
-#define WINVER 0x0501
-#endif
-
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0501
-#endif
-
-#ifndef _WIN32_WINDOWS
-#define _WIN32_WINDOWS 0x0410
-#endif
-
-#ifndef _WIN32_IE
-#define _WIN32_IE 0x600
-#endif
-
 #include <kroll/kroll.h>
 #include <Poco/Thread.h>
 #include <Poco/Net/StreamSocket.h>
@@ -30,8 +14,10 @@
 #include <Poco/Net/SocketReactor.h>
 #include <Poco/Net/SocketNotification.h>
 #include <Poco/Semaphore.h>
+#include <Poco/Condition.h>
 #include <Poco/NObserver.h>
 #include <Poco/Pipe.h>
+#include <Poco/Timespan.h>
 #include "IONotifier.h"
 
 using namespace Poco;
@@ -39,6 +25,21 @@ using namespace Poco::Net;
 
 namespace ti
 {
+	static const long SELECT_TIME_MICRO = 1000; // 100ms
+
+	class QuieterSocketReactor : public SocketReactor 
+	{
+	public:
+		QuieterSocketReactor(const Timespan& t);
+		void wakeup();
+	protected:
+		virtual void onIdle();
+	private:
+		bool waiting;
+		FastMutex conditionLock;
+		Condition idle;
+	};
+
 	class TCPSocketBinding : public StaticBoundObject
 	{
 	public:
@@ -50,7 +51,6 @@ namespace ti
 		static void shutdown();
 		static void addSocket(TCPSocketBinding* tsb);
 		static void removeSocket(TCPSocketBinding* tsb);
-		static void addWriteListener(TCPSocketBinding* tsb);
 		static void removeWriteListener(TCPSocketBinding* tsb);
 
 	private:
@@ -58,7 +58,7 @@ namespace ti
 		{
 			return kroll::Logger::Get("Network.TCPSocket");
 		}
-		static Poco::Net::SocketReactor reactor;
+		static QuieterSocketReactor reactor;
 		static Poco::Thread pollThread;
 
 		Host* ti_host;
@@ -67,12 +67,10 @@ namespace ti
 		StreamSocket *socket;
 		bool nonBlocking;
 
-		enum SOCK_STATE_en {SOCK_CLOSED, SOCK_CONNECTING, SOCK_CONNECTED } sock_state;
+		enum SOCK_STATE_en { SOCK_CLOSED, SOCK_CONNECTING, SOCK_CONNECTED, SOCK_CLOSING } sock_state;
 
 		KMethodRef onConnect;
 		KMethodRef onRead;
-		KMethodRef onWrite;
-		KMethodRef onTimeout;
 		KMethodRef onError;
 		KMethodRef onClose;
 
