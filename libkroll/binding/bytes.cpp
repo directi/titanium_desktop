@@ -8,7 +8,6 @@
 #include <cstring>
 #include <Poco/String.h>
 #include <Poco/StringTokenizer.h>
-#include <Poco/Data/BLOB.h>
 
 #include "value.h"
 #include "arg_list.h"
@@ -48,11 +47,6 @@ namespace kroll
 	Bytes::Bytes(std::string& str) : StaticBoundObject("Bytes")
 	{
 		CreateWithCopy(str.c_str(), str.length());
-	}
-
-	Bytes::Bytes(Poco::Data::BLOB *bytes) : StaticBoundObject("Bytes")
-	{
-		CreateWithReference((char *)&(bytes->content()[0]), bytes->size());
 	}
 
 	Bytes::Bytes(long byte) : StaticBoundObject("Bytes")

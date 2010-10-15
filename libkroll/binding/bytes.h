@@ -12,8 +12,6 @@
 #include <map>
 #include <cstring>
 
-#include <Poco/Data/BLOB.h>
-
 #include "../base.h"
 
 #include "static_bound_object.h"
@@ -38,7 +36,6 @@ namespace kroll
 		Bytes(const char *buffer, long size, bool makeCopy=true);
 		Bytes(std::string);
 		Bytes(std::string&);
-		Bytes(Poco::Data::BLOB* bytes);
 		Bytes(long byte);
 		virtual ~Bytes();
 
