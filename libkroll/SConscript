@@ -32,6 +32,9 @@ if build.is_win32():
 
 env = libkroll_env
 env.Append(CPPDEFINES=[('KROLL_API_EXPORT', 1)])
+
+env.Append(CPPPATH=[path.join(build.kroll_source_dir, 'libkroll')])
+
 build.add_thirdparty(env, 'poco')
 build.add_thirdparty(env, 'webkit')
 if build.is_osx():

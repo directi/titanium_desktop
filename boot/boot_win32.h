@@ -6,7 +6,12 @@ class KrollWin32Boot - win32 subclass of KrollBoot
 #ifndef _KROLL_WIN32_BOOT_H_
 #define _KROLL_WIN32_BOOT_H_
 
+#include <process.h>
+#include <windows.h>
+
 #include "boot.h"
+
+#include <win32/win32_utils.h>
 
 #ifndef MAX_PATH
 #define MAX_PATH 512

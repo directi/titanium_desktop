@@ -4,11 +4,16 @@
  * Copyright (c) 2008-2009 Appcelerator, Inc. All Rights Reserved.
  */
 
+
+#include <boot_utils.h>
+
 #include "boot_win32.h"
+
+#include <file_utils.h>
+#include <environment_utils.h>
+
 #include "popup_dialog_win32.h"
 
-#include <process.h>
-#include <windows.h>
 
 
 KrollWin32Boot::KrollWin32Boot(int _argc, const char ** _argv)

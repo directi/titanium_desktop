@@ -14,5 +14,6 @@ SConscript('libkroll/SConscript', build_dir=path.join(build.dir,'objs','libkroll
 # all the following build steps. This means that things
 # that should not depend on libkroll should be built
 # before here.
+build.env.Append(CPPPATH=[path.join(build.kroll_source_dir, 'libkroll')])
 build.env.Append(LIBS=['khost'])
 build.env.Append(LIBPATH=[build.runtime_build_dir])

@@ -6,9 +6,14 @@
 #ifndef _KR_WIN32_UTILS_H_
 #define _KR_WIN32_UTILS_H_
 
-#include <kroll/base.h>
+#include <base.h>
+
+#include <process.h>
+#include <windows.h>
 
 #include <string>
+
+
 namespace UTILS_NS
 {
 	namespace Win32Utils
