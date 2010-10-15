@@ -8,8 +8,11 @@
 #include <limits.h>
 #include <errno.h>
 #include <gtk/gtk.h>
-#include "boot.h"
+
 #include "boot_linux.h"
+
+#include <file_utils.h>
+#include <environment_utils.h>
 
 
 KrollLinuxBoot::KrollLinuxBoot(int _argc, const char ** _argv)

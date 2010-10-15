@@ -27,16 +27,10 @@
 #include <sstream>
 
 #include <base.h>
-#include <Application.h>
+#include <application.h>
 
-using namespace KrollUtils;
-using KrollUtils::Application;
-
-//using KrollUtils::Dependency;
-//using KrollUtils::KComponent;
-//using KrollUtils::SharedApplication;
-//using KrollUtils::SharedDependency;
-//using KrollUtils::SharedComponent;
+using namespace UTILS_NS;
+using UTILS_NS::Application;
 
 using std::string;
 using std::vector;
