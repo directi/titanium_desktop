@@ -137,7 +137,6 @@ namespace ti
 	{
 		nonBlocking = false;
 		const std::string eprefix = "Connect exception: ";
-		int timeout = (args.size() > 0)?args.at(0)->ToInt():10;
 	
 		SocketAddress* a = this->beforeConnect();
 		GetLogger()->Debug("Connecting Blocking.");
@@ -172,7 +171,6 @@ namespace ti
 	{
 		nonBlocking = true;
 		const std::string eprefix = "Connect exception: ";
-		int timeout = (args.size() > 0)?args.at(0)->ToInt():10;
 
 		SocketAddress* a = this->beforeConnect();
 		GetLogger()->Debug("Connecting non Blocking.");
