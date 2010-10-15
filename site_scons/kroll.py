@@ -73,7 +73,7 @@ class BuildConfig(object):
 
 		self.dir = path.abspath(path.join(kwargs['BUILD_DIR'], self.os))
 		self.dist_dir = path.join(self.dir, 'dist')
-		self.runtime_build_dir = path.join(self.dir, 'runtime', self.version)
+		self.runtime_build_dir = path.join(self.dir, 'runtime')
 		self.runtime_template_dir = path.join(self.runtime_build_dir, 'template')
 
 		self.env.Append(LIBPATH=[self.dir])
@@ -92,7 +92,13 @@ class BuildConfig(object):
 			self.env.Prepend(PATH=['C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2'])
 			self.env.Prepend(CPPPATH=['C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\include'])
 			self.env.Prepend(LIBPATH=['C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\lib'])
-			self.env.Prepend(CPPPATH=['C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include\mfc'])
+			if ARGUMENTS.get('vcexpress', 0):
+				self.env.Prepend(CPPPATH=['C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include\mfc'])
+			else:
+				atlmfc_path = 'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\atlmfc'
+				if not path.exists(atlmfc_path):
+					atlmfc_path = 'C:\\Program Files (x86)\\Microsoft Visual Studio 8\\VC\\atlmfc'
+				self.env.Prepend(CPPPATH=[path.join(atlmfc_path, 'include')])
 
 	def set_kroll_source_dir(self, dir):
 		self.kroll_source_dir = path.abspath(dir)
