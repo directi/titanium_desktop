@@ -260,6 +260,23 @@ void Win32UserWindow::InitWindow()
 	this->SetTransparency(config->GetTransparency());
 }
 
+static void setPrivatePrefs(IWebPreferences *prefs, bool debugModeEnabled, std::string appid) {
+	IWebPreferencesPrivate* privatePrefs = NULL;
+	HRESULT hr = prefs->QueryInterface(IID_IWebPreferencesPrivate, (void**) &privatePrefs);
+	if (FAILED(hr) || !privatePrefs)
+		HandleHResultError("Error getting IWebPreferencesPrivate", hr, true);
+
+	privatePrefs->setDeveloperExtrasEnabled(debugModeEnabled);
+	privatePrefs->setDatabasesEnabled(true);
+	privatePrefs->setLocalStorageEnabled(true);
+	privatePrefs->setOfflineWebApplicationCacheEnabled(true);
+	privatePrefs->setAllowUniversalAccessFromFileURLs(true);
+	
+	_bstr_t dbPath = ::UTF8ToWide(FileUtils::GetApplicationDataDirectory(appid)).c_str();
+	privatePrefs->setLocalStorageDatabasePath(dbPath.copy());
+	privatePrefs->Release();
+}
+
 void Win32UserWindow::InitWebKit()
 {
 	HRESULT hr = WebKitCreateInstance(CLSID_WebView, 0, IID_IWebView,
@@ -322,11 +339,9 @@ void Win32UserWindow::InitWebKit()
 			HandleHResultError("Error setting host window", hr, true);
 	}
 
-	hr = webView->initWithFrame(clientRect, 0, 0); //TODO: CARL needs to fix this, oleWindowHandle);
-	if (FAILED(hr))
-		HandleHResultError("Could not intialize WebView with frame", hr, true);
-
 	webViewPrivate->setTransparent(this->HasTransparentBackground());
+
+	std::string appid(AppConfig::Instance()->GetAppID());
 
 	IWebPreferences *prefs = NULL;
 	hr = WebKitCreateInstance(CLSID_WebPreferences, 0, IID_IWebPreferences,
@@ -334,9 +349,17 @@ void Win32UserWindow::InitWebKit()
 	if (FAILED(hr) || !prefs)
 		HandleHResultError("Error getting IWebPreferences", hr, true);
 
-	std::string appid(AppConfig::Instance()->GetAppID());
+	IWebPreferences *sharedPrefs = NULL;
+	hr = prefs->standardPreferences(&sharedPrefs);
+	if (FAILED(hr) || !sharedPrefs)
+		HandleHResultError("Error getting SharedWebPreferences", hr, true);
+	sharedPrefs->setAutosaves(FALSE);
+	setPrivatePrefs(sharedPrefs, host->DebugModeEnabled(), appid);
+	sharedPrefs->Release();
+
 	_bstr_t pi(appid.c_str());
 	prefs->initWithIdentifier(pi.copy(), &prefs);
+	sharedPrefs->setAutosaves(FALSE);
 	prefs->setCacheModel(WebCacheModelDocumentBrowser);
 	prefs->setPlugInsEnabled(true);
 	prefs->setJavaEnabled(true);
@@ -345,23 +368,8 @@ void Win32UserWindow::InitWebKit()
 	prefs->setDOMPasteAllowed(true);
 	prefs->setShouldPrintBackgrounds(true);
 
-	IWebPreferencesPrivate* privatePrefs = NULL;
-	hr = prefs->QueryInterface(IID_IWebPreferencesPrivate, (void**) &privatePrefs);
-	if (FAILED(hr) || !privatePrefs)
-		HandleHResultError("Error getting IWebPreferencesPrivate", hr, true);
-
-	privatePrefs->setDeveloperExtrasEnabled(host->DebugModeEnabled());
-	privatePrefs->setDatabasesEnabled(true);
-	privatePrefs->setLocalStorageEnabled(true);
-	privatePrefs->setOfflineWebApplicationCacheEnabled(true);
-	privatePrefs->setAllowUniversalAccessFromFileURLs(true);
-	
-	_bstr_t dbPath = ::UTF8ToWide(FileUtils::GetApplicationDataDirectory(appid)).c_str();
-	privatePrefs->setLocalStorageDatabasePath(dbPath.copy());
-	privatePrefs->Release();
-
-	webView->setPreferences(prefs);
-	prefs->Release();
+	// I think this is overkill but I'm just leaving it here for now.
+	setPrivatePrefs(prefs, host->DebugModeEnabled(), appid);
 
 	// allow app:// and ti:// to run with local permissions (cross-domain ajax,etc)
 	_bstr_t appProto("app");
@@ -369,6 +377,17 @@ void Win32UserWindow::InitWebKit()
 
 	_bstr_t tiProto("ti");
 	webView->registerURLSchemeAsLocal(tiProto.copy());
+
+	// TODO: CARL needs to fix this.
+	//_bstr_t inspector_url("ti://runtime/WebKit.resources/inspector/inspector.html");
+	//webInspector->setInspectorURL(inspector_url.copy());
+
+	hr = webView->initWithFrame(clientRect, 0, 0); //TODO: CARL needs to fix this, oleWindowHandle);
+	if (FAILED(hr))
+		HandleHResultError("Could not intialize WebView with frame", hr, true);
+
+	webView->setPreferences(prefs);
+	prefs->Release();
 
 	// Get the WebView's HWND
 	hr = webViewPrivate->viewWindow((OLE_HANDLE*) &viewWindowHandle);
@@ -381,10 +400,6 @@ void Win32UserWindow::InitWebKit()
 		HandleHResultError("Error getting WebInspector HWND", hr);
 
 	webViewPrivate->Release();
-
-	// TODO: CARL needs to fix this.
-	//_bstr_t inspector_url("ti://runtime/WebKit.resources/inspector/inspector.html");
-	//webInspector->setInspectorURL(inspector_url.copy());
 
 	hr = webView->mainFrame(&mainFrame);
 	if (FAILED(hr) || !webInspector)

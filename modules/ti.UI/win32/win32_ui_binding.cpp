@@ -41,10 +41,11 @@ namespace ti
 
 		/* TODO: CARL Needs to fix this
 		// Hook app:// and ti:// URL support to WebKit
-		setNormalizeURLCallback(NormalizeURLCallback);
-		setURLToFileURLCallback(URLToFileURLCallback);
-		setCanPreprocessCallback(CanPreprocessURLCallback);
-		setPreprocessCallback(PreprocessURLCallback);
+		DONE: setNormalizeURLCallback(NormalizeURLCallback);
+		DONE: setURLToFileURLCallback(URLToFileURLCallback);
+		REMOVED: setCanPreprocessCallback(CanPreprocessURLCallback);
+		REMOVED: setPreprocessCallback(PreprocessURLCallback);
+		DB: DONE
 		setProxyCallback(ProxyForURLCallback);
 
 		std::string cookieJarFilename(FileUtils::Join(
