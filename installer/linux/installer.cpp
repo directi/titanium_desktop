@@ -465,7 +465,7 @@ GdkPixbuf* Installer::GetApplicationPixbuf(int maxDimension)
 
 GtkWidget* Installer::GetApplicationIcon()
 {
-	GdkPixbuf* appPixbuf;
+	GdkPixbuf* appPixbuf = NULL;
 	if (this->app->getImage() != ""
 		&& ((appPixbuf = this->GetApplicationPixbuf(BADGE_MAX_DIMENSION))))
 	{
