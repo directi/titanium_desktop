@@ -62,6 +62,7 @@ namespace KJSUtil
 
 		if (value == NULL)
 		{
+			GetLogger()->Error("Trying to convert NULL JSValueRef");
 			return Value::Undefined;
 		}
 
@@ -465,7 +466,7 @@ namespace KJSUtil
 			args.push_back(argVal);
 		}
 
-		JSValueRef jsValue = JSValueMakeUndefined(jsContext);
+		JSValueRef jsValue = NULL;
 		try
 		{
 			KValueRef kvalue = method->Call(args);

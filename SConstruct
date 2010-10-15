@@ -51,7 +51,6 @@ if build.is_win32():
 
 Export('build')
 SConscript('SConscript.thirdparty', duplicate=0)
-SConscript('installer/SConscript')
 
 if 'docs' in COMMAND_LINE_TARGETS:
 	SConscript('SConscript.docs')
