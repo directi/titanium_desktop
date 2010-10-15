@@ -18,7 +18,6 @@ sources = libkroll_sources + \
 	Glob('config/*.cpp') + \
 	Glob('binding/*.cpp') + \
 	Glob('utils/*.cpp') + \
-	Glob('utils/poco/*.cpp') + \
 	Glob('net/proxy_config.cpp') + \
 	Glob('javascript/*.cpp') + \
 	Glob('api/*.cpp') + \
