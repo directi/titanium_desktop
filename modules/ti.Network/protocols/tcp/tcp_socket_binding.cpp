@@ -330,7 +330,7 @@ namespace ti
 
 	void TCPSocketBinding::OnClose() 
 	{
-		this->sock_state = SOCK_CLOSED;
+		this->CompleteClose();
 		if(!this->onClose.isNull()) 
 		{
 			ValueList args;
