@@ -5,9 +5,10 @@
  */
 #import <Cocoa/Cocoa.h>
 #import <dlfcn.h>
-#import "boot.h"
-#import "boot_osx.h"
 
+#import "boot_osx.h"
+#import <file_utils.h>
+#import <environment_utils.h>
 
 @interface KrollApplicationDelegate : NSObject
 -(BOOL)application:(NSApplication*)theApplication
