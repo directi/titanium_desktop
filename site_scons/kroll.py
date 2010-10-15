@@ -165,7 +165,7 @@ class BuildConfig(object):
 			cpppath = [self.tp('poco', 'include')]
 			libpath = [self.tp('poco', 'lib')]
 			libs = ['PocoFoundation', 'PocoNet', 'PocoUtil', 'PocoXML',
-				    'PocoZip', 'PocoData', 'PocoSQLite']
+				    'PocoZip']
 
 		if name is 'curl' and self.is_win32(): # Don't judge us!
 			cpppath = [self.tp('webkit', 'include')]
