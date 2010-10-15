@@ -44,8 +44,8 @@ namespace ti
 		TCPSocketBinding::removeSocket(socket);
 		StreamSocket * old_socket = socket->getSocketObject();
 		SecureStreamSocket *secureSocket = new SecureStreamSocket(SecureStreamSocket::attach(*old_socket, ctx));
-		secureSocket->setLazyHandshake(false);
-		int ret = secureSocket->completeHandshake();
+		//secureSocket->setLazyHandshake(false);
+		//int ret = secureSocket->completeHandshake();
 
 		socket->setSocketObject(secureSocket);
 		delete old_socket;
