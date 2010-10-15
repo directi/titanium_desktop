@@ -95,7 +95,7 @@ build.mark_build_target(p)
 # will need to bootstrap by running runtimedir/kboot.exe during the 
 # boot process.
 if build.is_win32():
-	t = build.utils.CopyToDir(p[0], path.join(build.dir, 'runtime'))
+	t = build.utils.CopyToDir(p[0], path.join(build.dir, 'runtime', build.version))
 	build.mark_build_target(t)
 
 	webkit_tp = path.join(build.third_party, 'webkit')
