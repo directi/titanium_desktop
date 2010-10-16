@@ -48,13 +48,16 @@ namespace ti
 		void setSocketObject(StreamSocket *socket) { this->socket = socket; }
 		StreamSocket* getSocketObject() { return this->socket; }
 
+		void OnResolve(SocketAddress*);
+		void OnError(const std::string& error_text);
+
 		static void shutdown();
 		static void addSocket(TCPSocketBinding* tsb);
 		static void removeSocket(TCPSocketBinding* tsb);
 		static void removeWriteListener(TCPSocketBinding* tsb);
 
 	private:
-		static kroll::Logger* GetLogger()
+		inline static kroll::Logger* GetLogger()
 		{
 			return kroll::Logger::Get("Network.TCPSocket");
 		}
@@ -95,8 +98,6 @@ namespace ti
 		void OnConnect();
 		void OnWrite();
 		void OnRead(char * data, int size);
-		void OnError(const std::string& error_text);
-		SocketAddress* beforeConnect();
 		void OnClose();
 		void CompleteClose();
 	};

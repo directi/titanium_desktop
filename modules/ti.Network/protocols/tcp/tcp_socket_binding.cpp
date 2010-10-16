@@ -5,6 +5,8 @@
  */
 #include "tcp_socket_binding.h"
 #include <kroll/kroll.h>
+#include <Poco/ThreadPool.h>
+#include <Poco/Runnable.h>
 
 #define BUFFER_SIZE 1024   // choose a reasonable size to send back to JS
 
@@ -134,87 +136,130 @@ namespace ti
 
 	void TCPSocketBinding::Connect(const ValueList& args, KValueRef result)
 	{
+		static const std::string eprefix = "Connect exception: ";
+		if(this->sock_state != SOCK_CLOSED)
+		{
+			throw ValueException::FromString(eprefix + "Socket is either connected or connecting");
+		}
 		nonBlocking = false;
-		const std::string eprefix = "Connect exception: ";
-		int timeout = (args.size() > 0)?args.at(0)->ToInt():10;
+		long timeout = (args.size() > 0)?args.at(0)->ToInt():10;
+		Poco::Timespan t(timeout, 0);
 	
 		GetLogger()->Debug("Connecting Blocking.");
-		SocketAddress* a = NULL;
 
 		try 
 		{
-			a = this->beforeConnect();
-			this->socket->connect(*a);
-			delete a;
+			SocketAddress a(this->host.c_str(), this->port);
+			this->sock_state = SOCK_CONNECTING;
+			this->socket->connect(a, t);
 			this->sock_state = SOCK_CONNECTED;
 			result->SetBool(true);
 		}
 		catch(Poco::IOException &e)
 		{
 			this->sock_state = SOCK_CLOSED;
-			if(a != NULL) delete a;
 			throw ValueException::FromString(eprefix + e.displayText());
 		}
 		catch(std::exception &e)
 		{
 			this->sock_state = SOCK_CLOSED;
-			if(a != NULL) delete a;
 			throw ValueException::FromString(eprefix + e.what());
 		}
 		catch(...)
 		{
 			this->sock_state = SOCK_CLOSED;
-			if(a != NULL) delete a;
+			throw ValueException::FromString(eprefix + "Unknown exception");
+		}
+	}
+
+	class AsyncDNSResolutionTask : public Poco::Runnable 
+	{
+	public:
+		AsyncDNSResolutionTask(TCPSocketBinding* instance, std::string host, int port) 
+			: instance(instance),
+			host(host),
+			port(port)
+		{
+		}
+
+		virtual void run()
+		{
+			static const std::string error = "DNS Resolution failed";
+			try 
+			{
+				Poco::Net::SocketAddress* a = new Poco::Net::SocketAddress(this->host.c_str(), this->port);
+				instance->OnResolve(a);
+			} 
+			catch(...) 
+			{
+				instance->OnError(error);
+			}
+			// I think this is really bad practice :( 
+			delete this;
+		}
+	private:
+		TCPSocketBinding* instance;
+		std::string host;
+		int port;
+	};
+
+	void TCPSocketBinding::OnResolve(SocketAddress* a) 
+	{
+		static const std::string eprefix = "Connect exception: ";
+		try 
+		{
+			TCPSocketBinding::addSocket(this);
+			this->socket->connectNB(*a);
+			delete a;
+		}
+		catch(Poco::IOException &e)
+		{
+			TCPSocketBinding::removeSocket(this);
+			delete a;
+			this->sock_state = SOCK_CLOSED;
+			throw ValueException::FromString(eprefix + e.displayText());
+		}
+		catch(std::exception &e)
+		{
+			TCPSocketBinding::removeSocket(this);
+			delete a;
+			this->sock_state = SOCK_CLOSED;
+			throw ValueException::FromString(eprefix + e.what());
+		}
+		catch(...)
+		{
+			TCPSocketBinding::removeSocket(this);
+			delete a;
+			this->sock_state = SOCK_CLOSED;
 			throw ValueException::FromString(eprefix + "Unknown exception");
 		}
 	}
 
 	void TCPSocketBinding::ConnectNB(const ValueList& args, KValueRef result)
 	{
+		if(this->sock_state != SOCK_CLOSED)
+		{
+			throw ValueException::FromString("Connect exception: Socket is either connected or connecting");
+		}
 		nonBlocking = true;
-		const std::string eprefix = "Connect exception: ";
-		int timeout = (args.size() > 0)?args.at(0)->ToInt():10;
+		if(args.size() > 0 && args.at(0)->IsInt())
+		{
+			GetLogger()->Warn("Set Receive and Send timeouts on async sockets instead of passing a timeout to this method");
+		}
 
-		SocketAddress* a = NULL;
 		GetLogger()->Debug("Connecting non Blocking.");
+		this->sock_state = SOCK_CONNECTING;
+		AsyncDNSResolutionTask* t = new AsyncDNSResolutionTask(this, host, port);
 		try 
 		{
-			a = this->beforeConnect();
-			TCPSocketBinding::addSocket(this);
-			this->socket->connectNB(*a);
-			delete a;
-			result->SetBool(true);
+			Poco::ThreadPool::defaultPool().start(*t);
 		}
-		catch(Poco::IOException &e)
+		catch(Poco::NoThreadAvailableException &e)
 		{
-			this->sock_state = SOCK_CLOSED;
-			if(a != NULL) delete a;
-			throw ValueException::FromString(eprefix + e.displayText());
+			GetLogger()->Warn("You're doing too many name resolutions at the same time... forcing sync resolution");
+			t->run();
 		}
-		catch(std::exception &e)
-		{
-			this->sock_state = SOCK_CLOSED;
-			if(a != NULL) delete a;
-			throw ValueException::FromString(eprefix + e.what());
-		}
-		catch(...)
-		{
-			this->sock_state = SOCK_CLOSED;
-			if(a != NULL) delete a;
-			throw ValueException::FromString(eprefix + "Unknown exception");
-		}
-	}
-
-	SocketAddress* TCPSocketBinding::beforeConnect()
-	{
-		const std::string eprefix = "Connect exception: ";
-		if( this->sock_state != SOCK_CLOSED )
-		{
-			throw ValueException::FromString(eprefix + "Socket is either connected or connecting");
-		}
-		SocketAddress *a = new SocketAddress(this->host.c_str(), this->port);
-		this->sock_state = SOCK_CONNECTING;
-		return a;
+		result->SetBool(true);
 	}
 
 	void TCPSocketBinding::OnReadReady(ReadableNotification * notification)
@@ -269,6 +314,7 @@ namespace ti
 	void TCPSocketBinding::OnError(ErrorNotification * notification)
 	{
 		GetLogger()->Debug("Socket Error on %s:%d ", this->host.c_str(), this->port);
+		// This isn't really helpful!
 		this->OnError(notification->name());
 	}
 
