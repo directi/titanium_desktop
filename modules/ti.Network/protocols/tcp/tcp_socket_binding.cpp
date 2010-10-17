@@ -194,7 +194,7 @@ namespace ti
 			{
 				instance->OnError(error);
 			}
-			// I think this is really bad practice :( 
+			// I think this is really bad practice, but it'll work here. :( 
 			delete this;
 		}
 	private:
