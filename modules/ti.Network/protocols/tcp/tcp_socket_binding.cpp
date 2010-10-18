@@ -142,7 +142,7 @@ namespace ti
 			throw ValueException::FromString(eprefix + "Socket is either connected or connecting");
 		}
 		nonBlocking = false;
-		long timeout = (args.size() > 0)?args.at(0)->ToInt():10;
+		long timeout = (args.size() > 0 && args.at(0)->IsInt()) ? args.at(0)->ToInt() : 10;
 		Poco::Timespan t(timeout, 0);
 	
 		GetLogger()->Debug("Connecting Blocking.");
@@ -242,11 +242,6 @@ namespace ti
 			throw ValueException::FromString("Connect exception: Socket is either connected or connecting");
 		}
 		nonBlocking = true;
-		if(args.size() > 0 && args.at(0)->IsInt())
-		{
-			GetLogger()->Warn("Set Receive and Send timeouts on async sockets instead of passing a timeout to this method");
-		}
-
 		GetLogger()->Debug("Connecting non Blocking.");
 		this->sock_state = SOCK_CONNECTING;
 		AsyncDNSResolutionTask* t = new AsyncDNSResolutionTask(this, host, port);

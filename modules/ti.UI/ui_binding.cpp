@@ -382,8 +382,6 @@ namespace ti
 	}
 
     void UIBinding::Log(Logger::Level level, std::string& message) {
-		if (level > Logger::LWARN)
-			return;
         ValueList args = ValueList(Value::NewInt(level), Value::NewString(message));
         RunOnMainThread(new KFunctionPtrMethod(&UIBinding::PrivateLog), 0, args, false);
     }
@@ -409,11 +407,7 @@ namespace ti
 		for (size_t i = 0; i < openWindows.size(); i++)
 		{
 			KObjectRef domWindow = openWindows[i]->GetDOMWindow();
-			if (domWindow.isNull())
-				continue;
 			AutoPtr<KKJSObject> kobj = domWindow.cast<KKJSObject>();
-			if (kobj.isNull())
-				continue;
 
 			std::string script("window.console.");
 			script.append(methodName);
@@ -431,7 +425,14 @@ namespace ti
 
 			script.append(escapedMessage);
 			script.append("')");
-			KJSUtil::Evaluate(KJSUtil::GetGlobalContext(kobj->GetJSObject()), script.c_str());  
+			try 
+			{
+				KJSUtil::Evaluate(KJSUtil::GetGlobalContext(kobj->GetJSObject()), script.c_str());  
+			} 
+			catch(...) 
+			{
+				// Ignore for now atleast.
+			}
         }
 		return Value::Undefined;
 	}
