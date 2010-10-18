@@ -408,12 +408,13 @@ namespace ti
 		{
 			KObjectRef domWindow = openWindows[i]->GetDOMWindow();
 			AutoPtr<KKJSObject> kobj = domWindow.cast<KKJSObject>();
+			if(kobj.isNull()) continue;
 
 			std::string script("window.console.");
 			script.append(methodName);
 			script.append("('");
 			std::string escapedMessage(message->ToString());
-			static const std::string delimiters("'");
+			static const std::string delimiters("'\\");
 			size_t pos = 0;
 			while(true)
 			{
@@ -429,9 +430,18 @@ namespace ti
 			{
 				KJSUtil::Evaluate(KJSUtil::GetGlobalContext(kobj->GetJSObject()), script.c_str());  
 			} 
+			catch (ValueException& exception)
+			{
+				fprintf(stderr, "Error logging: JSException: %s\n", exception.ToString()); 
+			}
+			catch (std::exception &e)
+			{
+				fprintf(stderr, "Error logging: std::exception: %s\n", e.what());
+			}
 			catch(...) 
 			{
 				// Ignore for now atleast.
+				fprintf(stderr, "Yikes, lost a log message\n");
 			}
         }
 		return Value::Undefined;
