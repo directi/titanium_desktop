@@ -114,7 +114,7 @@
 	#define UTILS_NS kroll
 #else
 	#define UTILS_NS KrollUtils
-	#include "utils/poco/KSharedPtr.h"
+	#include "poco/KSharedPtr.h"
 	using KPoco::SharedPtr;
 #endif
 

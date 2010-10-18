@@ -5,7 +5,7 @@
  */
 #ifndef _KR_UTILS_H_
 #define _KR_UTILS_H_
-#include "../base.h"
+#include <base.h>
 
 // If this is a version of the utils which doesn't
 // include libkroll, we should use our simple version

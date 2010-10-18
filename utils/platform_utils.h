@@ -6,7 +6,8 @@
 #ifndef _KR_PLATFORM_UTILS_H_
 #define _KR_PLATFORM_UTILS_H_
 #include <string>
-#include "../base.h"
+
+#include <base.h>
 
 #include "poco/KTypes.h"
 

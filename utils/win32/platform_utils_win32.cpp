@@ -28,9 +28,15 @@
 // FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
 // ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
-#include "../utils.h"
-#include "../poco/KUnWindows.h"
+
+
+#include <platform_utils.h>
+#include <win32/win32_utils.h>
+
+#include <poco/KUnWindows.h>
+
 #include <Iphlpapi.h>
+
 
 namespace UTILS_NS
 {

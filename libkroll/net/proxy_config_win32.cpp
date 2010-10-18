@@ -5,8 +5,8 @@
  */
 
 // TODO: fix the win32_utils.h dependency to base.h
-#include "../base.h"
-#include "../utils/win32/win32_utils.h"
+#include <base.h>
+#include <utils/win32/win32_utils.h>
 
 #define _WINSOCKAPI_
 #include <winsock2.h>

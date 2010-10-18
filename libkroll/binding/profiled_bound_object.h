@@ -9,7 +9,7 @@
 #include <Poco/FileStream.h>
 #include <Poco/Mutex.h>
 
-#include "../base.h"
+#include <base.h>
 
 #include "kobject.h"
 

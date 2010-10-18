@@ -7,7 +7,7 @@
 #ifndef _KR_SCOPE_METHOD_DELEGATE_H_
 #define _KR_BOUND_METHOD_DELEGATE_H_
 
-#include "../base.h"
+#include <base.h>
 
 #include "kmethod.h"
 #include "binding_declaration.h"

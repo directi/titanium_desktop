@@ -7,7 +7,7 @@
 #ifndef _KR_K_ACCESSOR_H_
 #define _KR_K_ACCESSOR_H_
 
-#include "../base.h"
+#include <base.h>
 
 #include "binding_declaration.h"
 

@@ -7,7 +7,7 @@
 #ifndef _KR_ACCESSOR_BOUND_LIST_H_
 #define _KR_ACCESSOR_BOUND_LIST_H_
 
-#include "../base.h"
+#include <base.h>
 
 #include "k_accessor.h"
 #include "static_bound_list.h"

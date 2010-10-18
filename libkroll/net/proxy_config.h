@@ -6,7 +6,7 @@
 #ifndef _KR_PROXY_CONFIG_H_
 #define _KR_PROXY_CONFIG_H_
 
-#include "../base.h"
+#include <base.h>
 #include "../logger.h"
 
 #include <Poco/URI.h>

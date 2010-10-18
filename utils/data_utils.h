@@ -7,8 +7,7 @@
 #define _KR_DATA_UTILS_H_
 #include <string>
 
-#include "../base.h"
-
+#include <base.h>
 
 namespace UTILS_NS
 {

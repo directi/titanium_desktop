@@ -7,7 +7,7 @@
 #ifndef _KR_GLOBAL_OBJECT_H_
 #define _KR_GLOBAL_OBJECT_H_
 
-#include "../base.h"
+#include <base.h>
 
 #include "k_event_object.h"
 

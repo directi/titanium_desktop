@@ -40,8 +40,8 @@ class BuildConfig(object):
 				self.arch = 'i386'
 
 		vars = SCons.Variables.Variables(args = ARGUMENTS)
-		vars.Add('PRODUCT_VERSION', 'The underlying product version for Kroll', kwargs['PRODUCT_VERSION'])
-		vars.Add('PRODUCT_NAME', 'The underlying product name that Kroll will display (default: "Kroll")', kwargs['PRODUCT_NAME'])
+		vars.Add('PRODUCT_VERSION', 'The underlying product version', kwargs['PRODUCT_VERSION'])
+		vars.Add('PRODUCT_NAME', 'The underlying product name that will be displayed (default: "Titanium")', kwargs['PRODUCT_NAME'])
 		vars.Add('GLOBAL_NS_VARNAME','The name of the Kroll global variable', kwargs['GLOBAL_NS_VARNAME'])
 		vars.Add('CONFIG_FILENAME','The name of the Kroll config file', kwargs['CONFIG_FILENAME'])
 		vars.Add('DISTRIBUTION_URL','The base URL of all streams', kwargs['DISTRIBUTION_URL'])

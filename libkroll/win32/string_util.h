@@ -7,7 +7,7 @@
 #ifndef BASE_STRING_UTIL_H_
 #define BASE_STRING_UTIL_H_
 
-#include "../base.h"
+#include <base.h>
 
 #include <string>
 #include <vector>

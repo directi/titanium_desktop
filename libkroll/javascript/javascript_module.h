@@ -9,7 +9,7 @@
 #include <cstring>
 #include <map>
 
-#include <kroll/base.h>
+#include <base.h>
 
 #include "k_kjs_object.h"
 #include "k_kjs_method.h"

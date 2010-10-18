@@ -6,6 +6,13 @@ Import('build')
 #Import('libkroll_env')
 #Import('libkroll_name')
 
+def get_utils(dir):
+	sources_utils = Glob('%s/*.cpp' % dir) + \
+		Glob('%s/poco/*.cpp' % dir) + \
+		Glob('%s/%s/*.cpp' % (dir, build.os))
+	return sources_utils
+
+
 libkroll_sources = []
 libkroll_env = build.env.Clone()
 
@@ -24,6 +31,8 @@ sources = libkroll_sources + \
 	Glob('utils/%s/*.cpp' % build.os) + \
 	Glob('net/*_%s.cpp' % build.os)
 
+sources.extend(get_utils(path.join(build.kroll_source_dir, 'utils')))
+
 if build.is_linux():
 	sources += Glob('linux/*.cpp') + Glob('utils/posix/*.cpp') 
 
@@ -32,8 +41,7 @@ if build.is_win32():
 
 env = libkroll_env
 env.Append(CPPDEFINES=[('KROLL_API_EXPORT', 1)])
-
-env.Append(CPPPATH=[path.join(build.kroll_source_dir, 'libkroll')])
+env.Append(CPPPATH=[path.join(build.kroll_source_dir, 'utils')])
 
 build.add_thirdparty(env, 'poco')
 build.add_thirdparty(env, 'webkit')

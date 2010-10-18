@@ -10,7 +10,7 @@
 #include <list>
 #include <Poco/Mutex.h>
 
-#include "../base.h"
+#include <base.h>
 
 #include "event.h"
 

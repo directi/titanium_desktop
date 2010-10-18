@@ -43,7 +43,9 @@
 
 #ifndef KPOCO_Foundation_DigestEngine_INCLUDED
 #define KPOCO_Foundation_DigestEngine_INCLUDED
-#include "../utils.h"
+
+#include <base.h>
+
 #include "KFoundation.h"
 #include <vector>
 

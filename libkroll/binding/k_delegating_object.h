@@ -10,7 +10,7 @@
 #include <string>
 #include <map>
 
-#include "../base.h"
+#include <base.h>
 
 #include <Poco/Mutex.h>
 

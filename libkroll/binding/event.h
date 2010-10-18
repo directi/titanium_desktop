@@ -7,7 +7,7 @@
 #ifndef _KR_EVENT_H_
 #define _KR_EVENT_H_
 
-#include "../base.h"
+#include <base.h>
 
 #include "k_accessor_object.h"
 

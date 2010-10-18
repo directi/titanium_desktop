@@ -11,7 +11,7 @@
 #include <JavaScriptCore/JSStringRef.h>
 #include <JavaScriptCore/JSContextRef.h>
 
-#include <kroll/base.h>
+#include <base.h>
 #include <kroll/binding/binding.h>
 
 namespace kroll

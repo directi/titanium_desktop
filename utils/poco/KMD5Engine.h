@@ -67,7 +67,8 @@
 #ifndef KPOCO_Foundation_MD5Engine_INCLUDED
 #define KPOCO_Foundation_MD5Engine_INCLUDED
 
-#include "../utils.h"
+#include <base.h>
+
 #include "KFoundation.h"
 #include "KDigestEngine.h"
 

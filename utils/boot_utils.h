@@ -6,7 +6,7 @@
 #ifndef _KR_BOOT_UTILS_H_
 #define _KR_BOOT_UTILS_H_
 
-#include "../base.h"
+#include <base.h>
 
 
 // These UUIDs should never change and uniquely identify a package type

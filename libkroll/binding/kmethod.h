@@ -8,7 +8,7 @@
 #define _K_METHOD_H_
 #include <cstdarg>
 
-#include "../base.h"
+#include <base.h>
 
 #include "kobject.h"
 #include "callback.h"

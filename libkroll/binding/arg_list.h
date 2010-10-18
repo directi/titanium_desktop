@@ -11,7 +11,7 @@
 #include <string>
 #include <map>
 
-#include "../base.h"
+#include <base.h>
 
 #include "value.h"
 #include "callback.h"

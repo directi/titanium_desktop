@@ -7,7 +7,7 @@
 #ifndef _KR_VOID_PTR_OBJECT_H_
 #define _KR_VOID_PTR_OBJECT_H_
 
-#include "../base.h"
+#include <base.h>
 
 #include "static_bound_object.h"
 

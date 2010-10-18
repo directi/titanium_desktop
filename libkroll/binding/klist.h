@@ -10,7 +10,7 @@
 #include <string>
 #include <cctype>
 
-#include "../base.h"
+#include <base.h>
 
 #include "kobject.h"
 #include "binding_declaration.h"

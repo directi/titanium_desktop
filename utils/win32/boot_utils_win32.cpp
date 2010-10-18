@@ -3,7 +3,12 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
-#include "../utils.h"
+
+#include <windows.h>
+#include <boot_utils.h>
+#include <file_utils.h>
+#include <environment_utils.h>
+
 #include <sstream>
 
 using std::wstring;

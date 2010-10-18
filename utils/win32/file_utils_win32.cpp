@@ -3,13 +3,17 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
-#include "../utils.h"
+
 #include <windows.h>
 #include <shlobj.h>
 #include <Iphlpapi.h>
 #include <process.h>
 #include <shellapi.h>
 #include <sstream>
+
+
+#include <file_utils.h>
+#include <win32/win32_utils.h>
 
 #ifndef NO_UNZIP
 #include "../unzip/unzip.h"
@@ -52,7 +56,7 @@ namespace FileUtils
 			std::string fullPath(UTILS_NS::WideToUTF8(path));
 			return Dirname(fullPath);
 		}
-		return string("");
+		return std::string("");
 	}
 
 

@@ -7,7 +7,7 @@
 #ifndef _KR_EVENT_METHOD_H_
 #define _KR_EVENT_METHOD_H_
 
-#include "../base.h"
+#include <base.h>
 
 #include "value.h"
 #include "kmethod.h"

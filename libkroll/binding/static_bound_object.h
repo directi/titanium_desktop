@@ -13,7 +13,7 @@
 
 #include <Poco/Mutex.h>
 
-#include "../base.h"
+#include <base.h>
 
 #include "value.h"
 #include "kobject.h"

@@ -3,7 +3,7 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
-#include "../utils.h"
+#include "win32_utils.h"
 
 namespace UTILS_NS
 {
