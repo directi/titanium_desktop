@@ -47,7 +47,8 @@ else:
 		build.env.Append(CPPFLAGS = ['-O9']) # max optimizations
 if build.is_win32():
 	build.env.Append(CCFLAGS=['/EHsc', '/GR', '/MD'])
-	build.env.Append(LINKFLAGS=['/DEBUG', '/PDB:${TARGET}.pdb'])
+	if debug:
+		build.env.Append(LINKFLAGS=['/DEBUG', '/PDB:${TARGET}.pdb'])
 
 Export('build', 'debug')
 targets = COMMAND_LINE_TARGETS
@@ -76,8 +77,9 @@ SConscript('SConscript.dist')
 SConscript('SConscript.docs')
 SConscript('SConscript.test')
 
-run = ARGUMENTS.get('run', 0)
-run_with = ARGUMENTS.get('run_with', 0)
+# TODO: add apps later.
+#run = ARGUMENTS.get('run', 0)
+#run_with = ARGUMENTS.get('run_with', 0)
 
-Export('run','run_with')
-SConscript('apps/SConscript')
+#Export('run','run_with')
+#SConscript('apps/SConscript')
