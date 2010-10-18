@@ -3,9 +3,11 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
-#include "utils.h"
 
- #if defined(KROLL_API_EXPORT) || defined(_KROLL_H_)
+#include <base.h>
+#include <data_utils.h>
+
+#if defined(KROLL_API_EXPORT) || defined(_KROLL_H_)
 	#include <Poco/DigestEngine.h>
 	#include <Poco/MD5Engine.h>
 
@@ -18,9 +20,6 @@
 	using KPoco::DigestEngine;
 	using KPoco::MD5Engine;
 #endif
-
-
-
 
 namespace UTILS_NS
 {

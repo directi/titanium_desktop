@@ -31,7 +31,7 @@ sources = libkroll_sources + \
 	Glob('utils/%s/*.cpp' % build.os) + \
 	Glob('net/*_%s.cpp' % build.os)
 
-sources.extend(get_utils(path.join(build.kroll_source_dir, 'utils')))
+#sources.extend(get_utils(path.join(build.kroll_source_dir, 'utils')))
 
 if build.is_linux():
 	sources += Glob('linux/*.cpp') + Glob('utils/posix/*.cpp') 

@@ -3,10 +3,12 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "utils.h"
+#include <environment_utils.h>
+
 #include <cstdlib>
 
 #ifdef OS_WIN32
+#include <win32/win32_utils.h>
 // See http://msdn.microsoft.com/en-us/library/ms686206(VS.85).aspx
 #define MAX_ENV_VALUE_SIZE 32767 
 #define REASONABLE_MAX_ENV_VALUE_SIZE 1024

@@ -15,10 +15,6 @@
 #include <file_utils.h>
 #include <win32/win32_utils.h>
 
-#ifndef NO_UNZIP
-#include "../unzip/unzip.h"
-#endif
-
 namespace UTILS_NS
 {
 namespace FileUtils
@@ -333,56 +329,6 @@ namespace FileUtils
 		}
 		return rc;
 	}
-
-#ifndef NO_UNZIP
-	bool Unzip(const std::string& source, const std::string& destination, 
-		UnzipCallback callback, void *data)
-	{
-		bool success = true;
-		std::wstring wideSource(UTILS_NS::UTF8ToWide(source));
-		std::wstring wideDestination(UTILS_NS::UTF8ToWide(destination));
-		
-		HZIP handle = OpenZip(wideSource.c_str(), 0);
-		SetUnzipBaseDir(handle, wideDestination.c_str());
-
-		ZIPENTRY zipEntry; ZeroMemory(&zipEntry, sizeof(ZIPENTRY));
-
-		GetZipItem(handle, -1, &zipEntry);
-		int numItems = zipEntry.index;
-		if (callback)
-		{ 
-			std::ostringstream message;
-			message << "Starting extraction of " << numItems 
-				<< " items from " << source << "to " << destination;
-			std::string messageString(message.str());
-			callback((char*) messageString.c_str(), 0, numItems, data);
-		}
-		
-		for (int zi = 0; zi < numItems; zi++) 
-		{ 
-			ZeroMemory(&zipEntry, sizeof(ZIPENTRY));
-			GetZipItem(handle, zi, &zipEntry);
-			
-			if (callback)
-			{
-				std::string name(WideToUTF8(zipEntry.name));
-				std::string message("Extracting ");
-				message.append(name);
-				message.append("...");
-				bool result = callback((char*) message.c_str(), zi, numItems, data);
-				if (!result)
-				{
-					success = false;
-					break;
-				}
-			}
-			
-			UnzipItem(handle, zi, zipEntry.name);
-		}
-		CloseZip(handle);
-		return success;
-	}
-#endif
 
 	// TODO: implement this for other platforms
 	void CopyRecursive(const std::string& dir, const std::string& dest, const std::string& exclude)

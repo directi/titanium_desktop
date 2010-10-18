@@ -146,13 +146,6 @@ namespace UTILS_NS
 		KROLL_API bool IsRuntimeInstalled();
 		KROLL_API int RunAndWait(const std::string& path, std::vector<std::string>& args);
 		KROLL_API std::string GetUsername();
-
-#ifndef NO_UNZIP
-		typedef bool (*UnzipCallback)(char* message, int current,
-			int total, void* data);
-		KROLL_API bool Unzip(const std::string& source, const std::string& destination, 
-			UnzipCallback callback=0, void* data=0);
-#endif
 	}
 }
 

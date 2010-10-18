@@ -3,7 +3,8 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
-#include "utils.h"
+#include <boot_utils.h>
+#include <file_utils.h>
 
 using std::string;
 using std::vector;

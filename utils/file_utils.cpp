@@ -3,7 +3,7 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
-#include "utils.h"
+#include <file_utils.h>
 
 #ifdef OS_OSX
 #include <Cocoa/Cocoa.h>
@@ -63,7 +63,7 @@ namespace FileUtils
 			return true;
 		}
 		
-		string parent(Dirname(dir));
+		std::string parent(Dirname(dir));
 		if (recursive && parent.size() > 0 && !IsDirectory(parent))
 		{
 			if (!CreateDirectory(parent, true))
