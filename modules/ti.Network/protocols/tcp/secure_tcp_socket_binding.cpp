@@ -2,6 +2,7 @@
  * Class SecureTCPSocketBinding
  * @author: Mital Vora <mital.d.vora@gmail.com>
  */
+#ifndef OS_OSX
 #include "secure_tcp_socket_binding.h"
 #include <kroll/kroll.h>
 //#include <Poco/Net/SSLManager.h>
@@ -52,4 +53,4 @@ namespace ti
 		TCPSocketBinding::addSocket(socket);
 	}
 }
-
+#endif
