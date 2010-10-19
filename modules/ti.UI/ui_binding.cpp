@@ -428,7 +428,7 @@ namespace ti
 			script.append("')");
 			try 
 			{
-				KJSUtil::Evaluate(KJSUtil::GetGlobalContext(kobj->GetJSObject()), script.c_str());  
+				KJSUtil::Evaluate(KJSUtil::GetGlobalContext(kobj->GetJSObject()), script.c_str(), "native-code");  
 			} 
 			catch (ValueException& exception)
 			{
