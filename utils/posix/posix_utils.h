@@ -5,6 +5,9 @@
  */
 #ifndef _KR_POSIX_UTILS_H_
 #define _KR_POSIX_UTILS_H_
+
+#include <base.h>
+
 #include <string>
 namespace UTILS_NS
 {

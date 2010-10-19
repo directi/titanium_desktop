@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import os
 import os.path as path
 import effess
@@ -6,12 +7,15 @@ Import('build')
 #Import('libkroll_env')
 #Import('libkroll_name')
 
-def get_utils(dir):
+def get_shared_utils(dir):
 	sources_utils = Glob('%s/*.cpp' % dir) + \
 		Glob('%s/poco/*.cpp' % dir) + \
 		Glob('%s/%s/*.cpp' % (dir, build.os))
+	if build.is_osx():
+		sources_utils.extend(Glob('%s/%s/*.mm' % (dir, build.os)))
+	if not build.is_win32():
+		sources_utils.extend(Glob('%s/posix/*.cpp' % dir))
 	return sources_utils
-
 
 libkroll_sources = []
 libkroll_env = build.env.Clone()
@@ -24,11 +28,9 @@ sources = libkroll_sources + \
 	Glob('*.cpp') + \
 	Glob('config/*.cpp') + \
 	Glob('binding/*.cpp') + \
-	Glob('utils/*.cpp') + \
 	Glob('net/proxy_config.cpp') + \
 	Glob('javascript/*.cpp') + \
 	Glob('api/*.cpp') + \
-	Glob('utils/%s/*.cpp' % build.os) + \
 	Glob('net/*_%s.cpp' % build.os)
 
 utils_dir=path.join(build.kroll_source_dir, 'utils')
@@ -38,10 +40,10 @@ print "Warning: copying utils for libkroll."
 effess.copy_to_dir(utils_dir, libkroll_utils_dir)
 libkroll_utils_dir=path.join(libkroll_utils_dir, 'utils')
 
-sources.extend(get_utils(libkroll_utils_dir))
+sources.extend(get_shared_utils(libkroll_utils_dir))
 
 if build.is_linux():
-	sources += Glob('linux/*.cpp') + Glob('utils/posix/*.cpp') 
+	sources += Glob('linux/*.cpp')
 
 if build.is_win32():
 	sources += Glob('utils/unzip/*.cpp') + Glob('win32/*.cpp')
@@ -54,8 +56,6 @@ build.add_thirdparty(env, 'poco')
 build.add_thirdparty(env, 'webkit')
 if build.is_osx():
 	sources +=  Glob('osx/*.mm') + \
-		Glob('utils/%s/*.mm' % build.os) + \
-		Glob('utils/posix/*.cpp') + \
 		Glob('net/*_%s.mm' % build.os)
 
 if build.is_linux():

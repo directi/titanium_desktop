@@ -3,7 +3,7 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
-#include "../utils.h"
+#include <file_utils.h>
 
 #ifdef OS_OSX
 #include <Cocoa/Cocoa.h>
@@ -192,38 +192,5 @@ namespace UTILS_NS
 		int status = system(p.c_str());
 		return WEXITSTATUS(status);
 	}
-
-#ifndef NO_UNZIP
-	bool FileUtils::Unzip(const std::string& source, const std::string& destination, 
-		UnzipCallback callback, void* data)
-	{
-#ifdef OS_OSX
-		//
-		// we don't include gzip since we're on OSX
-		// we just let the built-in OS handle extraction for us
-		//
-		std::vector<std::string> args;
-		args.push_back("--noqtn");
-		args.push_back("-x");
-		args.push_back("-k");
-		args.push_back("--rsrc");
-		args.push_back(source);
-		args.push_back(destination);
-		std::string cmdline = "/usr/bin/ditto";
-		RunAndWait(cmdline, args);
-		return true;
-#elif OS_LINUX
-		std::vector<std::string> args;
-		args.push_back("-qq");
-		args.push_back("-o");
-		args.push_back(source);
-		args.push_back("-d");
-		args.push_back(destination);
-		std::string cmdline("/usr/bin/unzip");
-		RunAndWait(cmdline, args);
-		return true;
-#endif
-	}
-#endif
 }
 

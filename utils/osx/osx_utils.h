@@ -6,6 +6,7 @@
 #ifndef _KR_OSX_UTILS_H_
 #define _KR_OSX_UTILS_H_
 
+#include <base.h>
 #include <string>
 #include <CoreFoundation/CoreFoundation.h>
 

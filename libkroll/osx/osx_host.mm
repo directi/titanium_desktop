@@ -4,7 +4,7 @@
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "../base.h"
+#include <base.h>
 #include "../host.h"
 
 #include "../utils/file_utils.h"
