@@ -26,6 +26,8 @@ namespace UTILS_NS
 	{
 	private:
 		Application(const std::string &path, const std::string &manifestPath);
+		Application(const std::string &path = string(""));
+
 		void ParseManifest(const map<string, string>& manifest);
 		void setRuntimeProductVersion();
 
@@ -39,7 +41,6 @@ namespace UTILS_NS
 		vector<SharedDependency> dependencies;
 		ManifestHandler manifestHandler;
 		ComponentManager componentManager;
-
 
 	public:
 		static SharedApplication NewApplication(const std::string &appPath);

@@ -17,6 +17,17 @@ namespace UTILS_NS
 	ManifestHandler::ManifestHandler(const std::string &_manifestPath)
 		: manifestPath(_manifestPath)
 	{
+		map<string, string> manifest;
+		ManifestHandler::ReadManifestFile(this->manifestPath, manifest);
+		if(!manifest.empty())
+		{
+			this->parseManifest(manifest);
+		}
+	}
+
+	ManifestHandler::ManifestHandler()
+		: manifestPath("")
+	{
 	}
 
 	ManifestHandler::~ManifestHandler()
@@ -24,7 +35,7 @@ namespace UTILS_NS
 	}
 
 
-	void ManifestHandler::ParseManifest(const map<string, string>& manifest)
+	void ManifestHandler::parseManifest(const map<string, string>& manifest)
 	{
 		for(map<string, string>::const_iterator
 			oIter = manifest.begin();
@@ -93,6 +104,18 @@ namespace UTILS_NS
 		oIter++)
 		{
 			_dep[oIter->first] = oIter->second;
+		}
+	}
+
+	void ManifestHandler::getDependencies(vector<SharedDependency> &dependencies)
+	{
+		for(map<string, string>::const_iterator
+			oIter = dep.begin();
+			oIter != dep.end();
+		oIter++)
+		{
+			SharedDependency d = Dependency::NewDependencyFromManifestLine(oIter->first, oIter->second);
+			dependencies.push_back(d);
 		}
 	}
 

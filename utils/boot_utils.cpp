@@ -302,13 +302,46 @@ namespace BootUtils
 		return c;
 	}
 
-
-	ComponentManager::ComponentManager()
+	ComponentManager::ComponentManager(const std::string &path)
+		: path(path)
 	{
+	}
+
+	ComponentManager::ComponentManager(const std::string &path, const vector<SharedDependency> &dependencies)
+		: path(path)
+	{
+		resolveDependencies(dependencies);
 	}
 
 	ComponentManager::~ComponentManager()
 	{
+	}
+
+	void ComponentManager::resolveDependencies(const vector<SharedDependency> &dependencies)
+	{
+		vector<SharedComponent> components;
+		BootUtils::ScanBundledComponents(this->path, components);
+
+		for(vector<SharedDependency>::const_iterator
+			i = dependencies.begin();
+			i != dependencies.end();
+		i++)
+		{
+			const SharedDependency d = *i;
+			SharedComponent c = BootUtils::ResolveDependency(d, components);
+			if (c.isNull())
+			{
+				this->unresolved.push_back(d);
+			}
+			else if (c->type == MODULE)
+			{
+				this->modules.push_back(c);
+			}
+			else if (c->type == RUNTIME)
+			{
+				this->runtime = c;
+			}
+		}
 	}
 
 	void ComponentManager::GetAvailableComponentsAt(

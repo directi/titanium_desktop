@@ -23,35 +23,28 @@ using std::pair;
 
 namespace UTILS_NS
 {
-	/*static*/
-	SharedApplication Application::NewApplication(const std::string &appPath)
+	SharedApplication Application::NewApplication(const std::string &app_path)
 	{
-		string manifest_path = ManifestHandler::getManifestPathAtDirectory(appPath);
-		return Application::NewApplication(manifest_path, appPath);
+		string manifest_path = ManifestHandler::getManifestPathAtDirectory(app_path);
+		return Application::NewApplication(manifest_path, app_path);
 	}
 
-	/*static*/
-	SharedApplication Application::NewApplication(
-		const std::string &manifestPath,
-		const std::string &appPath)
+	SharedApplication Application::NewApplication(const std::string &manifest_path, const std::string &app_path)
 	{
 		map<string, string> manifest;
-		ManifestHandler::ReadManifestFile(manifestPath, manifest);
-
+		ManifestHandler::ReadManifestFile(manifest_path, manifest);
 		if (manifest.empty())
 		{
 			return NULL;
 		}
 
-		Application* application = new Application(appPath, manifestPath);
-		application->ParseManifest(manifest);
+		Application* application = new Application(app_path, manifest_path);
 		return application;
 	}
 
-	/*static*/
 	SharedApplication Application::NewApplication(const map<string, string>& manifest)
 	{
-		Application* application = new Application("", "");
+		Application* application = new Application();
 		application->ParseManifest(manifest);
 		return application;
 	}
@@ -69,7 +62,7 @@ namespace UTILS_NS
 	
 	void Application::ParseManifest(const map<string, string>& manifest)
 	{
-		manifestHandler.ParseManifest(manifest);
+		manifestHandler.parseManifest(manifest);
 
 		map<string, string> dep;
 		manifestHandler.getDependencies(dep);
@@ -86,7 +79,25 @@ namespace UTILS_NS
 	Application::Application(const std::string &path, const std::string &manifestPath)
 		: path(path),
 		manifestHandler(manifestPath),
-		componentManager()
+		componentManager(path)
+	{
+		// TODO: to be moved in component Manager
+		map<string, string> dep;
+		manifestHandler.getDependencies(dep);
+		for(map<string, string>::const_iterator
+			oIter = dep.begin();
+			oIter != dep.end();
+		oIter++)
+		{
+			 SharedDependency d = Dependency::NewDependencyFromManifestLine(oIter->first, oIter->second);
+			 this->dependencies.push_back(d);
+		}
+	}
+
+	Application::Application(const std::string &path)
+		: path(path),
+		manifestHandler(),
+		componentManager(path)
 	{
 	}
 

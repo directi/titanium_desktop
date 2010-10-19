@@ -53,21 +53,37 @@ bool KrollBoot::allDependenciesResolved()
 
 int KrollBoot::Bootstrap()
 {
-	string applicationHome = FileUtils::GetExecutableDirectory();
+	string app_path = FileUtils::GetExecutableDirectory();
 
-	if(!ManifestHandler::doesManifestFileExistsAtDirectory(applicationHome))
+	if(!ManifestHandler::doesManifestFileExistsAtDirectory(app_path))
 	{
 		string error("Application packaging error: no manifest was found from directory : " );
-		error.append(applicationHome);
+		error.append(app_path);
 		ShowError(error);
 		return __LINE__;
 	}
 
-	app = Application::NewApplication(applicationHome);
+	::MessageBoxA(0, "test", "test", 0);
+	// create manifest handler
+	// parse manifest
+	string manifest_path = ManifestHandler::getManifestPathAtDirectory(app_path);
+	ManifestHandler manifestHandler(manifest_path);
+
+	// get dependencies from manifest
+	vector<SharedDependency> dependencies;
+	manifestHandler.getDependencies(dependencies);
+
+	// create dependency mananger
+	// resolve dependencies
+	ComponentManager componentManager(app_path, dependencies);
+	// if there are unresolved dependencies --> exit
+	// else --> get paths from ther set as module paths , runtime path.
+
+	app = Application::NewApplication(app_path);
 	if (app.isNull())
 	{
 		string error("Application packaging error: could not read manifest from directory : ");
-		error.append(applicationHome);
+		error.append(app_path);
 		ShowError(error);
 		return __LINE__;
 	}
@@ -84,7 +100,7 @@ int KrollBoot::Bootstrap()
 	string modulePaths = app->getModulePaths();
 
 	EnvironmentUtils::Set(BOOTSTRAP_ENV, "YES");
-	EnvironmentUtils::Set("KR_HOME", app->getPath());
+	EnvironmentUtils::Set("KR_HOME", app_path);
 	EnvironmentUtils::Set("KR_RUNTIME", app->getRuntimePath());
 	EnvironmentUtils::Set("KR_MODULES", modulePaths);
 

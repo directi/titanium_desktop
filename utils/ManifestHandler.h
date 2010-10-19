@@ -33,10 +33,11 @@ namespace UTILS_NS
 		map<string, string> dep;
 
 	public:
+		ManifestHandler();
 		ManifestHandler(const std::string &_manifestPath);
 		~ManifestHandler();
 
-		void ParseManifest(const map<string, string>& manifest);
+		void parseManifest(const map<string, string>& manifest);
 
 		std::string getManifestPath() const { return manifestPath; }
 		string getName() const { return this->name; }
@@ -49,6 +50,7 @@ namespace UTILS_NS
 		string getLogLevel() const { return this->logLevel; }
 
 		void getDependencies(map<string, string> & _dep);
+		void getDependencies(vector<SharedDependency> &dependencies);
 
 		/**
 		 * checks for the existance of manifest file in given directory

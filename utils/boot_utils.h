@@ -81,9 +81,9 @@ namespace UTILS_NS
 	/**
 	 * Represents a concrete Kroll components -- a runtime or module found on disk
 	 */
-	class KComponent;
-	typedef SharedPtr<UTILS_NS::KComponent> SharedComponent;
 
+	class KComponent;
+	typedef SharedPtr<KComponent> SharedComponent;
 	class KROLL_API KComponent
 	{
 	public:
@@ -101,8 +101,17 @@ namespace UTILS_NS
 
 	class KROLL_API ComponentManager
 	{
+	private:
+		const std::string path;
+		SharedComponent runtime;
+		vector<SharedComponent> modules;
+		vector<SharedDependency> unresolved;
+
+		void resolveDependencies(const vector<SharedDependency> &dependencies);
+
 	public:
-		ComponentManager();
+		ComponentManager(const std::string &path);
+		ComponentManager(const std::string &path, const vector<SharedDependency> &dependencies);
 		~ComponentManager();
 
 		static void GetAvailableComponentsAt(
