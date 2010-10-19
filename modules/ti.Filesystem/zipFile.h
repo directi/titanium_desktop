@@ -7,6 +7,7 @@
 #define _TI_ZIP_DECOMPRESS_H
 
 #include <kroll/kroll.h>
+#include <kroll/utils/zip_utils.h>
 
 #ifdef OS_WIN32
 #include <windows.h>
