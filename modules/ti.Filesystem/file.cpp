@@ -15,6 +15,7 @@
 #include <Poco/DigestStream.h>
 #include <Poco/StreamCopier.h>
 
+#include <kroll/utils/zip_utils.h>
 
 #ifndef OS_WIN32
 #include <sys/types.h>
