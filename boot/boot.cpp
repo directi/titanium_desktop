@@ -9,7 +9,7 @@
 #include <platform_utils.h>
 
 KrollBoot::KrollBoot(int _argc, const char ** _argv)
-: argc(_argc), argv(_argv), app(0)
+: argc(_argc), argv(_argv)
 {
 }
 KrollBoot::~KrollBoot()
@@ -88,7 +88,7 @@ int KrollBoot::Bootstrap()
 	EnvironmentUtils::Set("KR_RUNTIME", app->getRuntimePath());
 	EnvironmentUtils::Set("KR_MODULES", modulePaths);
 
-	BootstrapPlatformSpecific(modulePaths);
+	BootstrapPlatformSpecific(app->getRuntimePath(), modulePaths);
 	string error = Blastoff();
 
 	// If everything goes correctly, we should never get here

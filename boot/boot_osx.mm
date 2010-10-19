@@ -51,9 +51,9 @@ void KrollOSXBoot::ShowErrorImpl(const std::string& msg, bool fatal) const
 		[NSString stringWithUTF8String:msg.c_str()], buttonText, nil, nil);
 }
 
-void KrollOSXBoot::BootstrapPlatformSpecific(const string & moduleList)
+void KrollOSXBoot::BootstrapPlatformSpecific(const std::string & runtime_path, const std::string & module_paths)
 {
-	std::string fullModuleList = app->getRuntimePath() + ":" + moduleList;
+	std::string fullModuleList = runtime_path + ":" + module_paths;
 
 	string path(fullModuleList);
 	string currentFWPath(EnvironmentUtils::Get("DYLD_FRAMEWORK_PATH"));
@@ -126,22 +126,15 @@ int KrollOSXBoot::StartHost()
 
 string KrollOSXBoot::GetApplicationName() const
 {
-	if (!app.isNull())
+	// fall back to the info.plist if we haven't loaded the application
+	// which happens in a crash situation
+	NSDictionary *infoDictionary = [[NSBundle mainBundle] infoDictionary];
+	NSString *applicationName = [infoDictionary objectForKey:@"CFBundleName"];
+	if (!applicationName) 
 	{
-		return app->getName().c_str();
+		applicationName = [infoDictionary objectForKey:@"CFBundleExecutable"];
 	}
-	else
-	{
-		// fall back to the info.plist if we haven't loaded the application
-		// which happens in a crash situation
-		NSDictionary *infoDictionary = [[NSBundle mainBundle] infoDictionary];
-		NSString *applicationName = [infoDictionary objectForKey:@"CFBundleName"];
-		if (!applicationName) 
-		{
-			applicationName = [infoDictionary objectForKey:@"CFBundleExecutable"];
-		}
-		return [applicationName UTF8String];
-	}
+	return [applicationName UTF8String];
 }
 
 #ifdef USE_BREAKPAD

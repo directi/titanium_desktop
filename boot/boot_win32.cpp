@@ -77,15 +77,15 @@ void KrollWin32Boot::ShowErrorImpl(const string & msg, bool fatal) const
 }
 
 
-void KrollWin32Boot::BootstrapPlatformSpecific(const std::string & path)
+void KrollWin32Boot::BootstrapPlatformSpecific(const std::string & runtime_path, const std::string & module_paths)
 {
 	// Add runtime path and all module paths to PATH
-	std::string newpath = app->getRuntimePath() + ";" + path;
+	std::string newpath = runtime_path + ";" + module_paths;
 	string currentPath(EnvironmentUtils::Get("PATH"));
 	EnvironmentUtils::Set("KR_ORIG_PATH", currentPath);
 
 	// make sure the runtime folder is used before system DLL directories
-	SetDllDirectoryW(KrollUtils::UTF8ToWide(app->getRuntimePath()).c_str());
+	SetDllDirectoryW(KrollUtils::UTF8ToWide(runtime_path).c_str());
 
 	if (!currentPath.empty())
 		newpath = newpath + ";" + currentPath;
@@ -96,19 +96,12 @@ string KrollWin32Boot::Blastoff()
 {
 	// Windows boot does not normally need to restart itself,  so just
 	// launch the host here and exit with the appropriate return value.
-
-	// This may have been an install, so ensure that KR_HOME is correct
-	EnvironmentUtils::Set("KR_HOME", app->getPath());
 	exit(StartHost());
 }
 
 
 string KrollWin32Boot::GetApplicationName() const
 {
-	if (!app.isNull())
-	{
-		return app->getName().c_str();
-	}
 	return PRODUCT_NAME;
 }
 

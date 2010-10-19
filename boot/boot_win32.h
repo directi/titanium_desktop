@@ -33,7 +33,7 @@ class KrollWin32Boot
 
 	private:
 		virtual string Blastoff();
-		virtual void BootstrapPlatformSpecific(const std::string & moduleList);
+		virtual void BootstrapPlatformSpecific(const std::string & runtime_path, const std::string & module_paths);
 
 		HMODULE SafeLoadRuntimeDLL(string& path) const;
 

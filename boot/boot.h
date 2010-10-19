@@ -60,7 +60,7 @@ protected:
 	bool allDependenciesResolved();
 
 	virtual string Blastoff()=0;
-	virtual void BootstrapPlatformSpecific(const std::string & moduleList)=0;
+	virtual void BootstrapPlatformSpecific(const std::string & runtime_path, const std::string & module_paths)=0;
 
 	virtual void ShowErrorImpl(const std::string & msg, bool fatal) const=0;
 	virtual string GetApplicationName() const=0;

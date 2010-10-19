@@ -19,7 +19,9 @@ class KrollLinuxBoot
 	private:
 		
 		virtual string Blastoff();
-		virtual void BootstrapPlatformSpecific(const std::string & moduleList);
+		virtual void BootstrapPlatformSpecific(
+			const std::string & runtime_path,
+			const std::string & module_paths);
 
 		virtual string GetApplicationName() const;
 		virtual void ShowErrorImpl(const string & msg, bool fatal) const;

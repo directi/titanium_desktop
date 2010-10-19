@@ -41,9 +41,9 @@ void KrollLinuxBoot::ShowErrorImpl(const string & msg, bool fatal) const
 }
 
 
-void KrollLinuxBoot::BootstrapPlatformSpecific(const std::string & moduleList)
+void KrollLinuxBoot::BootstrapPlatformSpecific(const std::string & runtime_path, const std::string & module_paths)
 {
-	std::string fullmoduleList = app->getRuntimePath() + ":" + moduleList;
+	std::string fullmoduleList = runtime_path + ":" + module_paths;
 
 	string path(fullmoduleList);
 	string current(EnvironmentUtils::Get("LD_LIBRARY_PATH"));
@@ -107,10 +107,6 @@ int KrollLinuxBoot::StartHost()
 
 string KrollLinuxBoot::GetApplicationName() const
 {
-	if (!app.isNull())
-	{
-		return app->getName().c_str();
-	}
 	return PRODUCT_NAME;
 }
 
