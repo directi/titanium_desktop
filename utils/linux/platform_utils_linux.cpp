@@ -28,7 +28,10 @@
 // FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
 // ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
-#include "../utils.h"
+
+#include <platform_utils.h>
+#include <environment_utils.h>
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>

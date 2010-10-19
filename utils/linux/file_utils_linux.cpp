@@ -3,7 +3,8 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
-#include "../utils.h"
+#include <file_utils.h>
+
 #include <cstdarg>
 #include <unistd.h>
 #include <sys/ioctl.h>
