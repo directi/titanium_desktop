@@ -260,24 +260,56 @@ namespace ti
 	void TCPSocketBinding::OnReadReady(ReadableNotification * notification)
 	{
 		GetLogger()->Debug("Ready for Read with %d bytes on %s", this->socket->available(), this->socket->peerAddress().toString().c_str());
+		bool justConnected = false;
 		if(this->sock_state == SOCK_CONNECTING)
 		{
 			this->OnConnect();
-		} 
-		else if(this->socket->available() == 0 )
-		{
-			this->OnClose();
-			return;
+			justConnected = true;
 		} 
 		std::string error_text("Read failed: ");
 		bool error = false;
 		try
 		{
-			// Always read bytes, so that the tubes get cleared.
-			char data[BUFFER_SIZE + 1];
-			int size = socket->receiveBytes(&data, BUFFER_SIZE);
-			GetLogger()->Debug("Read %d bytes on %s", size, this->socket->peerAddress().toString().c_str());
-			if(size > 0) this->OnRead(data, size);
+			if(this->socket->available() > 0) 
+			{
+				// Always read bytes, so that the tubes get cleared.
+				int size;
+				do 
+				{
+					char data[BUFFER_SIZE + 1];
+					size = socket->receiveBytes(&data, BUFFER_SIZE);
+					GetLogger()->Debug("Read %d bytes on %s", size, this->socket->peerAddress().toString().c_str());
+					// A non-blocking socket on Linux can return 0 on read and set errno to E_WOULDBLOCK
+					// indicating that the TCP data failed the checksum and would require retransmission.
+					// But the Poco Doccumentation says it return of 0 means graceful shutdown...
+					// Poco source seems to standardize and block if this is the case.
+					if(size > 0) 
+						this->OnRead(data, size);
+					else 
+					{
+						if(!justConnected && size == 0) 
+						{
+							GetLogger()->Debug("Graceful shutdown detected");
+							this->OnClose(); 
+						} 
+						if(size < 0) 
+						{
+							GetLogger()->Debug("Connection refused Linux style");
+							// Linux connection errors should come this way.
+							this->OnError("Connection Refused");
+						}
+					}
+				} while(size == BUFFER_SIZE);
+			} 
+			else
+			{
+				// Windows connection errors should come this way.
+				if(! justConnected) 
+				{
+					GetLogger()->Debug("Connection closed a-la windows");
+					this->OnClose();
+				}
+			}
 		}
 		catch(Poco::Exception &e)
 		{
@@ -299,9 +331,9 @@ namespace ti
 	void TCPSocketBinding::OnWriteReady(WritableNotification * notification)
 	{
 		GetLogger()->Debug("Ready for Write on Socket: "  + this->socket->peerAddress().toString());
+		TCPSocketBinding::removeWriteListener(this);
 		if(this->sock_state == SOCK_CONNECTING)
 		{
-			TCPSocketBinding::removeWriteListener(this);
 			this->OnConnect();
 		} 
 	}
@@ -309,7 +341,7 @@ namespace ti
 	void TCPSocketBinding::OnError(ErrorNotification * notification)
 	{
 		GetLogger()->Debug("Socket Error on %s:%d ", this->host.c_str(), this->port);
-		// This isn't really helpful!
+		// This isn't really helpful, but I don't this it would be called ever!
 		this->OnError(notification->name());
 	}
 
