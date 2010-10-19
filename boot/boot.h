@@ -86,8 +86,6 @@ protected:
 	static string GetCrashDetectionMessage();
 	static string GetApplicationName();
 
-	SharedApplication app;
-
 	void InitCrashDetection();
 	void GetCrashReportParameters(map<string, string> & param);
 };

@@ -99,7 +99,6 @@ int KrollBoot::Bootstrap()
 
 #ifdef USE_BREAKPAD
 	CrashHandler::CrashHandler(int _argc, const char ** _argv)
-		: app(0)
 	{
 		executable_name = _argv[0];
 		if (_argc > 3)
@@ -126,7 +125,7 @@ int KrollBoot::Bootstrap()
 
 		if (FileUtils::IsFile(manifestPath))
 		{
-			app = Application::NewApplication(applicationHome);
+			//app = Application::NewApplication(applicationHome);
 		}
 	}
 
@@ -158,15 +157,16 @@ int KrollBoot::Bootstrap()
 
 			// this differentiates mobile vs desktop
 			params["location"] = "desktop"; 
-			params["mid"] = PlatformUtils::GetMachineId();
-			params["mac"] = PlatformUtils::GetFirstMACAddress();
+			//params["mid"] = PlatformUtils::GetMachineId();
+			//params["mac"] = PlatformUtils::GetFirstMACAddress();
 			params["os"] = OS_NAME;
 			params["ostype"] = OS_TYPE;
-			params["osver"] = FileUtils::GetOSVersion();
-			params["osarch"] = FileUtils::GetOSArchitecture();
+			//params["osver"] = FileUtils::GetOSVersion();
+			//params["osarch"] = FileUtils::GetOSArchitecture();
 			params["ver"] = PRODUCT_VERSION;
-			params["un"] = PlatformUtils::GetUsername();
+			//params["un"] = PlatformUtils::GetUsername();
 
+			/*
 			if (!app.isNull())
 			{
 				params["app_name"] = app->getName();
@@ -194,7 +194,7 @@ int KrollBoot::Bootstrap()
 					params[type + "_" + c->name + "_path"] = c->path;
 					params[type + "_" + c->name + "_bundled"] = c->bundled ? "1":"0";
 				}
-			}
+			}*/
 		}
 	}
 	string CrashHandler::GetApplicationName()
