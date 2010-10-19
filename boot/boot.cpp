@@ -25,32 +25,6 @@ void KrollBoot::ShowError(const string & msg, bool fatal) const
 	}
 }
 
-bool KrollBoot::allDependenciesResolved()
-{
-	bool allResolved = true;
-	vector<SharedDependency> missing;
-	app->ResolveDependencies(missing);
-
-	if (app->HasArgument(DEBUG_OPT))
-	{
-		vector<SharedComponent> resolved;
-		app->GetResolvedComponents(resolved);
-		for (size_t i = 0; i < resolved.size(); i++)
-		{
-			SharedComponent c = resolved[i];
-			std::cout << "Resolved: (" << c->name << " " 
-				<< c->version << ") " << c->path << std::endl;
-		}
-	}
-	for (size_t i = 0; i < missing.size(); i++)
-	{
-		SharedDependency d = missing.at(i);
-		std::cerr << "Unresolved: " << d->name << " " 
-			<< d->version << std::endl;
-	}
-	return (missing.size() == 0);
-}
-
 int KrollBoot::Bootstrap()
 {
 	string app_path = FileUtils::GetExecutableDirectory();
@@ -63,7 +37,6 @@ int KrollBoot::Bootstrap()
 		return __LINE__;
 	}
 
-	::MessageBoxA(0, "test", "test", 0);
 	// create manifest handler
 	// parse manifest
 	string manifest_path = ManifestHandler::getManifestPathAtDirectory(app_path);
@@ -79,32 +52,20 @@ int KrollBoot::Bootstrap()
 	// if there are unresolved dependencies --> exit
 	// else --> get paths from ther set as module paths , runtime path.
 
-	app = Application::NewApplication(app_path);
-	if (app.isNull())
-	{
-		string error("Application packaging error: could not read manifest from directory : ");
-		error.append(app_path);
-		ShowError(error);
-		return __LINE__;
-	}
-	app->SetArguments(argc, argv);
-
-	// Find all the modules and runtime are resolved with path.
-
-	if (!allDependenciesResolved())
+	if(!componentManager.allDependenciesResolved())
 	{
 		return __LINE__;
 	}
 
 	// Construct a list of module pathnames for setting up library paths
-	string modulePaths = app->getModulePaths();
+	string module_paths = componentManager.getModulePaths();
 
 	EnvironmentUtils::Set(BOOTSTRAP_ENV, "YES");
 	EnvironmentUtils::Set("KR_HOME", app_path);
-	EnvironmentUtils::Set("KR_RUNTIME", app->getRuntimePath());
-	EnvironmentUtils::Set("KR_MODULES", modulePaths);
+	EnvironmentUtils::Set("KR_RUNTIME", componentManager.getRuntimePath());
+	EnvironmentUtils::Set("KR_MODULES", module_paths);
 
-	BootstrapPlatformSpecific(app->getRuntimePath(), modulePaths);
+	BootstrapPlatformSpecific(componentManager.getRuntimePath(), module_paths);
 	string error = Blastoff();
 
 	// If everything goes correctly, we should never get here

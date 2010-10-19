@@ -46,7 +46,6 @@ protected:
 	int argc;
 	const char** argv;
 
-	SharedApplication app;
 public:
 
 	KrollBoot(int _argc, const char ** _argv);
@@ -57,7 +56,6 @@ public:
 
 protected:
 	void ShowError(const string & msg, bool fatal=false) const;
-	bool allDependenciesResolved();
 
 	virtual string Blastoff()=0;
 	virtual void BootstrapPlatformSpecific(const std::string & runtime_path, const std::string & module_paths)=0;

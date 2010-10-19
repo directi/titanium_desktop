@@ -14,13 +14,6 @@ using std::string;
 using std::vector;
 using std::pair;
 
-#ifdef OS_WIN32
-#define MODULE_SEPARATOR ";"
-#else
-#define MODULE_SEPARATOR ":"
-#endif
-
-
 namespace UTILS_NS
 {
 	SharedApplication Application::NewApplication(const std::string &app_path)

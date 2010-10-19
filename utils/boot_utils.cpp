@@ -6,6 +6,8 @@
 #include <boot_utils.h>
 #include <file_utils.h>
 
+#include <sstream>
+
 using std::string;
 using std::vector;
 using std::pair;
@@ -342,6 +344,27 @@ namespace BootUtils
 				this->runtime = c;
 			}
 		}
+	}
+
+	std::string ComponentManager::getModulePaths() const
+	{
+		std::ostringstream moduleList;
+		vector<SharedComponent>::const_iterator i = modules.begin();
+		while (i != modules.end())
+		{
+			SharedComponent module = *i++;
+			moduleList << module->path << MODULE_SEPARATOR;
+		}
+		return moduleList.str();
+	}
+
+	std::string ComponentManager::getRuntimePath() const
+	{
+		if(this->runtime)
+		{
+			return this->runtime->path;
+		}
+		return string("");
 	}
 
 	void ComponentManager::GetAvailableComponentsAt(

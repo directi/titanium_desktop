@@ -16,6 +16,12 @@
 #define LICENSE_FILENAME "LICENSE.txt"
 #define INSTALLED_MARKER_FILENAME ".installed"
 
+#ifdef OS_WIN32
+#define MODULE_SEPARATOR ";"
+#else
+#define MODULE_SEPARATOR ":"
+#endif
+
 namespace UTILS_NS
 {
 	using std::string;
@@ -113,6 +119,10 @@ namespace UTILS_NS
 		ComponentManager(const std::string &path);
 		ComponentManager(const std::string &path, const vector<SharedDependency> &dependencies);
 		~ComponentManager();
+
+		bool allDependenciesResolved() const { return unresolved.empty(); }
+		std::string getModulePaths() const;
+		std::string getRuntimePath() const;
 
 		static void GetAvailableComponentsAt(
 			const std::string& path,
