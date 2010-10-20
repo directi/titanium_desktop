@@ -14,6 +14,8 @@
 #include <file_utils.h>
 #include <environment_utils.h>
 
+using namespace UTILS_NS;
+
 
 KrollLinuxBoot::KrollLinuxBoot(int _argc, const char ** _argv)
 : KrollBoot(_argc, _argv)
