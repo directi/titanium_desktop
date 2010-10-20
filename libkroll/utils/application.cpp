@@ -5,7 +5,7 @@
  */
 
 #include "application.h"
-#include "file_utils.h"
+#include <kroll/utils/file_utils.h>
 
 #include <sstream>
 #define OVERRIDE_ARG "--bundled-component-override"

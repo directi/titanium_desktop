@@ -12,7 +12,7 @@
 #include <JavaScriptCore/JSContextRef.h>
 
 #include <base.h>
-#include <kroll/binding/binding.h>
+#include "../binding/binding.h"
 
 namespace kroll
 {

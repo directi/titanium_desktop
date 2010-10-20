@@ -32,6 +32,7 @@ int KrollBoot::Bootstrap()
 {
 	string app_path = FileUtils::GetExecutableDirectory();
 
+	::MessageBoxA(0, "test", "test", 0);
 	if(!ManifestHandler::doesManifestFileExistsAtDirectory(app_path))
 	{
 		string error("Application packaging error: no manifest was found from directory : " );

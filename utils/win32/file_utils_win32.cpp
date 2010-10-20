@@ -12,8 +12,8 @@
 #include <sstream>
 
 
-#include <file_utils.h>
-#include <win32/win32_utils.h>
+#include "../file_utils.h"
+#include "../win32/win32_utils.h"
 
 namespace UTILS_NS
 {

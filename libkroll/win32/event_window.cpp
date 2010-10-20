@@ -6,9 +6,8 @@
 
 #include "event_window.h"
 
-#include "../logger.h"
-
-#include "../utils/win32/win32_utils.h"
+#include <kroll/logger.h>
+#include <kroll/utils/win32/win32_utils.h>
 
 namespace kroll
 {

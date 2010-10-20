@@ -4,9 +4,9 @@
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
 #include "javascript_module.h"
-#include <iostream>
-#include <fstream>
-#include <string>
+
+#include <kroll/utils/file_utils.h>
+#include <kroll/utils/environment_utils.h>
 
 namespace kroll
 {

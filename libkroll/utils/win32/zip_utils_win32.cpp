@@ -4,14 +4,12 @@
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include <windows.h>
-
 #include <sstream>
 
-#include "../zip_utils.h"
-#include <win32/win32_utils.h>
+#include <kroll/utils/zip_utils.h>
+#include <kroll/utils/unzip/unzip.h>
+#include <kroll/utils/win32/win32_utils.h>
 
-#include "../unzip/unzip.h"
 
 namespace UTILS_NS
 {

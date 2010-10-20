@@ -4,10 +4,9 @@
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "../host.h"
-
-#include "../utils/file_utils.h"
-#include "../utils/win32/win32_utils.h"
+#include <kroll/host.h>
+#include <kroll/utils/file_utils.h>
+#include <kroll/utils/win32/win32_utils.h>
 
 #include <windows.h>
 #include <commctrl.h>
@@ -15,7 +14,6 @@
 #include <io.h>
 #include <ole2.h>
 #define MAX_CONSOLE_LINES 500;
-
 
 
 namespace kroll

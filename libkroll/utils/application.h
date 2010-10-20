@@ -6,8 +6,8 @@
 #ifndef _KR_UTILS_APPLICATION_H_
 #define _KR_UTILS_APPLICATION_H_
 
-#include "boot_utils.h"
-#include "ManifestHandler.h"
+#include <kroll/utils/boot_utils.h>
+#include <kroll/utils/ManifestHandler.h>
 
 namespace UTILS_NS
 {

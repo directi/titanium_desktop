@@ -4,11 +4,11 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include <data_utils.h>
-#include <file_utils.h>
+#include "../data_utils.h"
+#include "../file_utils.h"
 
-#include <kashmir/uuid.h>
-#include <kashmir/winrandom.h>
+#include "../kashmir/uuid.h"
+#include "../kashmir/winrandom.h"
 
 
 #include <sstream>

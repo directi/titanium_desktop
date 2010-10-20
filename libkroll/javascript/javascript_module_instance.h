@@ -9,7 +9,7 @@
 #include <base.h>
 #include <kroll/host.h>
 #include <kroll/module.h>
-#include <kroll/utils/file_utils.h>
+
 namespace kroll
 {
 	class KROLL_API JavaScriptModuleInstance : public Module

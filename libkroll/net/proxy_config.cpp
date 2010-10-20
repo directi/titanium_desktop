@@ -20,10 +20,10 @@ using Poco::Net::IPAddress;
 using Poco::StringTokenizer;
 using Poco::NumberParser;
 
-#include "../utils/file_utils.h"
-#include "../utils/environment_utils.h"
-
 #include "proxy_config.h"
+
+#include <kroll/utils/file_utils.h>
+#include <kroll/utils/environment_utils.h>
 
 namespace kroll
 {

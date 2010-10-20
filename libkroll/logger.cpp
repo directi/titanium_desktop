@@ -13,7 +13,8 @@
 #include <cstring>
 
 #include "logger.h"
-#include "utils/file_utils.h"
+
+#include <kroll/utils/file_utils.h>
 
 #define LOGGER_MAX_ENTRY_SIZE 2048
 

@@ -4,10 +4,9 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include <windows.h>
-#include <boot_utils.h>
-#include <file_utils.h>
-#include <environment_utils.h>
+#include "../boot_utils.h"
+#include "../file_utils.h"
+#include "../environment_utils.h"
 
 #include <sstream>
 

@@ -20,6 +20,8 @@
 #include <Poco/StringTokenizer.h>
 #include <Poco/Timespan.h>
 
+#include <kroll/utils/file_utils.h>
+
 using Poco::File;
 using Poco::Path;
 using Poco::Environment;
@@ -46,11 +48,11 @@ using Poco::Environment;
 #define MODULE_SUFFIX "so"
 #endif
 
-#include <kroll/javascript/javascript_module.h>
-#include <kroll/api/api_module.h>
+#include "javascript/javascript_module.h"
+#include "api/api_module.h"
 
 #ifdef OS_OSX
-#include <kroll/osx/osx.h>
+#include <osx/osx.h>
 #endif
 
 			

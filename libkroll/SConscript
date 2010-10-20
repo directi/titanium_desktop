@@ -7,6 +7,8 @@ Import('build')
 #Import('libkroll_env')
 #Import('libkroll_name')
 
+build.env.Append(CPPPATH=[build.kroll_include_dir])
+
 def get_shared_utils(dir):
 	sources_utils = Glob('%s/*.cpp' % dir) + \
 		Glob('%s/poco/*.cpp' % dir) + \
@@ -40,6 +42,11 @@ print "Warning: copying utils for libkroll."
 effess.copy_to_dir(utils_dir, libkroll_utils_dir)
 libkroll_utils_dir=path.join(libkroll_utils_dir, 'utils')
 
+print "Copying kroll include files to kroll_include_dir"
+kroll_include = path.join(build.kroll_include_dir, 'kroll')
+effess.copy_tree(build.cwd(), kroll_include, include=['.h'])
+
+
 sources.extend(get_shared_utils(libkroll_utils_dir))
 
 if build.is_linux():
@@ -50,7 +57,6 @@ if build.is_win32():
 
 env = libkroll_env
 env.Append(CPPDEFINES=[('KROLL_API_EXPORT', 1)])
-env.Append(CPPPATH=[path.join(build.kroll_source_dir, 'utils')])
 
 build.add_thirdparty(env, 'poco')
 build.add_thirdparty(env, 'webkit')
@@ -84,7 +90,3 @@ elif build.is_osx():
 build.mark_build_target(
 	env.SharedLibrary(path.join(build.dir, 'runtime', libkroll_name), source=sources))
 build.utils.LightWeightCopy(path.join(build.cwd(), 'support'), path.join(build.dir, 'runtime'))
-
-# copy the includes for building the SDK
-kroll_include = path.join(build.kroll_include_dir, 'kroll')
-effess.copy_tree(build.cwd(), kroll_include, include=['.h'])

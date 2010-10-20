@@ -11,9 +11,10 @@
 #include "value.h"
 #include "kobject.h"
 #include "arg_list.h"
-#include "../utils/file_utils.h"
 #include "static_bound_object.h"
 #include "profiled_bound_object.h"
+
+#include <kroll/utils/file_utils.h>
 
 namespace kroll
 {
