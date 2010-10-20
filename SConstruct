@@ -26,12 +26,6 @@ build.titanium_sdk_dir = path.join(build.titanium_source_dir, 'sdk')
 # should instead be built to build.dir
 build.kroll_build_dir = path.join(build.kroll_source_dir, 'build')
 
-build.env.Append(CPPPATH=[
-	build.titanium_source_dir,
-	build.kroll_source_dir,
-	build.kroll_include_dir
-])
-
 # debug build flags
 debug = ARGUMENTS.get('debug', 0)
 if debug:
