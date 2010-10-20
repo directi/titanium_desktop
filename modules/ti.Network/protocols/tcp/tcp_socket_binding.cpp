@@ -593,13 +593,12 @@ namespace ti
 				LocalFree(lpMsgBuf);
 				GetLogger()->Error(errtxt + rv);
 			}
-#elif OS_LINUX
+#elif OS_LINUX | OS_OSX
 			// The right headers should get magically included.
 			// Poco uses setsockopt internally which supports this on Linux.
 			this->setOption(SOL_TCP, TCP_KEEPIDLE, inactivitytime); // 1 sec idle wait
 			this->setOption(SOL_TCP, TCP_KEEPINTVL, resendtime); // 1 sec retransmit frequency
 			this->setOption(SOL_TCP, TCP_KEEPCNT, 9); // 9 timeouts in a row like windows...
-#elif OS_OSX
 #endif
 		} 
 		catch(Poco::Exception &e)
