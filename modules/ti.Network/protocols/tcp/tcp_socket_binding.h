@@ -29,6 +29,17 @@ using namespace Poco::Net;
 
 namespace ti
 {
+	class DisconnectAwareSocket : public StreamSocket 
+	{
+	public:
+		DisconnectAwareSocket(int, int);
+	private:
+		inline static kroll::Logger* GetLogger()
+		{
+			return kroll::Logger::Get("Network.TCPSocket");
+		}
+	};
+
 	static const long SELECT_TIME_MICRO = 1000; // 100ms
 
 	class QuieterSocketReactor : public SocketReactor 
@@ -52,13 +63,16 @@ namespace ti
 		void setSocketObject(StreamSocket *socket) { this->socket = socket; }
 		StreamSocket* getSocketObject() { return this->socket; }
 
+		void OnResolve(SocketAddress*);
+		void OnError(const std::string& error_text);
+
 		static void shutdown();
 		static void addSocket(TCPSocketBinding* tsb);
 		static void removeSocket(TCPSocketBinding* tsb);
 		static void removeWriteListener(TCPSocketBinding* tsb);
 
 	private:
-		static kroll::Logger* GetLogger()
+		inline static kroll::Logger* GetLogger()
 		{
 			return kroll::Logger::Get("Network.TCPSocket");
 		}
@@ -70,6 +84,9 @@ namespace ti
 		const int port;
 		StreamSocket *socket;
 		bool nonBlocking;
+		bool useKeepAlives;
+		int inactivetime;
+		int resendtime;
 
 		enum SOCK_STATE_en { SOCK_CLOSED, SOCK_CONNECTING, SOCK_CONNECTED, SOCK_CLOSING } sock_state;
 
@@ -91,6 +108,8 @@ namespace ti
 		void Read(const ValueList& args, KValueRef result);
 		void Close(const ValueList& args, KValueRef result);
 		void IsClosed(const ValueList& args, KValueRef result);
+		void SetKeepAlives(const ValueList& args, KValueRef result);
+		void SetKeepAliveTimes(const ValueList& args, KValueRef result);
 
 		void OnReadReady(ReadableNotification * notification);
 		void OnWriteReady(WritableNotification * notification);
@@ -99,10 +118,9 @@ namespace ti
 		void OnConnect();
 		void OnWrite();
 		void OnRead(char * data, int size);
-		void OnError(const std::string& error_text);
-		SocketAddress* beforeConnect();
 		void OnClose();
 		void CompleteClose();
+		void SetKeepAliveOpts();
 	};
 }
 

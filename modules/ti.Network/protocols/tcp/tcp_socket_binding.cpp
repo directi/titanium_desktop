@@ -5,6 +5,8 @@
  */
 #include "tcp_socket_binding.h"
 #include <kroll/kroll.h>
+#include <Poco/ThreadPool.h>
+#include <Poco/Runnable.h>
 
 #define BUFFER_SIZE 1024   // choose a reasonable size to send back to JS
 
@@ -21,13 +23,15 @@ namespace ti
 		port(port),
 		socket(0),
 		nonBlocking(false),
+		useKeepAlives(true),
+		inactivetime(1),
+		resendtime(1),
 		sock_state(SOCK_CLOSED),
 		onConnect(0),
 		onRead(0),
 		onError(0),
 		onClose(0)
 	{
-		socket = new StreamSocket();
 		/**
 		 * @tiapi(method=True,name=Network.TCPSocket.connect,since=0.2) Connects a Socket object to the host specified during creation. 
 		 * @tiarg(for=Network.TCPSocket.connect,type=Integer,name=timeout) the time in seconds to wait before the connect timesout 
@@ -94,14 +98,16 @@ namespace ti
 		 */
 		this->SetMethod("onClose",&TCPSocketBinding::SetOnClose);
 
+		// Enables/disables keepalives.
+		this->SetMethod("setDisconnectionNotifications", &TCPSocketBinding::SetKeepAlives);
+
+		// Sets the timeouts for the keepalive times, should be called before connecting the socket.
+		this->SetMethod("setDisconnectionNotificationTime", &TCPSocketBinding::SetKeepAliveTimes);
 	}
+
 	TCPSocketBinding::~TCPSocketBinding()
 	{
 		this->CompleteClose();
-		if (socket)
-		{
-			delete socket;
-		}
 	}
 	void TCPSocketBinding::SetOnConnect(const ValueList& args, KValueRef result)
 	{
@@ -132,110 +138,211 @@ namespace ti
 		return result->SetBool(this->sock_state == SOCK_CLOSED);
 	}
 
+	void TCPSocketBinding::SetKeepAlives(const ValueList& args, KValueRef result)
+	{
+		bool val = args.at(0)->ToBool();
+		this->useKeepAlives = val;
+		if(this->socket) 
+			this->socket->setKeepAlive(val);
+	}
+
+	void TCPSocketBinding::SetKeepAliveTimes(const ValueList& args, KValueRef result) 
+	{
+		if(this->sock_state != SOCK_CLOSED) 
+			throw ValueException::FromString("You can only set the keep-alive times before connecting the socket");
+		
+		if(args.size() > 1 && args.at(0)->IsInt() && args.at(1)->IsInt()) 
+		{
+			this->inactivetime = args.at(0)->ToInt();
+			this->resendtime = args.at(1)->ToInt();
+		}
+		else 
+		{
+			throw ValueException::FromString("usage: setDisconnectionNotificationTime(int firstCheck, int subsequentChecks) -> If 9 subsequent checks fail the connection is considered lost");
+		}
+	}
+
 	void TCPSocketBinding::Connect(const ValueList& args, KValueRef result)
 	{
+		static const std::string eprefix = "Connect exception: ";
+		if(this->sock_state != SOCK_CLOSED)
+		{
+			throw ValueException::FromString(eprefix + "Socket is either connected or connecting");
+		}
 		nonBlocking = false;
-		const std::string eprefix = "Connect exception: ";
+		long timeout = (args.size() > 0 && args.at(0)->IsInt()) ? args.at(0)->ToInt() : 10;
+		Poco::Timespan t(timeout, 0);
 	
 		GetLogger()->Debug("Connecting Blocking.");
-		SocketAddress* a = NULL;
 
+		this->socket = new StreamSocket();
 		try 
 		{
-			a = this->beforeConnect();
-			this->socket->connect(*a);
-			delete a;
+			SocketAddress a(this->host.c_str(), this->port);
+			this->sock_state = SOCK_CONNECTING;
+			this->socket->connect(a, t);
 			this->sock_state = SOCK_CONNECTED;
 			result->SetBool(true);
 		}
 		catch(Poco::IOException &e)
 		{
+			delete this->socket;
 			this->sock_state = SOCK_CLOSED;
-			if(a != NULL) delete a;
 			throw ValueException::FromString(eprefix + e.displayText());
 		}
 		catch(std::exception &e)
 		{
+			delete this->socket;
 			this->sock_state = SOCK_CLOSED;
-			if(a != NULL) delete a;
 			throw ValueException::FromString(eprefix + e.what());
 		}
 		catch(...)
 		{
+			delete this->socket;
 			this->sock_state = SOCK_CLOSED;
-			if(a != NULL) delete a;
+			throw ValueException::FromString(eprefix + "Unknown exception");
+		}
+	}
+
+	class AsyncDNSResolutionTask : public Poco::Runnable 
+	{
+	public:
+		AsyncDNSResolutionTask(TCPSocketBinding* instance, std::string host, int port) 
+			: instance(instance),
+			host(host),
+			port(port)
+		{
+		}
+
+		virtual void run()
+		{
+			static const std::string error = "DNS Resolution failed";
+			try 
+			{
+				Poco::Net::SocketAddress* a = new Poco::Net::SocketAddress(this->host.c_str(), this->port);
+				instance->OnResolve(a);
+			} 
+			catch(...) 
+			{
+				instance->OnError(error);
+			}
+			// I think this is really bad practice, but it'll work here. :( 
+			delete this;
+		}
+	private:
+		TCPSocketBinding* instance;
+		std::string host;
+		int port;
+	};
+
+	void TCPSocketBinding::OnResolve(SocketAddress* a) 
+	{
+		static const std::string eprefix = "Connect exception: ";
+		if(useKeepAlives)
+			this->socket = new DisconnectAwareSocket(inactivetime, resendtime);
+		else
+			this->socket = new StreamSocket();
+		try 
+		{
+			TCPSocketBinding::addSocket(this);
+			this->socket->connectNB(*a);
+			delete a;
+		}
+		catch(Poco::IOException &e)
+		{
+			delete a;
+			this->CompleteClose();
+			throw ValueException::FromString(eprefix + e.displayText());
+		}
+		catch(std::exception &e)
+		{
+			delete a;
+			this->CompleteClose();
+			throw ValueException::FromString(eprefix + e.what());
+		}
+		catch(...)
+		{
+			delete a;
+			this->CompleteClose();
 			throw ValueException::FromString(eprefix + "Unknown exception");
 		}
 	}
 
 	void TCPSocketBinding::ConnectNB(const ValueList& args, KValueRef result)
 	{
+		if(this->sock_state != SOCK_CLOSED)
+		{
+			throw ValueException::FromString("Connect exception: Socket is either connected or connecting");
+		}
 		nonBlocking = true;
-		const std::string eprefix = "Connect exception: ";
-
-		SocketAddress* a = NULL;
 		GetLogger()->Debug("Connecting non Blocking.");
+		this->sock_state = SOCK_CONNECTING;
+		AsyncDNSResolutionTask* t = new AsyncDNSResolutionTask(this, host, port);
 		try 
 		{
-			a = this->beforeConnect();
-			TCPSocketBinding::addSocket(this);
-			this->socket->connectNB(*a);
-			delete a;
-			result->SetBool(true);
+			Poco::ThreadPool::defaultPool().start(*t);
 		}
-		catch(Poco::IOException &e)
+		catch(Poco::NoThreadAvailableException &e)
 		{
-			this->sock_state = SOCK_CLOSED;
-			if(a != NULL) delete a;
-			throw ValueException::FromString(eprefix + e.displayText());
+			GetLogger()->Warn("You're doing too many name resolutions at the same time... forcing sync resolution");
+			t->run();
 		}
-		catch(std::exception &e)
-		{
-			this->sock_state = SOCK_CLOSED;
-			if(a != NULL) delete a;
-			throw ValueException::FromString(eprefix + e.what());
-		}
-		catch(...)
-		{
-			this->sock_state = SOCK_CLOSED;
-			if(a != NULL) delete a;
-			throw ValueException::FromString(eprefix + "Unknown exception");
-		}
-	}
-
-	SocketAddress* TCPSocketBinding::beforeConnect()
-	{
-		const std::string eprefix = "Connect exception: ";
-		if( this->sock_state != SOCK_CLOSED )
-		{
-			throw ValueException::FromString(eprefix + "Socket is either connected or connecting");
-		}
-		SocketAddress *a = new SocketAddress(this->host.c_str(), this->port);
-		this->sock_state = SOCK_CONNECTING;
-		return a;
+		result->SetBool(true);
 	}
 
 	void TCPSocketBinding::OnReadReady(ReadableNotification * notification)
 	{
 		GetLogger()->Debug("Ready for Read with %d bytes on %s", this->socket->available(), this->socket->peerAddress().toString().c_str());
+		bool justConnected = false;
 		if(this->sock_state == SOCK_CONNECTING)
 		{
 			this->OnConnect();
-		} 
-		else if(this->socket->available() == 0 )
-		{
-			this->OnClose();
-			return;
+			justConnected = true;
 		} 
 		std::string error_text("Read failed: ");
 		bool error = false;
 		try
 		{
-			// Always read bytes, so that the tubes get cleared.
-			char data[BUFFER_SIZE + 1];
-			int size = socket->receiveBytes(&data, BUFFER_SIZE);
-			GetLogger()->Debug("Read %d bytes on %s", size, this->socket->peerAddress().toString().c_str());
-			if(size > 0) this->OnRead(data, size);
+			if(this->socket->available() > 0) 
+			{
+				// Always read bytes, so that the tubes get cleared.
+				int size;
+				do 
+				{
+					char data[BUFFER_SIZE + 1];
+					size = socket->receiveBytes(&data, BUFFER_SIZE);
+					GetLogger()->Debug("Read %d bytes on %s", size, this->socket->peerAddress().toString().c_str());
+					// A non-blocking socket on Linux can return 0 on read and set errno to E_WOULDBLOCK
+					// indicating that the TCP data failed the checksum and would require retransmission.
+					// But the Poco Doccumentation says it return of 0 means graceful shutdown...
+					// Poco source seems to standardize and block if this is the case.
+					if(size > 0) 
+						this->OnRead(data, size);
+					else 
+					{
+						if(!justConnected && size == 0) 
+						{
+							GetLogger()->Debug("Graceful shutdown detected");
+							this->OnClose(); 
+						} 
+						if(size < 0) 
+						{
+							GetLogger()->Debug("Connection refused Linux style");
+							// Linux connection errors should come this way.
+							this->OnError("Connection Refused");
+						}
+					}
+				} while(size == BUFFER_SIZE);
+			} 
+			else
+			{
+				// Windows connection errors should come this way.
+				if(! justConnected) 
+				{
+					GetLogger()->Debug("Connection closed a-la windows");
+					this->OnClose();
+				}
+			}
 		}
 		catch(Poco::Exception &e)
 		{
@@ -257,9 +364,9 @@ namespace ti
 	void TCPSocketBinding::OnWriteReady(WritableNotification * notification)
 	{
 		GetLogger()->Debug("Ready for Write on Socket: "  + this->socket->peerAddress().toString());
+		TCPSocketBinding::removeWriteListener(this);
 		if(this->sock_state == SOCK_CONNECTING)
 		{
-			TCPSocketBinding::removeWriteListener(this);
 			this->OnConnect();
 		} 
 	}
@@ -267,6 +374,7 @@ namespace ti
 	void TCPSocketBinding::OnError(ErrorNotification * notification)
 	{
 		GetLogger()->Debug("Socket Error on %s:%d ", this->host.c_str(), this->port);
+		// This isn't really helpful, but I don't this it would be called ever!
 		this->OnError(notification->name());
 	}
 
@@ -370,6 +478,7 @@ namespace ti
 			this->sock_state = SOCK_CLOSING;
 			TCPSocketBinding::removeSocket(this);
 			this->socket->close();
+			delete this->socket;
 			this->sock_state = SOCK_CLOSED;
 		}
 	}
@@ -431,5 +540,78 @@ namespace ti
 		waiting = true;
 		idle.wait(conditionLock);
 		waiting = false;
+	}
+
+// Headers for the keepalive implementations...
+#if OS_WIN32
+#include <MSTcpIp.h>
+#include <windows.h>
+#elif OS_LINUX
+#elif OS_OSX
+#endif
+
+	DisconnectAwareSocket::DisconnectAwareSocket(int inactivitytime, int resendtime) 
+		: StreamSocket(IPAddress::IPv4)
+	{
+		std::string errtxt = "Error setting socket keepalive options, we probably wouldn't detect disconnects: ";
+		// Makes sure we detect unplanned disconnects within a fixed time.
+		try 
+		{
+			this->setKeepAlive(true);
+#if OS_WIN32
+			// Windows XP seems to disconnect anyway after about 10 seconds, but here goes...
+			// Stuff should be defined in MSTcpIP.h which we should get... 
+			// FormatMessage needs special treatment.
+			DWORD dwBytes;
+			tcp_keepalive settings, sReturned;
+			settings.onoff = 1 ;
+			settings.keepalivetime = inactivitytime * 1000; // 1 second of inactivity results in keepalives being sent.
+			settings.keepaliveinterval = resendtime * 1000 ; // 1 second for every other packet.
+
+			if (WSAIoctl(sockfd(), SIO_KEEPALIVE_VALS, &settings, sizeof(settings), 
+							&sReturned, sizeof(sReturned), &dwBytes,
+							NULL, NULL) != 0)
+			{
+				std::string rv;
+				LPVOID lpMsgBuf;
+
+				if (FormatMessageA(
+						FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+						NULL,
+						WSAGetLastError(),
+						MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+						(LPSTR) &lpMsgBuf,
+						0,
+						NULL ))
+				{
+					rv.assign(reinterpret_cast<const char*>(lpMsgBuf));
+				}
+				else
+				{
+					rv.assign("FormatMessage API failed");
+				}
+				LocalFree(lpMsgBuf);
+				GetLogger()->Error(errtxt + rv);
+			}
+#elif OS_LINUX | OS_OSX
+			// The right headers should get magically included.
+			// Poco uses setsockopt internally which supports this on Linux.
+			this->setOption(SOL_TCP, TCP_KEEPIDLE, inactivitytime); // 1 sec idle wait
+			this->setOption(SOL_TCP, TCP_KEEPINTVL, resendtime); // 1 sec retransmit frequency
+			this->setOption(SOL_TCP, TCP_KEEPCNT, 9); // 9 timeouts in a row like windows...
+#endif
+		} 
+		catch(Poco::Exception &e)
+		{
+			GetLogger()->Error(errtxt + e.displayText());
+		} 
+		catch(std::exception &e) 
+		{
+			GetLogger()->Error(errtxt + e.what());
+		}
+		catch(...)
+		{
+			GetLogger()->Error(errtxt + "Unknown error");
+		}
 	}
 }
