@@ -50,17 +50,20 @@ def fetch():
 
 if not exists(): fetch()
 
-#if build.is_linux():
+if build.is_linux():
+	print 'WARNING:: Not copying files...'
 #	effess.copy_tree(path.join(build.third_party, 'webkit', 'lib'), rtdir)
 #	effess.copy_tree(path.join(build.third_party, 'poco', 'lib'), rtdir)
 #	effess.copy_tree(path.join(build.third_party, 'curl', 'lib'), rtdir)
 
-#elif build.is_win32():
-#	effess.copy_tree(path.join(build.third_party, 'poco', 'bin'), rtdir)
-#	effess.copy_tree(path.join(build.third_party, 'webkit', 'bin'), rtdir)
-#	effess.copy_tree(path.join(build.third_party, 'sdk'), path.join(build.dir, 'sdk'))
+elif build.is_win32():
+	print 'WARNING:: Not copying files...'
+	# effess.copy_tree(path.join(build.third_party, 'poco', 'bin'), rtdir)
+	# effess.copy_tree(path.join(build.third_party, 'webkit', 'bin'), rtdir)
+	# effess.copy_tree(path.join(build.third_party, 'sdk'), path.join(build.dir, 'sdk'))
 
-#elif build.is_osx():
+elif build.is_osx():
+	print 'WARNING:: Not copying files...'
 #	excludes = ['.h', '.defs', 'JavaScriptGlue.framework']
 #	targets = []
 #	for framework in Glob(path.join(build.third_party, '*/*.framework')):

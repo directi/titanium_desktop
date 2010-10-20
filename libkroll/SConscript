@@ -81,5 +81,5 @@ build.add_thirdparty(libkroll_env, 'poco')
 build.add_thirdparty(libkroll_env, 'webkit')
 
 build.mark_build_target(
-	libkroll_env.SharedLibrary(path.join(build.dir, 'runtime', libkroll_name), source=libkroll_sources))
+	libkroll_env.SharedLibrary(path.join(build.dir, 'runtime', build.version, libkroll_name), source=libkroll_sources))
 build.utils.LightWeightCopy(path.join(build.cwd(), 'support'), path.join(build.dir, 'runtime'))
