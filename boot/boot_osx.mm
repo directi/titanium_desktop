@@ -10,6 +10,8 @@
 #import <file_utils.h>
 #import <environment_utils.h>
 
+using namespace UTILS_NS;
+
 @interface KrollApplicationDelegate : NSObject
 -(BOOL)application:(NSApplication*)theApplication
 	openFile:(NSString*)filename;
