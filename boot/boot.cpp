@@ -4,9 +4,12 @@
  * Copyright (c) 2008-2009 Appcelerator, Inc. All Rights Reserved.
  */
 #include "boot.h"
+#include <ManifestHandler.h>
 #include <file_utils.h>
 #include <environment_utils.h>
 #include <platform_utils.h>
+
+using namespace UTILS_NS;
 
 KrollBoot::KrollBoot(int _argc, const char ** _argv)
 : argc(_argc), argv(_argv)

@@ -6,14 +6,13 @@
 
 
 #include <boot_utils.h>
-
-#include "boot_win32.h"
-
 #include <file_utils.h>
 #include <environment_utils.h>
 
+#include "boot_win32.h"
 #include "popup_dialog_win32.h"
 
+using namespace UTILS_NS;
 
 
 KrollWin32Boot::KrollWin32Boot(int _argc, const char ** _argv)

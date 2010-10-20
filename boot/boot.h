@@ -27,10 +27,6 @@
 #include <sstream>
 
 #include <base.h>
-#include <application.h>
-
-using namespace UTILS_NS;
-using UTILS_NS::Application;
 
 using std::string;
 using std::vector;
@@ -47,7 +43,6 @@ protected:
 	const char** argv;
 
 public:
-
 	KrollBoot(int _argc, const char ** _argv);
 	virtual ~KrollBoot();
 
