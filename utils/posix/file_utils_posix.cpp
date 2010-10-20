@@ -3,7 +3,7 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
-#include <file_utils.h>
+#include "../file_utils.h"
 
 #ifdef OS_OSX
 #include <Cocoa/Cocoa.h>

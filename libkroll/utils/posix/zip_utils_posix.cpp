@@ -4,7 +4,7 @@
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
 #include "../zip_utils.h"
-#include <file_utils.h>
+#include <kroll/utils/file_utils.h>
 
 #ifdef OS_OSX
 #include <Cocoa/Cocoa.h>

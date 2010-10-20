@@ -29,8 +29,8 @@
 // ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-#include <platform_utils.h>
-#include <environment_utils.h>
+#include "../platform_utils.h"
+#include "../environment_utils.h"
 
 #include <cstdio>
 #include <cstdlib>

@@ -15,10 +15,9 @@
 #include <Poco/Mutex.h>
 #include <Poco/ScopedLock.h>
 
-#include "../host.h"
-
-#include "../utils/file_utils.h"
-#include "../utils/environment_utils.h"
+#include <kroll/host.h>
+#include <kroll/utils/file_utils.h>
+#include <kroll/utils/environment_utils.h>
 
 
 GCRY_THREAD_OPTION_PTHREAD_IMPL;
