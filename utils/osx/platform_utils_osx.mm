@@ -10,8 +10,8 @@
 #include <IOKit/network/IONetworkInterface.h>
 #include <IOKit/network/IOEthernetController.h>
 
-#include <platform_utils.h>
-#include <osx/osx_utils.h>
+#include "../platform_utils.h"
+#include "../osx/osx_utils.h"
 
 namespace UTILS_NS
 {

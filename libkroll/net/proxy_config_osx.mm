@@ -18,16 +18,16 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <CoreServices/CoreServices.h>
 #include <SystemConfiguration/SystemConfiguration.h>
+#include <Poco/StringTokenizer.h>
+
+using Poco::StringTokenizer;
 
 using std::string;
 using std::vector;
 
 #include "proxy_config.h"
-#include "../utils/osx/osx_utils.h"
+#include <kroll/utils/osx/osx_utils.h>
 
-
-#include <Poco/StringTokenizer.h>
-using Poco::StringTokenizer;
 
 namespace kroll
 {

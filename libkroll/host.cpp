@@ -52,7 +52,7 @@ using Poco::Environment;
 #include "api/api_module.h"
 
 #ifdef OS_OSX
-#include <osx/osx.h>
+#include <kroll/osx/osx.h>
 #endif
 
 			
