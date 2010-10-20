@@ -10,7 +10,11 @@
 #include <kroll/kroll.h>
 #include <Poco/Thread.h>
 #include <Poco/Net/StreamSocket.h>
+
+#ifndef OS_OSX
 #include <Poco/Net/SecureStreamSocket.h>
+#endif
+
 #include <Poco/Net/SocketReactor.h>
 #include <Poco/Net/SocketNotification.h>
 #include <Poco/Semaphore.h>

@@ -8,6 +8,8 @@
 
 #include "tcp_socket_binding.h"
 
+#ifndef OS_OSX
+
 using namespace Poco;
 using namespace Poco::Net;
 
@@ -28,5 +30,7 @@ namespace ti
 		std::string getCertificateFilePath() const;
 	};
 }
+
+#endif
 
 #endif

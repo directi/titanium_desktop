@@ -8,7 +8,11 @@
 #include "network_status.h"
 #include "network_binding.h"
 #include "protocols/tcp/tcp_socket_binding.h"
+
+#ifndef OS_OSX
 #include "protocols/tcp/secure_tcp_socket_binding.h"
+#endif
+
 #include "protocols/tcp/tcp_server_socket_binding.h"
 #include "interface_binding.h"
 #include "ipaddress_binding.h"
@@ -287,8 +291,10 @@ namespace ti
 
 	void NetworkBinding::_UpdateToSecureTCPSocket(const ValueList& args, KValueRef result)
 	{
+#ifndef OS_OSX
 		TCPSocketBinding * socket = args.GetObject(0).cast<TCPSocketBinding>();
 		SecureTCPSocketBinding secure_binding(socket);
+#endif
 	}
 
 	void NetworkBinding::_CreateTCPServerSocket(const ValueList& args, KValueRef result)
