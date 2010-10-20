@@ -13,10 +13,18 @@ def get_utils(dir):
 		sources_utils.extend(Glob('%s/posix/*.cpp' % dir))
 	return sources_utils
 
-Env = build.env.Clone()
-Env.Append(CPPDEFINES=['USE_NO_EXPORT=1'])
+def get_kboot_sources(boot_dir, utils_dir, build_obj, env):
+	sources = ['%s/boot.cpp' % boot_dir]
+	if build.is_osx():
+		sources += Glob('%s/*_osx.mm' % boot_dir)
+	if build.is_linux():
+		sources += Glob('%s/*_linux.cpp' % boot_dir)
+	if build.is_win32():
+		sources += Glob('%s/*_win32.cpp' % boot_dir)
+		sources += [env.RES('support/winboot.rc')]
+	return sources
 
-# Add the utils
+# Add the boot utils
 utils_dir=path.join(build.kroll_source_dir, 'utils')
 boot_utils_dir=path.join(build.dir, 'objs', 'boot')
 
@@ -28,30 +36,30 @@ boot_utils_dir=path.join(boot_utils_dir, 'utils')
 effess.copy_tree(utils_dir, path.join(build.kroll_include_dir, 'kroll', 'utils'), include=['.h'])
 effess.copy(path.join(utils_dir, 'base.h'), path.join(build.kroll_include_dir, 'base.h'))
 
-sources = ['boot.cpp']
-sources.extend(get_utils(boot_utils_dir))
+kboot_env = build.env.Clone()
 
-Env.Append(CPPPATH=[boot_utils_dir])
+kboot_dir=path.abspath('.')
+kboot_sources = get_kboot_sources(kboot_dir, boot_utils_dir, build, kboot_env)
+kboot_sources.extend(get_utils(boot_utils_dir))
+
+kboot_env.Append(CPPPATH=[boot_utils_dir])
+kboot_env.Append(CPPDEFINES=['USE_NO_EXPORT=1'])
 
 if build.is_osx():
-	sources += Glob('*_osx.mm')
-	Env.Append(LIBS=['dl'])
-	Env.Append(FRAMEWORKS=['Cocoa','IOKit'])
+	kboot_env.Append(LIBS=['dl'])
+	kboot_env.Append(FRAMEWORKS=['Cocoa','IOKit'])
 
 if build.is_linux():
-	sources += Glob('*_linux.cpp')
-	Env.Append(LIBS=['dl'])
-	Env.ParseConfig('pkg-config --cflags --libs gtk+-2.0 gdk-2.0')
+	kboot_env.Append(LIBS=['dl'])
+	kboot_env.ParseConfig('pkg-config --cflags --libs gtk+-2.0 gdk-2.0')
 
 if build.is_win32():
-	sources += Glob('*_win32.cpp') + [Env.RES('support/winboot.rc')]
-	
-	Env.Append(LIBS=['kernel32','shell32','user32','advapi32','iphlpapi','gdi32'])
-	Env.Append(LINKFLAGS=['/NODEFAULTLIB:MSJAVA.lib'])
-	ccf = Env['CCFLAGS']
+	kboot_env.Append(LIBS=['kernel32','shell32','user32','advapi32','iphlpapi','gdi32'])
+	kboot_env.Append(LINKFLAGS=['/NODEFAULTLIB:MSJAVA.lib'])
+	ccf = kboot_env['CCFLAGS']
 	if '/Z7' in ccf: ccf.remove('/Z7')
 	ccf += ['/O2','/GL','/FD','/EHsc','/W3','/Wp64','/Zi','/TP','/DUNICODE']
-	Env['CCFLAGS'] = ccf
+	kboot_env['CCFLAGS'] = ccf
 
 	# Generate a manifest which will later be merged with the common controls manifest
 	intermediate_manifest = path.join(build.dir, 'boot.exe.intermediate.manifest')
@@ -60,51 +68,58 @@ if build.is_win32():
 	linkflags += ['/OPT:REF','/OPT:ICF','/LTCG','/MACHINE:X86']
 	if ARGUMENTS.get('debug', 0) or ARGUMENTS.get('console',0):
 		linkflags.append('/SUBSYSTEM:CONSOLE'),
-		Env.Append(CPPDEFINES=['WIN32_CONSOLE=1', 'UNICODE=1'])
-	Env.Append(LINKFLAGS=linkflags)
+		kboot_env.Append(CPPDEFINES=['WIN32_CONSOLE=1', 'UNICODE=1'])
+	kboot_env.Append(LINKFLAGS=linkflags)
 
 # Breakpad integration
-breakpad = ARGUMENTS.get('breakpad', '1') != '0'
-if not(build.is_32()) and build.is_linux():
-	breakpad = False
+def get_breakpad(build_obj):
+	breakpad = ARGUMENTS.get('breakpad', '1') != '0'
+	if not(build_obj.is_32()) and build_obj.is_linux():
+		breakpad = False
+	return breakpad
+
+def get_breakpad_sources(dir, build_obj):
+	sources = []
+	if build_obj.is_win32():
+		sources += Glob('%s/breakpad/client/windows/crash_generation/*.cc' % dir) + \
+			['%s/breakpad/client/windows/handler/exception_handler.cc' % dir,
+			 '%s/breakpad/common/windows/guid_string.cc' % dir,
+			 '%s/breakpad/common/windows/http_upload.cc' % dir]
+	else:
+		sources += \
+		Glob('%s/breakpad/common/*.c' % dir) + \
+		Glob('%s/breakpad/common/*.cc' % dir) + \
+		Glob('%s/breakpad/client/*.cc' % dir) + \
+		Glob('%s/breakpad/processor/*.cc' % dir)
+	if build_obj.is_linux():
+		sources += \
+			Glob('%s/breakpad/client/linux/handler/*.cc' % dir) + \
+			Glob('%s/breakpad/common/linux/*.cc' % dir)
+	if breakpad and build.is_osx():
+		sources += \
+			Glob('%s/breakpad/common/mac/dwarf/*.cc' % dir) + \
+			Glob('%s/breakpad/common/mac/*.cc' % dir) + \
+			Glob('%s/breakpad/common/mac/*.mm' % dir) + \
+			Glob('%s/breakpad/common/mac/*.m' % dir) + \
+			Glob('%s/breakpad/client/mac/handler/*.cc' % dir)
+	return sources
+
+breakpad = get_breakpad(build)
+if breakpad:
+	kboot_sources.extend(get_breakpad_sources(kboot_dir, build))
 
 if breakpad:
-	Env.Append(CPPPATH = ['breakpad'])
-	Env.Append(CPPDEFINES = [['USE_BREAKPAD', 1]])
-	if 'CPPFLAGS' in Env and '-Werror' in Env['CPPFLAGS']:
-		Env['CPPFLAGS'].remove('-Werror')
-
-if breakpad and build.is_win32():
-	sources += \
-		Glob('breakpad/client/windows/crash_generation/*.cc') + \
-		['breakpad/client/windows/handler/exception_handler.cc',
-		 'breakpad/common/windows/guid_string.cc',
-		 'breakpad/common/windows/http_upload.cc']
-	Env.Append(LIBS=['wininet'])
-
-elif breakpad:
-	sources += \
-		Glob('breakpad/common/*.c') + \
-		Glob('breakpad/common/*.cc') + \
-		Glob('breakpad/client/*.cc') + \
-		Glob('breakpad/processor/*.cc')
-		 
-if breakpad and build.is_linux():
-	sources += \
-		Glob('breakpad/client/linux/handler/*.cc') + \
-		Glob('breakpad/common/linux/*.cc')
-
-if breakpad and build.is_osx():
-	Env.Append(LIBS=['libcrypto'])
-	sources += \
-		Glob('breakpad/common/mac/dwarf/*.cc') + \
-		Glob('breakpad/common/mac/*.cc') + \
-		Glob('breakpad/common/mac/*.mm') + \
-		Glob('breakpad/common/mac/*.m') + \
-		Glob('breakpad/client/mac/handler/*.cc')
+	kboot_env.Append(CPPPATH = ['breakpad'])
+	kboot_env.Append(CPPDEFINES = [['USE_BREAKPAD', 1]])
+	if 'CPPFLAGS' in kboot_env and '-Werror' in kboot_env['CPPFLAGS']:
+		kboot_env['CPPFLAGS'].remove('-Werror')
+	if build.is_win32():
+		kboot_env.Append(LIBS=['wininet'])
+	if build.is_osx():
+		kboot_env.Append(LIBS=['libcrypto'])
 
 kboot_out = path.join(build.dir, 'sdk', 'kboot')
-p = Env.Program(kboot_out, sources)
+p = kboot_env.Program(kboot_out, kboot_sources)
 build.mark_build_target(p)
 
 # Merge kboot's manifest with the common controls manifest, so that
@@ -123,5 +138,5 @@ if build.is_win32():
 
 	cc_manifest = path.join(build.cwd(), 'support', 'common_controls.manifest')
 	merged_manifest = path.join(build.dir, 'kboot.merged.manifest')
-	Env.AddPostAction(p, 'mt.exe -nologo -manifest "%s" "%s" -out:"%s"' % (intermediate_manifest, cc_manifest, merged_manifest))
-	Env.AddPostAction(p, ('mt.exe -nologo /outputresource:"%s.exe;#1" /manifest "%s"' % (kboot_out, merged_manifest)))
+	kboot_env.AddPostAction(p, 'mt.exe -nologo -manifest "%s" "%s" -out:"%s"' % (intermediate_manifest, cc_manifest, merged_manifest))
+	kboot_env.AddPostAction(p, ('mt.exe -nologo /outputresource:"%s.exe;#1" /manifest "%s"' % (kboot_out, merged_manifest)))

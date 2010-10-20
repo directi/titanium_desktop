@@ -105,21 +105,6 @@ class BuildConfig(object):
 		self.kroll_include_dir = path.join(self.dir, 'sdk', 'include')
 		self.kroll_utils_dir = path.join(self.kroll_source_dir, 'libkroll', 'utils');
 
-	# Get a separate copy of the Kroll Utils for a particular build piece
-	# Give: A unique directory for that build piece where the utils should be copied
-	def get_kroll_utils(self, dir, unzip=True):
-		effess.copy_to_dir(self.kroll_utils_dir, dir)
-		sources = Glob('%s/utils/*.cpp' % dir) + \
-			Glob('%s/utils/poco/*.cpp' % dir) + \
-			Glob('%s/utils/%s/*.cpp' % (dir, self.os))
-		if self.is_win32() and unzip:
-			sources.extend(Glob('%s/utils/unzip/*.cpp' % dir))
-		if self.is_osx():
-			sources.extend(Glob('%s/utils/%s/*.mm' % (dir, self.os)))
-		if self.is_osx() or self.is_linux():
-			sources.extend(Glob('%s/utils/posix/*.cpp' % dir))
-		return sources
-
 	def init_os_arch(self):
 		if self.is_linux() and self.is_64():
 			self.env.Append(CPPFLAGS=['-m64', '-Wall', '-Werror','-fno-common','-fvisibility=hidden'])
