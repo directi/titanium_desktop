@@ -27,9 +27,11 @@ namespace ti
 		onConnect(0),
 		onRead(0),
 		onError(0),
-		onClose(0)
+		onClose(0),
+		useKeepAlives(true),
+		inactivetime(1),
+		resendtime(1)
 	{
-		socket = new StreamSocket();
 		/**
 		 * @tiapi(method=True,name=Network.TCPSocket.connect,since=0.2) Connects a Socket object to the host specified during creation. 
 		 * @tiarg(for=Network.TCPSocket.connect,type=Integer,name=timeout) the time in seconds to wait before the connect timesout 
@@ -96,14 +98,16 @@ namespace ti
 		 */
 		this->SetMethod("onClose",&TCPSocketBinding::SetOnClose);
 
+		// Enables/disables keepalives.
+		this->SetMethod("setDisconnectionNotifications", &TCPSocketBinding::SetKeepAlives);
+
+		// Sets the timeouts for the keepalive times, should be called before connecting the socket.
+		this->SetMethod("setDisconnectionNotificationTime", &TCPSocketBinding::SetKeepAliveTimes);
 	}
+
 	TCPSocketBinding::~TCPSocketBinding()
 	{
 		this->CompleteClose();
-		if (socket)
-		{
-			delete socket;
-		}
 	}
 	void TCPSocketBinding::SetOnConnect(const ValueList& args, KValueRef result)
 	{
@@ -134,6 +138,30 @@ namespace ti
 		return result->SetBool(this->sock_state == SOCK_CLOSED);
 	}
 
+	void TCPSocketBinding::SetKeepAlives(const ValueList& args, KValueRef result)
+	{
+		bool val = args.at(0)->ToBool();
+		this->useKeepAlives = val;
+		if(this->socket) 
+			this->socket->setKeepAlive(val);
+	}
+
+	void TCPSocketBinding::SetKeepAliveTimes(const ValueList& args, KValueRef result) 
+	{
+		if(this->sock_state != SOCK_CLOSED) 
+			throw ValueException::FromString("You can only set the keep-alive times before connecting the socket");
+		
+		if(args.size() > 1 && args.at(0)->IsInt() && args.at(1)->IsInt()) 
+		{
+			this->inactivetime = args.at(0)->ToInt();
+			this->resendtime = args.at(1)->ToInt();
+		}
+		else 
+		{
+			throw ValueException::FromString("usage: setDisconnectionNotificationTime(int firstCheck, int subsequentChecks) -> If 9 subsequent checks fail the connection is considered lost");
+		}
+	}
+
 	void TCPSocketBinding::Connect(const ValueList& args, KValueRef result)
 	{
 		static const std::string eprefix = "Connect exception: ";
@@ -147,6 +175,7 @@ namespace ti
 	
 		GetLogger()->Debug("Connecting Blocking.");
 
+		this->socket = new StreamSocket();
 		try 
 		{
 			SocketAddress a(this->host.c_str(), this->port);
@@ -157,16 +186,19 @@ namespace ti
 		}
 		catch(Poco::IOException &e)
 		{
+			delete this->socket;
 			this->sock_state = SOCK_CLOSED;
 			throw ValueException::FromString(eprefix + e.displayText());
 		}
 		catch(std::exception &e)
 		{
+			delete this->socket;
 			this->sock_state = SOCK_CLOSED;
 			throw ValueException::FromString(eprefix + e.what());
 		}
 		catch(...)
 		{
+			delete this->socket;
 			this->sock_state = SOCK_CLOSED;
 			throw ValueException::FromString(eprefix + "Unknown exception");
 		}
@@ -206,6 +238,10 @@ namespace ti
 	void TCPSocketBinding::OnResolve(SocketAddress* a) 
 	{
 		static const std::string eprefix = "Connect exception: ";
+		if(useKeepAlives)
+			this->socket = new DisconnectAwareSocket(inactivetime, resendtime);
+		else
+			this->socket = new StreamSocket();
 		try 
 		{
 			TCPSocketBinding::addSocket(this);
@@ -214,23 +250,20 @@ namespace ti
 		}
 		catch(Poco::IOException &e)
 		{
-			TCPSocketBinding::removeSocket(this);
 			delete a;
-			this->sock_state = SOCK_CLOSED;
+			this->CompleteClose();
 			throw ValueException::FromString(eprefix + e.displayText());
 		}
 		catch(std::exception &e)
 		{
-			TCPSocketBinding::removeSocket(this);
 			delete a;
-			this->sock_state = SOCK_CLOSED;
+			this->CompleteClose();
 			throw ValueException::FromString(eprefix + e.what());
 		}
 		catch(...)
 		{
-			TCPSocketBinding::removeSocket(this);
 			delete a;
-			this->sock_state = SOCK_CLOSED;
+			this->CompleteClose();
 			throw ValueException::FromString(eprefix + "Unknown exception");
 		}
 	}
@@ -445,6 +478,7 @@ namespace ti
 			this->sock_state = SOCK_CLOSING;
 			TCPSocketBinding::removeSocket(this);
 			this->socket->close();
+			delete this->socket;
 			this->sock_state = SOCK_CLOSED;
 		}
 	}
@@ -506,5 +540,79 @@ namespace ti
 		waiting = true;
 		idle.wait(conditionLock);
 		waiting = false;
+	}
+
+// Headers for the keepalive implementations...
+#if OS_WIN32
+#include <MSTcpIp.h>
+#include <windows.h>
+#elif OS_LINUX
+#elif OS_OSX
+#endif
+
+	DisconnectAwareSocket::DisconnectAwareSocket(int inactivitytime, int resendtime) 
+		: StreamSocket(IPAddress::IPv4)
+	{
+		std::string errtxt = "Error setting socket keepalive options, we probably wouldn't detect disconnects: ";
+		// Makes sure we detect unplanned disconnects within a fixed time.
+		try 
+		{
+			this->setKeepAlive(true);
+#if OS_WIN32
+			// Windows XP seems to disconnect anyway after about 10 seconds, but here goes...
+			// Stuff should be defined in MSTcpIP.h which we should get... 
+			// FormatMessage needs special treatment.
+			DWORD dwBytes;
+			tcp_keepalive settings, sReturned;
+			settings.onoff = 1 ;
+			settings.keepalivetime = inactivitytime * 1000; // 1 second of inactivity results in keepalives being sent.
+			settings.keepaliveinterval = resendtime * 1000 ; // 1 second for every other packet.
+
+			if (WSAIoctl(sockfd(), SIO_KEEPALIVE_VALS, &settings, sizeof(settings), 
+							&sReturned, sizeof(sReturned), &dwBytes,
+							NULL, NULL) != 0)
+			{
+				std::string rv;
+				LPVOID lpMsgBuf;
+
+				if (FormatMessageA(
+						FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+						NULL,
+						WSAGetLastError(),
+						MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+						(LPSTR) &lpMsgBuf,
+						0,
+						NULL ))
+				{
+					rv.assign(reinterpret_cast<const char*>(lpMsgBuf));
+				}
+				else
+				{
+					rv.assign("FormatMessage API failed");
+				}
+				LocalFree(lpMsgBuf);
+				GetLogger()->Error(errtxt + rv);
+			}
+#elif OS_LINUX
+			// The right headers should get magically included.
+			// Poco uses setsockopt internally which supports this on Linux.
+			this->setOption(SOL_TCP, TCP_KEEPIDLE, inactivitytime); // 1 sec idle wait
+			this->setOption(SOL_TCP, TCP_KEEPINTVL, resendtime); // 1 sec retransmit frequency
+			this->setOption(SOL_TCP, TCP_KEEPCNT, 9); // 9 timeouts in a row like windows...
+#elif OS_OSX
+#endif
+		} 
+		catch(Poco::Exception &e)
+		{
+			GetLogger()->Error(errtxt + e.displayText());
+		} 
+		catch(std::exception &e) 
+		{
+			GetLogger()->Error(errtxt + e.what());
+		}
+		catch(...)
+		{
+			GetLogger()->Error(errtxt + "Unknown error");
+		}
 	}
 }
