@@ -13,11 +13,11 @@ build = BuildConfig(
 	DISTRIBUTION_URL = 'api.appcelerator.net',
 	CRASH_REPORT_URL = 'api.appcelerator.net/p/v1/app-crash-report'
 )
+
 EnsureSConsVersion(1,2,0)
 EnsurePythonVersion(2,5)
 
 build.set_kroll_source_dir(path.abspath('kroll'))
-
 build.titanium_source_dir = path.abspath('.')
 build.titanium_sdk_dir = path.join(build.titanium_source_dir, 'sdk')
 
