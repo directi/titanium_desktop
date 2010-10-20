@@ -301,10 +301,6 @@ public:
 		/* [in] */ HDC hDC,
 		/* [in] */ RECT rect) { return E_NOTIMPL; }
 
-	virtual HRESULT STDMETHODCALLTYPE newBackingStore(
-		/* [in] */ IWebView *webView,
-		/* [in] */ OLE_HANDLE bitmap);
-
 protected:
 	// IWebUIDelegatePrivate
 	virtual HRESULT STDMETHODCALLTYPE createWebViewWithRequest(

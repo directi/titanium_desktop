@@ -404,18 +404,6 @@ HRESULT STDMETHODCALLTYPE Win32WebKitUIDelegate::exceededDatabaseQuota(
 	return S_OK;
 }
 
-HRESULT STDMETHODCALLTYPE Win32WebKitUIDelegate::newBackingStore(
-	/* [in] */ IWebView *webView,
-	/* [in] */ OLE_HANDLE bitmapHandle)
-{
-	AutoPtr<Win32UserWindow> userWindow = Win32UserWindow::FromWebView(webView);
-	if (userWindow.isNull())
-		return S_OK;
-
-	userWindow->SetBitmap(reinterpret_cast<HBITMAP>(bitmapHandle));
-	return S_OK;
-}
-
 static BOOL CALLBACK AbortProc(HDC hdc, int error)
 {
 	// TODO: It might be night to show a dialog allowing users
