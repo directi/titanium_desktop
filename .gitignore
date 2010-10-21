@@ -13,3 +13,6 @@ vc80.idb
 progress.res
 commit.id
 prev_commit.id
+docs
+*.pyc
+thirdparty-*
