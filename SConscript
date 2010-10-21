@@ -16,4 +16,4 @@ SConscript('libkroll/SConscript', variant_dir=path.join(build.dir,'objs','libkro
 # before here.
 build.env.Append(CPPPATH=[path.join(build.kroll_source_dir, 'libkroll')])
 build.env.Append(LIBS=['khost'])
-build.env.Append(LIBPATH=[build.runtime_build_dir])
+build.env.Append(LIBPATH=[path.join(build.dir, 'runtime', build.version)])
