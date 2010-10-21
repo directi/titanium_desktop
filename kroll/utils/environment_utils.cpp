@@ -12,7 +12,6 @@
 // See http://msdn.microsoft.com/en-us/library/ms686206(VS.85).aspx
 #define MAX_ENV_VALUE_SIZE 32767 
 #define REASONABLE_MAX_ENV_VALUE_SIZE 1024
-#include <windows.h>
 #elif OS_OSX
 #include <crt_externs.h>
 #define environ (*_NSGetEnviron())

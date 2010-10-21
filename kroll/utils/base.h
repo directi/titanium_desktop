@@ -84,23 +84,6 @@
 
 #define PRODUCT_VERSION STRING(_PRODUCT_VERSION)
 
-
-// define a macro that points to the name of the enclosing function where
-// referenced or if not supported on target compiler, just default to filename
-#ifndef OS_WIN32
-#define KR_FUNC __PRETTY_FUNCTION__
-#else
-#define KR_FUNC __FILE__
-#endif
-
-#ifdef DEBUG
-#define KR_DUMP_LOCATION std::cout << "[" << KR_FUNC << "::" << __LINE__ << "]" << std::endl;
-#else
-#define KR_DUMP_LOCATION
-#endif
-
-#define KR_UNUSED(o) if (o) {}
-
 // this was borrowed from Google Gears
 // A macro to disallow the evil copy constructor and operator= functions.
 // This should be used in the private: declaration for a class.

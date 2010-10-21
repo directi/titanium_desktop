@@ -51,7 +51,6 @@ namespace ti
 	}
 	HTTPServerBinding::~HTTPServerBinding()
 	{
-		KR_DUMP_LOCATION
 		Close();
 	}
 	void HTTPServerBinding::Bind(const ValueList& args, KValueRef result)
