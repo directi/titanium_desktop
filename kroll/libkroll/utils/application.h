@@ -40,6 +40,8 @@ namespace UTILS_NS
 		static SharedApplication NewApplication(const std::string &appPath);
 		~Application();
 
+		string getPath() const { return this->path; }
+
 		string getManifestPath() const { return this->manifestHandler.getManifestPath(); }
 		string getName() const { return this->manifestHandler.getName(); }
 		string getVersion() const { return this->manifestHandler.getVersion(); }
@@ -50,30 +52,14 @@ namespace UTILS_NS
 		string getLogLevel() const { return this->manifestHandler.getLogLevel(); }
 		string getImage() const;
 
-		string getPath() const { return this->path; }
-		std::string getRuntimePath() const;
-		void getModules(vector<SharedComponent> &_modules) const;
-
-		/**
-		 * Generate a list of all components available for this application
-		 * including bundled components and any components or all the components
-		 * in the bundle override directory.
-		 */
-		void GetAvailableComponents(
-			vector<SharedComponent>& components,
-			bool onlyBundled = false);
-
-		/**
-		 * Inform the application that it is using a module with the given
-		 * name and version. If this is a new module, it will be registered in
-		 * the application's module list.
-		 */
-		void UsingModule(
-			const std::string &name,
+		void UsingModule(const std::string &name,
 			const std::string &version,
 			const std::string &path);
-		
 		bool removeModule(const string &modulePath);
+		bool ResolveDependencies();
+
+		std::string getRuntimePath() const;
+		string GetComponentPath(const string &name) const;
 
 		/**
 		 * Whether or not this application has a .installed file in it's path
@@ -81,22 +67,9 @@ namespace UTILS_NS
 		bool IsInstalled() const;
 
 		/**
-		 * Try to resolve all application dependencies with installed or bundled components.
-		 * @returns bool if any dependencies has not been resolved.
-		 */
-		bool ResolveDependencies();
-
-		/**
 		 * Get the path to this application's executablej
 		 */
 		string GetExecutablePath() const;
-
-		/**
-		 * Get an active component path given a name.
-		 * @arg name a component name either the name of a module (e.g. 'tiui') or 'runtime'
-		 * @returns the path to the component with the given name or an empty string if not found
-		 */
-		string GetComponentPath(const string &name) const;
 
 		/**
 		 * Get the path to this application's user data directory.

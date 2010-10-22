@@ -27,17 +27,6 @@ namespace UTILS_NS
 		}
 		return new Application(app_path, manifest_path, manifest);
 	}
-
-	string Application::getImage() const
-	{
-		return FileUtils::Join(this->GetResourcesPath().c_str(),
-			this->manifestHandler.getImage().c_str(), NULL);
-	}
-
-	std::string Application::getRuntimePath() const
-	{
-		return componentManager.getRuntimePath();
-	}
 	
 	Application::Application(const std::string &path,
 		const std::string &manifest_path,
@@ -53,9 +42,37 @@ namespace UTILS_NS
 	{
 	}
 
+	void Application::UsingModule(const std::string &name,
+		const std::string &version, const std::string &path)
+	{
+		componentManager.UsingModule(name, version, path);
+	}
+
 	bool Application::removeModule(const string &modulePath)
 	{
 		return componentManager.removeModule(modulePath);
+	}
+
+	bool Application::ResolveDependencies()
+	{
+		componentManager.resolveDependencies(this->dependencies);
+		return componentManager.allDependenciesResolved();
+	}
+
+	std::string Application::getRuntimePath() const
+	{
+		return componentManager.getRuntimePath();
+	}
+
+	string Application::GetComponentPath(const string &name) const
+	{
+		return componentManager.GetComponentPath(name);
+	}
+
+	string Application::getImage() const
+	{
+		return FileUtils::Join(this->GetResourcesPath().c_str(),
+			this->manifestHandler.getImage().c_str(), NULL);
 	}
 
 	string Application::GetExecutablePath() const
@@ -83,11 +100,6 @@ namespace UTILS_NS
 		}
 
 		return string();
-	}
-
-	string Application::GetComponentPath(const string &name) const
-	{
-		return componentManager.GetComponentPath(name);
 	}
 
 	string Application::GetDataPath() const
@@ -119,47 +131,6 @@ namespace UTILS_NS
 			return "";
 
 		return FileUtils::ReadFile(license);
-	}
-
-	bool Application::ResolveDependencies()
-	{
-		componentManager.resolveDependencies(this->dependencies);
-		return componentManager.allDependenciesResolved();
-	}
-
-	void Application::GetAvailableComponents(vector<SharedComponent>& components, bool onlyBundled)
-	{
-		if (this->HasArgument(OVERRIDE_ARG))
-		{
-			// Only scan bundled components on the override path
-			string overridePath(this->GetArgumentValue(OVERRIDE_ARG));
-			BootUtils::ScanBundledComponents(overridePath, components); 
-			onlyBundled = true;
-		}
-		else
-		{
-			// Merge bundled and installed components
-			BootUtils::ScanBundledComponents(this->path, components); 
-		}
-
-		if (!onlyBundled)
-		{
-			vector<SharedComponent>& installedComponents =
-				BootUtils::GetInstalledComponents(true);
-			for (size_t i = 0; i < installedComponents.size(); i++)
-			{
-				components.push_back(installedComponents.at(i));
-			}
-		}
-		
-	}
-
-	void Application::UsingModule(
-		const std::string &name,
-		const std::string &version,
-		const std::string &path)
-	{
-		componentManager.UsingModule(name, version, path);
 	}
 
 	void Application::SetArguments(int argc, const char* argv[])
