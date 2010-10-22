@@ -4,6 +4,7 @@
 *.pyc
 *.pbxuser
 *.model1v3
+*.obj
 apidoc/docout
 build/osx
 build/linux

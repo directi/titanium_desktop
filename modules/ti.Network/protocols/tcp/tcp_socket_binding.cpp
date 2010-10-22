@@ -30,10 +30,7 @@ namespace ti
 		onConnect(0),
 		onRead(0),
 		onError(0),
-		onClose(0),
-		useKeepAlives(true),
-		inactivetime(1),
-		resendtime(1)
+		onClose(0)
 	{
 		/**
 		 * @tiapi(method=True,name=Network.TCPSocket.connect,since=0.2) Connects a Socket object to the host specified during creation. 
