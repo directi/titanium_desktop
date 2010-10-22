@@ -1,0 +1,86 @@
+#!/usr/bin/env python
+import os
+import os.path as path
+import effess
+Import('build')
+
+def get_shared_utils(dir, build_obj):
+	sources_utils = Glob('%s/*.cpp' % dir) + \
+		Glob('%s/poco/*.cpp' % dir) + \
+		Glob('%s/%s/*.cpp' % (dir, build_obj.os))
+	if build_obj.is_osx():
+		sources_utils.extend(Glob('%s/%s/*.mm' % (dir, build_obj.os)))
+	if not build_obj.is_win32():
+		sources_utils.extend(Glob('%s/posix/*.cpp' % dir))
+	return sources_utils
+
+def get_libkroll_sources(dir, build_obj):
+	sources = Glob('%s/*.cpp' % dir) + \
+		Glob('%s/config/*.cpp' % dir) + \
+		Glob('%s/binding/*.cpp' % dir) + \
+		Glob('%s/net/proxy_config.cpp' % dir) + \
+		Glob('%s/javascript/*.cpp' % dir) + \
+		Glob('%s/api/*.cpp' % dir) + \
+		Glob('%s/net/*_%s.cpp' % (dir, build_obj.os))
+	if build_obj.is_linux():
+		sources += Glob('%s/linux/*.cpp' % dir)
+	if build_obj.is_win32():
+		sources += Glob('%s/utils/unzip/*.cpp' % dir) + Glob('%s/win32/*.cpp' % dir)
+	if build_obj.is_osx():
+		sources +=  Glob('%s/osx/*.mm' % dir) + Glob('%s/net/*_%s.mm' % (dir, build_obj.os))
+	return sources
+
+# Add kroll_include directory path to global environment
+build.env.Append(CPPPATH=[build.kroll_include_dir])
+
+utils_dir=path.join(build.kroll_source_dir, 'utils')
+libkroll_out_dir=path.join(build.dir, 'objs', 'libkroll')
+
+print "Warning: copying utils for libkroll."
+effess.copy_to_dir(utils_dir, libkroll_out_dir)
+libkroll_utils_dir=path.join(libkroll_out_dir, 'utils')
+
+print "Copying kroll include files to kroll_include_dir"
+kroll_include = path.join(build.kroll_include_dir, 'kroll')
+effess.copy_tree(build.cwd(), kroll_include, include=['.h'])
+
+
+# libkroll is called khost for now, until we can gaurantee
+# that application updates also update the kboot.exe DLL.
+libkroll_name = 'khost'
+
+libkroll_dir=path.abspath('.')
+libkroll_sources = get_libkroll_sources(libkroll_dir, build) + get_shared_utils(libkroll_utils_dir, build)
+libkroll_env = build.env.Clone()
+
+libkroll_env.Append(CPPDEFINES=[('KROLL_API_EXPORT', 1)])
+if build.is_linux():
+	if os.environ.has_key('PKG_CONFIG_PATH'):
+		libkroll_env.AppendENVPath('PKG_CONFIG_PATH', os.environ['PKG_CONFIG_PATH'])
+	libkroll_env.ParseConfig('pkg-config --cflags --libs libxml-2.0 gtk+-2.0 gdk-2.0 glib-2.0 gthread-2.0')
+	libkroll_env.Append(LIBS=['pthread', 'libsoup-2.4', 'libproxy'])
+
+if build.is_win32():
+	libkroll_env.Append(CPPPATH=[path.join(build.third_party, 'icu', 'include')])
+	libkroll_env.Append(LIBS=[
+		'Advapi32', 'comctl32', 'icuuc',
+		'icuin', 'iphlpapi', 'kernel32',
+		'ole32', 'oleaut32', 'pthreadVC2',
+		'shell32', 'shlwapi', 'user32',
+		'winhttp',
+	])
+	libkroll_env.Append(CCFLAGS=['/DUNICODE', '/D_UNICODE'])
+	libkroll_env.Append(LINKFLAGS=['/LTCG', '/INCREMENTAL:NO'])
+
+elif build.is_osx():
+	libkroll_env.Append(LINKFLAGS='-install_name lib' + libkroll_name + '.dylib')
+	libkroll_env.Append(LIBS=['ssl', 'crypto'])
+	libkroll_env.Append(FRAMEWORKS=['Cocoa', 'SystemConfiguration', 'CoreServices'])
+
+build.add_thirdparty(libkroll_env, 'poco')
+build.add_thirdparty(libkroll_env, 'webkit')
+
+build.mark_build_target(
+	libkroll_env.SharedLibrary(path.join(build.dir, 'runtime', build.version, libkroll_name),
+		source=libkroll_sources, variant_dir=libkroll_out_dir))
+build.utils.LightWeightCopy(path.join(build.cwd(), 'support'), path.join(build.dir, 'runtime'))
