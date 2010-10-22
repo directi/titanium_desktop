@@ -14,17 +14,23 @@ build = BuildConfig(
 	CRASH_REPORT_URL = 'api.appcelerator.net/p/v1/app-crash-report'
 )
 
-EnsureSConsVersion(1,2,0)
-EnsurePythonVersion(2,5)
-
 build.set_kroll_source_dir(path.abspath('kroll'))
 build.titanium_source_dir = path.abspath('.')
 build.titanium_sdk_dir = path.join(build.titanium_source_dir, 'sdk')
 
-# This should only be used for accessing various
-# scripts in the kroll build directory. All resources
-# should instead be built to build.dir
-build.kroll_build_dir = path.join(build.kroll_source_dir, 'build')
+targets = COMMAND_LINE_TARGETS
+clean = 'clean' in targets or ARGUMENTS.get('clean', 0)
+build.nopackage = ARGUMENTS.get('nopackage', 0)
+
+if clean:
+	print "Obliterating your build directory: %s" % build.dir
+	if path.exists(build.dir):
+		dir_util.remove_tree(build.dir)
+	Exit(0)
+
+# forcing a crash to test crash detection
+if ARGUMENTS.get('test_crash', 0):
+	build.env.Append(CPPDEFINES = ('TEST_CRASH_DETECTION', 1))
 
 # debug build flags
 debug = ARGUMENTS.get('debug', 0)
@@ -45,19 +51,6 @@ if build.is_win32():
 		build.env.Append(LINKFLAGS=['/DEBUG', '/PDB:${TARGET}.pdb'])
 
 Export('build', 'debug')
-targets = COMMAND_LINE_TARGETS
-clean = 'clean' in targets or ARGUMENTS.get('clean', 0)
-build.nopackage = ARGUMENTS.get('nopackage', 0)
-
-if clean:
-	print "Obliterating your build directory: %s" % build.dir
-	if path.exists(build.dir):
-		dir_util.remove_tree(build.dir)
-	Exit(0)
-
-# forcing a crash to test crash detection
-if ARGUMENTS.get('test_crash', 0):
-	build.env.Append(CPPDEFINES = ('TEST_CRASH_DETECTION', 1))
 
 ## Kroll *must not be required* for installation
 SConscript('kroll/SConscript.thirdparty')
