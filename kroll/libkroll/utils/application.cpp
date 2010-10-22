@@ -36,7 +36,7 @@ namespace UTILS_NS
 
 	std::string Application::getRuntimePath() const
 	{
-		return this->runtime->path;
+		return componentManager.getRuntimePath();
 	}
 	
 	Application::Application(const std::string &path,
@@ -51,29 +51,12 @@ namespace UTILS_NS
 
 	Application::~Application()
 	{
-		this->modules.clear();
-		this->runtime = NULL;
 	}
 
 	bool Application::removeModule(const string &modulePath)
 	{
-		bool bRet = false;
-		std::vector<SharedComponent>::iterator i = modules.begin();
-		while (i != modules.end())
-		{
-			if (modulePath == (*i)->path)
-			{
-				i = modules.erase(i);
-				bRet = true;
-			}
-			else
-			{
-				i++;
-			}
-		}
-		return bRet;
+		return componentManager.removeModule(modulePath);
 	}
-
 
 	string Application::GetExecutablePath() const
 	{
@@ -104,27 +87,7 @@ namespace UTILS_NS
 
 	string Application::GetComponentPath(const string &name) const
 	{
-		string transName(name);
-		std::transform(transName.begin(), transName.end(), transName.begin(), tolower);
-		if (transName == "runtime")
-		{
-			return this->runtime->path;
-		}
-		else
-		{
-			for(vector<SharedComponent>::const_iterator
-				i = this->modules.begin();
-				i != this->modules.end();
-			i++)
-			{
-				SharedComponent comp = *i;
-				if (comp->name == name)
-				{
-					return comp->path;
-				}
-			}
-		}
-		return string();
+		return componentManager.GetComponentPath(name);
 	}
 
 	string Application::GetDataPath() const
@@ -158,31 +121,10 @@ namespace UTILS_NS
 		return FileUtils::ReadFile(license);
 	}
 
-	void Application::ResolveDependencies(vector<SharedDependency> & unresolved)
+	bool Application::ResolveDependencies()
 	{
-		this->modules.clear(); // Blank slate
-		this->runtime = NULL;
-		vector<SharedComponent> components;
-		this->GetAvailableComponents(components);
-
-		vector<SharedDependency>::iterator i = this->dependencies.begin();
-		while (i != this->dependencies.end())
-		{
-			SharedDependency d = *i++;
-			SharedComponent c = BootUtils::ResolveDependency(d, components);
-			if (c.isNull())
-			{
-				unresolved.push_back(d);
-			}
-			else if (c->type == MODULE)
-			{
-				this->modules.push_back(c);
-			}
-			else if (c->type == RUNTIME)
-			{
-				this->runtime = c;
-			}
-		}
+		componentManager.resolveDependencies(this->dependencies);
+		return componentManager.allDependenciesResolved();
 	}
 
 	void Application::GetAvailableComponents(vector<SharedComponent>& components, bool onlyBundled)
@@ -217,23 +159,7 @@ namespace UTILS_NS
 		const std::string &version,
 		const std::string &path)
 	{
-		// Ensure that this module is not already in our list of modules.
-		vector<SharedComponent>::iterator i = this->modules.begin();
-		while (i != this->modules.end())
-		{
-			SharedComponent c = *i++;
-			if (c->name == name)
-			{
-				// Bundled modules currently do not know their version until
-				// they are loaded, so update the version field of the component.
-				c->version = version;
-				return;
-			}
-		}
-
-		// It's not in the list so add it.
-		SharedComponent c = KComponent::NewComponent(MODULE, name, version, path);
-		this->modules.push_back(c);
+		componentManager.UsingModule(name, version, path);
 	}
 
 	void Application::SetArguments(int argc, const char* argv[])

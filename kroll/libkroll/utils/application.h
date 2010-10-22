@@ -32,9 +32,6 @@ namespace UTILS_NS
 		const string path;
 		vector<string> arguments;
 
-		SharedComponent runtime;
-		vector<SharedComponent> modules;
-
 		vector<SharedDependency> dependencies;
 		ManifestHandler manifestHandler;
 		ComponentManager componentManager;
@@ -85,9 +82,9 @@ namespace UTILS_NS
 
 		/**
 		 * Try to resolve all application dependencies with installed or bundled components.
-		 * @returns a list of unresolved dependencies
+		 * @returns bool if any dependencies has not been resolved.
 		 */
-		void ResolveDependencies(vector<SharedDependency> & unresolved);
+		bool ResolveDependencies();
 
 		/**
 		 * Get the path to this application's executablej

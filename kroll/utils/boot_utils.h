@@ -113,7 +113,6 @@ namespace UTILS_NS
 		vector<SharedComponent> modules;
 		vector<SharedDependency> unresolved;
 
-		void resolveDependencies(const vector<SharedDependency> &dependencies);
 
 	public:
 		ComponentManager(const std::string &path);
@@ -128,6 +127,12 @@ namespace UTILS_NS
 			const std::string& path,
 			vector<SharedComponent>& components,
 			bool onlyBundled);
+		void resolveDependencies(const vector<SharedDependency> &dependencies);
+		bool removeModule(const string &modulePath);
+		void UsingModule(const std::string &name,
+			const std::string &version,
+			const std::string &path);
+		string GetComponentPath(const string &name) const;
 	};
 
 	namespace BootUtils

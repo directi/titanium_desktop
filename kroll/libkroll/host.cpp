@@ -188,8 +188,7 @@ namespace kroll
 
 		// Re-resolve module/runtime dependencies of the application so that the
 		// API module can introspect into the loaded components.
-		vector<SharedDependency> missing;
-		this->application->ResolveDependencies(missing);
+		this->application->ResolveDependencies();
 
 		// Parse the module paths, we'll later use this to load all the shared-objects.
 		FileUtils::Tokenize(modulePaths, this->modulePaths, KR_LIB_SEP, true);
