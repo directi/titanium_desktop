@@ -652,7 +652,7 @@ namespace kroll
 		string manifestPath = args.at(0)->ToString();
 		string appPath = args.GetString(1, FileUtils::Dirname(manifestPath));
 
-		SharedApplication app = Application::NewApplication(manifestPath, appPath);
+		SharedApplication app = Application::NewApplication(appPath);
 		if (!app.isNull())
 		{
 			result->SetObject(new ApplicationBinding(app));

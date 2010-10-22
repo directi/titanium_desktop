@@ -19,27 +19,13 @@ namespace UTILS_NS
 	SharedApplication Application::NewApplication(const std::string &app_path)
 	{
 		string manifest_path = ManifestHandler::getManifestPathAtDirectory(app_path);
-		return Application::NewApplication(manifest_path, app_path);
-	}
-
-	SharedApplication Application::NewApplication(const std::string &manifest_path, const std::string &app_path)
-	{
 		map<string, string> manifest;
 		ManifestHandler::ReadManifestFile(manifest_path, manifest);
 		if (manifest.empty())
 		{
 			return NULL;
 		}
-
-		Application* application = new Application(app_path, manifest_path);
-		return application;
-	}
-
-	SharedApplication Application::NewApplication(const map<string, string>& manifest)
-	{
-		Application* application = new Application();
-		application->ParseManifest(manifest);
-		return application;
+		return new Application(app_path, manifest_path, manifest);
 	}
 
 	string Application::getImage() const
@@ -69,9 +55,11 @@ namespace UTILS_NS
 		}
 	}
 
-	Application::Application(const std::string &path, const std::string &manifestPath)
+	Application::Application(const std::string &path,
+		const std::string &manifest_path,
+		const map<string, string> &manifest)
 		: path(path),
-		manifestHandler(manifestPath),
+		manifestHandler(manifest_path, manifest),
 		componentManager(path)
 	{
 		// TODO: to be moved in component Manager
@@ -85,13 +73,6 @@ namespace UTILS_NS
 			 SharedDependency d = Dependency::NewDependencyFromManifestLine(oIter->first, oIter->second);
 			 this->dependencies.push_back(d);
 		}
-	}
-
-	Application::Application(const std::string &path)
-		: path(path),
-		manifestHandler(),
-		componentManager(path)
-	{
 	}
 
 	Application::~Application()

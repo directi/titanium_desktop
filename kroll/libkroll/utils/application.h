@@ -25,8 +25,9 @@ namespace UTILS_NS
 	class KROLL_API Application
 	{
 	private:
-		Application(const std::string &path, const std::string &manifestPath);
-		Application(const std::string &path = string(""));
+		Application(const std::string &path,
+			const std::string &manifest_path,
+			const map<string, string> &manifest);
 
 		void ParseManifest(const map<string, string>& manifest);
 		void setRuntimeProductVersion();
@@ -44,9 +45,6 @@ namespace UTILS_NS
 
 	public:
 		static SharedApplication NewApplication(const std::string &appPath);
-		static SharedApplication NewApplication(const std::string &manifestPath, const std::string &applicationPath);
-		// special in-memory constructor, no paths
-		static SharedApplication NewApplication(const map<string, string>& manifest);
 		~Application();
 
 		string getManifestPath() const { return this->manifestHandler.getManifestPath(); }

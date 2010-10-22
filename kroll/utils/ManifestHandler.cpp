@@ -19,15 +19,13 @@ namespace UTILS_NS
 	{
 		map<string, string> manifest;
 		ManifestHandler::ReadManifestFile(this->manifestPath, manifest);
-		if(!manifest.empty())
-		{
-			this->parseManifest(manifest);
-		}
+		this->parseManifest(manifest);
 	}
 
-	ManifestHandler::ManifestHandler()
-		: manifestPath("")
+	ManifestHandler::ManifestHandler(const std::string &_manifestPath, const map<string, string> &manifest)
+		: manifestPath(_manifestPath)
 	{
+		this->parseManifest(manifest);
 	}
 
 	ManifestHandler::~ManifestHandler()
