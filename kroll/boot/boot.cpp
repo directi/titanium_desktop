@@ -7,7 +7,7 @@
 #include <ManifestHandler.h>
 #include <file_utils.h>
 #include <environment_utils.h>
-#include <platform_utils.h>
+//#include <platform_utils.h>
 
 using namespace UTILS_NS;
 
@@ -28,52 +28,51 @@ void KrollBoot::ShowError(const string & msg, bool fatal) const
 	}
 }
 
+void KrollBoot::setPaths(const std::string & app_path,
+						 const std::string & runtime_path,
+						 const std::string & module_paths)
+{
+	EnvironmentUtils::Set(BOOTSTRAP_ENV, "YES");
+	EnvironmentUtils::Set(HOME_ENV, app_path);
+	EnvironmentUtils::Set(RUNTIME_ENV, runtime_path);
+	EnvironmentUtils::Set(MODULES_ENV, module_paths);
+	this->setPlatformSpecificPaths(runtime_path, module_paths);
+}
+
+
 int KrollBoot::Bootstrap()
 {
-	string app_path = FileUtils::GetExecutableDirectory();
+	const string app_path = FileUtils::GetExecutableDirectory();
 
 	if(!ManifestHandler::doesManifestFileExistsAtDirectory(app_path))
 	{
-		string error("Application packaging error: no manifest was found from directory : " );
-		error.append(app_path);
+		const string error = string("BootLoader::Bootstrap no manifest file found at: " )+ app_path;
 		ShowError(error);
 		return __LINE__;
 	}
 
-	// create manifest handler
-	// parse manifest
-	string manifest_path = ManifestHandler::getManifestPathAtDirectory(app_path);
+	const string manifest_path = ManifestHandler::getManifestPathAtDirectory(app_path);
 	ManifestHandler manifestHandler(manifest_path);
 
-	// get dependencies from manifest
 	vector<SharedDependency> dependencies;
 	manifestHandler.getDependencies(dependencies);
-
-	// create dependency mananger
-	// resolve dependencies
 	ComponentManager componentManager(app_path, dependencies);
-	// if there are unresolved dependencies --> exit
-	// else --> get paths from ther set as module paths , runtime path.
 
 	if(!componentManager.allDependenciesResolved())
 	{
 		return __LINE__;
 	}
 
-	// Construct a list of module pathnames for setting up library paths
-	string module_paths = componentManager.getModulePaths();
+	const std::string runtime_path = componentManager.getRuntimePath();
+	const std::string modules_paths = componentManager.getModulePaths();
 
-	EnvironmentUtils::Set(BOOTSTRAP_ENV, "YES");
-	EnvironmentUtils::Set("KR_HOME", app_path);
-	EnvironmentUtils::Set("KR_RUNTIME", componentManager.getRuntimePath());
-	EnvironmentUtils::Set("KR_MODULES", module_paths);
+	setPaths(app_path, runtime_path, modules_paths);
 
-	BootstrapPlatformSpecific(componentManager.getRuntimePath(), module_paths);
 	string error = Blastoff();
 
 	// If everything goes correctly, we should never get here
-	error = string("Launching application failed: ") + error;
-	ShowError(error, false);
+	error = string("BootLoader::Bootstrap Launching application failed: ") + error;
+	ShowError(error);
 	return __LINE__;
 }
 

@@ -28,17 +28,14 @@ class KrollWin32Boot
 	public:
 		KrollWin32Boot(int _argc, const char ** _argv);
 		virtual ~KrollWin32Boot();
-
 		virtual int StartHost();
 
 	private:
 		virtual string Blastoff();
-		virtual void BootstrapPlatformSpecific(const std::string & runtime_path, const std::string & module_paths);
+		virtual void ShowErrorImpl(const string & msg, bool fatal) const;
+		virtual void setPlatformSpecificPaths(const std::string & runtime_path, const std::string & module_paths);
 
 		HMODULE SafeLoadRuntimeDLL(string& path) const;
-
-		virtual string GetApplicationName() const;
-		virtual void ShowErrorImpl(const string & msg, bool fatal) const;
 };
 
 #ifdef USE_BREAKPAD

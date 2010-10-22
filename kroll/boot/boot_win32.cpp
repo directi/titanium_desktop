@@ -12,6 +12,8 @@
 #include "boot_win32.h"
 #include "popup_dialog_win32.h"
 
+#define HOST_DLL "khost.dll"
+
 using namespace UTILS_NS;
 
 
@@ -37,28 +39,26 @@ HMODULE KrollWin32Boot::SafeLoadRuntimeDLL(string& path) const
 			0, LOAD_WITH_ALTERED_SEARCH_PATH);
 	if (!module)
 	{
-		string msg("Couldn't load file (");
-		msg.append(path);
-		msg.append("): ");
-		msg.append(KrollUtils::Win32Utils::QuickFormatMessage(GetLastError()));
+		const string msg = string("Couldn't load file (")
+			+ path + "): "
+			+ KrollUtils::Win32Utils::QuickFormatMessage(GetLastError());
 		ShowError(msg);
 	}
-
 	return module;
 }
 
 int KrollWin32Boot::StartHost()
 {
-	string runtimePath(EnvironmentUtils::Get("KR_RUNTIME"));
-	string dll(FileUtils::Join(runtimePath.c_str(), "khost.dll", 0));
-	HMODULE khost = SafeLoadRuntimeDLL(dll);
+	string runtimePath(EnvironmentUtils::Get(RUNTIME_ENV));
+	string host_path(FileUtils::Join(runtimePath.c_str(), HOST_DLL, 0));
+	HMODULE khost = SafeLoadRuntimeDLL(host_path);
 	if (!khost)
 		return __LINE__;
 
 	Executor *executor = (Executor*) GetProcAddress(khost, "Execute");
 	if (!executor)
 	{
-		ShowError(string("Invalid entry point 'Execute' in khost.dll"));
+		ShowError(string("Invalid entry point 'Execute' in ") + host_path);
 		return __LINE__;
 	}
 
@@ -70,13 +70,13 @@ void KrollWin32Boot::ShowErrorImpl(const string & msg, bool fatal) const
 {
 	wstring wideMsg(L"Error: ");
 	wideMsg.append(KrollUtils::UTF8ToWide(msg));
-	wstring wideAppName = KrollUtils::UTF8ToWide(GetApplicationName());
+	wstring wideAppName = KrollUtils::UTF8ToWide(PRODUCT_NAME);
 
 	MessageBoxW(0, wideMsg.c_str(), wideAppName.c_str(), MB_OK|MB_ICONERROR|MB_SYSTEMMODAL);
 }
 
 
-void KrollWin32Boot::BootstrapPlatformSpecific(const std::string & runtime_path, const std::string & module_paths)
+void KrollWin32Boot::setPlatformSpecificPaths(const std::string & runtime_path, const std::string & module_paths)
 {
 	// Add runtime path and all module paths to PATH
 	std::string newpath = runtime_path + ";" + module_paths;
@@ -97,13 +97,6 @@ string KrollWin32Boot::Blastoff()
 	// launch the host here and exit with the appropriate return value.
 	exit(StartHost());
 }
-
-
-string KrollWin32Boot::GetApplicationName() const
-{
-	return PRODUCT_NAME;
-}
-
 
 #ifdef USE_BREAKPAD
 

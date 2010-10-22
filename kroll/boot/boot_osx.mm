@@ -49,11 +49,11 @@ void KrollOSXBoot::ShowErrorImpl(const std::string& msg, bool fatal) const
 		buttonText = @"Quit";
 
 	NSRunCriticalAlertPanel(
-		[NSString stringWithUTF8String:GetApplicationName().c_str()],
+		[NSString stringWithUTF8String:PRODUCT_NAME],
 		[NSString stringWithUTF8String:msg.c_str()], buttonText, nil, nil);
 }
 
-void KrollOSXBoot::BootstrapPlatformSpecific(const std::string & runtime_path, const std::string & module_paths)
+void KrollOSXBoot::setPlatformSpecificPaths(const std::string & runtime_path, const std::string & module_paths)
 {
 	std::string fullModuleList = runtime_path + ":" + module_paths;
 
@@ -124,19 +124,6 @@ int KrollOSXBoot::StartHost()
 		return __LINE__;
 	}
 	return executor(argc, (const char**)argv);
-}
-
-string KrollOSXBoot::GetApplicationName() const
-{
-	// fall back to the info.plist if we haven't loaded the application
-	// which happens in a crash situation
-	NSDictionary *infoDictionary = [[NSBundle mainBundle] infoDictionary];
-	NSString *applicationName = [infoDictionary objectForKey:@"CFBundleName"];
-	if (!applicationName) 
-	{
-		applicationName = [infoDictionary objectForKey:@"CFBundleExecutable"];
-	}
-	return [applicationName UTF8String];
 }
 
 #ifdef USE_BREAKPAD

@@ -14,6 +14,8 @@
 #include <file_utils.h>
 #include <environment_utils.h>
 
+#define HOST_SO "libkhost.so"
+
 using namespace UTILS_NS;
 
 
@@ -37,13 +39,13 @@ void KrollLinuxBoot::ShowErrorImpl(const string & msg, bool fatal) const
 		GTK_BUTTONS_CLOSE,
 		"%s",
 		msg.c_str());
-	gtk_window_set_title(GTK_WINDOW(dialog), GetApplicationName().c_str());
+	gtk_window_set_title(GTK_WINDOW(dialog), PRODUCT_NAME);
 	gtk_dialog_run(GTK_DIALOG(dialog));
 	gtk_widget_destroy(dialog);
 }
 
 
-void KrollLinuxBoot::BootstrapPlatformSpecific(const std::string & runtime_path, const std::string & module_paths)
+void KrollLinuxBoot::setPlatformSpecificPaths(const std::string & runtime_path, const std::string & module_paths)
 {
 	std::string fullmoduleList = runtime_path + ":" + module_paths;
 
@@ -74,23 +76,22 @@ string KrollLinuxBoot::Blastoff()
 
 int KrollLinuxBoot::StartHost()
 {
-	const char* runtimePath = getenv("KR_RUNTIME");
+	const char* runtimePath = getenv(RUNTIME_ENV);
 	if (!runtimePath)
 		return __LINE__;
 
 	// now we need to load the host and get 'er booted
-	string khost = FileUtils::Join(runtimePath, "libkhost.so", 0);
-	if (!FileUtils::IsFile(khost))
+	string host_path = FileUtils::Join(runtimePath, HOST_SO, 0);
+	if (!FileUtils::IsFile(host_path))
 	{
-		string msg = string("Couldn't find required file:") + khost;
-		ShowError(msg);
+		ShowError(string("Couldn't find required file:") + host_path);
 		return __LINE__;
 	}
 
 	void* lib = dlopen(khost.c_str(), RTLD_LAZY | RTLD_GLOBAL);
 	if (!lib)
 	{
-		string msg = string("Couldn't load file:") + khost + ", error: " + dlerror();
+		const string msg = string("Couldn't load file:") + host_path + ", error: " + dlerror();
 		ShowError(msg);
 		return __LINE__;
 	}
@@ -104,12 +105,6 @@ int KrollLinuxBoot::StartHost()
 	}
 
 	return executor(argc, argv);
-}
-
-
-string KrollLinuxBoot::GetApplicationName() const
-{
-	return PRODUCT_NAME;
 }
 
 #ifdef USE_BREAKPAD

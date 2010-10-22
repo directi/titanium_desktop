@@ -15,9 +15,13 @@
 #endif
 
 #define BOOTSTRAP_ENV "KR_BOOTSTRAPPED"
-#define CRASH_REPORT_OPT "--crash_report"
 #define DEBUG_OPT "debug"
 
+#define HOME_ENV "KR_HOME"
+#define RUNTIME_ENV "KR_RUNTIME"
+#define MODULES_ENV "KR_MODULES"
+
+#define CRASH_REPORT_OPT "--crash_report"
 #define CRASH_REPORT_URL  STRING(_CRASH_REPORT_URL)
 
 #include <cstring>
@@ -51,12 +55,13 @@ public:
 
 protected:
 	void ShowError(const string & msg, bool fatal=false) const;
+	void setPaths(const std::string & app_path,
+		const std::string & runtime_path,
+		const std::string & module_paths);
 
 	virtual string Blastoff()=0;
-	virtual void BootstrapPlatformSpecific(const std::string & runtime_path, const std::string & module_paths)=0;
-
 	virtual void ShowErrorImpl(const std::string & msg, bool fatal) const=0;
-	virtual string GetApplicationName() const=0;
+	virtual void setPlatformSpecificPaths(const std::string & runtime_path, const std::string & module_paths)=0;
 };
 
 
