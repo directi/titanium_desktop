@@ -57,17 +57,6 @@ namespace UTILS_NS
 		std::string getRuntimePath() const;
 		void getModules(vector<SharedComponent> &_modules) const;
 
-		void getDependencies(vector<SharedDependency> &_dependencies) const;
-		void getUnresolvedDependencies(vector<SharedDependency> & unresolved) const;
-		void getComponents(std::vector<SharedComponent> &components) const;
-		string getModulePaths() const;
-
-		/**
-		 * Get all resolved components for this application including
-		 * runtimes and modules.
-		 */
-		void GetResolvedComponents(vector<SharedComponent> &resolved);
-
 		/**
 		 * Generate a list of all components available for this application
 		 * including bundled components and any components or all the components

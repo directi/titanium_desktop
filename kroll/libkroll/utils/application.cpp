@@ -46,73 +46,13 @@ namespace UTILS_NS
 		manifestHandler(manifest_path, manifest),
 		componentManager(path)
 	{
-		// TODO: to be moved in component Manager
-		map<string, string> dep;
-		manifestHandler.getDependencies(dep);
-		for(map<string, string>::const_iterator
-			oIter = dep.begin();
-			oIter != dep.end();
-		oIter++)
-		{
-			 SharedDependency d = Dependency::NewDependencyFromManifestLine(oIter->first, oIter->second);
-			 this->dependencies.push_back(d);
-		}
+		manifestHandler.getDependencies(this->dependencies);
 	}
 
 	Application::~Application()
 	{
 		this->modules.clear();
 		this->runtime = NULL;
-	}
-
-	void Application::getDependencies(vector<SharedDependency> &_dependencies) const
-	{
-		_dependencies.reserve(dependencies.size());
-		std::copy(dependencies.begin(), dependencies.end(), _dependencies.begin());
-	}
-
-	void Application::getUnresolvedDependencies(vector<SharedDependency> & unresolved) const
-	{
-		// We cannot resolve dependencies in the normal way, since we aren't
-		// installed yet. Instead, go through the dependencies and try to
-		// resolve them manuallly.
-		vector<SharedComponent>& components = BootUtils::GetInstalledComponents(true);
-		for (size_t i = 0; i < dependencies.size(); i++)
-		{
-			const SharedDependency dependency(dependencies[i]);
-			if (BootUtils::ResolveDependency(dependency, components).isNull())
-				unresolved.push_back(dependency);
-		}
-	}
-
-	void Application::getComponents(std::vector<SharedComponent> &components) const
-	{
-		// Do not use a reference here, because we don't want to modify the
-		// application's modules list.
-		this->getModules(components);
-
-		if (!runtime.isNull())
-		{
-			components.push_back(runtime);
-		}
-	}
-
-	void Application::getModules(vector<SharedComponent> &_modules) const
-	{
-		_modules.reserve(modules.size());
-		std::copy(modules.begin(), modules.end(), _modules.begin());
-	}
-
-	string Application::getModulePaths() const
-	{
-		std::ostringstream moduleList;
-		vector<SharedComponent>::const_iterator i = modules.begin();
-		while (i != modules.end())
-		{
-			SharedComponent module = *i++;
-			moduleList << module->path << MODULE_SEPARATOR;
-		}
-		return moduleList.str();
 	}
 
 	bool Application::removeModule(const string &modulePath)
@@ -353,16 +293,5 @@ namespace UTILS_NS
 			}
 		}
 		return string();
-	}
-
-	void Application::GetResolvedComponents(vector<SharedComponent> &resolved)
-	{
-		if (this->runtime)
-		{
-			resolved.push_back(this->runtime);
-		}
-
-		resolved.reserve(resolved.size() + this->modules.size());
-		resolved.insert(resolved.end(), this->modules.begin(), this->modules.end());
 	}
 }
