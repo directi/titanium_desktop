@@ -54,7 +54,6 @@ namespace UTILS_NS
 		string getImage() const;
 
 		string getPath() const { return this->path; }
-		SharedComponent getRuntime() const { return this->runtime; }
 		std::string getRuntimePath() const;
 		void getModules(vector<SharedComponent> &_modules) const;
 
