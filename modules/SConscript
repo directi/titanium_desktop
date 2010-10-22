@@ -5,7 +5,7 @@ Import('build')
 
 def build_module_from_directory(dir):
 	name = dir.lower().replace('.', '')
-	module = Module(name, build.version, path.join(build.dir, 'modules', name))
+	module = Module(name, build.version, path.join(build.dir, 'modules', name, build.version))
 	build.modules.append(module)
 
 	env = build.env.Clone()
