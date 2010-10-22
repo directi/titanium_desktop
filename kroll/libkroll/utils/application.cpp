@@ -39,22 +39,6 @@ namespace UTILS_NS
 		return this->runtime->path;
 	}
 	
-	void Application::ParseManifest(const map<string, string>& manifest)
-	{
-		manifestHandler.parseManifest(manifest);
-
-		map<string, string> dep;
-		manifestHandler.getDependencies(dep);
-		for(map<string, string>::const_iterator
-			oIter = dep.begin();
-			oIter != dep.end();
-		oIter++)
-		{
-			 SharedDependency d = Dependency::NewDependencyFromManifestLine(oIter->first, oIter->second);
-			 this->dependencies.push_back(d);
-		}
-	}
-
 	Application::Application(const std::string &path,
 		const std::string &manifest_path,
 		const map<string, string> &manifest)
@@ -234,15 +218,6 @@ namespace UTILS_NS
 		return FileUtils::ReadFile(license);
 	}
 
-	void Application::setRuntimeProductVersion()
-	{
-		if (!runtime.isNull())
-		{
-			runtime->version = PRODUCT_VERSION;
-		}
-	}
-
-
 	void Application::ResolveDependencies(vector<SharedDependency> & unresolved)
 	{
 		this->modules.clear(); // Blank slate
@@ -268,7 +243,6 @@ namespace UTILS_NS
 				this->runtime = c;
 			}
 		}
-		setRuntimeProductVersion();
 	}
 
 	void Application::GetAvailableComponents(vector<SharedComponent>& components, bool onlyBundled)

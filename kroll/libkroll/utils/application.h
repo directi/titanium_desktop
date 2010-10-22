@@ -29,11 +29,7 @@ namespace UTILS_NS
 			const std::string &manifest_path,
 			const map<string, string> &manifest);
 
-		void ParseManifest(const map<string, string>& manifest);
-		void setRuntimeProductVersion();
-
 		const string path;
-
 		vector<string> arguments;
 
 		SharedComponent runtime;
