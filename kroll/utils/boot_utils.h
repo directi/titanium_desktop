@@ -122,6 +122,7 @@ namespace UTILS_NS
 		bool allDependenciesResolved() const { return unresolved.empty(); }
 		std::string getModulePaths() const;
 		std::string getRuntimePath() const;
+		bool getUnresolvedDependencies(vector<SharedDependency> &_unresolved) const;
 
 		static void GetAvailableComponentsAt(
 			const std::string& path,

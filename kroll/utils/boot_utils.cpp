@@ -367,6 +367,25 @@ namespace BootUtils
 		return string("");
 	}
 
+	bool ComponentManager::getUnresolvedDependencies(
+		vector<SharedDependency> &_unresolved) const
+	{
+		if(!unresolved.empty())
+		{
+			_unresolved.reserve(unresolved.size());
+					_unresolved.reserve(unresolved.size());
+			for(vector<SharedDependency>::const_iterator
+				oIter = unresolved.begin();
+				oIter != unresolved.end();
+			oIter++)
+			{
+				_unresolved.push_back(*oIter);
+			}
+			return true;
+		}
+		return false;
+	}
+
 	void ComponentManager::GetAvailableComponentsAt(
 		const std::string& path,
 		vector<SharedComponent>& components,

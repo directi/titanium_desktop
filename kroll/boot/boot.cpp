@@ -60,6 +60,17 @@ int KrollBoot::Bootstrap()
 
 	if(!componentManager.allDependenciesResolved())
 	{
+		vector<SharedDependency> unresolved;
+		componentManager.getUnresolvedDependencies(unresolved);
+		for(vector<SharedDependency>::const_iterator
+			oIter = unresolved.begin();
+			oIter != unresolved.end();
+		oIter++)
+		{
+			std::string error("BootLoader::Bootstrap Unresolved Module: ");
+			error += (*oIter)->name + ":" + (*oIter)->version;
+			ShowError(error);
+		}
 		return __LINE__;
 	}
 
