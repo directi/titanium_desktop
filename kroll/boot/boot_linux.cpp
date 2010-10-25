@@ -88,7 +88,7 @@ int KrollLinuxBoot::StartHost()
 		return __LINE__;
 	}
 
-	void* lib = dlopen(khost.c_str(), RTLD_LAZY | RTLD_GLOBAL);
+	void* lib = dlopen(host_path.c_str(), RTLD_LAZY | RTLD_GLOBAL);
 	if (!lib)
 	{
 		const string msg = string("Couldn't load file:") + host_path + ", error: " + dlerror();
@@ -99,7 +99,7 @@ int KrollLinuxBoot::StartHost()
 	Executor* executor = (Executor*) dlsym(lib, "Execute");
 	if (!executor)
 	{
-		string msg = string("Invalid entry point for") + khost;
+		string msg = string("Invalid entry point for") + host_path;
 		ShowError(msg);
 		return __LINE__;
 	}
