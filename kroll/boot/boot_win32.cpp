@@ -91,6 +91,13 @@ void KrollWin32Boot::setPlatformSpecificPaths(const std::string & runtime_path, 
 	EnvironmentUtils::Set("PATH", newpath);
 }
 
+string KrollWin32Boot::Blastoff()
+{
+	// Windows boot does not normally need to restart itself,  so just
+	// launch the host here and exit with the appropriate return value.
+	exit(StartHost());
+}
+
 #ifdef USE_BREAKPAD
 
 wchar_t Win32CrashHandler::breakpadCallBuffer[MAX_PATH]= {0};

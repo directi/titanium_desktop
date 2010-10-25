@@ -79,6 +79,20 @@ void KrollOSXBoot::setPlatformSpecificPaths(const std::string & runtime_path, co
 	EnvironmentUtils::Set("WebKitAppPath", executablePath);
 }
 
+string KrollOSXBoot::Blastoff()
+{
+	// Ensure that the argument list is NULL terminated
+	char** myargv = (char **) calloc(sizeof(char *), argc + 1);
+	memcpy(myargv, argv, sizeof(char*) * (argc + 1));
+	myargv[argc] = 0;
+
+	NSString *executablePath = [[NSBundle mainBundle] executablePath];
+	execv([executablePath fileSystemRepresentation], myargv);
+
+	// If we get here an error happened with the execv 
+	return strerror(errno);
+}
+
 int KrollOSXBoot::StartHost()
 {
 	// now we need to load the host and get 'er booted
@@ -214,25 +228,35 @@ int main(int argc, const char* argv[])
 {
 	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 	KrollOSXBoot bootloader(argc, argv);
+	int rc = 0;
 
 #ifdef USE_BREAKPAD
 	OSXCrashHandler crashHandler(argc, argv);
 	if (argc > 2 && !strcmp(CRASH_REPORT_OPT, argv[1]))
 	{
-		return crashHandler.SendCrashReport();
+		crashHandler.SendCrashReport();
 	}
+	else
 #endif
+	if (!EnvironmentUtils::Has(BOOTSTRAP_ENV))
+	{
+		rc = bootloader.Bootstrap();
+	}
+	else
+	{
 #ifdef USE_BREAKPAD
-	NSString* tempPath = NSTemporaryDirectory();
-	if (tempPath == nil)
-		tempPath = @"/tmp";
-	string dumpPath = [tempPath UTF8String];
-	crashHandler.createHandler(dumpPath);
+		NSString* tempPath = NSTemporaryDirectory();
+		if (tempPath == nil)
+			tempPath = @"/tmp";
+		string dumpPath = [tempPath UTF8String];
+		crashHandler.createHandler(dumpPath);
 #endif
-	[[NSApplication sharedApplication] setDelegate:
-		[[KrollApplicationDelegate alloc] init]];
-		NSApplicationLoad(); EnvironmentUtils::Unset(BOOTSTRAP_ENV);
-	int rc = bootloader.BootStrap();
+		[[NSApplication sharedApplication] setDelegate:
+			[[KrollApplicationDelegate alloc] init]];
+			NSApplicationLoad(); EnvironmentUtils::Unset(BOOTSTRAP_ENV);
+		// TODO: use BootStrap() method which is platform independent
+		rc = bootloader.StartHost();
+	}
 
 	[pool release];
 	return rc;

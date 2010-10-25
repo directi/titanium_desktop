@@ -31,6 +31,7 @@ class KrollWin32Boot
 		virtual int StartHost();
 
 	private:
+		virtual string Blastoff();
 		virtual void ShowErrorImpl(const string & msg, bool fatal) const;
 		virtual void setPlatformSpecificPaths(const std::string & runtime_path, const std::string & module_paths);
 

@@ -59,6 +59,7 @@ protected:
 		const std::string & runtime_path,
 		const std::string & module_paths);
 
+	virtual string Blastoff()=0;
 	virtual void ShowErrorImpl(const std::string & msg, bool fatal) const=0;
 	virtual void setPlatformSpecificPaths(const std::string & runtime_path, const std::string & module_paths)=0;
 };
