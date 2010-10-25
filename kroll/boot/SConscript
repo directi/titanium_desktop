@@ -131,7 +131,7 @@ if breakpad:
 	if build.is_osx():
 		kboot_env.Append(LIBS=['libcrypto'])
 
-kboot_out = path.join(build.dir, 'sdk', 'kboot')
+kboot_out = path.join(build.dir, 'kboot')
 p = kboot_env.Program(kboot_out, kboot_sources)
 build.mark_build_target(p)
 
@@ -142,9 +142,6 @@ build.mark_build_target(p)
 # will need to bootstrap by running runtimedir/kboot.exe during the 
 # boot process.
 if build.is_win32():
-	t = build.utils.CopyToDir(p[0], build.dir)
-	build.mark_build_target(t)
-
 	webkit_tp = path.join(build.third_party, 'webkit')
 	webkit_lib = path.join(webkit_tp, 'lib')
 	webkit_tlb = path.join(webkit_lib, 'WebKit.tlb')
