@@ -32,7 +32,6 @@ void KrollBoot::setPaths(const std::string & app_path,
 						 const std::string & runtime_path,
 						 const std::string & module_paths)
 {
-	EnvironmentUtils::Set(BOOTSTRAP_ENV, "YES");
 	EnvironmentUtils::Set(HOME_ENV, app_path);
 	EnvironmentUtils::Set(RUNTIME_ENV, runtime_path);
 	EnvironmentUtils::Set(MODULES_ENV, module_paths);
@@ -72,6 +71,7 @@ int KrollBoot::Bootstrap()
 
 	// If everything goes correctly, we should never get here
 	ShowError("BootLoader::Bootstrap Launching application failed");
+	std::cout << "Return Value: " << return_val << std::endl;
 	return return_val;
 }
 
