@@ -61,18 +61,6 @@ void KrollLinuxBoot::setPlatformSpecificPaths(const std::string & runtime_path, 
 	EnvironmentUtils::Set("LD_LIBRARY_PATH", path);
 }
 
-string KrollLinuxBoot::Blastoff()
-{
-	// Ensure that the argument list is NULL terminated
-	char** myargv = (char **) calloc(sizeof(char *), argc + 1);
-	memcpy(myargv, argv, sizeof(char*) * (argc + 1));
-	myargv[argc] = 0;
-
-	execv(argv[0], (char* const*) argv);
-
-	// If we get here an error happened with the execv 
-	return strerror(errno);
-}
 
 int KrollLinuxBoot::StartHost()
 {

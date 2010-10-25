@@ -68,12 +68,11 @@ int KrollBoot::Bootstrap()
 
 	setPaths(app_path, runtime_path, modules_paths);
 
-	string error = Blastoff();
+	int return_val = this->StartHost();
 
 	// If everything goes correctly, we should never get here
-	error = string("BootLoader::Bootstrap Launching application failed: ") + error;
-	ShowError(error);
-	return __LINE__;
+	ShowError("BootLoader::Bootstrap Launching application failed");
+	return return_val;
 }
 
 #ifdef USE_BREAKPAD
