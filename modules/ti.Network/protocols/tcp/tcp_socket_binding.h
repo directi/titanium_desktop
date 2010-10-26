@@ -22,7 +22,6 @@
 #include <Poco/NObserver.h>
 #include <Poco/Pipe.h>
 #include <Poco/Timespan.h>
-#include "IONotifier.h"
 
 using namespace Poco;
 using namespace Poco::Net;
