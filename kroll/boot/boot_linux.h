@@ -9,12 +9,12 @@
 #include "common/linux/http_upload.h"
 #endif
 
-class KrollLinuxBoot
-: public KrollBoot
+class BootLoaderLinux
+: public BootLoader
 {
 	public:
-		KrollLinuxBoot(int _argc, const char ** _argv);
-		virtual ~KrollLinuxBoot();
+		BootLoaderLinux(int _argc, const char ** _argv);
+		virtual ~BootLoaderLinux();
 		virtual int StartHost();
 	private:
 		

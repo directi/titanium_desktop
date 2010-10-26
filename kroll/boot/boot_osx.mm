@@ -32,16 +32,16 @@ using namespace UTILS_NS;
 @end
 
 
-KrollOSXBoot::KrollOSXBoot(int _argc, const char ** _argv)
-: KrollBoot(_argc, _argv)
+BootLoaderOSX::BootLoaderOSX(int _argc, const char ** _argv)
+: BootLoader(_argc, _argv)
 {
 }
 
-KrollOSXBoot::~KrollOSXBoot()
+BootLoaderOSX::~BootLoaderOSX()
 {
 }
 
-void KrollOSXBoot::ShowErrorImpl(const std::string& msg, bool fatal) const
+void BootLoaderOSX::ShowErrorImpl(const std::string& msg, bool fatal) const
 {
 	NSApplicationLoad();
 	NSString* buttonText = @"Continue";
@@ -53,7 +53,7 @@ void KrollOSXBoot::ShowErrorImpl(const std::string& msg, bool fatal) const
 		[NSString stringWithUTF8String:msg.c_str()], buttonText, nil, nil);
 }
 
-void KrollOSXBoot::setPlatformSpecificPaths(const std::string & runtime_path, const std::string & module_paths)
+void BootLoaderOSX::setPlatformSpecificPaths(const std::string & runtime_path, const std::string & module_paths)
 {
 	std::string fullModuleList = runtime_path + ":" + module_paths;
 
@@ -79,7 +79,7 @@ void KrollOSXBoot::setPlatformSpecificPaths(const std::string & runtime_path, co
 	EnvironmentUtils::Set("WebKitAppPath", executablePath);
 }
 
-string KrollOSXBoot::Blastoff()
+string BootLoaderOSX::Blastoff()
 {
 	// Ensure that the argument list is NULL terminated
 	char** myargv = (char **) calloc(sizeof(char *), argc + 1);
@@ -93,7 +93,7 @@ string KrollOSXBoot::Blastoff()
 	return strerror(errno);
 }
 
-int KrollOSXBoot::StartHost()
+int BootLoaderOSX::StartHost()
 {
 	// now we need to load the host and get 'er booted
 	const char* runtimePath = getenv("KR_RUNTIME");
@@ -227,7 +227,7 @@ int OSXCrashHandler::SendCrashReport()
 int main(int argc, const char* argv[])
 {
 	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-	KrollOSXBoot bootloader(argc, argv);
+	BootLoaderOSX bootloader(argc, argv);
 	int rc = 0;
 
 #ifdef USE_BREAKPAD

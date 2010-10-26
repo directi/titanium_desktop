@@ -11,15 +11,15 @@
 
 using namespace UTILS_NS;
 
-KrollBoot::KrollBoot(int _argc, const char ** _argv)
+BootLoader::BootLoader(int _argc, const char ** _argv)
 : argc(_argc), argv(_argv)
 {
 }
-KrollBoot::~KrollBoot()
+BootLoader::~BootLoader()
 {
 }
 
-void KrollBoot::ShowError(const string & msg, bool fatal) const
+void BootLoader::ShowError(const string & msg, bool fatal) const
 {
 	ShowErrorImpl(msg, fatal);
 	if(fatal)
@@ -28,7 +28,7 @@ void KrollBoot::ShowError(const string & msg, bool fatal) const
 	}
 }
 
-void KrollBoot::setPaths(const std::string & app_path,
+void BootLoader::setPaths(const std::string & app_path,
 						 const std::string & runtime_path,
 						 const std::string & module_paths)
 {
@@ -40,7 +40,7 @@ void KrollBoot::setPaths(const std::string & app_path,
 }
 
 
-int KrollBoot::Bootstrap()
+int BootLoader::Bootstrap()
 {
 	const string app_path = FileUtils::GetExecutableDirectory();
 
