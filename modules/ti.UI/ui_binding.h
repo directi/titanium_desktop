@@ -86,6 +86,8 @@ namespace ti
 		std::vector<AutoUserWindow> openWindows;
 		std::vector<AutoTrayItem> trayItems;
 		std::string iconURL;
+		static std::vector<std::pair<Logger::Level, std::string> > logs;
+		static Poco::Mutex loggerMutex;
 
 		static void Log(Logger::Level level, std::string& message);
 

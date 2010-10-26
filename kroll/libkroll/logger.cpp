@@ -158,12 +158,10 @@ namespace kroll
 
 	void Logger::Log(Poco::Message& m)
 	{
-		if (IsEnabled(level))
-		{
-			RootLogger* root = RootLogger::instance;
-			root->LogImpl(m);
-		}
+		RootLogger* root = RootLogger::instance;
+		root->LogImpl(m);
 	}
+
 	/*static*/
 	std::string Logger::Format(const char* format, va_list args)
 	{
