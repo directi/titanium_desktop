@@ -1,5 +1,5 @@
 /*
-class KrollWin32Boot - win32 subclass of KrollBoot
+class BootLoaderWin32 - win32 subclass of BootLoader
 @author: Mital Vora <mital.d.vora@gmail.com>
 */
 
@@ -22,12 +22,12 @@ class KrollWin32Boot - win32 subclass of KrollBoot
 #include "common/windows/http_upload.h"
 #endif
 
-class KrollWin32Boot
-	: public KrollBoot
+class BootLoaderWin32
+	: public BootLoader
 {
 	public:
-		KrollWin32Boot(int _argc, const char ** _argv);
-		virtual ~KrollWin32Boot();
+		BootLoaderWin32(int _argc, const char ** _argv);
+		virtual ~BootLoaderWin32();
 		virtual int StartHost();
 
 	private:

@@ -19,15 +19,15 @@
 using namespace UTILS_NS;
 
 
-KrollLinuxBoot::KrollLinuxBoot(int _argc, const char ** _argv)
-: KrollBoot(_argc, _argv)
+BootLoaderLinux::BootLoaderLinux(int _argc, const char ** _argv)
+: BootLoader(_argc, _argv)
 {
 }
 
-KrollLinuxBoot::~KrollLinuxBoot()
+BootLoaderLinux::~BootLoaderLinux()
 {
 }
-void KrollLinuxBoot::ShowErrorImpl(const string & msg, bool fatal) const
+void BootLoaderLinux::ShowErrorImpl(const string & msg, bool fatal) const
 {
 	std::cout << msg << std::endl;
 	int myargc = argc;
@@ -45,7 +45,7 @@ void KrollLinuxBoot::ShowErrorImpl(const string & msg, bool fatal) const
 }
 
 
-void KrollLinuxBoot::setPlatformSpecificPaths(const std::string & runtime_path, const std::string & module_paths)
+void BootLoaderLinux::setPlatformSpecificPaths(const std::string & runtime_path, const std::string & module_paths)
 {
 	std::string fullmoduleList = runtime_path + ":" + module_paths;
 
@@ -61,7 +61,7 @@ void KrollLinuxBoot::setPlatformSpecificPaths(const std::string & runtime_path, 
 	EnvironmentUtils::Set("LD_LIBRARY_PATH", path);
 }
 
-string KrollLinuxBoot::Blastoff()
+string BootLoaderLinux::Blastoff()
 {
 	// Ensure that the argument list is NULL terminated
 	char** myargv = (char **) calloc(sizeof(char *), argc + 1);
@@ -74,7 +74,7 @@ string KrollLinuxBoot::Blastoff()
 	return strerror(errno);
 }
 
-int KrollLinuxBoot::StartHost()
+int BootLoaderLinux::StartHost()
 {
 	const char* runtimePath = getenv(RUNTIME_ENV);
 	if (!runtimePath)
@@ -88,7 +88,7 @@ int KrollLinuxBoot::StartHost()
 		return __LINE__;
 	}
 
-	void* lib = dlopen(khost.c_str(), RTLD_LAZY | RTLD_GLOBAL);
+	void* lib = dlopen(host_path.c_str(), RTLD_LAZY | RTLD_GLOBAL);
 	if (!lib)
 	{
 		const string msg = string("Couldn't load file:") + host_path + ", error: " + dlerror();
@@ -99,7 +99,7 @@ int KrollLinuxBoot::StartHost()
 	Executor* executor = (Executor*) dlsym(lib, "Execute");
 	if (!executor)
 	{
-		string msg = string("Invalid entry point for") + khost;
+		string msg = string("Invalid entry point for") + host_path;
 		ShowError(msg);
 		return __LINE__;
 	}
@@ -208,7 +208,7 @@ int LinuxCrashHandler::SendCrashReport()
 
 int main(int argc, const char* argv[])
 {
-	KrollLinuxBoot bootloader(argc, argv);
+	BootLoaderLinux bootloader(argc, argv);
 #ifdef USE_BREAKPAD
 	LinuxCrashHandler handler(argc, argv);
 	if (argc > 2 && !strcmp(CRASH_REPORT_OPT, argv[1]))

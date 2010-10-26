@@ -21,7 +21,7 @@ effess.copy_to_dir(glob(path.join(build.titanium_sdk_dir, "*.py")),
 	sdk_dir, exclude=excludes)
 effess.copy_to_dir(glob(path.join(build.titanium_sdk_dir, "PyRTF")),
 	sdk_dir, exclude=excludes)
-effess.copy_to_dir(glob(path.join(build.kroll_source_dir, 'tools', "effess.py")),
+effess.copy_to_dir(glob(path.join(build.titanium_source_dir, 'site_scons', "effess.py")),
 	sdk_dir, exclude=excludes)
 
 if build.is_osx():
@@ -29,10 +29,6 @@ if build.is_osx():
 		'--output-format human-readable-text --compile %s %s' % \
 		(path.join(sdk_dir, 'MainMenu.nib'),
 		path.join(build.titanium_sdk_dir, 'osx', 'MainMenu.xib')))
-
-if build.is_win32():
-	effess.copy_to_dir(build.tp('microsoft', 'Microsoft_VC80_CRT_x86.msm'),
-		path.join(sdk_dir, 'installer'))
 
 # Network installable zip files for distribution. We must
 # encase this in a builder because the files necessary for zipping

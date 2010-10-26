@@ -17,16 +17,16 @@
 using namespace UTILS_NS;
 
 
-KrollWin32Boot::KrollWin32Boot(int _argc, const char ** _argv)
-: KrollBoot(_argc, _argv)
+BootLoaderWin32::BootLoaderWin32(int _argc, const char ** _argv)
+: BootLoader(_argc, _argv)
 {
 }
 
-KrollWin32Boot::~KrollWin32Boot()
+BootLoaderWin32::~BootLoaderWin32()
 {
 }
 
-HMODULE KrollWin32Boot::SafeLoadRuntimeDLL(string& path) const
+HMODULE BootLoaderWin32::SafeLoadRuntimeDLL(string& path) const
 {
 	if (!FileUtils::IsFile(path))
 	{
@@ -47,7 +47,7 @@ HMODULE KrollWin32Boot::SafeLoadRuntimeDLL(string& path) const
 	return module;
 }
 
-int KrollWin32Boot::StartHost()
+int BootLoaderWin32::StartHost()
 {
 	string runtimePath(EnvironmentUtils::Get(RUNTIME_ENV));
 	string host_path(FileUtils::Join(runtimePath.c_str(), HOST_DLL, 0));
@@ -66,7 +66,7 @@ int KrollWin32Boot::StartHost()
 }
 
 
-void KrollWin32Boot::ShowErrorImpl(const string & msg, bool fatal) const
+void BootLoaderWin32::ShowErrorImpl(const string & msg, bool fatal) const
 {
 	wstring wideMsg(L"Error: ");
 	wideMsg.append(KrollUtils::UTF8ToWide(msg));
@@ -76,7 +76,7 @@ void KrollWin32Boot::ShowErrorImpl(const string & msg, bool fatal) const
 }
 
 
-void KrollWin32Boot::setPlatformSpecificPaths(const std::string & runtime_path, const std::string & module_paths)
+void BootLoaderWin32::setPlatformSpecificPaths(const std::string & runtime_path, const std::string & module_paths)
 {
 	// Add runtime path and all module paths to PATH
 	std::string newpath = runtime_path + ";" + module_paths;
@@ -91,7 +91,7 @@ void KrollWin32Boot::setPlatformSpecificPaths(const std::string & runtime_path, 
 	EnvironmentUtils::Set("PATH", newpath);
 }
 
-string KrollWin32Boot::Blastoff()
+string BootLoaderWin32::Blastoff()
 {
 	// Windows boot does not normally need to restart itself,  so just
 	// launch the host here and exit with the appropriate return value.
@@ -220,7 +220,7 @@ int Win32CrashHandler::SendCrashReport()
 	if (!success)
 	{
 		//#ifdef DEBUG
-		//			KrollBoot::ShowError("Error uploading crash dump.");
+		//			BootLoader::ShowError("Error uploading crash dump.");
 		//#endif
 		return __LINE__;
 	}
@@ -253,6 +253,6 @@ int main(int __argc, const char* __argv[])
 	reporter.createHandler(tempPath);
 #endif
 
-	KrollWin32Boot boot(__argc, (const char **)__argv);
+	BootLoaderWin32 boot(__argc, (const char **)__argv);
 	return boot.Bootstrap();
 }

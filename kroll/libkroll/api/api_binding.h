@@ -27,11 +27,6 @@ namespace kroll
 		virtual ~APIBinding();
 
 		void Log(int severity, KValueRef);
-		static KListRef ComponentVectorToKList(
-			vector<SharedComponent>&,
-			KComponentType filter = UNKNOWN);
-		static KListRef DependencyVectorToKList(
-			std::vector<SharedDependency>&);
 		static KListRef ManifestToKList(const map<string, string>& manifest);
 
 		private:
@@ -61,18 +56,6 @@ namespace kroll
 		void _LogError(const ValueList& args, KValueRef result);
 		void _LogCritical(const ValueList& args, KValueRef result);
 		void _LogFatal(const ValueList& args, KValueRef result);
-
-		void _GetInstalledComponentsImpl(KComponentType type, const ValueList& args, KValueRef result);
-		void _GetApplication(const ValueList& args, KValueRef value);
-		void _GetInstalledComponents(const ValueList& args, KValueRef value);
-		void _GetInstalledModules(const ValueList& args, KValueRef value);
-		void _GetInstalledRuntimes(const ValueList& args, KValueRef value);
-		void _GetComponentSearchPaths(const ValueList& args, KValueRef value);
-		void _ReadApplicationManifest(const ValueList& args, KValueRef value);
-		void _ComponentGUIDToComponentType(const ValueList& args, KValueRef value);
-		void _GetEnvironment(const ValueList& args, KValueRef value);
-		
-		void _CreateDependency(const ValueList& args, KValueRef value);
 
 		void _CreateKObject(const ValueList& args, KValueRef result);
 		void _CreateKMethod(const ValueList& args, KValueRef result);

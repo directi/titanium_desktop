@@ -367,6 +367,25 @@ namespace BootUtils
 		return string("");
 	}
 
+	bool ComponentManager::getUnresolvedDependencies(
+		vector<SharedDependency> &_unresolved) const
+	{
+		if(!unresolved.empty())
+		{
+			_unresolved.reserve(unresolved.size());
+					_unresolved.reserve(unresolved.size());
+			for(vector<SharedDependency>::const_iterator
+				oIter = unresolved.begin();
+				oIter != unresolved.end();
+			oIter++)
+			{
+				_unresolved.push_back(*oIter);
+			}
+			return true;
+		}
+		return false;
+	}
+
 	void ComponentManager::GetAvailableComponentsAt(
 		const std::string& path,
 		vector<SharedComponent>& components,
@@ -385,4 +404,73 @@ namespace BootUtils
 			}
 		}
 	}
+
+	bool ComponentManager::removeModule(const string &modulePath)
+	{
+		bool bRet = false;
+		std::vector<SharedComponent>::iterator i = modules.begin();
+		while (i != modules.end())
+		{
+			if (modulePath == (*i)->path)
+			{
+				i = modules.erase(i);
+				bRet = true;
+			}
+			else
+			{
+				i++;
+			}
+		}
+		return bRet;
+	}
+
+	string ComponentManager::GetComponentPath(const string &name) const
+	{
+		string transName(name);
+		std::transform(transName.begin(), transName.end(), transName.begin(), tolower);
+		if (transName == "runtime")
+		{
+			return this->runtime->path;
+		}
+		else
+		{
+			for(vector<SharedComponent>::const_iterator
+				i = this->modules.begin();
+				i != this->modules.end();
+			i++)
+			{
+				SharedComponent comp = *i;
+				if (comp->name == name)
+				{
+					return comp->path;
+				}
+			}
+		}
+		return string();
+	}
+
+	void ComponentManager::UsingModule(
+		const std::string &name,
+		const std::string &version,
+		const std::string &path)
+	{
+		// Ensure that this module is not already in our list of modules.
+		vector<SharedComponent>::iterator i = this->modules.begin();
+		while (i != this->modules.end())
+		{
+			SharedComponent c = *i++;
+			if (c->name == name)
+			{
+				// Bundled modules currently do not know their version until
+				// they are loaded, so update the version field of the component.
+				c->version = version;
+				return;
+			}
+		}
+
+		// It's not in the list so add it.
+		SharedComponent c = KComponent::NewComponent(MODULE, name, version, path);
+		this->modules.push_back(c);
+	}
+
 }

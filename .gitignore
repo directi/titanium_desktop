@@ -15,3 +15,5 @@ commit.id
 prev_commit.id
 docs
 thirdparty-*
+*.o
+*.os

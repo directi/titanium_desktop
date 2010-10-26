@@ -33,8 +33,8 @@ namespace UTILS_NS
 		map<string, string> dep;
 
 	public:
-		ManifestHandler();
 		ManifestHandler(const std::string &_manifestPath);
+		ManifestHandler(const std::string &_manifestPath, const map<string, string> &manifest);
 		~ManifestHandler();
 
 		void parseManifest(const map<string, string>& manifest);

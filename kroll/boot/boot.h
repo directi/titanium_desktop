@@ -40,15 +40,15 @@ using std::wstring;
 
 typedef int Executor(int argc, const char ** argv);
 
-class KrollBoot
+class BootLoader
 {
 protected:
 	int argc;
 	const char** argv;
 
 public:
-	KrollBoot(int _argc, const char ** _argv);
-	virtual ~KrollBoot();
+	BootLoader(int _argc, const char ** _argv);
+	virtual ~BootLoader();
 
 	int Bootstrap();
 	virtual int StartHost()=0;

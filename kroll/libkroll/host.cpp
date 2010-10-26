@@ -38,7 +38,6 @@ using Poco::Environment;
 #define NO_FILE_LOG_ARG "--no-file-logging"
 #define PROFILE_ARG "--profile"
 #define LOGPATH_ARG "--logpath"
-#define BOOT_HOME_ARG "--start"
 
 #ifdef OS_WIN32
 #define MODULE_SUFFIX "dll"
@@ -189,8 +188,7 @@ namespace kroll
 
 		// Re-resolve module/runtime dependencies of the application so that the
 		// API module can introspect into the loaded components.
-		vector<SharedDependency> missing;
-		this->application->ResolveDependencies(missing);
+		this->application->ResolveDependencies();
 
 		// Parse the module paths, we'll later use this to load all the shared-objects.
 		FileUtils::Tokenize(modulePaths, this->modulePaths, KR_LIB_SEP, true);
@@ -281,21 +279,6 @@ namespace kroll
 		if (this->application->HasArgument(LOGPATH_ARG))
 		{
 			this->logFilePath = this->application->GetArgumentValue(LOGPATH_ARG);
-		}
-
-		// Was this only used by the appinstaller? It complicates things a bit,
-		// and the component list might not be correct after this point. -- Martin
-		if (this->application->HasArgument(BOOT_HOME_ARG))
-		{
-			string newHome = this->application->GetArgumentValue(BOOT_HOME_ARG);
-			SharedApplication newApp = Application::NewApplication(newHome);
-			if (!newApp.isNull())
-			{
-				newApp->SetArguments(this->application->GetArguments());
-				vector<SharedDependency> missing;
-				newApp->ResolveDependencies(missing);
-				this->application = newApp;
-			}
 		}
 	}
 

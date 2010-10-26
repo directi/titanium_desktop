@@ -10,12 +10,12 @@
 #include <Foundation/Foundation.h>
 #endif
 
-class KrollOSXBoot
-: public KrollBoot
+class BootLoaderOSX
+: public BootLoader
 {
 	public:
-		KrollOSXBoot(int _argc, const char ** _argv);
-		virtual ~KrollOSXBoot();
+		BootLoaderOSX(int _argc, const char ** _argv);
+		virtual ~BootLoaderOSX();
 		virtual int StartHost();
 	private:
 

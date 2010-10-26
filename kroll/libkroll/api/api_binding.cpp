@@ -4,11 +4,6 @@
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
 #include "api_binding.h"
-#include "application_binding.h"
-#include "component_binding.h"
-#include "dependency_binding.h"
-#include "environment_binding.h"
-#include "script_binding.h"
 #include <algorithm>
 
 #include <kroll/thread_manager.h>
@@ -86,73 +81,6 @@ namespace kroll
 		 * @tiarg[any, ...] A variable-length list of arguments to pass to the method
 		 */
 		this->SetMethod("runOnMainThreadAsync", &APIBinding::_RunOnMainThreadAsync);
-
-		/**
-		 * @tiapi(method=True,name=API.getApplication,since=0.2)
-		 * @tiapi Get the currently running application
-		 * @tiresult[API.Application] an API.Application that is the running application
-		 */
-		this->SetMethod("getApplication", &APIBinding::_GetApplication);
-
-		/**
-		 * @tiapi(method=True,name=API.getInstalledComponents,since=0.4)
-		 * @tiapi Get a list of the currently installed Kroll components
-		 * @tiresult[Array<API.Component>] a list of API.Component of installed components of all types
-		 */
-		this->SetMethod("getInstalledComponents", &APIBinding::_GetInstalledComponents);
-
-		/**
-		 * @tiapi(method=True,name=API.getInstalledModules,since=0.4)
-		 * @tiapi Get a list of the currently installed Kroll module components
-		 * @tiresult[Array<API.Component>] a list of API.Component of installed module components
-		 */
-		this->SetMethod("getInstalledModules", &APIBinding::_GetInstalledModules);
-
-		/**
-		 * @tiapi(method=True,name=API.getInstalledRuntimes,since=0.4)
-		 * @tiapi Get a list of the currently installed Kroll runtime components
-		 * @tiresult[Array<API.Component>] a list of API.Component of installed runtime components
-		 */
-		this->SetMethod("getInstalledRuntimes", &APIBinding::_GetInstalledRuntimes);
-
-		/**
-		 * @tiapi(method=True,name=API.getComponentSearchPaths,since=0.4)
-		 * @tiapi Get a list of the paths on which Kroll searches for installed
-		 * @tiapi components. This does not include paths of bundled components.
-		 * @tiresult[Array<API.Component>] a list of string of component search paths
-		 */
-		this->SetMethod("getComponentSearchPaths", &APIBinding::_GetComponentSearchPaths);
-
-		/**
-		 * @tiapi(method=True,name=API.readApplicationManifest,since=0.4)
-		 * @tiapi Read an application manifest at a given path
-		 * @tiarg[String, manifestPath] the path to the manifest to read
-		 * @tiarg[String, applicationPath,optional=True] an optional application path override
-		 * @tiresult[API.Application] an API.Application which represents the application with given manifest
-		 */
-		this->SetMethod("readApplicationManifest", &APIBinding::_ReadApplicationManifest);
-
-		/**
-		 * @tiapi(method=True,name=API.createDependency,since=0.4)
-		 * @tiapi A constructor for dependency objects
-		 * @tiarg[Number, type] the type of this dependency (eg API.MODULE)
-		 * @tiarg[String, name] the name of this dependency
-		 * @tiarg[String, version] the version requirement for this dependency
-		 * @tiarg[Number, requirement, optional=true] the requirement for this dependency
-		 * @tiresult[API.Dependency] A new Dependency.
-		 */
-		this->SetMethod("createDependency", &APIBinding::_CreateDependency);
-
-		this->SetMethod("componentGUIDToComponentType", &APIBinding::_ComponentGUIDToComponentType);
-
-		/**
-		 * @tiapi(method=True,name=API.getEnvironment,since=0.5)
-		 * @tiapi Get the system environment
-		 * @tiresult[API.Environment] An object representing the current environment. 
-		 * @tiresult Setting an environment variable is the same as setting a property.
-		 * @tiresult e.g env["HOME"] = "/myhome"
-		 */
-		this->SetMethod("getEnvironment", &APIBinding::_GetEnvironment);
 
 		/**
 		 * @tiapi(method=True,name=API.createKObject,since=0.5) Create a Kroll object.
@@ -370,8 +298,6 @@ namespace kroll
 		 * @tiapi a constant representing an UNKNOWN component type
 		 */
 		this->Set("UNKNOWN", Value::NewInt(UNKNOWN));
-		
-		this->Set("Script", Value::NewObject(new ScriptBinding()));
 	}
 
 	APIBinding::~APIBinding()
@@ -604,148 +530,6 @@ namespace kroll
 			SharedString message = value->DisplayString();
 			logger->Log((Logger::Level) severity, *message);
 		}
-	}
-
-	void APIBinding::_GetApplication(const ValueList& args, KValueRef result)
-	{
-		KObjectRef app = new ApplicationBinding(host->GetApplication(), true);
-		result->SetObject(app);
-	}
-
-	void APIBinding::_GetInstalledComponentsImpl(
-		KComponentType type, const ValueList& args, KValueRef result)
-	{
-		bool force = args.GetBool(0, false);
-		vector<SharedComponent>& components = BootUtils::GetInstalledComponents(force);
-		KListRef componentList = ComponentVectorToKList(components, type);
-		result->SetList(componentList);
-	}
-
-	void APIBinding::_GetInstalledComponents(const ValueList& args, KValueRef result)
-	{
-		args.VerifyException("getInstalledComponents", "?b");
-		_GetInstalledComponentsImpl(UNKNOWN, args, result);
-	}
-
-	void APIBinding::_GetInstalledModules(const ValueList& args, KValueRef result)
-	{
-		args.VerifyException("getInstalledModules", "?b");
-		_GetInstalledComponentsImpl(MODULE, args, result);
-	}
-
-	void APIBinding::_GetInstalledRuntimes(const ValueList& args, KValueRef result)
-	{
-		args.VerifyException("getInstalledRuntimes", "?b");
-		_GetInstalledComponentsImpl(RUNTIME, args, result);
-	}
-
-	void APIBinding::_GetComponentSearchPaths(const ValueList& args, KValueRef result)
-	{
-		vector<string>& paths = BootUtils::GetComponentSearchPaths();
-		KListRef pathList = StaticBoundList::FromStringVector(paths);
-		result->SetList(pathList);
-	}
-
-	void APIBinding::_ReadApplicationManifest(const ValueList& args, KValueRef result)
-	{
-		args.VerifyException("readApplicationManifest", "s,?s");
-		string manifestPath = args.at(0)->ToString();
-		string appPath = args.GetString(1, FileUtils::Dirname(manifestPath));
-
-		SharedApplication app = Application::NewApplication(manifestPath, appPath);
-		if (!app.isNull())
-		{
-			result->SetObject(new ApplicationBinding(app));
-		}
-		else
-		{
-			result->SetNull();
-		}
-	}
-
-	void APIBinding::_CreateDependency(const ValueList& args, KValueRef result)
-	{
-		args.VerifyException("createDepenendency", "i,s,s,?i");
-		int type = args.GetInt(0, UNKNOWN);
-		string name = args.GetString(1);
-		string version = args.GetString(2);
-		int requirement = (int) args.GetNumber(3, Dependency::EQ);
-
-		if (type != MODULE && type != RUNTIME)
-		{
-			throw ValueException::FromString(
-				"Tried to create a dependency with an unknown dependency type");
-		}
-		else if (requirement != Dependency::EQ
-			&& requirement != Dependency::GT
-			&& requirement != Dependency::LT
-			&& requirement != Dependency::GTE
-			&& requirement != Dependency::LTE)
-		{
-			throw ValueException::FromString(
-				"Tried to create a dependency with an unknown requirement type");
-		}
-		else
-		{
-			SharedDependency d = Dependency::NewDependencyFromValues(
-				static_cast<KComponentType>(type), name, version);
-			KObjectRef dBinding = new DependencyBinding(d);
-			result->SetObject(dBinding);
-		}
-	}
-	
-	void APIBinding::_ComponentGUIDToComponentType(const ValueList& args, KValueRef result)
-	{
-		std::string type = args.at(0)->ToString();
-		if (type == RUNTIME_UUID)
-		{
-			result->SetInt(RUNTIME);
-		}
-		else if (type == MODULE_UUID)
-		{
-			result->SetInt(MODULE);
-		}
-		else
-		{
-			result->SetInt(UNKNOWN);
-		}
-	}
-	
-	void APIBinding::_GetEnvironment(const ValueList& args, KValueRef result)
-	{
-		AutoPtr<EnvironmentBinding> env = new EnvironmentBinding();
-		result->SetObject(env);
-	}
-	
-	KListRef APIBinding::ComponentVectorToKList(
-		vector<SharedComponent>& components,
-		KComponentType filter)
-	{
-		KListRef componentList = new StaticBoundList();
-		vector<SharedComponent>::iterator i = components.begin();
-		while (i != components.end())
-		{
-			SharedComponent c = *i++;
-			if (filter == UNKNOWN || filter == c->type)
-			{
-				KValueRef cValue = Value::NewObject(new ComponentBinding(c));
-				componentList->Append(cValue);
-			}
-		}
-
-		return componentList;
-	}
-
-	KListRef APIBinding::DependencyVectorToKList(std::vector<SharedDependency>& deps)
-	{
-		KListRef dependencyList = new StaticBoundList();
-		std::vector<SharedDependency>::iterator i = deps.begin();
-		while (i != deps.end())
-		{
-			KValueRef dValue = Value::NewObject(new DependencyBinding(*i++));
-			dependencyList->Append(dValue);
-		}
-		return dependencyList;
 	}
 
 	KListRef APIBinding::ManifestToKList(const map<string, string>& manifest)
