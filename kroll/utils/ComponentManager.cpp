@@ -16,114 +16,88 @@ namespace UTILS_NS
 {
 namespace BootUtils
 {
-	void AddToComponentVector(vector<SharedComponent>& components, SharedComponent c)
+	void safelyAddComponentTo(vector<SharedComponent>& components, SharedComponent c)
 	{
 		// Avoid adding duplicate components to a component vector
-		vector<SharedComponent>::iterator i = components.begin();
-		while (i != components.end())
+		for(vector<SharedComponent>::iterator
+			i = components.begin(); i != components.end(); i++)
 		{
-			SharedComponent e = *i++;
-			if (e->type == c->type && e->path == c->path)
+			if((*i)->equal(c))
 			{
 				return;
 			}
 		}
-
 		components.push_back(c);
 	}
 
-
-	vector<PathBits> GetDirectoriesAtPath(std::string& path)
+	void GetSubDirectoriesAt(const std::string& path, vector<PathBits> & dirs)
 	{
-		vector<PathBits> directories;
 		vector<string> paths;
 
 		FileUtils::ListDir(path, paths);
-		vector<string>::iterator i = paths.begin();
-		while (i != paths.end())
+		for(vector<string>::iterator
+			i = paths.begin();
+			i != paths.end();
+		i++)
 		{
-			string& subpath(*i++);
+			string& subpath(*i);
 			if (subpath[0] == '.')
 				continue;
 
 			string fullPath(FileUtils::Join(path.c_str(), subpath.c_str(), NULL));
-			if (!FileUtils::IsDirectory(fullPath))
-				continue;
-
-			directories.push_back(PathBits(subpath, fullPath));
-		}
-		return directories;
-	}
-
-	SharedComponent ResolveDependency(SharedDependency dep, vector<SharedComponent>& components)
-	{
-		vector<SharedComponent>::iterator i = components.begin();
-		while (i != components.end())
-		{
-			SharedComponent comp = *i++;
-			if (dep->type != comp->type || dep->name != comp->name)
-				continue;
-
-			int compare = CompareVersions(comp->version, dep->version);
-			if ((dep->requirement == Dependency::EQ && compare == 0)
-				|| (dep->requirement == Dependency::GTE && compare >= 0)
-				|| (dep->requirement == Dependency::GT && compare > 0)
-				|| (dep->requirement == Dependency::LT && compare < 0))
+			if (FileUtils::IsDirectory(fullPath))
 			{
-				return comp;
+				dirs.push_back(PathBits(subpath, fullPath));
 			}
 		}
-
-		return NULL;
 	}
-	void ScanRuntimesAtPath(const std::string &path, vector<SharedComponent>& results, bool bundled)
-	{
-		if (!FileUtils::IsDirectory(path))
-			return;
 
-		// Read everything that looks like <searchpath>/runtime/<os>/*
-		string rtPath(FileUtils::Join(path.c_str(), "runtime", 0));
-		if (!bundled)
-			rtPath = FileUtils::Join(rtPath.c_str(), OS_NAME, 0);
-		vector<PathBits> versions(GetDirectoriesAtPath(rtPath));
-		for (size_t i = 0; i < versions.size(); i++)
+
+	void addComponentVersions(KComponentType type,
+		const std::string& component_name,
+		const std::string component_path,
+		vector<SharedComponent>& results)
+	{
+		vector<PathBits> component_versions;
+		GetSubDirectoriesAt(component_path, component_versions);
+		for(vector<PathBits>::iterator
+			oIter = component_versions.begin();
+			oIter != component_versions.end();
+		oIter++)
 		{
-			PathBits& b = versions[i];
-			AddToComponentVector(results,
-				KComponent::NewComponent(RUNTIME, "runtime", b.name, b.fullPath));
+			safelyAddComponentTo(results, KComponent::NewComponent(
+				type, component_name, oIter->name, oIter->fullPath));
 		}
 	}
 
-	void ScanModulesAtPath(const std::string &path, vector<SharedComponent>& results, bool bundled)
+	void ScanRuntimesAtPath(const std::string &path, vector<SharedComponent>& results)
+	{
+		string runtime_path(FileUtils::Join(path.c_str(), "runtime", 0));
+		addComponentVersions(RUNTIME, "runtime", runtime_path, results);
+	}
+
+	void ScanModulesAtPath(const std::string &path, vector<SharedComponent>& results)
 	{
 		if (!FileUtils::IsDirectory(path))
 			return;
 
-		// Read everything that looks like <searchpath>/modules/<os>/*
 		string namesPath(FileUtils::Join(path.c_str(), "modules", 0));
-		if (!bundled)
-			namesPath = FileUtils::Join(namesPath.c_str(), OS_NAME, 0);
-		vector<PathBits> moduleNames(GetDirectoriesAtPath(namesPath));
+		vector<PathBits> modules;
+		GetSubDirectoriesAt(namesPath, modules);
 
-		for (size_t i = 0; i < moduleNames.size(); i++)
+		for(vector<PathBits>::iterator
+			oIter = modules.begin();
+			oIter != modules.end();
+		oIter++)
 		{
-			PathBits& moduleName = moduleNames[i];
-
-			// Read everything that looks like <searchpath>/modules/<os>/<name>/*
-			vector<PathBits> moduleVersions(GetDirectoriesAtPath(moduleName.fullPath));
-			for (size_t j = 0; j < moduleVersions.size(); j++)
-			{
-				PathBits& moduleVersion = moduleVersions[j];
-				AddToComponentVector(results, KComponent::NewComponent(
-					MODULE, moduleName.name, moduleVersion.name, moduleVersion.fullPath, bundled));
-			}
+			addComponentVersions(MODULE, oIter->name, oIter->fullPath, results);
 		}
 	}
 
 	void ScanBundledComponents(const std::string &path, vector<SharedComponent>& results)
 	{
-		ScanRuntimesAtPath(path, results, true);
-		ScanModulesAtPath(path, results, true);
+		ScanRuntimesAtPath(path, results);
+		ScanModulesAtPath(path, results);
 	}
 
 	int CompareVersions(const string &one, const string &two)
@@ -159,11 +133,38 @@ namespace BootUtils
 			return 0;
 	}
 
-	bool WeakCompareComponents(SharedComponent one, SharedComponent two)
+	SharedComponent ResolveDependency(SharedDependency dep, vector<SharedComponent>& components)
 	{
-		return BootUtils::CompareVersions(one->version, two->version) > 0;
+		vector<SharedComponent>::iterator i = components.begin();
+		while (i != components.end())
+		{
+			SharedComponent comp = *i++;
+			if (dep->type != comp->type || dep->name != comp->name)
+				continue;
+
+			int compare = CompareVersions(comp->version, dep->version);
+			if ((dep->requirement == Dependency::EQ && compare == 0)
+				|| (dep->requirement == Dependency::GTE && compare >= 0)
+				|| (dep->requirement == Dependency::GT && compare > 0)
+				|| (dep->requirement == Dependency::LT && compare < 0))
+			{
+				return comp;
+			}
+		}
+		return NULL;
 	}
 }
+
+	bool KComponent::equal(const SharedComponent other)
+	{
+		if ((this->type == other->type)
+			&& (this->path == other->path))
+		{
+			return true;
+		}
+		return false;
+	}
+
 	SharedComponent KComponent::NewComponent(KComponentType type, string name,
 		string version, string path, bool bundled)
 	{

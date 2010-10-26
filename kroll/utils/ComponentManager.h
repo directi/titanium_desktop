@@ -16,13 +16,11 @@ namespace UTILS_NS
 	using std::pair;
 	using std::map;
 
-	class KROLL_API PathBits
+	class PathBits
 	{
 	public:
-		PathBits(const string& name, const string& fullPath) :
-			name(name),
-			fullPath(fullPath)
-		{ }
+		PathBits(const string& name, const string& fullPath)
+			: name(name), fullPath(fullPath) { }
 		std::string name;
 		std::string fullPath;
 	};
@@ -31,7 +29,6 @@ namespace UTILS_NS
 	/**
 	 * Represents a concrete Kroll components -- a runtime or module found on disk
 	 */
-
 	class KComponent;
 	typedef SharedPtr<KComponent> SharedComponent;
 	class KROLL_API KComponent
@@ -42,6 +39,8 @@ namespace UTILS_NS
 		std::string version;
 		std::string path;
 		bool bundled;
+
+		bool equal(const SharedComponent other);
 
 		static SharedComponent NewComponent(KComponentType type,
 			std::string name, std::string version,
@@ -78,24 +77,7 @@ namespace UTILS_NS
 	namespace BootUtils
 	{
 		KROLL_API void ScanBundledComponents(const std::string &path, vector<SharedComponent>& results);
-
-		/**
-		 * Compare two version strings in a piecewise way.
-		 * @returns 1 if the first is larger, 0 if they are equal,
-		 *			-1 if the second is larger
-		 */
-		KROLL_API int CompareVersions(const string &one, const string &two);
-
-		/**
-		 * Compare two version strings in a piecewise way, weakly
-		 * @returns true if the first is larger or false otherwise
-		 */
-		KROLL_API bool WeakCompareComponents(SharedComponent one, SharedComponent two);
 		KROLL_API SharedComponent ResolveDependency(SharedDependency dep, std::vector<SharedComponent>& components);
-		KROLL_API void AddToComponentVector(vector<SharedComponent>& components, SharedComponent c);
-		KROLL_API vector<PathBits> GetDirectoriesAtPath(std::string& path);
-		KROLL_API void ScanRuntimesAtPath(const std::string &path, vector<SharedComponent>& results, bool bundled);
-		KROLL_API void ScanModulesAtPath(const std::string &path, vector<SharedComponent>& results, bool bundled);
 	};
 
 }
