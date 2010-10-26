@@ -335,8 +335,11 @@ void Win32UserWindow::InitWebKit()
 	if (!this->HasTransparentBackground())
 	{
 		hr = webView->setHostWindow((OLE_HANDLE) windowHandle);
-		if (FAILED(hr))
+		if (FAILED(hr)) 
+		{
+			webViewPrivate->Release();
 			HandleHResultError("Error setting host window", hr, true);
+		}
 	}
 
 	webViewPrivate->setTransparent(this->HasTransparentBackground());
@@ -351,7 +354,7 @@ void Win32UserWindow::InitWebKit()
 
 	IWebPreferences *sharedPrefs = NULL;
 	hr = prefs->standardPreferences(&sharedPrefs);
-	if (FAILED(hr) || !sharedPrefs)
+	if (FAILED(hr) || !sharedPrefs) 
 		HandleHResultError("Error getting SharedWebPreferences", hr, true);
 	sharedPrefs->setAutosaves(FALSE);
 	setPrivatePrefs(sharedPrefs, host->DebugModeEnabled(), appid);
@@ -391,19 +394,19 @@ void Win32UserWindow::InitWebKit()
 
 	// Get the WebView's HWND
 	hr = webViewPrivate->viewWindow((OLE_HANDLE*) &viewWindowHandle);
-	if (FAILED(hr))
-		HandleHResultError("Error getting WebView HWND", hr);
+	if (FAILED(hr)) 
+		HandleHResultError("Error getting WebView HWND", hr, true);
 
-	// Get the WebView's WebInspector
+	/*// Get the WebView's WebInspector
 	hr = webViewPrivate->inspector(&webInspector);
 	if (FAILED(hr) || !webInspector)
 		HandleHResultError("Error getting WebInspector HWND", hr);
 
-	webViewPrivate->Release();
 
 	hr = webView->mainFrame(&mainFrame);
-	if (FAILED(hr) || !webInspector)
-		HandleHResultError("Error getting WebView main frame", hr);
+	if (FAILED(hr) || !mainFrame)
+		HandleHResultError("Error getting WebView main frame", hr);*/
+	webViewPrivate->Release();
 }
 
 static void GetChromeSize(Bounds& chromeSize, DWORD windowStyle)
@@ -431,8 +434,8 @@ Win32UserWindow::Win32UserWindow(AutoPtr<WindowConfig> config, AutoUserWindow& p
 	webkitBitmap(0),
 	timer(0),
 	webView(0),
-	mainFrame(0),
-	webInspector(0),
+	//mainFrame(0),
+	//webInspector(0),
 	requiresDisplay(true),
 	menu(0),
 	activeMenu(0),
@@ -454,8 +457,8 @@ Win32UserWindow::~Win32UserWindow()
 	if (webView)
 		webView->Release();
 
-	if (mainFrame)
-		mainFrame->Release();
+	//if (mainFrame)
+	//	mainFrame->Release();
 }
 
 typedef struct DrawChildWindowData_
@@ -890,15 +893,26 @@ void Win32UserWindow::SetURL(std::string& url_)
 		error.append(url);
 		HandleHResultError(error, hr, true);
 	}
+	IWebFrame *mainFrame;
+	hr = webView->mainFrame(&mainFrame);
+	if (FAILED(hr))
+	{
+		request->Release();
+		std::string error("Error getting main frame for ");
+		error.append(url);
+		HandleHResultError(error, hr, true);
+	}
 
 	hr = mainFrame->loadRequest(request);
 	if (FAILED(hr))
 	{
+		mainFrame->Release();
 		request->Release();
 		std::string error("Error starting load request for ");
 		error.append(url);
 		HandleHResultError(error, hr, true);
 	}
+	mainFrame->Release();
 }
 
 void Win32UserWindow::SetResizableImpl(bool resizable)
@@ -1176,17 +1190,25 @@ void Win32UserWindow::SetTopMost(bool topmost)
 
 void Win32UserWindow::ShowInspector(bool console)
 {
-	if (this->webInspector)
+	IWebViewPrivate* webViewPrivate;
+	HRESULT hr = webView->QueryInterface(IID_IWebViewPrivate, (void**) &webViewPrivate);
+	if (FAILED(hr))
+		return;
+	IWebInspector* webInspector;
+	hr = webViewPrivate->inspector(&webInspector);
+	if (webInspector)
 	{
 		if (console)
 		{
-			this->webInspector->showConsole();
+			webInspector->showConsole();
 		}
 		else
 		{
-			this->webInspector->show();
+			webInspector->show();
 		}
+		webInspector->Release();
 	}
+	webViewPrivate->Release();
 }
 
 void Win32UserWindow::Flash(int timesToFlash)
@@ -1474,10 +1496,13 @@ void Win32UserWindow::RedrawAllMenus()
 
 void Win32UserWindow::SetContentsImpl(const std::string& content, const std::string& baseURL)
 {
-	if (!this->mainFrame)
+	IWebFrame* mainFrame;
+	HRESULT hr = webView->mainFrame(&mainFrame);
+	if (FAILED(hr) || !mainFrame)
 		return;
 
 	_bstr_t bContent(::UTF8ToWide(content).c_str());
 	_bstr_t bBaseURL(::UTF8ToWide(baseURL).c_str());
 	mainFrame->loadHTMLString(bContent, bBaseURL);
+	mainFrame->Release();
 }

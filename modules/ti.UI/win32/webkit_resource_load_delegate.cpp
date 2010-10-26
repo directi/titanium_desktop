@@ -72,10 +72,12 @@ HRESULT STDMETHODCALLTYPE Win32WebKitResourceLoadDelegate::willSendRequest(
 		BSTR path = path3.copy();
 
 		*newRequest = CreateRequest(identifier, path);
+		SysFreeString(path);
 	} else {
 		*newRequest = request;	
 		request->AddRef();
 	}
+	SysFreeString(u);
 	return S_OK;
 }
 
@@ -129,7 +131,21 @@ HRESULT STDMETHODCALLTYPE Win32WebKitResourceLoadDelegate::didFailLoadingWithErr
 	/* [in] */ IWebError *error,
 	/* [in] */ IWebDataSource *dataSource)
 {
-	return E_NOTIMPL;
+	BSTR s1, s2;
+	error->failingURL(&s1);
+	error->localizedDescription(&s2);
+	std::wstring u2(s1);
+	std::string url(::WideToUTF8(u2));
+	std::string err("Unknown Error");
+	if(s2) 
+	{
+		std::wstring u3(s2);
+		err = ::WideToUTF8(u3);
+	}
+	Logger::Get("UI.Win32WebKitResourceLoadDelegate")->Error("Error loading URL " + url + ", because: " + err);
+	SysFreeString(s1);
+	SysFreeString(s2);
+	return S_OK;
 }
 
 HRESULT STDMETHODCALLTYPE Win32WebKitResourceLoadDelegate::plugInFailedWithError(

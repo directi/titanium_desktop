@@ -115,8 +115,8 @@ namespace ti
 		HBITMAP webkitBitmap;
 		UINT_PTR timer;
 		IWebView* webView;
-		IWebFrame* mainFrame;
-		IWebInspector* webInspector;
+		//IWebFrame* mainFrame;
+		//IWebInspector* webInspector;
 		Bounds chromeSize;
 
 		// Set this flag to indicate that when the frame is loaded we want to

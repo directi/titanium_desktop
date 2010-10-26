@@ -89,7 +89,10 @@ HRESULT STDMETHODCALLTYPE Win32WebKitFrameLoadDelegate::didReceiveTitle(
 		return S_OK;
 	}
 	if (frame != mainFrame)
+	{
+		mainFrame->Release();
 		return S_OK;
+	}
 
 	if (title)
 	{
@@ -97,6 +100,7 @@ HRESULT STDMETHODCALLTYPE Win32WebKitFrameLoadDelegate::didReceiveTitle(
 		newTitle.append(bstr_t(title));
 		this->window->SetTitle(newTitle);
 	}
+	mainFrame->Release();
 	return S_OK;
 }
 

@@ -102,8 +102,21 @@ namespace ti
 		/* [in] */ IWebFrame *frame,
 		/* [in] */ IWebPolicyDecisionListener *listener)
 	{
-		Logger::Get("UI.Win32WebKitPolicyDelegate")->Debug("decidePolicyForMIMEType() not implemented");
-		return E_NOTIMPL;
+		if(type == 0) 
+		{
+			listener->ignore();
+			BSTR u;
+			request->URL(&u);
+			std::wstring u2(u);
+			std::string url(::WideToUTF8(u2));
+			Logger::Get("UI.Win32WebKitPolicyDelegate")->Error("MimeType is null for: " + url + ", ignored");
+			SysFreeString(u);
+		} 
+		else
+		{
+			listener->use(); // TODO: We may want to download stuff the webview doesn't support...
+		}
+		return S_OK;
 	}
 
 	HRESULT STDMETHODCALLTYPE Win32WebKitPolicyDelegate::unableToImplementPolicyWithError(
