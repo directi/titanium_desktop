@@ -125,31 +125,6 @@ namespace BootUtils
 		ScanRuntimesAtPath(path, results, true);
 		ScanModulesAtPath(path, results, true);
 	}
-	vector<SharedComponent>& GetInstalledComponents(bool force)
-	{
-		static std::vector<SharedComponent> installedComponents;
-		if (installedComponents.empty() || force)
-		{
-			installedComponents.clear();
-			vector<string>& paths = GetComponentSearchPaths();
-			vector<string>::iterator i = paths.begin();
-			while (i != paths.end())
-			{
-				string path(*i++);
-				ScanRuntimesAtPath(path, installedComponents, false);
-				ScanModulesAtPath(path, installedComponents, false);
-			}
-
-			// Sort components by version here so that the latest version of
-			// any component will always be chosen. Use a stable_sort because we
-			// want to give preference to components earlier on the search path.
-			std::stable_sort(
-				installedComponents.begin(),
-				installedComponents.end(),
-				BootUtils::WeakCompareComponents);
-		}
-		return installedComponents;
-	}
 
 	int CompareVersions(const string &one, const string &two)
 	{
@@ -281,25 +256,6 @@ namespace BootUtils
 			return true;
 		}
 		return false;
-	}
-
-	void ComponentManager::GetAvailableComponentsAt(
-		const std::string& path,
-		vector<SharedComponent>& components,
-		bool onlyBundled)
-	{
-		// Merge bundled and installed components
-		BootUtils::ScanBundledComponents(path, components);
-
-		if (!onlyBundled)
-		{
-			vector<SharedComponent>& installedComponents =
-				BootUtils::GetInstalledComponents(true);
-			for (size_t i = 0; i < installedComponents.size(); i++)
-			{
-				components.push_back(installedComponents.at(i));
-			}
-		}
 	}
 
 	bool ComponentManager::removeModule(const string &modulePath)

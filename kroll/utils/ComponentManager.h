@@ -67,11 +67,6 @@ namespace UTILS_NS
 		std::string getModulePaths() const;
 		std::string getRuntimePath() const;
 		bool getUnresolvedDependencies(vector<SharedDependency> &_unresolved) const;
-
-		static void GetAvailableComponentsAt(
-			const std::string& path,
-			vector<SharedComponent>& components,
-			bool onlyBundled);
 		void resolveDependencies(const vector<SharedDependency> &dependencies);
 		bool removeModule(const string &modulePath);
 		void UsingModule(const std::string &name,
@@ -96,13 +91,7 @@ namespace UTILS_NS
 		 * @returns true if the first is larger or false otherwise
 		 */
 		KROLL_API bool WeakCompareComponents(SharedComponent one, SharedComponent two);
-
-		KROLL_API std::vector<std::string>& GetComponentSearchPaths();
-
-		KROLL_API std::vector<SharedComponent>& GetInstalledComponents(bool force=false);
-		
 		KROLL_API SharedComponent ResolveDependency(SharedDependency dep, std::vector<SharedComponent>& components);
-
 		KROLL_API void AddToComponentVector(vector<SharedComponent>& components, SharedComponent c);
 		KROLL_API vector<PathBits> GetDirectoriesAtPath(std::string& path);
 		KROLL_API void ScanRuntimesAtPath(const std::string &path, vector<SharedComponent>& results, bool bundled);
