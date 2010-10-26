@@ -8,6 +8,7 @@
 
 #include <kroll/utils/boot_utils.h>
 #include <kroll/utils/ManifestHandler.h>
+#include <kroll/utils/ComponentManager.h>
 
 namespace UTILS_NS
 {

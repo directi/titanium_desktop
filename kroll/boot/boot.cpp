@@ -5,6 +5,7 @@
  */
 #include "boot.h"
 #include <ManifestHandler.h>
+#include <ComponentManager.h>
 #include <file_utils.h>
 #include <environment_utils.h>
 //#include <platform_utils.h>
