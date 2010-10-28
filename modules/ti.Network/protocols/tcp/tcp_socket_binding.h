@@ -31,7 +31,7 @@ namespace ti
 	class DisconnectAwareSocket : public StreamSocket 
 	{
 	public:
-		DisconnectAwareSocket(int, int);
+		DisconnectAwareSocket(int);
 	private:
 		inline static kroll::Logger* GetLogger()
 		{
@@ -85,7 +85,6 @@ namespace ti
 		bool nonBlocking;
 		bool useKeepAlives;
 		int inactivetime;
-		int resendtime;
 
 		enum SOCK_STATE_en { SOCK_CLOSED, SOCK_CONNECTING, SOCK_CONNECTED, SOCK_CLOSING } sock_state;
 

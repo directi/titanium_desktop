@@ -24,8 +24,7 @@ namespace ti
 		socket(0),
 		nonBlocking(false),
 		useKeepAlives(true),
-		inactivetime(1),
-		resendtime(1),
+		inactivetime(10),
 		sock_state(SOCK_CLOSED),
 		onConnect(0),
 		onRead(0),
@@ -151,14 +150,17 @@ namespace ti
 		if(this->sock_state != SOCK_CLOSED) 
 			throw ValueException::FromString("You can only set the keep-alive times before connecting the socket");
 		
-		if(args.size() > 1 && args.at(0)->IsInt() && args.at(1)->IsInt()) 
+		if(args.size() == 1 && args.at(0)->IsInt()) 
 		{
 			this->inactivetime = args.at(0)->ToInt();
-			this->resendtime = args.at(1)->ToInt();
+			if(this->inactivetime < 1) 
+			{
+				throw ValueException::FromString("Please set an inactive time >= 2 seconds (1 may work)");
+			}
 		}
 		else 
 		{
-			throw ValueException::FromString("usage: setDisconnectionNotificationTime(int firstCheck, int subsequentChecks) -> If 9 subsequent checks fail the connection is considered lost");
+			throw ValueException::FromString("usage: setDisconnectionNotificationTime(int inactiveTimeInSeconds)");
 		}
 	}
 
@@ -239,7 +241,7 @@ namespace ti
 	{
 		static const std::string eprefix = "Connect exception: ";
 		if(useKeepAlives)
-			this->socket = new DisconnectAwareSocket(inactivetime, resendtime);
+			this->socket = new DisconnectAwareSocket(inactivetime);
 		else
 			this->socket = new StreamSocket();
 		try 
@@ -550,7 +552,7 @@ namespace ti
 #elif OS_OSX
 #endif
 
-	DisconnectAwareSocket::DisconnectAwareSocket(int inactivitytime, int resendtime) 
+	DisconnectAwareSocket::DisconnectAwareSocket(int inactivitytime) 
 		: StreamSocket(IPAddress::IPv4)
 	{
 		std::string errtxt = "Error setting socket keepalive options, we probably wouldn't detect disconnects: ";
@@ -564,9 +566,10 @@ namespace ti
 			// FormatMessage needs special treatment.
 			DWORD dwBytes;
 			tcp_keepalive settings, sReturned;
-			settings.onoff = 1 ;
-			settings.keepalivetime = inactivitytime * 1000; // 1 second of inactivity results in keepalives being sent.
-			settings.keepaliveinterval = resendtime * 1000 ; // 1 second for every other packet.
+			settings.onoff = 1;
+			inactivitytime *= 500; 
+			settings.keepalivetime = inactivitytime; 
+			settings.keepaliveinterval = inactivitytime / 9;
 
 			if (WSAIoctl(sockfd(), SIO_KEEPALIVE_VALS, &settings, sizeof(settings), 
 							&sReturned, sizeof(sReturned), &dwBytes,
@@ -593,12 +596,15 @@ namespace ti
 				LocalFree(lpMsgBuf);
 				GetLogger()->Error(errtxt + rv);
 			}
-#elif OS_LINUX | OS_OSX
+#elif OS_LINUX 
 			// The right headers should get magically included.
 			// Poco uses setsockopt internally which supports this on Linux.
-			this->setOption(SOL_TCP, TCP_KEEPIDLE, inactivitytime); // 1 sec idle wait
-			this->setOption(SOL_TCP, TCP_KEEPINTVL, resendtime); // 1 sec retransmit frequency
-			this->setOption(SOL_TCP, TCP_KEEPCNT, 9); // 9 timeouts in a row like windows...
+			inactivitytime /= 2;
+			this->setOption(SOL_TCP, TCP_KEEPIDLE, inactivitytime);
+			this->setOption(SOL_TCP, TCP_KEEPINTVL, 1);
+			this->setOption(SOL_TCP, TCP_KEEPCNT, inactivitytime); 
+#elif OS_OSX
+			GetLogger()->Error(errtxt + "Sorry, Keepalive settings don't seem to work on MacOS");
 #endif
 		} 
 		catch(Poco::Exception &e)
