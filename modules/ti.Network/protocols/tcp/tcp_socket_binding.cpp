@@ -57,6 +57,9 @@ namespace ti
 		 * @tiresult(for=Network.TCPSocket.write,type=Boolean) true if the data was successfully written to the socket, false if otherwise
 		 */
 		this->SetMethod("write",&TCPSocketBinding::Write);
+
+		this->SetMethod("read",&TCPSocketBinding::Read);
+
 		/**
 		 * @tiapi(method=True,name=Network.TCPSocket.isClosed,since=0.2) Checks whether a Socket object is closed
 		 * @tiresult(for=Network.TCPSocket.isClosed,type=Boolean) true if a Socket object is closed, false if otherwise
@@ -251,20 +254,17 @@ namespace ti
 		catch(Poco::IOException &e)
 		{
 			delete a;
-			this->CompleteClose();
-			throw ValueException::FromString(eprefix + e.displayText());
+			this->OnError(eprefix + e.displayText());
 		}
 		catch(std::exception &e)
 		{
 			delete a;
-			this->CompleteClose();
-			throw ValueException::FromString(eprefix + e.what());
+			this->OnError(eprefix + e.what());
 		}
 		catch(...)
 		{
 			delete a;
-			this->CompleteClose();
-			throw ValueException::FromString(eprefix + "Unknown exception");
+			this->OnError(eprefix + "Unknown exception");
 		}
 	}
 
@@ -292,7 +292,8 @@ namespace ti
 
 	void TCPSocketBinding::OnReadReady(ReadableNotification * notification)
 	{
-		GetLogger()->Debug("Ready for Read with %d bytes on %s", this->socket->available(), this->socket->peerAddress().toString().c_str());
+		int available_bytes = this->socket->available();
+		GetLogger()->Debug("Ready for Read with %d bytes on %s", available_bytes, this->socket->peerAddress().toString().c_str());
 		bool justConnected = false;
 		if(this->sock_state == SOCK_CONNECTING)
 		{
@@ -303,7 +304,7 @@ namespace ti
 		bool error = false;
 		try
 		{
-			if(this->socket->available() > 0) 
+			if(available_bytes > 0) 
 			{
 				// Always read bytes, so that the tubes get cleared.
 				int size;
@@ -477,8 +478,11 @@ namespace ti
 		{
 			this->sock_state = SOCK_CLOSING;
 			TCPSocketBinding::removeSocket(this);
-			this->socket->close();
-			delete this->socket;
+			if(this->socket)
+			{
+				this->socket->close();
+				delete this->socket;
+			}
 			this->sock_state = SOCK_CLOSED;
 		}
 	}
