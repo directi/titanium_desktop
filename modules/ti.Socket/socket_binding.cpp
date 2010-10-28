@@ -5,8 +5,8 @@
  */
 #include <sstream>
 
+#include "tcp_socket_binding.h"
 #include "socket_binding.h"
-//#include "protocols/tcp/tcp_socket_binding.h"
 
 namespace ti
 {
@@ -25,9 +25,8 @@ namespace ti
 
 	void SocketBinding::_CreateTCPSocket(const ValueList& args, KValueRef result)
 	{
-		args.VerifyException("createTCPSocket", "sn");
-		//result->SetObject(new TCPSocketBinding(host,
-		//	args.GetString(0), args.GetInt(1)));
+		args.VerifyException("createTCPSocket", "ss");
+		result->SetObject(new TCPSocketBinding(host, args.GetString(0), args.GetString(1)));
 	}
 
 	void SocketBinding::_UpdateToSecureTCPSocket(const ValueList& args, KValueRef result)
