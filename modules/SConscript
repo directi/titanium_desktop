@@ -23,6 +23,7 @@ for dir in [
 	'ti.App',
 	'ti.UI',
 	'ti.Network',
+	'ti.Socket',
 	'ti.Filesystem',
 	'ti.Media',
 	'ti.Platform',

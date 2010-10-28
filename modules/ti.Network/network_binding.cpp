@@ -293,7 +293,7 @@ namespace ti
 	{
 #ifndef OS_OSX
 		TCPSocketBinding * socket = args.GetObject(0).cast<TCPSocketBinding>();
-		SecureTCPSocketBinding secure_binding(socket);
+		SecureTCPSocketBinding::startTLS(socket);
 #endif
 	}
 

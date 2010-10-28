@@ -15,19 +15,10 @@ using namespace Poco::Net;
 
 namespace ti
 {
-	class SecureTCPSocketBinding : public StaticBoundObject
+	class SecureTCPSocketBinding
 	{
 	public:
-		SecureTCPSocketBinding(TCPSocketBinding * socket);
-		virtual ~SecureTCPSocketBinding();
-	private:
-		static kroll::Logger* GetLogger()
-		{
-			return kroll::Logger::Get("Network.SecureTCPSocketBinding");
-		}
-
-		void startTLS(TCPSocketBinding * socket);
-		std::string getCertificateFilePath() const;
+		static void startTLS(TCPSocketBinding * socket);
 	};
 }
 
