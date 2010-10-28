@@ -340,11 +340,8 @@ namespace ti
 			else
 			{
 				// Windows connection errors should come this way.
-				if(! justConnected) 
-				{
-					GetLogger()->Debug("Connection closed a-la windows");
-					this->OnClose();
-				}
+				GetLogger()->Debug("Connection closed a-la windows");
+				this->OnClose();
 			}
 		}
 		catch(Poco::Exception &e)
