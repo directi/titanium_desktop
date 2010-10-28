@@ -9,8 +9,6 @@
 namespace ti
 {
 	UIBinding* UIBinding::instance = NULL;
-	std::vector<std::pair<Logger::Level, std::string> > UIBinding::logs;
-	Poco::Mutex UIBinding::loggerMutex;
 
 	UIBinding::UIBinding(Host* host) :
 		KAccessorObject("UI"),
@@ -383,8 +381,15 @@ namespace ti
 		result->SetDouble(this->GetIdleTime());
 	}
 
-	void ConsoleLog(Logger::Level level, std::string& message) 
-	{
+    void UIBinding::Log(Logger::Level level, std::string& message) {
+        ValueList args = ValueList(Value::NewInt(level), Value::NewString(message));
+        RunOnMainThread(new KFunctionPtrMethod(&UIBinding::PrivateLog), 0, args, false);
+    }
+
+    KValueRef UIBinding::PrivateLog(const ValueList& args)
+    {
+        Logger::Level level = (Logger::Level) args[0]->ToInt();
+        KValueRef message = args[1];
 		std::string methodName("debug");
 		switch(level) 
 		{
@@ -408,7 +413,7 @@ namespace ti
 			std::string script("window.console.");
 			script.append(methodName);
 			script.append("('");
-			std::string escapedMessage(message);
+			std::string escapedMessage(message->ToString());
 			static const std::string delimiters("'\\");
 			size_t pos = 0;
 			while(true)
@@ -439,41 +444,6 @@ namespace ti
 				fprintf(stderr, "Yikes, lost a log message\n");
 			}
         }
-	}
-
-    void UIBinding::Log(Logger::Level level, std::string& message) 
-	{
-		if(Host::GetInstance()->IsMainThread()) 
-		{
-			ConsoleLog(level, message);
-		} 
-		else 
-		{	
-			Poco::Mutex::ScopedLock lock(loggerMutex);
-			{
-				logs.push_back(std::pair<Logger::Level, std::string>(level, message));
-			}
-			RunOnMainThread(new KFunctionPtrMethod(&UIBinding::PrivateLog), 0, ValueList(), false);
-		}
-    }
-
-    KValueRef UIBinding::PrivateLog(const ValueList& args)
-    {
-		if(logs.size() > 0) 
-		{
-			std::list<std::pair<Logger::Level, std::string> > tempWriteQueue(logs.size());
-			Poco::Mutex::ScopedLock lock(loggerMutex);
-			{
-				std::copy(logs.begin(), logs.end(), tempWriteQueue.begin()); 
-				logs.clear();
-			}
-			for(std::list<std::pair<Logger::Level, std::string> >::iterator
-				i = tempWriteQueue.begin(); i != tempWriteQueue.end(); ++i) 
-			{
-				ConsoleLog(i->first, i->second);
-			}
-
-		}
 		return Value::Undefined;
 	}
 }
