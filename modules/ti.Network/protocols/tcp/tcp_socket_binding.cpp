@@ -598,12 +598,17 @@ namespace ti
 				GetLogger()->Error(errtxt + rv);
 			}
 #elif OS_LINUX 
+#define check_error(a, s) if(a < 0) throw Poco::Exception(s + " failed: " + strerror(errno));
 			// The right headers should get magically included.
-			// Poco uses setsockopt internally which supports this on Linux.
 			inactivitytime /= 2;
-			this->setOption(SOL_TCP, TCP_KEEPIDLE, inactivitytime);
-			this->setOption(SOL_TCP, TCP_KEEPINTVL, 1);
-			this->setOption(SOL_TCP, TCP_KEEPCNT, inactivitytime); 
+			optval = 1;
+		    check_error(setsockopt(sockfd(), SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(optval)), "setsockopt keepalive"));
+		    optval = inactivitytime; 
+		    check_error(setsockopt(sockfd(), SOL_TCP, TCP_KEEPIDLE, &optval, sizeof(optval)), "setsockopt keepidle");
+		    optval = 1; 
+		    check_error(setsockopt(sockfd(), SOL_TCP, TCP_KEEPINTVL, &optval, sizeof(optval)), "setsockopt keepintvl");
+		    optval = inactivitytime;
+		    check_error(setsockopt(sockfd(), SOL_TCP, TCP_KEEPCNT, &optval, sizeof(optval)), check_error("setsockopt keepcnt");
 #elif OS_OSX
 			GetLogger()->Error(errtxt + "Sorry, Keepalive settings don't seem to work on MacOS");
 #endif
