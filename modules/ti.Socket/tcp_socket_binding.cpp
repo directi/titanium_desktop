@@ -289,12 +289,12 @@ namespace ti
 
 	void TCPSocketBinding::handleWrite(const asio::error_code& error, std::size_t bytes_transferred)
 	{
-		// TODO: mutex
 		if (error)
 		{
 			this->OnError(error.message());
 			return;
 		}
+		asio::detail::mutex::scoped_lock lock(write_mutex);
 		write_buffer.pop_front();
 		if (!write_buffer.empty())
 		{
@@ -304,7 +304,7 @@ namespace ti
 
 	void TCPSocketBinding::writeAsync(const std::string &data)
 	{
-		// TODO: mutex
+		asio::detail::mutex::scoped_lock lock(write_mutex);
 		bool write_in_progress = !write_buffer.empty();
 		write_buffer.push_back(data);
 		if (!write_in_progress)
