@@ -99,6 +99,7 @@ namespace ti
 		void SetOnTimeout(const ValueList& args, KValueRef result);
 		void SetOnError(const ValueList& args, KValueRef result);
 		void SetOnClose(const ValueList& args, KValueRef result);
+		void SetOnReadComplete(const ValueList& args, KValueRef result);
 
 		void Connect(const ValueList& args, KValueRef result);
 		void ConnectNB(const ValueList& args, KValueRef result);

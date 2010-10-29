@@ -99,6 +99,7 @@ namespace ti
 		 * @tiarg(for=Network.TCPSocket.onReadComplete,type=Function,name=callback) callback function be fired when no more data is available
 		 */
 		this->SetMethod("onClose",&TCPSocketBinding::SetOnClose);
+		this->SetMethod("onReadComplete", &TCPSocketBinding::SetOnReadComplete);
 
 		// Enables/disables keepalives.
 		this->SetMethod("setDisconnectionNotifications", &TCPSocketBinding::SetKeepAlives);
@@ -134,6 +135,11 @@ namespace ti
 	void TCPSocketBinding::SetOnClose(const ValueList& args, KValueRef result)
 	{
 		this->onClose = args.at(0)->ToMethod();
+	}
+	void TCPSocketBinding::SetOnReadComplete(const ValueList& args, KValueRef result)
+	{
+		GetLogger()->Warn("OnReadComplete has been renamed to OnClose. This notification will be removed in the future.");
+		this->SetOnClose(args, result);
 	}
 	void TCPSocketBinding::IsClosed(const ValueList& args, KValueRef result)
 	{
