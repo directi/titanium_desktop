@@ -44,8 +44,8 @@ namespace ti
 	private:
 
 		static asio::io_service io_service;
-		static asio::io_service::work * io_idlework;
-		static asio::thread *io_thread;
+		static std::auto_ptr<asio::io_service::work> io_idlework;
+		static std::auto_ptr<asio::thread> io_thread;
 
 		Host* ti_host;
 		const std::string hostname;

@@ -10,33 +10,19 @@
 namespace ti
 {
 	asio::io_service TCPSocketBinding::io_service;
-	asio::io_service::work * TCPSocketBinding::io_idlework = NULL;
-	asio::thread * TCPSocketBinding::io_thread = NULL;
+	std::auto_ptr<asio::io_service::work> TCPSocketBinding::io_idlework(
+		new asio::io_service::work(io_service));
+	std::auto_ptr<asio::thread> TCPSocketBinding::io_thread;
 
 
 	void TCPSocketBinding::Initialize()
 	{
-		// TODO: Mutex
-		if(!io_idlework)
-		{
-			io_idlework = new asio::io_service::work(io_service);
-		}
-		if(!io_thread)
-		{
-			io_thread = new asio::thread(
+		io_thread = new asio::thread(
 				boost::bind(&asio::io_service::run, &TCPSocketBinding::io_service));
-		}
 	}
 
-	// TODO: call it from somewhere
 	void TCPSocketBinding::UnInitialize()
 	{
-		//TODO:
-		io_service.stop();
-		delete io_idlework;
-		io_idlework = NULL;
-		io_thread->join();
-		delete io_thread;
 	}
 
 
