@@ -139,6 +139,7 @@ namespace kroll
 		{
 			std::string debug_val = Environment::get(DEBUG_ENV);
 			this->debug = (debug_val == "true" || debug_val == "yes" || debug_val == "1");
+			this->consoleLogging = this->debug;
 		}
 
 		this->SetupLogging();

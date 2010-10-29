@@ -20,6 +20,7 @@
 #define HOME_ENV "KR_HOME"
 #define RUNTIME_ENV "KR_RUNTIME"
 #define MODULES_ENV "KR_MODULES"
+#define DEBUG_ENV "KR_DEBUG"
 
 #define CRASH_REPORT_OPT "--crash_report"
 #define CRASH_REPORT_URL  STRING(_CRASH_REPORT_URL)

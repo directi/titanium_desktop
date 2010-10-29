@@ -37,6 +37,11 @@ void BootLoader::setPaths(const std::string & app_path,
 	EnvironmentUtils::Set(HOME_ENV, app_path);
 	EnvironmentUtils::Set(RUNTIME_ENV, runtime_path);
 	EnvironmentUtils::Set(MODULES_ENV, module_paths);
+#if DEV
+	EnvironmentUtils::Set(DEBUG_ENV, "1");
+#else
+	EnvironmentUtils::Unset(DEBUG_ENV);
+#endif
 	this->setPlatformSpecificPaths(runtime_path, module_paths);
 }
 
