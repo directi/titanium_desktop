@@ -45,7 +45,6 @@ namespace ti
 
 		static asio::io_service io_service;
 		static std::auto_ptr<asio::io_service::work> io_idlework;
-		static std::auto_ptr<asio::thread> io_thread;
 
 		Host* ti_host;
 		const std::string hostname;
@@ -55,14 +54,15 @@ namespace ti
 		//bool useKeepAlives;
 		//int inactivetime;
 		//int resendtime;
+		tcp::resolver resolver;
 		tcp::socket socket;
 		char data[BUFFER_SIZE + 1];
 		std::deque<std::string> write_msgs;
 
 		enum SOCK_STATE_en { SOCK_CLOSED, SOCK_CONNECTING, SOCK_CONNECTED, SOCK_CLOSING } sock_state;
 
-		tcp::resolver::iterator resolveHost();
-
+		void registerHandleResolve();
+		void handleResolve(const asio::error_code& error, tcp::resolver::iterator endpoint_iterator);
 		void registerHandleConnect(tcp::resolver::iterator endpoint_iterator);
 		void handleConnect(const asio::error_code& error, tcp::resolver::iterator endpoint_iterator);
 

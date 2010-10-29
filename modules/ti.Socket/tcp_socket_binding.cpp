@@ -12,12 +12,11 @@ namespace ti
 	asio::io_service TCPSocketBinding::io_service;
 	std::auto_ptr<asio::io_service::work> TCPSocketBinding::io_idlework(
 		new asio::io_service::work(io_service));
-	std::auto_ptr<asio::thread> TCPSocketBinding::io_thread;
 
 
 	void TCPSocketBinding::Initialize()
 	{
-		io_thread = new asio::thread(
+		asio::thread *io_thread = new asio::thread(
 				boost::bind(&asio::io_service::run, &TCPSocketBinding::io_service));
 	}
 
@@ -35,6 +34,7 @@ namespace ti
 		//useKeepAlives(true),
 		//inactivetime(1),
 		//resendtime(1),
+		resolver(TCPSocketBinding::io_service),
 		socket(TCPSocketBinding::io_service),
 		sock_state(SOCK_CLOSED),
 		onConnect(0),
@@ -128,22 +128,53 @@ namespace ti
 		nonBlocking = false;
 		this->sock_state = SOCK_CONNECTING;
 		long timeout = (args.size() > 0 && args.at(0)->IsInt()) ? args.at(0)->ToInt() : 10;
+
+		//TODO: handle timeout for connect
+		try
+		{
+			//tcp::resolver::iterator endpoint_iterator = ;
+			//socket.connect(*endpoint_iterator);
+		}
+		catch(asio::system_error & e)
+		{
+			socket.close();
+			this->OnError(e.what());
+		}
+
 	
 		GetLogger()->Debug("Connecting Blocking.");
 	}
 
-	tcp::resolver::iterator TCPSocketBinding::resolveHost()
+	void TCPSocketBinding::registerHandleResolve()
 	{
-		tcp::resolver resolver(TCPSocketBinding::io_service);
 		tcp::resolver::query query(hostname, port);
-		return resolver.resolve(query);
+		resolver.async_resolve(query,
+			boost::bind(&TCPSocketBinding::handleResolve, this,
+			asio::placeholders::error, asio::placeholders::iterator));
 	}
+
+	void TCPSocketBinding::handleResolve(const asio::error_code& error,
+	  tcp::resolver::iterator endpoint_iterator)
+	{
+		if (error)
+		{
+			this->OnError(error.message());
+			return;
+		}
+		registerHandleConnect(endpoint_iterator);
+	}
+
 
 	void TCPSocketBinding::registerHandleConnect(tcp::resolver::iterator endpoint_iterator)
 	{
-		socket.async_connect(*endpoint_iterator,
-			boost::bind(&TCPSocketBinding::handleConnect, this,
-			  asio::placeholders::error, ++endpoint_iterator));
+		if (endpoint_iterator != tcp::resolver::iterator())
+		{
+			socket.async_connect(*endpoint_iterator,
+				boost::bind(&TCPSocketBinding::handleConnect, this,
+				asio::placeholders::error, ++endpoint_iterator));
+			return;
+		}
+		this->OnError("TCPSocket Host resolution Error");
 	}
 
 	void TCPSocketBinding::handleConnect(const asio::error_code& error,
@@ -174,7 +205,7 @@ namespace ti
 		nonBlocking = true;
 		GetLogger()->Debug("Connecting non Blocking.");
 		this->sock_state = SOCK_CONNECTING;
-		this->registerHandleConnect(this->resolveHost());
+		this->registerHandleResolve();
 	}
 
 	void TCPSocketBinding::registerHandleRead()
