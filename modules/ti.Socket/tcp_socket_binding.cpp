@@ -216,7 +216,7 @@ namespace ti
 	void TCPSocketBinding::registerHandleRead()
 	{
 		asio::async_read(socket,
-			asio::buffer(data, BUFFER_SIZE),
+			asio::buffer(read_data_buffer, BUFFER_SIZE),
 			asio::transfer_at_least(1),
 			boost::bind(&TCPSocketBinding::handleRead, this,
 			asio::placeholders::error, asio::placeholders::bytes_transferred));
@@ -229,7 +229,7 @@ namespace ti
 			this->OnError(error.message());
 			return;
 		}
-		this->OnRead(data, bytes_transferred);
+		this->OnRead(read_data_buffer, bytes_transferred);
 		this->registerHandleRead();
 	}
 
@@ -253,18 +253,18 @@ namespace ti
 		}
 	}
 
-	void TCPSocketBinding::OnRead(char * data, int size) 
+	void TCPSocketBinding::OnRead(char * read_data_buffer, int size) 
 	{
-		data[size] = '\0';
+		read_data_buffer[size] = '\0';
 		if(!this->onRead.isNull()) 
 		{
-			BytesRef bytes(new Bytes(data, size));
+			BytesRef bytes(new Bytes(read_data_buffer, size));
 			ValueList args (Value::NewObject(bytes));
 			RunOnMainThread(this->onRead, args, false);
 		}
 		else
 		{
-			GetLogger()->Warn("TCPSocket::onRead: not subscribed by JavaScript: data Read: " + string(data));
+			GetLogger()->Warn("TCPSocket::onRead: not subscribed by JavaScript: data Read: " + string(read_data_buffer));
 		}
 	}
 
@@ -280,23 +280,37 @@ namespace ti
 
 	void TCPSocketBinding::registerHandleWrite()
 	{
-		char * buf;
 		asio::async_write(socket,
-			asio::buffer(write_msgs.front().c_str(), write_msgs.front().size()),
+			asio::buffer(write_buffer.front().c_str(), write_buffer.front().size()),
 			boost::bind(&TCPSocketBinding::handleWrite, this,
-			buf, asio::placeholders::error, asio::placeholders::bytes_transferred));
+			asio::placeholders::error, asio::placeholders::bytes_transferred));
 
 	}
 
-	void TCPSocketBinding::handleWrite(char * buf,
-		const asio::error_code& error, std::size_t bytes_transferred)
+	void TCPSocketBinding::handleWrite(const asio::error_code& error, std::size_t bytes_transferred)
 	{
+		// TODO: mutex
 		if (error)
 		{
 			this->OnError(error.message());
 			return;
 		}
-		delete [] buf;
+		write_buffer.pop_front();
+		if (!write_buffer.empty())
+		{
+			this->registerHandleWrite();
+		}
+	}
+
+	void TCPSocketBinding::writeAsync(const std::string &data)
+	{
+		// TODO: mutex
+		bool write_in_progress = !write_buffer.empty();
+		write_buffer.push_back(data);
+		if (!write_in_progress)
+		{
+			this->registerHandleWrite();
+		}
 	}
 
 	void TCPSocketBinding::Write(const ValueList& args, KValueRef result)
@@ -311,12 +325,8 @@ namespace ti
 			std::string data = args.at(0)->ToString();
 			if(nonBlocking)
 			{
-				char * buf = new char(data.size());
-				strcpy(buf, data.c_str());
-				asio::async_write(socket,
-					asio::buffer(buf, data.size()),
-					boost::bind(&TCPSocketBinding::handleWrite, this,
-					buf, asio::placeholders::error, asio::placeholders::bytes_transferred));
+				writeAsync(data);
+
 			}
 			else
 			{

@@ -22,6 +22,8 @@
 #include <asio.hpp>
 using asio::ip::tcp;
 
+#include <asio/detail/mutex.hpp>
+
 #include <kroll/kroll.h>
 
 #include <deque>
@@ -56,8 +58,11 @@ namespace ti
 		//int resendtime;
 		tcp::resolver resolver;
 		tcp::socket socket;
-		char data[BUFFER_SIZE + 1];
-		std::deque<std::string> write_msgs;
+
+		char read_data_buffer[BUFFER_SIZE + 1];
+
+		asio::detail::mutex write_mutex;
+		std::deque<std::string> write_buffer;
 
 		enum SOCK_STATE_en { SOCK_CLOSED, SOCK_CONNECTING, SOCK_CONNECTED, SOCK_CLOSING } sock_state;
 
@@ -71,9 +76,9 @@ namespace ti
 		void registerHandleRead();
 		void handleRead(const asio::error_code& error, std::size_t bytes_transferred);
 
+		void writeAsync(const std::string &data);
 		void registerHandleWrite();
-		void handleWrite(char * buf,
-			const asio::error_code& error, std::size_t bytes_transferred);
+		void handleWrite(const asio::error_code& error, std::size_t bytes_transferred);
 
 		inline static kroll::Logger* GetLogger()
 		{
