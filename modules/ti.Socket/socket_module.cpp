@@ -2,7 +2,6 @@
  * @author: Mital Vora <mital.d.vora@gmail.com>
  */
 
-#include "tcp_socket_binding.h"
 #include "socket_module.h"
 
 using namespace kroll;
@@ -15,17 +14,10 @@ namespace ti
 	{
 		this->socketBinding = new SocketBinding(host);
 		GlobalObject::GetInstance()->SetObject("Socket", this->socketBinding);
-		TCPSocketBinding::Initialize();
 	}
 
 	void SocketModule::Stop()
 	{
-		TCPSocketBinding::UnInitialize();
-		//if (socketBinding)
-		//{
-		//	delete socketBinding;
-		//	socketBinding = NULL;
-		//}
 	}
 
 	std::string SocketModule::GetRootCertPath()

@@ -32,10 +32,10 @@ namespace ti
 	void TCPSocketBinding::UnInitialize()
 	{
 		//TODO:
+		io_service.stop();
 		delete io_idlework;
 		io_idlework = NULL;
 		io_thread->join();
-		delete io_thread;
 		delete io_thread;
 	}
 
