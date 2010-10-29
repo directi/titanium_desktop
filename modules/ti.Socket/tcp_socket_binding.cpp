@@ -31,7 +31,7 @@ namespace ti
 		hostname(hostname),
 		port(port),
 		nonBlocking(false),
-		//useKeepAlives(true),
+		useKeepAlives(true),
 		//inactivetime(1),
 		//resendtime(1),
 		resolver(TCPSocketBinding::io_service),
@@ -93,11 +93,16 @@ namespace ti
 		return result->SetBool(this->sock_state == SOCK_CLOSED);
 	}
 
+	void TCPSocketBinding::setKeepAlive(bool keepAlive)
+	{
+		asio::socket_base::keep_alive option(this->useKeepAlives);
+		socket.set_option(option);
+	}
+
 	void TCPSocketBinding::SetKeepAlives(const ValueList& args, KValueRef result)
 	{
-		// TODO:
-		bool val = args.at(0)->ToBool();
-		//this->useKeepAlives = val;
+		this->useKeepAlives = args.at(0)->ToBool();
+		this->setKeepAlive(this->useKeepAlives);
 	}
 
 	void TCPSocketBinding::SetKeepAliveTimes(const ValueList& args, KValueRef result) 
@@ -105,7 +110,7 @@ namespace ti
 		// TODO:
 		if(this->sock_state != SOCK_CLOSED) 
 			throw ValueException::FromString("You can only set the keep-alive times before connecting the socket");
-		
+
 		if(args.size() > 1 && args.at(0)->IsInt() && args.at(1)->IsInt()) 
 		{
 			//this->inactivetime = args.at(0)->ToInt();

@@ -51,7 +51,7 @@ namespace ti
 		const std::string port;
 
 		bool nonBlocking;
-		//bool useKeepAlives;
+		bool useKeepAlives;
 		//int inactivetime;
 		//int resendtime;
 		tcp::resolver resolver;
@@ -60,6 +60,8 @@ namespace ti
 		std::deque<std::string> write_msgs;
 
 		enum SOCK_STATE_en { SOCK_CLOSED, SOCK_CONNECTING, SOCK_CONNECTED, SOCK_CLOSING } sock_state;
+
+		void setKeepAlive(bool keepAlive);
 
 		void registerHandleResolve();
 		void handleResolve(const asio::error_code& error, tcp::resolver::iterator endpoint_iterator);
