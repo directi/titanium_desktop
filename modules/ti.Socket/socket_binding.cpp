@@ -15,14 +15,14 @@ namespace ti
 		host(host),
 		global(host->GetGlobalObject())
 	{
-		TCPSocketBinding::Initialize();
+		TCPSocket::initialize();
 		this->SetMethod("createTCPSocket",&SocketBinding::_CreateTCPSocket);
 		this->SetMethod("updateToSecureTCPSocket",&SocketBinding::_UpdateToSecureTCPSocket);
 	}
 
 	SocketBinding::~SocketBinding()
 	{
-		TCPSocketBinding::UnInitialize();
+		TCPSocket::uninitialize();
 	}
 
 	void SocketBinding::_CreateTCPSocket(const ValueList& args, KValueRef result)

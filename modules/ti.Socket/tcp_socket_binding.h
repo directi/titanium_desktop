@@ -24,49 +24,15 @@ namespace ti
 		public TCPSocketHandler
 	{
 	public:
-		TCPSocketBinding(Host *host, const std::string & hostname, const std::string& port);
+		TCPSocketBinding(Host *host,
+			const std::string & hostname,
+			const std::string& port);
 		virtual ~TCPSocketBinding();
 
-		void OnError(const std::string& error_text);
-
-		static void Initialize();
-		static void UnInitialize();
 	private:
 
-		static asio::io_service io_service;
-		static std::auto_ptr<asio::io_service::work> io_idlework;
-
 		Host* ti_host;
-		const std::string hostname;
-		const std::string port;
-
-		bool nonBlocking;
-		bool useKeepAlives;
-		//int inactivetime;
-		//int resendtime;
-		tcp::resolver resolver;
-		tcp::socket socket;
-
-		char read_data_buffer[BUFFER_SIZE + 1];
-
-		asio::detail::mutex write_mutex;
-		std::deque<std::string> write_buffer;
-
-		enum SOCK_STATE_en { SOCK_CLOSED, SOCK_CONNECTING, SOCK_CONNECTED, SOCK_CLOSING } sock_state;
-
-		void setKeepAlive(bool keepAlive);
-
-		void registerHandleResolve();
-		void handleResolve(const asio::error_code& error, tcp::resolver::iterator endpoint_iterator);
-		void registerHandleConnect(tcp::resolver::iterator endpoint_iterator);
-		void handleConnect(const asio::error_code& error, tcp::resolver::iterator endpoint_iterator);
-
-		void registerHandleRead();
-		void handleRead(const asio::error_code& error, std::size_t bytes_transferred);
-
-		void writeAsync(const std::string &data);
-		void registerHandleWrite();
-		void handleWrite(const asio::error_code& error, std::size_t bytes_transferred);
+		TCPSocket socket;
 
 		inline static kroll::Logger* GetLogger()
 		{
@@ -92,17 +58,6 @@ namespace ti
 		void SetKeepAlives(const ValueList& args, KValueRef result);
 		void SetKeepAliveTimes(const ValueList& args, KValueRef result);
 
-		//void OnReadReady(ReadableNotification * notification);
-		//void OnWriteReady(WritableNotification * notification);
-		//void OnError(ErrorNotification * notification);
-
-		void OnConnect();
-		void OnWrite();
-		void OnRead(char * data, int size);
-		void OnClose();
-		void CompleteClose();
-		void SetKeepAliveOpts();
-
 		virtual void on_connect()
 		{
 			if(!this->onConnect.isNull()) 
@@ -111,7 +66,6 @@ namespace ti
 				RunOnMainThread(this->onConnect, args, false);
 			}
 		}
-		
 		virtual void on_read(char * data, int size)
 		{
 			if(!this->onRead.isNull()) 
@@ -119,13 +73,10 @@ namespace ti
 				BytesRef bytes(new Bytes(data, size));
 				ValueList args (Value::NewObject(bytes));
 				RunOnMainThread(this->onRead, args, false);
+				return;
 			}
-			else
-			{
-				GetLogger()->Warn("TCPSocket::onRead: not read subscriber registered:  " + string(read_data_buffer));
-			}
+			GetLogger()->Warn("TCPSocket::onRead: not read subscriber registered:  " + string(data));
 		}
-		
 		virtual void on_error(const std::string& error_text)
 		{
 			if(!this->onError.isNull()) 
@@ -134,7 +85,6 @@ namespace ti
 				RunOnMainThread(this->onError, args, false);
 			}
 		}
-		
 		virtual void on_close()
 		{
 			if(!this->onClose.isNull()) 

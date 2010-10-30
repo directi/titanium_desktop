@@ -29,7 +29,11 @@ public:
 	void connectNB();
 	bool write(const std::string &data);
 	std::string read();
+	bool isClosed();
 	bool close();
+
+	void setKeepAlive(bool keep_alives);
+	//void setKeepAliveTimes(int inactivetime, int resendtime) ;
 
 	static void initialize();
 	static void uninitialize();
@@ -55,10 +59,6 @@ private:
 	std::deque<std::string> write_buffer;
 
 	enum SOCK_STATE_en { SOCK_CLOSED, SOCK_CONNECTING, SOCK_CONNECTED, SOCK_CLOSING } sock_state;
-
-	bool isClosed();
-	void setKeepAlive(bool keep_alives);
-	//void setKeepAliveTimes(int inactivetime, int resendtime) ;
 
 	void registerHandleResolve();
 	void handleResolve(const asio::error_code& error, tcp::resolver::iterator endpoint_iterator);

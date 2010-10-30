@@ -87,7 +87,6 @@ void TCPSocket::connect(long timeout)
 		socket.close();
 		this->OnError(e.what());
 	}
-	// Log ->Debug("Connecting Blocking.");
 }
 
 void TCPSocket::registerHandleResolve()
@@ -148,7 +147,6 @@ void TCPSocket::connectNB()
 		throw TCPSocketConnectedException();
 	}
 	non_blocking = true;
-	// Log ->Debug("Connecting non Blocking.");
 	this->sock_state = SOCK_CONNECTING;
 	this->registerHandleResolve();
 }
