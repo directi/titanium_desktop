@@ -5,35 +5,23 @@
 #ifndef _TCP_SOCKET_BINDING_H_
 #define _TCP_SOCKET_BINDING_H_
 
-#ifdef OS_WIN32
-#ifndef WINVER
-#define WINVER 0x0502
-#endif
-
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0502
-#endif
-
-#ifndef _WIN32_WINDOWS
-#define _WIN32_WINDOWS 0x0410
-#endif
-#endif
-
-#include <asio.hpp>
-using asio::ip::tcp;
-
-#include <asio/detail/mutex.hpp>
-
 #include <kroll/kroll.h>
 
-#include <deque>
+// TODO: This is poco UnWindows.h's curse.... to be removed with poco
+#ifdef UNICODE
+#define CreateEvent  CreateEventW
+#else
+#define CreateEvent  CreateEventA
+#endif // !UNICODE
 
-#define BUFFER_SIZE 1024   // choose a reasonable size to send back to JS
+#include "TCPSocket.h"
 
 
 namespace ti
 {
-	class TCPSocketBinding : public StaticBoundObject
+	class TCPSocketBinding
+		: public StaticBoundObject,
+		public TCPSocketHandler
 	{
 	public:
 		TCPSocketBinding(Host *host, const std::string & hostname, const std::string& port);
@@ -114,6 +102,47 @@ namespace ti
 		void OnClose();
 		void CompleteClose();
 		void SetKeepAliveOpts();
+
+		virtual void on_connect()
+		{
+			if(!this->onConnect.isNull()) 
+			{
+				ValueList args;
+				RunOnMainThread(this->onConnect, args, false);
+			}
+		}
+		
+		virtual void on_read(char * data, int size)
+		{
+			if(!this->onRead.isNull()) 
+			{
+				BytesRef bytes(new Bytes(data, size));
+				ValueList args (Value::NewObject(bytes));
+				RunOnMainThread(this->onRead, args, false);
+			}
+			else
+			{
+				GetLogger()->Warn("TCPSocket::onRead: not read subscriber registered:  " + string(read_data_buffer));
+			}
+		}
+		
+		virtual void on_error(const std::string& error_text)
+		{
+			if(!this->onError.isNull()) 
+			{
+				ValueList args (Value::NewString(error_text.c_str()));
+				RunOnMainThread(this->onError, args, false);
+			}
+		}
+		
+		virtual void on_close()
+		{
+			if(!this->onClose.isNull()) 
+			{
+				ValueList args;
+				RunOnMainThread(this->onClose, args, false);
+			}
+		}
 	};
 }
 

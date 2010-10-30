@@ -236,46 +236,25 @@ namespace ti
 	void TCPSocketBinding::OnError(const std::string& error_text) 
 	{
 		this->CompleteClose();
-		if(!this->onError.isNull()) 
-		{
-			ValueList args (Value::NewString(error_text.c_str()));
-			RunOnMainThread(this->onError, args, false);
-		}
+		this->on_error(error_text);
 	}
 
 	void TCPSocketBinding::OnConnect() 
 	{
 		this->sock_state = SOCK_CONNECTED;
-		if(!this->onConnect.isNull()) 
-		{
-			ValueList args;
-			RunOnMainThread(this->onConnect, args, false);
-		}
+		this->on_connect();
 	}
 
 	void TCPSocketBinding::OnRead(char * read_data_buffer, int size) 
 	{
 		read_data_buffer[size] = '\0';
-		if(!this->onRead.isNull()) 
-		{
-			BytesRef bytes(new Bytes(read_data_buffer, size));
-			ValueList args (Value::NewObject(bytes));
-			RunOnMainThread(this->onRead, args, false);
-		}
-		else
-		{
-			GetLogger()->Warn("TCPSocket::onRead: not subscribed by JavaScript: data Read: " + string(read_data_buffer));
-		}
+		this->on_read(read_data_buffer, size);
 	}
 
 	void TCPSocketBinding::OnClose()
 	{
 		this->CompleteClose();
-		if(!this->onClose.isNull()) 
-		{
-			ValueList args;
-			RunOnMainThread(this->onClose, args, false);
-		}
+		this->on_close();
 	}
 
 	void TCPSocketBinding::registerHandleWrite()
