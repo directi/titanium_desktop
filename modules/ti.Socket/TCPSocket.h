@@ -5,6 +5,25 @@
 #ifndef _TCP_SOCKET_H_
 #define _TCP_SOCKET_H_
 
+#ifdef OS_WIN32
+#ifndef WINVER
+#define WINVER 0x0502
+#endif
+
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0502
+#endif
+
+#ifndef _WIN32_WINDOWS
+#define _WIN32_WINDOWS 0x0410
+#endif
+
+#ifndef _WIN32_IE
+#define _WIN32_IE 0x600
+#endif
+#endif
+
+
 #include "SocketExceptions.h"
 #include "TCPSocketHandler.h"
 
@@ -39,8 +58,9 @@ public:
 	static void uninitialize();
 
 private:
-	static asio::io_service io_service;
-	static std::auto_ptr<asio::io_service::work> io_idlework;
+	static asio::io_service *io_service;
+	static asio::io_service::work * io_idlework;
+	static asio::thread * TCPSocket::io_thread;
 
 	const std::string hostname;
 	const std::string port;

@@ -4,6 +4,18 @@
 
 #include "socket_module.h"
 
+#ifdef OS_WIN32
+// TODO: This is poco UnWindows.h's curse.... to be removed with poco
+#ifdef UNICODE
+#define CreateEvent  CreateEventW
+#else
+#define CreateEvent  CreateEventA
+#endif // !UNICODE
+#endif
+
+#include "TCPSocket.h"
+
+
 using namespace kroll;
 
 namespace ti
@@ -12,12 +24,14 @@ namespace ti
 
 	void SocketModule::Initialize()
 	{
+		TCPSocket::initialize();
 		this->socketBinding = new SocketBinding(host);
 		GlobalObject::GetInstance()->SetObject("Socket", this->socketBinding);
 	}
 
 	void SocketModule::Stop()
 	{
+		TCPSocket::uninitialize();
 	}
 
 	std::string SocketModule::GetRootCertPath()

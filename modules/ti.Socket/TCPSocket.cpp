@@ -6,18 +6,27 @@
 
 #include <boost/bind.hpp>
 
-asio::io_service TCPSocket::io_service;
-std::auto_ptr<asio::io_service::work> TCPSocket::io_idlework(
-	new asio::io_service::work(io_service));
+asio::io_service * TCPSocket::io_service(new asio::io_service());
+asio::io_service::work * TCPSocket::io_idlework(
+	new asio::io_service::work(*io_service));
+asio::thread * TCPSocket::io_thread = NULL;
 
 void TCPSocket::initialize()
 {
-	asio::thread *io_thread = new asio::thread(
-		boost::bind(&asio::io_service::run, &TCPSocket::io_service));
+	io_thread = new asio::thread(
+		boost::bind(&asio::io_service::run, TCPSocket::io_service));
 }
 
 void TCPSocket::uninitialize()
 {
+	if (io_idlework)
+	{
+		delete io_idlework;
+	}
+	io_thread->join();
+	delete io_thread;
+	delete io_service;
+	io_service = NULL;
 }
 
 
@@ -31,8 +40,8 @@ non_blocking(false),
 keep_alives(true),
 //inactivetime(1),
 //resendtime(1),
-resolver(TCPSocket::io_service),
-socket(TCPSocket::io_service),
+resolver(*TCPSocket::io_service),
+socket(*TCPSocket::io_service),
 sock_state(SOCK_CLOSED)
 {
 }
