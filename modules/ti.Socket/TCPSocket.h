@@ -58,8 +58,8 @@ public:
 	static void uninitialize();
 
 private:
-	static asio::io_service *io_service;
-	static asio::io_service::work * io_idlework;
+	static std::auto_ptr<asio::io_service> io_service;
+	static std::auto_ptr<asio::io_service::work> io_idlework;
 	static asio::thread * TCPSocket::io_thread;
 
 	const std::string hostname;
