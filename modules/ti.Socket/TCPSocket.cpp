@@ -9,19 +9,20 @@
 std::auto_ptr<asio::io_service> TCPSocket::io_service(new asio::io_service());
 std::auto_ptr<asio::io_service::work> TCPSocket::io_idlework(
 	new asio::io_service::work(*io_service));
-asio::thread * TCPSocket::io_thread = NULL;
+std::auto_ptr<asio::thread> TCPSocket::io_thread(NULL);
 
 void TCPSocket::initialize()
 {
-	io_thread = new asio::thread(
-		boost::bind(&asio::io_service::run, TCPSocket::io_service.get()));
+	io_thread.reset(new asio::thread(
+		boost::bind(&asio::io_service::run, TCPSocket::io_service.get())));
 }
 
 void TCPSocket::uninitialize()
 {
-	io_idlework.reset();
+	io_service->stop();
 	io_thread->join();
-	delete io_thread;
+	io_idlework.reset();
+	io_thread.reset();
 	io_service.reset();
 }
 
