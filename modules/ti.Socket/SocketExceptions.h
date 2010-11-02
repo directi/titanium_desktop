@@ -35,11 +35,18 @@ public:
 	{ return "TCPSocket: socket is not open for write."; }
 };
 
-class TCPSocketReadException : public TCPSocketException
+class TCPSocketReadNotOpenException : public TCPSocketException
 {
 public:
 	virtual const char * what() const throw()
 	{ return "TCPSocket: socket is not open for read."; }
+};
+
+class TCPSocketReadException : public TCPSocketException
+{
+public:
+	virtual const char * what() const throw()
+	{ return "TCPSocket: socket error while reading from socket."; }
 };
 
 #endif

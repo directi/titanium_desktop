@@ -91,8 +91,6 @@ namespace ti
 
 	void TCPSocketBinding::Connect(const ValueList& args, KValueRef result)
 	{
-		GetLogger()->Warn("Connect not implemented.");
-		return;
 		try
 		{
 			long timeout = (args.size() > 0 && args.at(0)->IsInt()) ? args.at(0)->ToInt() : 10;

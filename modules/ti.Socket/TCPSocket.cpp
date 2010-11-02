@@ -70,29 +70,58 @@ void TCPSocket::setKeepAlive(bool keep_alives)
 //	//this->resendtime = resendtime;
 //}
 
-void TCPSocket::connect(long timeout)
+tcp::resolver::iterator TCPSocket::resolveHost()
 {
-	// TODO: implement this method
-	return;
-	if(this->sock_state != SOCK_CLOSED)
-	{
-		throw TCPSocketConnectedException();
-		return;
-	}
-	non_blocking = false;
-	this->sock_state = SOCK_CONNECTING;
+	tcp::resolver::query query(hostname, port);
+	return resolver.resolve(query);
+}
 
+bool TCPSocket::tryConnect(tcp::resolver::iterator endpoint_iterator)
+{
 	try
 	{
-		//TODO: handle timeout for connect
-		//tcp::resolver::iterator endpoint_iterator = ;
-		//socket.connect(*endpoint_iterator);
+		socket.connect(*endpoint_iterator);
 	}
 	catch(asio::system_error & e)
 	{
 		socket.close();
-		this->OnError(e.what());
+		return false;
 	}
+	return true;
+}
+
+bool TCPSocket::connect(long timeout)
+{
+	if(this->sock_state != SOCK_CLOSED)
+	{
+		throw TCPSocketConnectedException();
+	}
+	non_blocking = false;
+	this->sock_state = SOCK_CONNECTING;
+
+	//TODO: implement timeout for connect
+	tcp::resolver::iterator endpoint_iterator;
+	try
+	{
+		endpoint_iterator = this->resolveHost();
+	}
+	catch(asio::system_error & e)
+	{
+		this->OnError(e.what());
+		this->sock_state = SOCK_CLOSED;
+		return false;
+	}
+
+	bool ret;
+	while(endpoint_iterator != tcp::resolver::iterator())
+	{
+		ret = tryConnect(endpoint_iterator);
+		if (ret)
+			break;
+		endpoint_iterator = ++endpoint_iterator;
+	}
+	this->sock_state = (ret)?SOCK_CONNECTED:SOCK_CLOSED;
+	return ret;
 }
 
 void TCPSocket::registerHandleResolve()
@@ -248,6 +277,22 @@ void TCPSocket::writeAsync(const std::string &data)
 	}
 }
 
+bool TCPSocket::writeSync(const std::string &data)
+{
+	try
+	{
+		asio::write(socket, asio::buffer(data.c_str(), data.size()));
+	}
+	catch(asio::system_error & e)
+	{
+		this->sock_state = SOCK_CLOSED;
+		socket.close();
+		this->OnError(e.what());
+		return false;
+	}
+	return true;
+}
+
 bool TCPSocket::write(const std::string &data)
 {
 	if (this->sock_state != SOCK_CONNECTED)
@@ -259,20 +304,32 @@ bool TCPSocket::write(const std::string &data)
 		writeAsync(data);
 		return true;
 	}
-	else
-	{
-		// TODO:
-		return false;
-	}
+	return writeSync(data);
 }
 
 std::string TCPSocket::read()
 {
 	if (this->sock_state != SOCK_CONNECTED)
 	{
-		throw TCPSocketReadException();
+		throw TCPSocketReadNotOpenException();
 	}
 	// TODO: implement sync read
+	size_t size = 0;
+	try
+	{
+		size = asio::read(socket, asio::buffer(read_data_buffer, BUFFER_SIZE),
+			asio::transfer_at_least(1));
+	}
+	catch(asio::system_error & e)
+	{
+		this->CompleteClose();
+		this->OnError(e.what());
+		throw TCPSocketReadException();
+	}
+	if (size > 0)
+	{
+		return std::string(read_data_buffer, size);
+	}
 	return std::string("");
 }
 

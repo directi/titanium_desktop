@@ -44,7 +44,7 @@ public:
 		TCPSocketHandler * handler);
 	virtual ~TCPSocket();
 
-	void connect(long timeout = 10);
+	bool connect(long timeout = 10);
 	void connectNB();
 	bool write(const std::string &data);
 	std::string read();
@@ -79,6 +79,10 @@ private:
 	std::deque<std::string> write_buffer;
 
 	enum SOCK_STATE_en { SOCK_CLOSED, SOCK_CONNECTING, SOCK_CONNECTED, SOCK_CLOSING } sock_state;
+
+	tcp::resolver::iterator resolveHost();
+	bool tryConnect(tcp::resolver::iterator endpoint_iterator);
+	bool writeSync(const std::string &data);
 
 	void registerHandleResolve();
 	void handleResolve(const asio::error_code& error, tcp::resolver::iterator endpoint_iterator);
