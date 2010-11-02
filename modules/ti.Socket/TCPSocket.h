@@ -30,6 +30,7 @@
 #include <deque>
 
 #include <asio.hpp>
+#include <asio/ssl.hpp>
 #include <asio/detail/mutex.hpp>
 using asio::ip::tcp;
 
@@ -72,6 +73,8 @@ private:
 	//int resendtime;
 	tcp::resolver resolver;
 	tcp::socket socket;
+	asio::ssl::stream<tcp::socket> *ssl_socket;
+
 
 	char read_data_buffer[BUFFER_SIZE + 1];
 

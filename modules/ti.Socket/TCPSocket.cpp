@@ -39,6 +39,7 @@ keep_alives(true),
 //resendtime(1),
 resolver(*TCPSocket::io_service.get()),
 socket(*TCPSocket::io_service.get()),
+ssl_socket(NULL),
 sock_state(SOCK_CLOSED)
 {
 }

@@ -156,6 +156,11 @@ class BuildConfig(object):
 		if name is 'asio':
 			cpppath = [self.tp('asio', 'include')]
 
+		if name is 'openssl':
+			cpppath = [self.tp('openssl', 'include')]
+			libpath = [self.tp('openssl', 'lib')]
+			libs = ['libeay32.lib', 'ssleay32.lib']
+
 		if name is 'poco':
 			cpppath = [self.tp('poco', 'include')]
 			libpath = [self.tp('poco', 'lib')]
