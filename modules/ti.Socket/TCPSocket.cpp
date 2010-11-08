@@ -4,7 +4,6 @@
 
 #include "TCPSocket.h"
 
-#include <boost/bind.hpp>
 
 std::auto_ptr<asio::io_service> TCPSocket::io_service(new asio::io_service());
 std::auto_ptr<asio::io_service::work> TCPSocket::io_idlework(
@@ -26,23 +25,6 @@ void TCPSocket::uninitialize()
 	io_service.reset();
 }
 
-
-TCPSocket::TCPSocket(const std::string& hostname,
-					 const std::string& port,
-					 TCPSocketHandler * handler)
-: hostname(hostname),
-port(port),
-handler(handler),
-non_blocking(false),
-keep_alives(true),
-//inactivetime(1),
-//resendtime(1),
-resolver(*TCPSocket::io_service.get()),
-socket(*TCPSocket::io_service.get()),
-ssl_socket(NULL),
-sock_state(SOCK_CLOSED)
-{
-}
 
 TCPSocket::~TCPSocket()
 {
@@ -125,56 +107,6 @@ bool TCPSocket::connect(long timeout)
 	return ret;
 }
 
-void TCPSocket::registerHandleResolve()
-{
-	tcp::resolver::query query(hostname, port);
-	resolver.async_resolve(query,
-		boost::bind(&TCPSocket::handleResolve, this,
-		asio::placeholders::error, asio::placeholders::iterator));
-}
-
-void TCPSocket::handleResolve(const asio::error_code& error,
-							  tcp::resolver::iterator endpoint_iterator)
-{
-	if (error)
-	{
-		this->OnError(error.message());
-		return;
-	}
-	registerHandleConnect(endpoint_iterator);
-}
-
-
-void TCPSocket::registerHandleConnect(tcp::resolver::iterator endpoint_iterator)
-{
-	if (endpoint_iterator != tcp::resolver::iterator())
-	{
-		socket.async_connect(*endpoint_iterator,
-			boost::bind(&TCPSocket::handleConnect, this,
-			asio::placeholders::error, ++endpoint_iterator));
-		return;
-	}
-	this->OnError("TCPSocket Host resolution Error");
-}
-
-void TCPSocket::handleConnect(const asio::error_code& error,
-							  tcp::resolver::iterator endpoint_iterator)
-{
-	if (!error)
-	{
-		this->OnConnect();
-		this->registerHandleRead();
-		return;
-	}
-
-	socket.close();
-	if (endpoint_iterator != tcp::resolver::iterator())
-	{
-		this->registerHandleConnect(endpoint_iterator);
-		return;
-	}
-	this->OnError(error.message());
-}
 
 void TCPSocket::connectNB()
 {
@@ -207,41 +139,6 @@ void TCPSocket::handleRead(const asio::error_code& error, std::size_t bytes_tran
 	this->registerHandleRead();
 }
 
-void TCPSocket::OnConnect() 
-{
-	this->sock_state = SOCK_CONNECTED;
-	if (handler)
-	{
-		handler->on_connect();
-	}
-}
-
-void TCPSocket::OnRead(char * read_data_buffer, int size) 
-{
-	read_data_buffer[size] = '\0';
-	if (handler)
-	{
-		handler->on_read(read_data_buffer, size);
-	}
-}
-
-void TCPSocket::OnError(const std::string& error_text) 
-{
-	this->CompleteClose();
-	if (handler)
-	{
-		handler->on_error(error_text);
-	}
-}
-
-void TCPSocket::OnClose()
-{
-	this->CompleteClose();
-	if (handler)
-	{
-		handler->on_close();
-	}
-}
 
 void TCPSocket::registerHandleWrite()
 {
@@ -332,27 +229,5 @@ std::string TCPSocket::read()
 		return std::string(read_data_buffer, size);
 	}
 	return std::string("");
-}
-
-bool TCPSocket::close()
-{
-	if (this->sock_state != SOCK_CLOSED)
-	{
-		// Log  ->Debug("Closing socket to: %s:%d ", this->hostname.c_str(), this->port.c_str());
-		this->CompleteClose();
-		return true;
-	}
-	return false;
-}
-
-void TCPSocket::CompleteClose()
-{
-	if ((this->sock_state == SOCK_CONNECTED)
-		|| (this->sock_state == SOCK_CONNECTING))
-	{
-		this->sock_state = SOCK_CLOSING;
-		socket.close();
-		this->sock_state = SOCK_CLOSED;
-	}
 }
 
