@@ -167,7 +167,8 @@ if build.is_win32():
 	kboot_env.AddPostAction(p, 'mt.exe -nologo -manifest "%s" "%s" -out:"%s"' % (intermediate_manifest, cc_manifest, merged_manifest))
 	kboot_env.AddPostAction(p, ('mt.exe -nologo /outputresource:"%s.exe;#1" /manifest "%s"' % (kboot_out, merged_manifest)))
 
-	merged_manifest = path.join(build.dir, 'kboot-dev.merged.manifest')
-	kboot_env_dev.AddPostAction(p1, 'mt.exe -nologo -manifest "%s" "%s" -out:"%s"' % (intermediate_manifest, cc_manifest, merged_manifest))
-	kboot_env_dev.AddPostAction(p1, ('mt.exe -nologo /outputresource:"%s.exe;#1" /manifest "%s"' % (kboot_out_dev, merged_manifest)))
+	if not (ARGUMENTS.get('debug', 0) or ARGUMENTS.get('console',0)):
+		merged_manifest = path.join(build.dir, 'kboot-dev.merged.manifest')
+		kboot_env_dev.AddPostAction(p1, 'mt.exe -nologo -manifest "%s" "%s" -out:"%s"' % (intermediate_manifest, cc_manifest, merged_manifest))
+		kboot_env_dev.AddPostAction(p1, ('mt.exe -nologo /outputresource:"%s.exe;#1" /manifest "%s"' % (kboot_out_dev, merged_manifest)))
 
