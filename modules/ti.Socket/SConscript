@@ -5,7 +5,14 @@ Import('build env module')
 sources = Glob('*.cpp')
 
 env.Append(CPPDEFINES = ('TITANIUM_SOCKET_API_EXPORT', 1))
+
 build.add_thirdparty(env, 'poco')
+build.add_thirdparty(env, 'asio')
+build.add_thirdparty(env, 'openssl')
+
+env.Append(CPPDEFINES = ('BOOST_DATE_TIME_NO_LIB'))
+env.Append(CPPDEFINES = ('BOOST_REGEX_NO_LIB'))
+
 #build.add_thirdparty(env, 'curl')
 
 if build.is_osx():

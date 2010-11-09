@@ -17,3 +17,4 @@ docs
 thirdparty-*
 *.o
 *.os
+*.obj
