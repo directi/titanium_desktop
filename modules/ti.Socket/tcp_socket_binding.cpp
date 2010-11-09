@@ -7,27 +7,17 @@
 namespace ti
 {
 	TCPSocketBinding::TCPSocketBinding(Host* host, const std::string& hostname, const std::string& port) :
-		StaticBoundObject("Network.TCPSocket"),
-		ti_host(host),
-		socket(hostname, port, this),
+		Socket(host, string("Network.TCPSocketBinding")),
 		onConnect(0),
-		onRead(0),
-		onError(0),
-		onClose(0)
+		hostname(hostname),
+		port(port),
+		resolver(*TCPSocketBinding::io_service.get())
 	{
 		this->SetMethod("connect",&TCPSocketBinding::Connect);
 		this->SetMethod("connectNB",&TCPSocketBinding::ConnectNB);
 
-		this->SetMethod("read",&TCPSocketBinding::Read);
-		this->SetMethod("write",&TCPSocketBinding::Write);
-
-		this->SetMethod("isClosed",&TCPSocketBinding::IsClosed);
-		this->SetMethod("close",&TCPSocketBinding::Close);
 
 		this->SetMethod("onConnect",&TCPSocketBinding::SetOnConnect);
-		this->SetMethod("onRead",&TCPSocketBinding::SetOnRead);
-		this->SetMethod("onError",&TCPSocketBinding::SetOnError);
-		this->SetMethod("onClose",&TCPSocketBinding::SetOnClose);
 
 		// Enables/disables keepalives.
 		this->SetMethod("setDisconnectionNotifications", &TCPSocketBinding::SetKeepAlives);
@@ -38,6 +28,7 @@ namespace ti
 
 	TCPSocketBinding::~TCPSocketBinding()
 	{
+		this->CompleteClose();
 	}
 
 	void TCPSocketBinding::SetOnConnect(const ValueList& args, KValueRef result)
@@ -45,30 +36,11 @@ namespace ti
 		this->onConnect = args.at(0)->ToMethod();
 	}
 
-	void TCPSocketBinding::SetOnRead(const ValueList& args, KValueRef result)
-	{
-		this->onRead = args.at(0)->ToMethod();
-	}
-
-	void TCPSocketBinding::SetOnError(const ValueList& args, KValueRef result)
-	{
-		this->onError = args.at(0)->ToMethod();
-	}
-
-	void TCPSocketBinding::SetOnClose(const ValueList& args, KValueRef result)
-	{
-		this->onClose = args.at(0)->ToMethod();
-	}
-
-	void TCPSocketBinding::IsClosed(const ValueList& args, KValueRef result)
-	{
-		return result->SetBool(socket.isClosed());
-	}
 
 	void TCPSocketBinding::SetKeepAlives(const ValueList& args, KValueRef result)
 	{
 		// TODO: verify args
-		socket.setKeepAlive(args.at(0)->ToBool());
+		this->setKeepAlive(args.at(0)->ToBool());
 	}
 
 	void TCPSocketBinding::SetKeepAliveTimes(const ValueList& args, KValueRef result) 
@@ -81,7 +53,7 @@ namespace ti
 		{
 			//int inactivetime = args.at(0)->ToInt();
 			//int resendtime = args.at(1)->ToInt();
-			//socket.setKeepAliveTimes(inactivetime, resendtime);
+			//this->setKeepAliveTimes(inactivetime, resendtime);
 		}
 		else 
 		{
@@ -95,7 +67,7 @@ namespace ti
 		{
 			long timeout = (args.size() > 0 && args.at(0)->IsInt()) ? args.at(0)->ToInt() : 10;
 			GetLogger()->Debug("Connecting Blocking.");
-			socket.connect(timeout);
+			this->connect(timeout);
 		}
 		catch(SocketException & e)
 		{
@@ -109,7 +81,7 @@ namespace ti
 		try
 		{
 			GetLogger()->Debug("Connecting non Blocking.");
-			socket.connectNB();
+			this->connectNB();
 		}
 		catch(SocketException &e)
 		{
@@ -117,35 +89,144 @@ namespace ti
 		}
 	}
 
-	void TCPSocketBinding::Write(const ValueList& args, KValueRef result)
+	void TCPSocketBinding::on_connect()
+	{
+		if(!this->onConnect.isNull()) 
+		{
+			ValueList args;
+			RunOnMainThread(this->onConnect, args, false);
+		}
+	}
+
+
+	void TCPSocketBinding::setKeepAlive(bool keep_alives)
+	{
+		asio::socket_base::keep_alive option(keep_alives);
+		socket.set_option(option);
+	}
+
+	//void TCPSocketBinding::setKeepAliveTimes(int inactivetime, int resendtime) 
+	//{
+	//	if(this->sock_state != SOCK_CLOSED) 
+	//	{
+	//		throw TCPSocketConnectedException();
+	//	}
+	//	//this->inactivetime = inactivetime;
+	//	//this->resendtime = resendtime;
+	//}
+
+	tcp::resolver::iterator TCPSocketBinding::resolveHost()
+	{
+		tcp::resolver::query query(hostname, port);
+		return resolver.resolve(query);
+	}
+
+	bool TCPSocketBinding::tryConnect(tcp::resolver::iterator endpoint_iterator)
 	{
 		try
 		{
-			std::string data = args.at(0)->ToString();
-			result->SetBool(socket.write(data));
+			socket.connect(*endpoint_iterator);
 		}
-		catch(SocketException &e)
+		catch(asio::system_error & e)
 		{
-			throw ValueException::FromString(e.what());
+			this->CompleteClose();
+			return false;
 		}
+		return true;
 	}
 
-	void TCPSocketBinding::Read(const ValueList& args, KValueRef result)
+	bool TCPSocketBinding::connect(long timeout)
 	{
+		if(this->sock_state != SOCK_CLOSED)
+		{
+			throw TCPSocketConnectedException();
+		}
+		non_blocking = false;
+		this->sock_state = SOCK_CONNECTING;
+
+		//TODO: implement timeout for connect
+		tcp::resolver::iterator endpoint_iterator;
 		try
 		{
-			std::string data = socket.read();
-			BytesRef bytes(new Bytes(data.c_str(), data.size()));
-			result->SetValue(Value::NewObject(bytes));
+			endpoint_iterator = this->resolveHost();
 		}
-		catch(SocketException &e)
+		catch(asio::system_error & e)
 		{
-			throw ValueException::FromString(e.what());
+			this->on_error(e.what());
+			this->sock_state = SOCK_CLOSED;
+			return false;
 		}
+
+		bool ret;
+		while(endpoint_iterator != tcp::resolver::iterator())
+		{
+			ret = tryConnect(endpoint_iterator);
+			if (ret)
+				break;
+			endpoint_iterator = ++endpoint_iterator;
+		}
+		this->sock_state = (ret)?SOCK_CONNECTED:SOCK_CLOSED;
+		return ret;
 	}
 
-	void TCPSocketBinding::Close(const ValueList& args, KValueRef result)
+
+	void TCPSocketBinding::connectNB()
 	{
-		result->SetBool(socket.close());
+		if(this->sock_state != SOCK_CLOSED)
+		{
+			throw TCPSocketConnectedException();
+		}
+		non_blocking = true;
+		this->sock_state = SOCK_CONNECTING;
+		this->registerHandleResolve();
+	}
+
+	void TCPSocketBinding::registerHandleResolve()
+	{
+		tcp::resolver::query query(hostname, port);
+		resolver.async_resolve(query,
+			boost::bind(&TCPSocketBinding::handleResolve, this,
+			asio::placeholders::error, asio::placeholders::iterator));
+	}
+
+	void TCPSocketBinding::handleResolve(const asio::error_code& error, tcp::resolver::iterator endpoint_iterator)
+	{
+		if (error)
+		{
+			this->on_error(error.message());
+			return;
+		}
+		registerHandleConnect(endpoint_iterator);
+	}
+
+	void TCPSocketBinding::registerHandleConnect(tcp::resolver::iterator endpoint_iterator)
+	{
+		if (endpoint_iterator != tcp::resolver::iterator())
+		{
+			socket.async_connect(*endpoint_iterator,
+				boost::bind(&TCPSocketBinding::handleConnect, this,
+				asio::placeholders::error, ++endpoint_iterator));
+			return;
+		}
+		this->on_error("TCPSocketBinding Host resolution Error");
+	}
+
+	void TCPSocketBinding::handleConnect(const asio::error_code& error, tcp::resolver::iterator endpoint_iterator)
+	{
+		if (!error)
+		{
+			this->sock_state = SOCK_CONNECTED;
+			this->on_connect();
+			this->registerHandleRead();
+			return;
+		}
+
+		this->CompleteClose();
+		if (endpoint_iterator != tcp::resolver::iterator())
+		{
+			this->registerHandleConnect(endpoint_iterator);
+			return;
+		}
+		this->on_error(error.message());
 	}
 }
