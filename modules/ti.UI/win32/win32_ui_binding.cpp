@@ -159,10 +159,10 @@ namespace ti
 			h = (HBITMAP) LoadImageW(
 				NULL, widePath.c_str(), IMAGE_BITMAP, sizeX, sizeY, flags);
 		}
-		else if (_stricmp(ext, ".png") == 0)
+/*		else if (_stricmp(ext, ".png") == 0)
 		{
 			h = LoadPNGAsBitmap(path, sizeX, sizeY);
-		}
+		}*/
 		else
 		{
 			throw ValueException::FromFormat("Unsupported image file: %s", path);
@@ -193,12 +193,12 @@ namespace ti
 			h = Win32UIBinding::BitmapToIcon(bitmap, sizeX, sizeY);
 			DeleteObject(bitmap);
 		}
-		else if (_stricmp(ext, ".png") == 0)
+		/*else if (_stricmp(ext, ".png") == 0)
 		{
 			HBITMAP bitmap = LoadPNGAsBitmap(path, sizeX, sizeY);
 			h = Win32UIBinding::BitmapToIcon(bitmap, sizeX, sizeY);
 			DeleteObject(bitmap);
-		}
+		}*/
 		else
 		{
 			throw ValueException::FromFormat("Unsupported image file: %s", path);
@@ -248,7 +248,7 @@ namespace ti
 	}
 
 	/*static*/
-	HBITMAP Win32UIBinding::LoadPNGAsBitmap(std::string& path, int sizeX, int sizeY)
+/*	HBITMAP Win32UIBinding::LoadPNGAsBitmap(std::string& path, int sizeX, int sizeY)
 	{
 		std::string systemPath(UTF8ToSystem(path));
 		cairo_surface_t* pngSurface =
@@ -304,7 +304,9 @@ namespace ti
 
 		return out;
 	}
+*/
 
+/*
 	cairo_surface_t* Win32UIBinding::ScaleCairoSurface(
 		cairo_surface_t* oldSurface, int newWidth, int newHeight)
 	{
@@ -324,18 +326,18 @@ namespace ti
 
 		/* To avoid getting the edge pixels blended with 0 alpha, which would 
 		 * occur with the default EXTEND_NONE. Use EXTEND_PAD for 1.2 or newer (2) */
-		cairo_pattern_set_extend(cairo_get_source(cr), CAIRO_EXTEND_REFLECT);
+/*		cairo_pattern_set_extend(cairo_get_source(cr), CAIRO_EXTEND_REFLECT);
 
 		 /* Replace the destination with the source instead of overlaying */
-		cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
+/*		cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
 
 		/* Do the actual drawing */
-		cairo_paint(cr);
+/*		cairo_paint(cr);
 		cairo_destroy(cr);
 
 		return newSurface;
 	 }
-
+*/
 
 	/*static*/
 	void Win32UIBinding::ReleaseImage(HANDLE handle)

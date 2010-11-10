@@ -16,7 +16,6 @@ if build.is_linux():
 	env.ParseConfig('pkg-config --cflags --libs libnotify gtk+-2.0 gdk-2.0 x11 xext')
 
 elif build.is_win32():
-	build.add_thirdparty(env, 'cairo')
 	sources = sources + Glob('win32/*.cpp')
 	sources += Glob('binding/kjs*.cpp')
 	env.Append(CPPPATH=[build.tp('icu', 'include')])

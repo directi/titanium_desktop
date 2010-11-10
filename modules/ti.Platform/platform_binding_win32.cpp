@@ -9,8 +9,8 @@
 #include <commdlg.h>
 #include <shellapi.h>
 #include <shlobj.h>
-#include <cairo/cairo.h>
-#include <cairo/cairo-win32.h>
+//#include <cairo/cairo.h>
+//#include <cairo/cairo-win32.h>
 #include "platform_binding.h"
 
 namespace ti
@@ -79,7 +79,7 @@ void PlatformBinding::TakeScreenshotImpl(const std::string& targetFile)
 {
 	// Ensure filename ends in .bmp.
 	// TODO: This seems broken.
-	std::string screenshotFile = targetFile;
+/*	std::string screenshotFile = targetFile;
 	if (screenshotFile.rfind(".") == std::string::npos)
 		screenshotFile.append(".png");
 
@@ -102,7 +102,8 @@ void PlatformBinding::TakeScreenshotImpl(const std::string& targetFile)
 	cairo_surface_destroy(surface);
 
 	if (result != CAIRO_STATUS_SUCCESS)
-		throw ValueException::FromString("Could not save screenshot.");
+		throw ValueException::FromString("Could not save screenshot.");*/
+	throw ValueException::FromString("Screenshot removed");
 }
 
 }
