@@ -21,6 +21,8 @@ namespace ti
 			const std::string& port);
 		virtual ~TCPSocketBinding();
 
+		tcp::socket * resetSocket();
+
 	private:
 
 		KMethodRef onConnect;
@@ -53,6 +55,24 @@ namespace ti
 		void handleResolve(const asio::error_code& error, tcp::resolver::iterator endpoint_iterator);
 		void registerHandleConnect(tcp::resolver::iterator endpoint_iterator);
 		void handleConnect(const asio::error_code& error, tcp::resolver::iterator endpoint_iterator);
+
+		virtual bool CompleteClose()
+		{
+			// Log  ->Debug("Closing socket to: %s:%d ", this->hostname.c_str(), this->port.c_str());
+			if ((this->sock_state == SOCK_CONNECTED)
+				|| (this->sock_state == SOCK_CONNECTING))
+			{
+				this->sock_state = SOCK_CLOSING;
+				if (socket)
+				{
+					socket->close();
+				}
+				this->sock_state = SOCK_CLOSED;
+				return true;
+			}
+			return false;
+		}
+
 	};
 }
 

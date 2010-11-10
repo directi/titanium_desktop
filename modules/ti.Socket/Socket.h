@@ -34,7 +34,7 @@ namespace ti
 	{
 	public:
 		Socket<T>(Host *host, const std::string & name);
-		virtual ~Socket() {}
+		virtual ~Socket();
 
 		static void initialize();
 		static void uninitialize();
@@ -46,7 +46,7 @@ namespace ti
 
 
 		Host* ti_host;
-		T socket;
+		T *socket;
 
 		asio::detail::mutex write_mutex;
 		std::deque<std::string> write_buffer;
@@ -64,7 +64,7 @@ namespace ti
 		}
 
 		void registerHandleRead();
-		bool CompleteClose();
+		virtual bool CompleteClose()=0;
 
 	private:
 
@@ -102,6 +102,14 @@ namespace ti
 		void handleRead(const asio::error_code& error, std::size_t bytes_transferred);
 	};
 
+	template <class T1, class T2>
+	void copyHandlers(Socket<T1> *a, Socket<T2> *b)
+	{
+		a->onError = b->onError;
+
+	}
+
+
 	template <class T>
 	std::auto_ptr<asio::io_service> Socket<T>::io_service(new asio::io_service());
 
@@ -133,7 +141,7 @@ namespace ti
 	Socket<T>::Socket(Host *host, const std::string & name)
 		: StaticBoundObject(name.c_str()),
 	ti_host(host),
-	socket(*Socket::io_service.get()),
+	socket(NULL),
 	non_blocking(false),
 	sock_state(SOCK_CLOSED)
 	{
@@ -146,8 +154,19 @@ namespace ti
 
 		this->SetMethod("isClosed",&Socket::IsClosed);
 		this->SetMethod("close",&Socket::Close);
-
 	}
+
+	template <class T>
+	Socket<T>::~Socket()
+	{
+		if (socket)
+		{
+			this->CompleteClose();
+			delete socket;
+			socket = NULL;
+		}
+	}
+
 
 	template <class T>
 	void Socket<T>::on_read(char * data, int size)
@@ -228,7 +247,7 @@ namespace ti
 	template <class T>
 	void Socket<T>::registerHandleWrite()
 	{
-		asio::async_write(socket,
+		asio::async_write(*socket,
 			asio::buffer(write_buffer.front().c_str(), write_buffer.front().size()),
 			boost::bind(&Socket::handleWrite, this,
 			asio::placeholders::error, asio::placeholders::bytes_transferred));
@@ -268,12 +287,11 @@ namespace ti
 	{
 		try
 		{
-			asio::write(socket, asio::buffer(data.c_str(), data.size()));
+			asio::write(*socket, asio::buffer(data.c_str(), data.size()));
 		}
 		catch(asio::system_error & e)
 		{
-			this->sock_state = SOCK_CLOSED;
-			socket.close();
+			this->CompleteClose();
 			this->on_error(e.what());
 			return false;
 		}
@@ -311,7 +329,7 @@ namespace ti
 	template <class T>
 	void Socket<T>::registerHandleRead()
 	{
-		asio::async_read(socket,
+		asio::async_read(*socket,
 			asio::buffer(read_data_buffer, BUFFER_SIZE),
 			asio::transfer_at_least(1),
 			boost::bind(&Socket::handleRead, this,
@@ -329,7 +347,7 @@ namespace ti
 		size_t size = 0;
 		try
 		{
-			size = asio::read(socket, asio::buffer(read_data_buffer, BUFFER_SIZE),
+			size = asio::read(*socket, asio::buffer(read_data_buffer, BUFFER_SIZE),
 				asio::transfer_at_least(1));
 		}
 		catch(asio::system_error & e)
@@ -345,19 +363,5 @@ namespace ti
 		return std::string("");
 	}
 
-	template <class T>
-	bool Socket<T>::CompleteClose()
-	{
-		// Log  ->Debug("Closing socket to: %s:%d ", this->hostname.c_str(), this->port.c_str());
-		if ((this->sock_state == SOCK_CONNECTED)
-			|| (this->sock_state == SOCK_CONNECTING))
-		{
-			this->sock_state = SOCK_CLOSING;
-			socket.close();
-			this->sock_state = SOCK_CLOSED;
-			return true;
-		}
-		return false;
-	}
 }
 #endif

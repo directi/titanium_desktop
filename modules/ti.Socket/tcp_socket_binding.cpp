@@ -7,12 +7,13 @@
 namespace ti
 {
 	TCPSocketBinding::TCPSocketBinding(Host* host, const std::string& hostname, const std::string& port) :
-		Socket(host, string("Network.TCPSocketBinding")),
+		Socket(host, string("Socket.TCPSocketBinding")),
 		onConnect(0),
 		hostname(hostname),
 		port(port),
 		resolver(*TCPSocketBinding::io_service.get())
 	{
+		this->socket = new tcp::socket(*Socket::io_service.get());
 		this->SetMethod("connect",&TCPSocketBinding::Connect);
 		this->SetMethod("connectNB",&TCPSocketBinding::ConnectNB);
 
@@ -28,7 +29,6 @@ namespace ti
 
 	TCPSocketBinding::~TCPSocketBinding()
 	{
-		this->CompleteClose();
 	}
 
 	void TCPSocketBinding::SetOnConnect(const ValueList& args, KValueRef result)
@@ -102,7 +102,10 @@ namespace ti
 	void TCPSocketBinding::setKeepAlive(bool keep_alives)
 	{
 		asio::socket_base::keep_alive option(keep_alives);
-		socket.set_option(option);
+		if (socket)
+		{
+			socket->set_option(option);
+		}
 	}
 
 	//void TCPSocketBinding::setKeepAliveTimes(int inactivetime, int resendtime) 
@@ -125,7 +128,10 @@ namespace ti
 	{
 		try
 		{
-			socket.connect(*endpoint_iterator);
+			if (socket)
+			{
+				socket->connect(*endpoint_iterator);
+			}
 		}
 		catch(asio::system_error & e)
 		{
@@ -201,9 +207,9 @@ namespace ti
 
 	void TCPSocketBinding::registerHandleConnect(tcp::resolver::iterator endpoint_iterator)
 	{
-		if (endpoint_iterator != tcp::resolver::iterator())
+		if (endpoint_iterator != tcp::resolver::iterator() && socket)
 		{
-			socket.async_connect(*endpoint_iterator,
+			socket->async_connect(*endpoint_iterator,
 				boost::bind(&TCPSocketBinding::handleConnect, this,
 				asio::placeholders::error, ++endpoint_iterator));
 			return;
