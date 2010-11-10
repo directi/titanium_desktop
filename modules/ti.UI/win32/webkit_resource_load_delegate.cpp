@@ -61,7 +61,7 @@ HRESULT STDMETHODCALLTYPE Win32WebKitResourceLoadDelegate::willSendRequest(
 {
 	BSTR u;
 	request->URL(&u);
-	std::wstring u2(u);
+	/*std::wstring u2(u);
 	std::string url(::WideToUTF8(u2));
 	if (url.find("app://") == 0 || url.find("ti://") == 0)
 	{
@@ -77,8 +77,8 @@ HRESULT STDMETHODCALLTYPE Win32WebKitResourceLoadDelegate::willSendRequest(
 		*newRequest = request;	
 		request->AddRef();
 	}
-	SysFreeString(u);
-	return S_OK;
+	SysFreeString(u);*/
+	return E_NOTIMPL;
 }
 
 HRESULT STDMETHODCALLTYPE Win32WebKitResourceLoadDelegate::didReceiveAuthenticationChallenge(

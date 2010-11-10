@@ -49,6 +49,7 @@ namespace ti
 		REMOVED: setPreprocessCallback(PreprocessURLCallback);
 		DB: DONE*/
 		setProxyCallback(ProxyForURLCallback);
+		setTitaniumProtocolResolver(TitaniumProtocolResolver);
 
 		std::string cookieJarFilename(FileUtils::Join(
 			Host::GetInstance()->GetApplication()->GetDataPath().c_str(),

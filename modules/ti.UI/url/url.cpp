@@ -59,9 +59,19 @@ namespace ti
 		std::string urlString(url);
 		SharedProxy proxy(ProxyConfig::GetProxyForURL(urlString));
 		if (proxy.isNull())
-			strncpy(buffer, "direct://", bufferLength);
+			strncpy(buffer, "direct://", bufferLength - 1);
 		else
-			strncpy(buffer, proxy->ToString().c_str(), bufferLength);
+			strncpy(buffer, proxy->ToString().c_str(), bufferLength - 1);
+	}
+
+	void TitaniumProtocolResolver(const char* url, char* buffer, int bufferLength)
+	{
+		buffer[bufferLength - 1] = '\0';
+		string url1(url);
+		string path0 = URLUtils::NormalizeURL(url1);
+		string path1 = URLUtils::URLToPath(path0);
+		string path2 = URLUtils::PathToFileURL(path1);
+		strncpy(buffer, path2.c_str(), bufferLength - 1);
 	}
 
 	int CanPreprocessURLCallback(const char* url)

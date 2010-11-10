@@ -22,5 +22,6 @@ namespace ti
 	int CanPreprocessURLCallback(const char* url);
 	char* PreprocessURLCallback(const char* url, KeyValuePair* headers, char** mimeType);
 	void ProxyForURLCallback(const char* url, char* buffer, int bufferLength);
+	void TitaniumProtocolResolver(const char* url, char* buffer, int bufferLength);
 }
 #endif
