@@ -33,7 +33,7 @@ namespace ti
 	void SocketBinding::_getSSLTCPSocket(const ValueList& args, KValueRef result)
 	{
 		TCPSocketBinding * socket = args.GetObject(0).cast<TCPSocketBinding>();
-		result->SetObject(new SecureTCPSocketBinding(host, socket));
+		result->SetObject(new SecureTCPSocket(host, socket));
 	}
 
 	Host* SocketBinding::GetHost()

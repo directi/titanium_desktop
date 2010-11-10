@@ -12,17 +12,15 @@
 
 namespace ti
 {
-	class SecureTCPSocketBinding
-		: public Socket<asio::ssl::stream<tcp::socket> >
+	class SecureTCPSocket
+		: public Socket<asio::ssl::stream<tcp::socket&> >
 	{
 	public:
-		SecureTCPSocketBinding(Host *host, TCPSocketBinding * socket);
-
-		virtual ~SecureTCPSocketBinding() {}
+		SecureTCPSocket(Host *host, TCPSocketBinding * tcp_socket_binding);
+		virtual ~SecureTCPSocket();
 
 	protected:
 
-		//template <class T>
 		virtual bool CompleteClose()
 		{
 			// Log  ->Debug("Closing socket to: %s:%d ", this->hostname.c_str(), this->port.c_str());
@@ -32,8 +30,6 @@ namespace ti
 				this->sock_state = SOCK_CLOSING;
 				if (socket)
 				{
-					//tcp::socket &t = socket->lowest_layer();
-					//t.close();
 					socket->lowest_layer().close();
 				}
 				this->sock_state = SOCK_CLOSED;
@@ -43,7 +39,8 @@ namespace ti
 		}
 
 
-		//asio::ssl::context *ctx;
+		asio::ssl::context ctx;
+		tcp::socket * tcp_socket;
 		//ctx.set_verify_mode(boost::asio::ssl::context::verify_peer);
 	};
 }

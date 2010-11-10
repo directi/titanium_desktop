@@ -66,6 +66,15 @@ namespace ti
 		void registerHandleRead();
 		virtual bool CompleteClose()=0;
 
+		template<typename> friend class Socket;
+		template <class T1>
+		void copyHandlers(Socket<T1> *b)
+		{
+			this->onRead = b->onRead;
+			this->onError = b->onError;
+			this->onClose = b->onClose;
+		}
+
 	private:
 
 		KMethodRef onRead;
@@ -102,12 +111,6 @@ namespace ti
 		void handleRead(const asio::error_code& error, std::size_t bytes_transferred);
 	};
 
-	template <class T1, class T2>
-	void copyHandlers(Socket<T1> *a, Socket<T2> *b)
-	{
-		a->onError = b->onError;
-
-	}
 
 
 	template <class T>
@@ -161,7 +164,6 @@ namespace ti
 	{
 		if (socket)
 		{
-			this->CompleteClose();
 			delete socket;
 			socket = NULL;
 		}

@@ -11,7 +11,7 @@ namespace ti
 		onConnect(0),
 		hostname(hostname),
 		port(port),
-		resolver(*TCPSocketBinding::io_service.get())
+		resolver(*Socket::io_service.get())
 	{
 		this->socket = new tcp::socket(*Socket::io_service.get());
 		this->SetMethod("connect",&TCPSocketBinding::Connect);
@@ -29,7 +29,16 @@ namespace ti
 
 	TCPSocketBinding::~TCPSocketBinding()
 	{
+		this->CompleteClose();
 	}
+
+	tcp::socket * TCPSocketBinding::resetSocket()
+	{
+		tcp::socket * temp = this->socket;
+		this->socket = NULL;
+		return temp;
+	}
+
 
 	void TCPSocketBinding::SetOnConnect(const ValueList& args, KValueRef result)
 	{
