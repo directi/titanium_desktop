@@ -88,9 +88,6 @@ namespace ti
 		std::string iconURL;
 
 		static void Log(Logger::Level level, std::string& message);
-
-	private:
-         static KValueRef PrivateLog(const ValueList& args);
 	};
 }
 

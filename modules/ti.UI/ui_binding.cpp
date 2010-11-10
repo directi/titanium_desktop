@@ -381,70 +381,35 @@ namespace ti
 		result->SetDouble(this->GetIdleTime());
 	}
 
-    void UIBinding::Log(Logger::Level level, std::string& message) {
-        ValueList args = ValueList(Value::NewInt(level), Value::NewString(message));
-        RunOnMainThread(new KFunctionPtrMethod(&UIBinding::PrivateLog), 0, args, false);
-    }
+	void UIBinding::Log(Logger::Level level, std::string& message)
+	{
+		if (level > Logger::LWARN)
+			return;
 
-    KValueRef UIBinding::PrivateLog(const ValueList& args)
-    {
-        Logger::Level level = (Logger::Level) args[0]->ToInt();
-        KValueRef message = args[1];
-		std::string methodName("debug");
-		switch(level) 
-		{
-		case Logger::LFATAL:
-		case Logger::LCRITICAL:
-		case Logger::LERROR:
+		std::string methodName("warn");
+		if (level < Logger::LWARN)
 			methodName = "error";
-			break;
-		case Logger::LWARN:
-			methodName = "warn";
-			break;
-		}
+
+		std::string origMethodName(methodName);
+		origMethodName.append("_orig");
 
 		std::vector<AutoUserWindow>& openWindows = UIBinding::GetInstance()->GetOpenWindows();
 		for (size_t i = 0; i < openWindows.size(); i++)
 		{
 			KObjectRef domWindow = openWindows[i]->GetDOMWindow();
-			AutoPtr<KKJSObject> kobj = domWindow.cast<KKJSObject>();
-			if(kobj.isNull()) continue;
+			if (domWindow.isNull())
+				continue;
 
-			std::string script("window.console.");
-			script.append(methodName);
-			script.append("('");
-			std::string escapedMessage(message->ToString());
-			static const std::string delimiters("'\\");
-			size_t pos = 0;
-			while(true)
-			{
-				pos = escapedMessage.find_first_of(delimiters, pos);
-				if(pos == string::npos) break;
-				escapedMessage.insert(pos, "\\");
-				pos += 2;
-			} 
+			KObjectRef console = domWindow->GetObject("console", 0);
+			if (console.isNull())
+				continue;
 
-			script.append(escapedMessage);
-			script.append("')");
-			try 
-			{
-				KJSUtil::Evaluate(KJSUtil::GetGlobalContext(kobj->GetJSObject()), script.c_str(), "native-code");  
-			} 
-			catch (ValueException& exception)
-			{
-				fprintf(stderr, "Error logging: JSException: %s\n", exception.ToString()); 
-			}
-			catch (std::exception &e)
-			{
-				fprintf(stderr, "Error logging: std::exception: %s\n", e.what());
-			}
-			catch(...) 
-			{
-				// Ignore for now atleast.
-				fprintf(stderr, "Yikes, lost a log message\n");
-			}
-        }
-		return Value::Undefined;
+			KMethodRef method = console->GetMethod(origMethodName.c_str(), 0);
+			if (method.isNull())
+				method = console->GetMethod(methodName.c_str(), 0);
+
+			RunOnMainThread(method, ValueList(Value::NewString(message)), false);
+		}
 	}
 }
 
