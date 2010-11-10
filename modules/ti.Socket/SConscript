@@ -25,6 +25,7 @@ if build.is_win32():
 	env.Append(CCFLAGS=['/MD', '/DUNICODE', '/D_UNICODE'])
 	env.Append(LIBS=['wsock32','ws2_32', 'ole32', 'comsuppw', 'wbemuuid'])
 	env.Append(CPPDEFINES = ('WIN32_LEAN_AND_MEAN',1))
+	env.Append(CPPDEFINES = ('ASIO_DISABLE_IOCP'))
 
 # Copy the support files the module build directory
 build.utils.LightWeightCopy(path.join(build.cwd(), 'support'), module.dir)

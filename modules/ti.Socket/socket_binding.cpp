@@ -6,6 +6,7 @@
 #include <sstream>
 
 #include "tcp_socket_binding.h"
+#include "ssl_tcp_socket_binding.h"
 #include "socket_binding.h"
 
 namespace ti
@@ -16,7 +17,7 @@ namespace ti
 		global(host->GetGlobalObject())
 	{
 		this->SetMethod("createTCPSocket",&SocketBinding::_CreateTCPSocket);
-		this->SetMethod("updateToSecureTCPSocket",&SocketBinding::_UpdateToSecureTCPSocket);
+		this->SetMethod("getSSLTCPSocket",&SocketBinding::_getSSLTCPSocket);
 	}
 
 	SocketBinding::~SocketBinding()
@@ -29,12 +30,10 @@ namespace ti
 		result->SetObject(new TCPSocketBinding(host, args.GetString(0), args.GetString(1)));
 	}
 
-	void SocketBinding::_UpdateToSecureTCPSocket(const ValueList& args, KValueRef result)
+	void SocketBinding::_getSSLTCPSocket(const ValueList& args, KValueRef result)
 	{
-//#ifndef OS_OSX
-//		TCPSocketBinding * socket = args.GetObject(0).cast<TCPSocketBinding>();
-//		SecureTCPSocketBinding::startTLS(socket);
-//#endif
+		TCPSocketBinding * socket = args.GetObject(0).cast<TCPSocketBinding>();
+		result->SetObject(new SecureTCPSocket(host, socket));
 	}
 
 	Host* SocketBinding::GetHost()

@@ -25,7 +25,7 @@ namespace ti
 		KObjectRef global;
 
 		void _CreateTCPSocket(const ValueList& args, KValueRef result);
-		void _UpdateToSecureTCPSocket(const ValueList& args, KValueRef result);
+		void _getSSLTCPSocket(const ValueList& args, KValueRef result);
 	};
 }
 
