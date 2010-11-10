@@ -35,6 +35,7 @@ namespace ti
 	tcp::socket * TCPSocketBinding::resetSocket()
 	{
 		tcp::socket * temp = this->socket;
+		this->socket->cancel();
 		this->socket = NULL;
 		return temp;
 	}
@@ -208,6 +209,11 @@ namespace ti
 	{
 		if (error)
 		{
+			if (error == asio::error::operation_aborted)
+			{
+				GetLogger()->Warn("Socket::handleResolve: operation aborted.");
+				return;
+			}
 			this->on_error(error.message());
 			return;
 		}
@@ -242,6 +248,13 @@ namespace ti
 			this->registerHandleConnect(endpoint_iterator);
 			return;
 		}
+
+		if (error == asio::error::operation_aborted)
+		{
+			GetLogger()->Warn("Socket::handleWrite: operation aborted.");
+			return;
+		}
+
 		this->on_error(error.message());
 	}
 }

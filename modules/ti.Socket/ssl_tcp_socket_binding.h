@@ -38,6 +38,16 @@ namespace ti
 			return false;
 		}
 
+	private:
+		KMethodRef onHandshake;
+
+		void SetOnHandshake(const ValueList& args, KValueRef result);
+
+		void async_handshake(const ValueList& args, KValueRef result);
+		void registerAsyncHandshake();
+		void handleAsyncHandshake(const asio::error_code& error);
+		void on_handshake();
+
 
 		asio::ssl::context ctx;
 		tcp::socket * tcp_socket;

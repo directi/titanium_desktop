@@ -52,7 +52,12 @@ namespace ti
 		std::deque<std::string> write_buffer;
 		char read_data_buffer[BUFFER_SIZE + 1];
 		bool non_blocking;
-		enum SOCK_STATE_en { SOCK_CLOSED, SOCK_CONNECTING, SOCK_CONNECTED, SOCK_CLOSING } sock_state;
+		enum SOCK_STATE_en { SOCK_CLOSED,
+			SOCK_CONNECTING,
+			SOCK_CONNECTED,
+			SOCK_HANDSHAKE_IN_PROGRESS,
+			SOCK_CLOSING
+		} sock_state;
 
 		void on_read(char * data, int size);
 		void on_error(const std::string& error_text);
@@ -261,6 +266,11 @@ namespace ti
 	{
 		if (error)
 		{
+			if (error == asio::error::operation_aborted)
+			{
+				GetLogger()->Warn("Socket::handleWrite: operation aborted.");
+				return;
+			}
 			this->on_error(error.message());
 			return;
 		}
@@ -320,6 +330,11 @@ namespace ti
 	{
 		if (error)
 		{
+			if (error == asio::error::operation_aborted)
+			{
+				GetLogger()->Warn("Socket::handleRead: operation aborted.");
+				return;
+			}
 			this->on_error(error.message());
 			return;
 		}

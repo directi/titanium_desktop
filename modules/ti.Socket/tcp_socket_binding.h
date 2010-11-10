@@ -24,7 +24,6 @@ namespace ti
 		tcp::socket * resetSocket();
 
 	private:
-
 		KMethodRef onConnect;
 
 		void SetOnConnect(const ValueList& args, KValueRef result);
