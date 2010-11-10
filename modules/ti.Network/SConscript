@@ -24,6 +24,6 @@ if build.is_win32():
 	sources += Glob("win32/*.cpp")
 
 # Copy the support files the module build directory
-build.utils.LightWeightCopy(path.join(build.cwd(), 'support'), module.dir)
+build.mark_build_target(build.utils.CopyTree(Glob('support/*'), module.dir))
 build.mark_build_target(env.SharedLibrary(
 	path.join(module.dir, 'tinetworkmodule'), sources))
