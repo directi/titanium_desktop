@@ -381,40 +381,69 @@ namespace ti
 		result->SetDouble(this->GetIdleTime());
 	}
 
-    void UIBinding::Log(Logger::Level level, std::string& message) {
-		if (level > Logger::LWARN)
-			return;
-        ValueList args = ValueList(Value::NewInt(level), Value::NewString(message));
+    void UIBinding::Log(Logger::Level level, std::string& message) 
+	{
+		std::string methodName("debug_orig");
+		switch(level) 
+		{
+		case Logger::LFATAL:
+		case Logger::LCRITICAL:
+		case Logger::LERROR:
+			methodName = "error_orig";
+			break;
+		case Logger::LWARN:
+			methodName = "warn_orig";
+			break;
+		}
+
+		std::string script("window.console.");
+		script.append(methodName);
+		script.append("('");
+		std::string escapedMessage(message);
+		static const std::string delimiters("'\\");
+		size_t pos = 0;
+		while(true)
+		{
+			pos = escapedMessage.find_first_of(delimiters, pos);
+			if(pos == string::npos) break;
+			escapedMessage.insert(pos, "\\");
+			pos += 2;
+		} 
+
+		script.append(escapedMessage);
+		script.append("')");
+
+        ValueList args = ValueList(Value::NewString(script));
         RunOnMainThread(new KFunctionPtrMethod(&UIBinding::PrivateLog), 0, args, false);
     }
 
     KValueRef UIBinding::PrivateLog(const ValueList& args)
     {
-        Logger::Level level = (Logger::Level) args[0]->ToInt();
-        KValueRef message = args[1];
-		std::string methodName("warn");
-		if (level < Logger::LWARN)
-			methodName = "error";
-
-		std::string origMethodName(methodName);
-		origMethodName.append("_orig");
-
+		std::string script = args.at(0)->ToString();
 		std::vector<AutoUserWindow>& openWindows = UIBinding::GetInstance()->GetOpenWindows();
 		for (size_t i = 0; i < openWindows.size(); i++)
 		{
 			KObjectRef domWindow = openWindows[i]->GetDOMWindow();
-			if (domWindow.isNull())
-				continue;
+			AutoPtr<KKJSObject> kobj = domWindow.cast<KKJSObject>();
+			if(kobj.isNull()) continue;
 
-			KObjectRef console = domWindow->GetObject("console", 0);
-			if (console.isNull())
-				continue;
-
-			KMethodRef method = console->GetMethod(origMethodName.c_str(), 0);
-			if (method.isNull())
-				method = console->GetMethod(methodName.c_str(), 0);
-
-			method->Call(console, ValueList(message));
+			try 
+			{
+				KJSUtil::Evaluate(KJSUtil::GetGlobalContext(kobj->GetJSObject()), script.c_str(), NULL);  
+			} 
+			catch (ValueException& exception)
+			{
+				fprintf(stderr, "Error logging: JSException: %s\n", exception.ToString().c_str()); 
+			}
+			catch (std::exception &e)
+			{
+				fprintf(stderr, "Error logging: std::exception: %s\n", e.what());
+			}
+			catch(...) 
+			{
+				// Ignore for now atleast.
+				fprintf(stderr, "Yikes, lost a log message\n");
+			}
         }
 		return Value::Undefined;
 	}
