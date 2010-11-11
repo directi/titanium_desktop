@@ -71,13 +71,16 @@ HRESULT STDMETHODCALLTYPE Win32WebKitUIDelegate::createWebViewWithRequest(
 	/* [retval][out] */ IWebView **newWebView)
 {
 	AutoPtr<WindowConfig> config(WindowConfig::Default());
-	BSTR burl;
-	request->URL(&burl);
-	std::string url = _bstr_t(burl);
-
-	if (url.size() > 0)
+	if(request) 
 	{
-		config->SetURL(url);
+		BSTR burl;
+		request->URL(&burl);
+		std::string url = _bstr_t(burl);
+
+		if (url.size() > 0)
+		{
+			config->SetURL(url);
+		}
 	}
 
 	if (features)

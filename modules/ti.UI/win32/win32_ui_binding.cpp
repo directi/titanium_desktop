@@ -41,14 +41,8 @@ namespace ti
 		std::wstring var = L"CURL_CA_BUNDLE_PATH=" + pemPath;
 		_wputenv(var.c_str());
 
-		/* TODO: CARL Needs to fix this
-		// Hook app:// and ti:// URL support to WebKit
-		DONE: setNormalizeURLCallback(NormalizeURLCallback);
-		DONE: setURLToFileURLCallback(URLToFileURLCallback);
-		REMOVED: setCanPreprocessCallback(CanPreprocessURLCallback);
-		REMOVED: setPreprocessCallback(PreprocessURLCallback);
-		DB: DONE*/
 		setProxyCallback(ProxyForURLCallback);
+		// Hook app:// and ti:// URL support to WebKit
 		setTitaniumProtocolResolver(TitaniumProtocolResolver);
 
 		std::string cookieJarFilename(FileUtils::Join(

@@ -443,7 +443,7 @@ Win32UserWindow::Win32UserWindow(AutoPtr<WindowConfig> config, AutoUserWindow& p
 	contextMenu(0),
 	iconPath("")
 {
-	logger = Logger::Get("UI.Win32UserWindow");
+	
 }
 
 AutoUserWindow UserWindow::CreateWindow(AutoPtr<WindowConfig> config, AutoUserWindow parent)
@@ -665,7 +665,18 @@ void Win32UserWindow::Open()
 	this->InitWindow();
 	this->SetupDecorations();
 	this->InitWebKit();
-	this->SetupIcon();
+	try 
+	{
+		this->SetupIcon();
+	} 
+	catch(std::exception e) 
+	{
+		GetLogger()->Warn("Unable to setup icon: %s", e.what());
+	}
+	catch(...)
+	{
+		GetLogger()->Warn("Unable to setup icon: Unknown error");
+	}
 
 	UserWindow::Open();
 	this->SetupFrame();

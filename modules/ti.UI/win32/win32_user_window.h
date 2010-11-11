@@ -145,7 +145,8 @@ namespace ti
 			std::vector<std::string>& types, std::string& typesDescription);
 		KListRef SelectDirectory(bool multiple, std::string& title,
 			std::string& path, std::string& defaultName);
-		Logger* logger;
+
+		static inline Logger* GetLogger() { return Logger::Get("UI.Win32UserWindow"); }
 	};
 }
 #endif
