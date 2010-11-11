@@ -414,7 +414,10 @@ namespace ti
 		script.append("')");
 
         ValueList args = ValueList(Value::NewString(script));
-        RunOnMainThread(new KFunctionPtrMethod(&UIBinding::PrivateLog), 0, args, false);
+		if(IsMainThread()) 
+			PrivateLog(args);
+		else
+			RunOnMainThread(new KFunctionPtrMethod(&UIBinding::PrivateLog), 0, args, false);
     }
 
     KValueRef UIBinding::PrivateLog(const ValueList& args)
