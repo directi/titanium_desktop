@@ -285,14 +285,14 @@ namespace ti
 	void NetworkBinding::_CreateTCPSocket(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("createTCPSocket", "sn");
-		result->SetObject(new TCPSocketBinding(host,
-			args.GetString(0), args.GetInt(1)));
+		AutoPtr<TCPSocketBinding> socket = new TCPSocketBinding(host, args.GetString(0), args.GetInt(1));
+		result->SetObject(socket);
 	}
 
 	void NetworkBinding::_UpdateToSecureTCPSocket(const ValueList& args, KValueRef result)
 	{
 #ifndef OS_OSX
-		TCPSocketBinding * socket = args.GetObject(0).cast<TCPSocketBinding>();
+		AutoPtr<TCPSocketBinding> socket = args.GetObject(0).cast<TCPSocketBinding>();
 		SecureTCPSocketBinding::startTLS(socket);
 #endif
 	}
