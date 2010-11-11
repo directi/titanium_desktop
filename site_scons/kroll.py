@@ -161,6 +161,11 @@ class BuildConfig(object):
 			libpath = [self.tp('openssl', 'lib')]
 			libs = ['libeay32.lib', 'ssleay32.lib']
 
+		if name is 'libpng':
+			cpppath = [self.tp('libpng', 'include')]
+			libpath = [self.tp('libpng', 'lib')]
+			libs = ['libpng.lib']
+
 		if name is 'poco':
 			cpppath = [self.tp('poco', 'include')]
 			libpath = [self.tp('poco', 'lib')]
