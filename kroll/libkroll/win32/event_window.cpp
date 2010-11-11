@@ -97,7 +97,7 @@ void EventWindow::DestroyWindow()
 			// logging has completely shut down.
 			std::string error("Could not destroy event window: ");
 			error.append(Win32Utils::QuickFormatMessage(GetLastError()));
-			fprintf(stderr, error.c_str());
+			fprintf(stderr, "%s\n", error.c_str());
 		}
 		this->handle = NULL;
 	}
