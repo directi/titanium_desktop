@@ -25,7 +25,6 @@ elif build.is_win32():
 		'comsuppw', 'advapi32'])
 	env.Append(CCFLAGS=['/MD', '/DUNICODE', '/D_UNICODE'])
 	env.Append(LINKFLAGS=['/NODEFAULTLIB:LIBCMT.lib', '/LTCG', '/INCREMENTAL:NO', '/OPT:REF'])
-	build.add_thirdparty(env, 'libpng')
 
 elif build.is_osx():
 	env.Append(FRAMEWORKPATH=[build.tp('growl')])
