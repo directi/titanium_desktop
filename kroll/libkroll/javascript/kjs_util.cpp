@@ -711,9 +711,13 @@ namespace KJSUtil
 		ProtectGlobalContext(globalContext);
 		JSValueProtect(globalContext, value);
 		Poco::Mutex::ScopedLock a(protectedObjectsMutex);
-		if(protectedObjects.find(globalContext) == protectedObjects.end())
+		ContextObjectMap::iterator i = protectedObjects.find(globalContext);
+		if(i == protectedObjects.end()) {
 			protectedObjects[globalContext] = new JSObjectRefList();
-		protectedObjects[globalContext]->push_front(value);
+			i = protectedObjects.find(globalContext);
+		}
+		i->second->push_front(value);
+		i->second->unique();
 	}
 
 	void UnprotectGlobalContextAndValue(JSGlobalContextRef globalContext, JSObjectRef value)
