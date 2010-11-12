@@ -770,8 +770,8 @@ namespace KJSUtil
 			{
 				delete l;
 				JSGlobalContextRelease(globalContext);
+				protectedObjects.erase(globalContext);
 			}
-			protectedObjects.erase(globalContext);
 		}
 		else
 		{
