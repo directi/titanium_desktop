@@ -426,6 +426,7 @@ namespace ti
 		std::vector<AutoUserWindow>& openWindows = UIBinding::GetInstance()->GetOpenWindows();
 		for (size_t i = 0; i < openWindows.size(); i++)
 		{
+			if(! openWindows[i]->HasTitaniumObject()) continue;
 			KObjectRef domWindow = openWindows[i]->GetDOMWindow();
 			AutoPtr<KKJSObject> kobj = domWindow.cast<KKJSObject>();
 			if(kobj.isNull()) continue;

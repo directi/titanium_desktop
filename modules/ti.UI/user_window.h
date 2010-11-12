@@ -135,6 +135,7 @@ namespace ti
 			void _Flash(const kroll::ValueList&, kroll::KValueRef);
 			void _SetContents(const ValueList& args, KValueRef result);
 			void SetContents(const std::string& content, const std::string& baseURL);
+			bool HasTitaniumObject() { return hasTitaniumObject; }
 			virtual void OpenFileChooserDialog(KMethodRef callback, bool multiple,
 				std::string& title, std::string& path, std::string& defaultName,
 				std::vector<std::string>& types, std::string& typesDescription) = 0;
@@ -228,6 +229,7 @@ namespace ti
 			bool active;
 			bool initialized;
 			std::string iconURL;
+			bool hasTitaniumObject;
 
 			UserWindow(AutoPtr<WindowConfig> config, AutoUserWindow parent);
 			virtual AutoUserWindow GetParent();

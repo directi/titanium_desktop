@@ -65,6 +65,19 @@ namespace ti
 		void OnResolve(SocketAddress*);
 		void OnError(const std::string& error_text);
 
+		virtual void duplicate()
+		{
+			++count;
+		}
+
+		virtual void release()
+		{
+			int value = --count;
+			if (value <= 0) {
+				delete this;
+			}
+		}
+
 		static void shutdown();
 		static void addSocket(TCPSocketBinding* tsb);
 		static void removeSocket(TCPSocketBinding* tsb);
@@ -78,6 +91,7 @@ namespace ti
 		static QuieterSocketReactor reactor;
 		static Poco::Thread pollThread;
 
+		Poco::AtomicCounter count;
 		Host* ti_host;
 		const std::string host;
 		const int port;

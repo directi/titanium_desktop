@@ -5,9 +5,13 @@
  */
 #include "../ui_module.h"
 #include <comutil.h>
+// TODO: FIXME: HELP: This is crazy the build script wasn't finding this!!
+//#include <webkit_frame_load_delegate.h>
 
 using namespace ti;
 using namespace kroll;
+
+typedef std::map<IWebFrame *, JSGlobalContextRef> FrameContextMap;
 
 Win32WebKitFrameLoadDelegate::Win32WebKitFrameLoadDelegate(Win32UserWindow *window) :
 	window(window),
@@ -34,7 +38,6 @@ HRESULT STDMETHODCALLTYPE Win32WebKitFrameLoadDelegate::didFinishLoadForFrame(
 
 	window->FrameLoaded();
 	window->PageLoaded(frame_global, url, context);
-	
 	return S_OK;
 }
 
@@ -43,8 +46,37 @@ HRESULT STDMETHODCALLTYPE Win32WebKitFrameLoadDelegate::didClearWindowObject(
 	IWebFrame *frame)
 {
 	this->window->RegisterJSContext((JSGlobalContextRef) context);
+	m_frameContexts[frame] = (JSGlobalContextRef) context;
 	return S_OK;
 }
+
+HRESULT STDMETHODCALLTYPE Win32WebKitFrameLoadDelegate::didChangeLocationWithinPageForFrame(
+	/* [in] */ IWebView *webView,
+	/* [in] */ IWebFrame *frame)
+{
+	return E_NOTIMPL;
+}
+
+HRESULT STDMETHODCALLTYPE Win32WebKitFrameLoadDelegate::willCloseFrame(
+	/* [in] */ IWebView *webView,
+	/* [in] */ IWebFrame *frame)
+{
+	FrameContextMap::iterator i = m_frameContexts.find(frame);
+	if(i != m_frameContexts.end()) 
+	{
+		JSGlobalContextRef r = m_frameContexts[frame];
+		// Get rid of our references...
+		KJSUtil::UnregisterGlobalContext(r);
+		KJSUtil::UnprotectGlobalContext(r, true);
+		m_frameContexts.erase(i);
+	}
+	else 
+	{
+		fprintf(stderr, "Closed a frame without a JSContextRef\n");
+	}
+	return S_OK;
+}
+
 
 HRESULT STDMETHODCALLTYPE Win32WebKitFrameLoadDelegate::QueryInterface(
 	REFIID riid, void **ppvObject)

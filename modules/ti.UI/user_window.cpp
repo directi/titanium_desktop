@@ -17,7 +17,8 @@ UserWindow::UserWindow(AutoPtr<WindowConfig> config, AutoUserWindow parent) :
 	config(config),
 	parent(parent),
 	active(false),
-	initialized(false)
+	initialized(false),
+	hasTitaniumObject(false)
 {
 	// This method is on Titanium.UI, but will be delegated to this class.
 	this->SetMethod("getCurrentWindow", &UserWindow::_GetCurrentWindow);
@@ -1557,7 +1558,7 @@ void UserWindow::RegisterJSContext(JSGlobalContextRef context)
 	// Only certain pages should get the Titanium object. This is to prevent
 	// malicious sites from always getting access to the user's system. This
 	// can be overridden by any other API that calls InsertAPI on this DOM window.
-	bool hasTitaniumObject = ShouldHaveTitaniumObject(context, globalObject);
+	hasTitaniumObject = ShouldHaveTitaniumObject(context, globalObject);
 	if (hasTitaniumObject)
 	{
 		this->InsertAPI(frameGlobal);

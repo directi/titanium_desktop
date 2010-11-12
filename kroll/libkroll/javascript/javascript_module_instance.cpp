@@ -37,7 +37,7 @@ namespace kroll
 	void JavaScriptModuleInstance::Stop()
 	{
 		KJSUtil::UnregisterGlobalContext(context);
-		KJSUtil::UnprotectGlobalContext(context);
+		KJSUtil::UnprotectGlobalContext(context, true);
 
 		std::vector<JSGlobalContextRef>::iterator i = instanceContexts.begin();
 		while (i != instanceContexts.end())

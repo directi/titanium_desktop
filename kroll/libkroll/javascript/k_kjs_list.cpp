@@ -27,16 +27,14 @@ namespace kroll
 				" One of the modules is misbehaving." << std::endl;
 		this->context = globalContext;
 
-		KJSUtil::ProtectGlobalContext(this->context);
-		JSValueProtect(this->context, this->jsobject);
+		KJSUtil::ProtectGlobalContextAndValue(this->context, this->jsobject);
 
 		this->kobject = new KKJSObject(this->context, this->jsobject);
 	}
 
 	KKJSList::~KKJSList()
 	{
-		JSValueUnprotect(this->context, this->jsobject);
-		KJSUtil::UnprotectGlobalContext(this->context);
+		KJSUtil::UnprotectGlobalContextAndValue(this->context, this->jsobject);
 	}
 
 	unsigned int KKJSList::Size()

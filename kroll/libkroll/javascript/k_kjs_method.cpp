@@ -30,21 +30,20 @@ namespace kroll
 
 		this->context = globalContext;
 
-		KJSUtil::ProtectGlobalContext(this->context);
-		JSValueProtect(this->context, jsobject);
+		KJSUtil::ProtectGlobalContextAndValue(this->context, this->jsobject);
 		if (thisObject != NULL)
-			JSValueProtect(this->context, thisObject);
+			KJSUtil::ProtectGlobalContextAndValue(this->context, thisObject);
 
 		this->kobject = new KKJSObject(this->context, jsobject);
 	}
 
 	KKJSMethod::~KKJSMethod()
 	{
-		JSValueUnprotect(this->context, this->jsobject);
-		if (this->thisObject != NULL)
-			JSValueUnprotect(this->context, this->thisObject);
-
-		KJSUtil::UnprotectGlobalContext(this->context);
+		if (this->thisObject != NULL) 
+		{
+			KJSUtil::UnprotectGlobalContextAndValue(this->context, this->thisObject);
+		}
+		KJSUtil::UnprotectGlobalContextAndValue(this->context, this->jsobject);
 	}
 
 	KValueRef KKJSMethod::Get(const char *name)
@@ -97,10 +96,18 @@ namespace kroll
 
 		delete [] jsArgs; // clean up args
 
-		if (jsValue == NULL && exception != NULL) //exception thrown
+		if (jsValue == NULL)
 		{
-			KValueRef exceptionValue = KJSUtil::ToKrollValue(exception, this->context, NULL);
-			throw ValueException(exceptionValue);
+			if(exception != NULL) //exception thrown
+			{
+				KValueRef exceptionValue = KJSUtil::ToKrollValue(exception, this->context, NULL);
+				throw ValueException(exceptionValue);
+			}
+			else 
+			{
+				Logger::Get("KKJSMethod")->Warn("Method seems cleaned up from another context! JSObjectCallAsFunction() returned NULL");
+				return Value::Undefined;
+			}
 		}
 
 		return KJSUtil::ToKrollValue(jsValue, this->context, NULL);

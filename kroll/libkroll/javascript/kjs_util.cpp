@@ -658,7 +658,7 @@ namespace KJSUtil
 	}
 
 	static std::map<JSObjectRef, JSGlobalContextRef> jsContextMap;
-	Poco::Mutex jsContextMapMutex;
+	static Poco::Mutex jsContextMapMutex;
 	void RegisterGlobalContext(JSObjectRef object, JSGlobalContextRef globalContext)
 	{
 		Poco::Mutex::ScopedLock lock(jsContextMapMutex);
@@ -676,7 +676,6 @@ namespace KJSUtil
 		}
 	}
 	
-
 	JSGlobalContextRef GetGlobalContext(JSObjectRef object)
 	{
 		Poco::Mutex::ScopedLock lock(jsContextMapMutex);
@@ -690,49 +689,102 @@ namespace KJSUtil
 		}
 	}
 
-	static std::map<JSGlobalContextRef, int> jsContextRefCounts;
-	Poco::Mutex jsContextRefCountsMutex;
+	typedef std::list<JSObjectRef> JSObjectRefList;
+	typedef std::map<JSGlobalContextRef, JSObjectRefList*> ContextObjectMap;
+	typedef std::map<JSGlobalContextRef, Poco::AtomicCounter> ClearedContextRefs;
+
+	static ContextObjectMap protectedObjects;
+	static Poco::Mutex protectedObjectsMutex;
+	static ClearedContextRefs clearedContextRefs;
+
 	void ProtectGlobalContext(JSGlobalContextRef globalContext)
 	{
-		Poco::Mutex::ScopedLock lock(jsContextRefCountsMutex);
-		if (jsContextRefCounts.find(globalContext) == jsContextRefCounts.end())
+		Poco::Mutex::ScopedLock lock(protectedObjectsMutex);
+		if (protectedObjects.find(globalContext) == protectedObjects.end())
 		{
 			JSGlobalContextRetain(globalContext);
-			jsContextRefCounts[globalContext] = 1;
-		}
-		else
-		{
-			jsContextRefCounts[globalContext]++;
-		}
-
-		std::map<JSGlobalContextRef, int>::iterator i = jsContextRefCounts.begin();
-		while (i != jsContextRefCounts.end())
-		{
-			std::map<JSGlobalContextRef, int>::iterator toRelease = i++;
-			if (toRelease->second <= 0)
-			{
-				JSGlobalContextRelease(toRelease->first);
-				jsContextRefCounts.erase(toRelease);
-			}
 		}
 	}
 
-	void UnprotectGlobalContext(JSGlobalContextRef globalContext)
+	void ProtectGlobalContextAndValue(JSGlobalContextRef globalContext, JSObjectRef value)
 	{
-		Poco::Mutex::ScopedLock lock(jsContextRefCountsMutex);
-		std::map<JSGlobalContextRef, int>::iterator i
-			= jsContextRefCounts.find(globalContext);
+		ProtectGlobalContext(globalContext);
+		JSValueProtect(globalContext, value);
+		Poco::Mutex::ScopedLock a(protectedObjectsMutex);
+		if(protectedObjects.find(globalContext) == protectedObjects.end())
+			protectedObjects[globalContext] = new JSObjectRefList();
+		protectedObjects[globalContext]->push_front(value);
+	}
 
-		if (i == jsContextRefCounts.end())
+	void UnprotectGlobalContextAndValue(JSGlobalContextRef globalContext, JSObjectRef value)
+	{
+		Poco::Mutex::ScopedLock a(protectedObjectsMutex);
+		JSObjectRefList* l = protectedObjects[globalContext];
+		if(!l)
 		{
-			GetLogger()->Error("Tried to unprotect an unknown jsContext!");
-			return;
+			fprintf(stderr, "Can't find a context list for this global object\n");
+		} 
+		else
+		{
+			JSObjectRefList::iterator i = l->begin();
+			while(i != l->end())
+			{
+				if(value == (*i))
+				{
+					JSValueUnprotect(globalContext, value);
+					l->erase(i);
+					break;
+				}
+				++i;
+			}
 		}
+		UnprotectGlobalContext(globalContext);
+	}
 
-		// Defer the release of this global context until the next protection.
-		// This function may be called from JavaScript garbage collection. Unprotecting
-		// the contet here might spawn another garbage collection causing a segfault.
-		jsContextRefCounts[globalContext]--;
+	void UnprotectGlobalContext(JSGlobalContextRef globalContext, bool force)
+	{
+		Poco::Mutex::ScopedLock a(protectedObjectsMutex);
+		ContextObjectMap::iterator globalObjectPos = protectedObjects.find(globalContext);
+		if(globalObjectPos != protectedObjects.end())
+		{
+			JSObjectRefList* l = globalObjectPos->second;
+			if(force && l->size() > 0)
+			{
+				int count = 0;
+				JSObjectRefList::iterator i = l->begin();
+				while(i != l->end())
+				{
+					JSValueUnprotect(globalContext, (*i));
+					l->erase(i);
+					i = l->begin();
+					++count;
+				}
+				clearedContextRefs[globalContext] = count;
+				JSGarbageCollect(globalContext);
+			} 
+			if(l && l->size() == 0) 
+			{
+				delete l;
+				JSGlobalContextRelease(globalContext);
+			}
+			protectedObjects.erase(globalContext);
+		}
+		else
+		{
+			if(clearedContextRefs.find(globalContext) != clearedContextRefs.end())
+			{
+				clearedContextRefs[globalContext]--;
+				if(clearedContextRefs[globalContext] <= 0)
+				{
+					JSGlobalContextRelease(globalContext);
+					clearedContextRefs.erase(globalContext);
+				}
+			}
+			else
+			{
+				fprintf(stderr, "Couldn't find a list for a JS context\n");
+			}
+		}
 	}
 
 	KValueRef Evaluate(JSContextRef jsContext, const char* script, const char* url)

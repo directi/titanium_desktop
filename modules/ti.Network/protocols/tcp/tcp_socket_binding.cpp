@@ -29,7 +29,8 @@ namespace ti
 		onConnect(0),
 		onRead(0),
 		onError(0),
-		onClose(0)
+		onClose(0),
+		count(1)
 	{
 		/**
 		 * @tiapi(method=True,name=Network.TCPSocket.connect,since=0.2) Connects a Socket object to the host specified during creation. 
@@ -298,8 +299,9 @@ namespace ti
 		result->SetBool(true);
 	}
 
-	void TCPSocketBinding::OnReadReady(ReadableNotification * notification)
+	void TCPSocketBinding::OnReadReady(ReadableNotification* notification)
 	{
+		AutoPtr<ReadableNotification> a(notification);
 		int available_bytes = this->socket->available();
 		GetLogger()->Debug("Ready for Read with %d bytes on %s", available_bytes, this->socket->peerAddress().toString().c_str());
 		bool justConnected = false;
@@ -367,8 +369,9 @@ namespace ti
 		}
 	}
 
-	void TCPSocketBinding::OnWriteReady(WritableNotification * notification)
+	void TCPSocketBinding::OnWriteReady(WritableNotification* notification)
 	{
+		AutoPtr<WritableNotification> a(notification);
 		GetLogger()->Debug("Ready for Write on Socket: "  + this->socket->peerAddress().toString());
 		TCPSocketBinding::removeWriteListener(this);
 		if(this->sock_state == SOCK_CONNECTING)
@@ -377,11 +380,11 @@ namespace ti
 		} 
 	}
 
-	void TCPSocketBinding::OnError(ErrorNotification * notification)
+	void TCPSocketBinding::OnError(ErrorNotification* notification)
 	{
+		AutoPtr<ErrorNotification> a(notification);
 		GetLogger()->Debug("Socket Error on %s:%d ", this->host.c_str(), this->port);
-		// This isn't really helpful, but I don't this it would be called ever!
-		this->OnError(notification->name());
+		this->OnError("Unknown error");
 	}
 
 	void TCPSocketBinding::OnError(const std::string& error_text) 
@@ -390,7 +393,7 @@ namespace ti
 		if(!this->onError.isNull()) 
 		{
 			ValueList args (Value::NewString(error_text.c_str()));
-			RunOnMainThread(this->onError, args, false);
+			RunOnMainThread(this->onError, args, true);
 		}
 	}
 
@@ -400,7 +403,7 @@ namespace ti
 		if(!this->onConnect.isNull()) 
 		{
 			ValueList args;
-			RunOnMainThread(this->onConnect, args, false);
+			RunOnMainThread(this->onConnect, args, true);
 		}
 	}
 
@@ -411,7 +414,7 @@ namespace ti
 			data[size] = '\0';
 			BytesRef bytes(new Bytes(data, size));
 			ValueList args (Value::NewObject(bytes));
-			RunOnMainThread(this->onRead, args, false);
+			RunOnMainThread(this->onRead, args, true);
 		}
 	}
 
@@ -421,7 +424,7 @@ namespace ti
 		if(!this->onClose.isNull()) 
 		{
 			ValueList args;
-			RunOnMainThread(this->onClose, args, false);
+			RunOnMainThread(this->onClose, args, true);
 		}
 	}
 
