@@ -20,7 +20,6 @@ namespace kroll
 		void Initialize () {}
 		void Stop();
 		void Run();
-		static void GarbageCollect();
 
 	protected:
 		std::string path;

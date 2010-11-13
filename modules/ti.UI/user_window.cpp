@@ -1535,12 +1535,6 @@ void UserWindow::InsertAPI(KObjectRef frameGlobal)
 	frameGlobal->SetObject(GLOBAL_NS_VARNAME, delegateGlobalObject);
 }
 
-static KValueRef DeferredGarbageCollection(const ValueList& args)
-{
-	JavaScriptModuleInstance::GarbageCollect();
-	return Value::Undefined;
-}
-
 void UserWindow::RegisterJSContext(JSGlobalContextRef context)
 {
 	JSObjectRef globalObject = JSContextGetGlobalObject(context);
@@ -1570,12 +1564,6 @@ void UserWindow::RegisterJSContext(JSGlobalContextRef context)
 	event->SetString("url", config->GetURL());
 	event->SetBool("hasTitaniumObject", hasTitaniumObject);
 	this->FireEvent(event);
-
-	// The page location has changed, but JavaScriptCore may have references
-	// to old DOMs still in memory waiting on garbage collection. Force a GC
-	// here so that memory usage stays reasonable.
-	RunOnMainThread(new KFunctionPtrMethod(&DeferredGarbageCollection),
-		ArgList(), false);
 }
 
 void UserWindow::LoadUIJavaScript(JSGlobalContextRef context)

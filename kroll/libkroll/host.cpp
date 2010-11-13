@@ -713,12 +713,13 @@ namespace kroll
 
 			if (!result.isNull())
 			{
-				Logger::Get("Ti.Host")->Warn("Something on the main thread better have reference to this result or GC may happen in another thread");
+				if(result->IsObject())
+					Logger::Get("Ti.Host")->Warn("Something on the main thread better have reference to this result or GC may happen in another thread");
 				return result;
 			}
 			else 
 			{
-				if(IsMainThread())
+				if(IsMainThread()) // Don't think this will ever get hit, but see comment above...
 					throw exception;
 				else
 				{

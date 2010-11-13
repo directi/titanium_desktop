@@ -690,7 +690,9 @@ bool Win32UserWindow::Close()
 	// this->timer and this->active even after calling ::Closed
 	// which will remove us from the open window list and decrement
 	// the reference count.
-	AutoUserWindow keep(this, true);
+	// AutoUserWindow keep(this, true);
+	// This is stupid we're a COM reference
+	Win32UserWindow* ref = this;
 
 	if (!this->active)
 		return false;
@@ -710,7 +712,9 @@ bool Win32UserWindow::Close()
 		DestroyWindow(windowHandle);
 	}
 
-	return !this->active;
+	bool ret = !this->active;
+	delete ref;
+	return ret;
 }
 
 double Win32UserWindow::GetX()

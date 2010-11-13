@@ -10,8 +10,6 @@
 
 namespace kroll
 {
-	static std::vector<JSGlobalContextRef> instanceContexts;
-
 	JavaScriptModuleInstance::JavaScriptModuleInstance(Host* host, std::string path, std::string dir, std::string name) :
 		Module(host, dir.c_str(), name.c_str(), "0.1"),
 		path(path),
@@ -30,26 +28,12 @@ namespace kroll
 			Logger *logger = Logger::Get("JavaScript");
 			logger->Error("Could not execute %s because %s", path.c_str(), (*ss).c_str());
 		}
-
-		instanceContexts.push_back(this->context);
 	}
 
 	void JavaScriptModuleInstance::Stop()
 	{
 		KJSUtil::UnregisterGlobalContext(context);
 		KJSUtil::UnprotectGlobalContext(context, true);
-
-		std::vector<JSGlobalContextRef>::iterator i = instanceContexts.begin();
-		while (i != instanceContexts.end())
-		{
-			if (*i == this->context)
-			{
-				instanceContexts.erase(i);
-				break;
-			}
-			i++;
-		}
-
 		this->context = 0;
 	}
 
@@ -69,13 +53,6 @@ namespace kroll
 		}
 
 		KJSUtil::Evaluate(context, code.c_str());
-	}
-
-	/*static*/
-	void JavaScriptModuleInstance::GarbageCollect()
-	{
-		for (size_t i = 0; i < instanceContexts.size(); i++)
-			JSGarbageCollect(instanceContexts[i]);
 	}
 }
 
