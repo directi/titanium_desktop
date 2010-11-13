@@ -214,9 +214,9 @@ namespace kroll
 		void ExitImpl(int exitcode);
 	};
 
-	KROLL_API KValueRef RunOnMainThread(KMethodRef method, const ValueList& args,
+	KROLL_API void RunOnMainThread(KMethodRef method, const ValueList& args,
 		bool waitForCompletion=true);
-	KROLL_API KValueRef RunOnMainThread(KMethodRef method, KObjectRef thisObject,
+	KROLL_API void RunOnMainThread(KMethodRef method, KObjectRef thisObject,
 		const ValueList& args, bool waitForCompletion=true);
 	KROLL_API bool IsMainThread();
 }

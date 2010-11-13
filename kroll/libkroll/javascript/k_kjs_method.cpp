@@ -96,20 +96,11 @@ namespace kroll
 
 		delete [] jsArgs; // clean up args
 
-		if (jsValue == NULL)
+		if (jsValue == NULL && exception != NULL) //exception thrown
 		{
-			if(exception != NULL) //exception thrown
-			{
-				KValueRef exceptionValue = KJSUtil::ToKrollValue(exception, this->context, NULL);
-				throw ValueException(exceptionValue);
-			}
-			else 
-			{
-				Logger::Get("KKJSMethod")->Warn("Method seems cleaned up from another context! JSObjectCallAsFunction() returned NULL");
-				return Value::Undefined;
-			}
+			KValueRef exceptionValue = KJSUtil::ToKrollValue(exception, this->context, NULL);
+			throw ValueException(exceptionValue);
 		}
-
 		return KJSUtil::ToKrollValue(jsValue, this->context, NULL);
 	}
 
