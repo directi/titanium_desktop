@@ -674,13 +674,13 @@ namespace kroll
 		this->ExitImpl(exitCode);
 	}
 
-	void Host::RunOnMainThread(KMethodRef method, const ValueList& args,
+	KValueRef Host::RunOnMainThread(KMethodRef method, const ValueList& args,
 		bool waitForCompletion)
 	{
 		return this->RunOnMainThread(method, 0, args, waitForCompletion);
 	}
 
-	void Host::RunOnMainThread(KMethodRef method, KObjectRef thisObject,
+	KValueRef Host::RunOnMainThread(KMethodRef method, KObjectRef thisObject,
 		const ValueList& args, bool waitForCompletion)
 	{
 		MainThreadJob* job = new MainThreadJob(method, thisObject,
@@ -712,9 +712,20 @@ namespace kroll
 			delete job;
 
 			if (!result.isNull())
+			{
+				Logger::Get("Ti.Host")->Warn("Something on the main thread better have reference to this result or GC may happen in another thread");
 				return result;
-			else
-				throw exception;
+			}
+			else 
+			{
+				if(IsMainThread())
+					throw exception;
+				else
+				{
+					Logger::Get("Ti.Host")->Warn("Exception supressed, GC for the exception would happen in another thread, returning false: %s", exception.DisplayString()->c_str());
+					return Value::NewBool(false);
+				}
+			}
 		}
 	}
 
