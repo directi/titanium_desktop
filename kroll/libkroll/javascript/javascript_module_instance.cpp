@@ -16,7 +16,8 @@ namespace kroll
 		context(0)
 	{
 		this->context = KJSUtil::CreateGlobalContext();
-		KJSUtil::ProtectGlobalContext(context);
+		JSGlobalContextRetain(context);
+		KJSUtil::ProtectContext(context);
 
 		try
 		{
@@ -30,11 +31,17 @@ namespace kroll
 		}
 	}
 
+	JavaScriptModuleInstance::~JavaScriptModuleInstance() 
+	{
+		if(context != 0)
+			Stop();
+	}
+
 	void JavaScriptModuleInstance::Stop()
 	{
-		KJSUtil::UnregisterGlobalContext(context);
-		KJSUtil::UnprotectGlobalContext(context, true);
-		this->context = 0;
+		KJSUtil::UnprotectContext(context, true);
+		JSGlobalContextRelease(context);
+		context = 0;
 	}
 
 	void JavaScriptModuleInstance::Run()

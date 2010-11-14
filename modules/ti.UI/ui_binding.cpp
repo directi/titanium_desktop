@@ -433,7 +433,7 @@ namespace ti
 
 			try 
 			{
-				KJSUtil::Evaluate(KJSUtil::GetGlobalContext(kobj->GetJSObject()), script.c_str(), NULL);  
+				KJSUtil::Evaluate(KJSUtil::GetGlobalContext(kobj->GetJSObject(), NULL), script.c_str(), NULL);  
 			} 
 			catch (ValueException& exception)
 			{

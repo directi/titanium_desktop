@@ -19,7 +19,7 @@ namespace kroll
 		 * contexts later. Global contexts need to be registered by all modules
 		 * that use a KJS context. */
 		JSObjectRef globalObject = JSContextGetGlobalObject(context);
-		JSGlobalContextRef globalContext = KJSUtil::GetGlobalContext(globalObject);
+		JSContextRef globalContext = KJSUtil::GetGlobalContext(globalObject, context);
 
 		// This context hasn't been registered. Something has gone pretty
 		// terribly wrong and Kroll will likely crash soon. Nonetheless, keep
@@ -30,9 +30,9 @@ namespace kroll
 
 		this->context = globalContext;
 
-		KJSUtil::ProtectGlobalContextAndValue(this->context, this->jsobject);
+		KJSUtil::ProtectContextAndValue(this->context, this->jsobject);
 		if (thisObject != NULL)
-			KJSUtil::ProtectGlobalContextAndValue(this->context, thisObject);
+			KJSUtil::ProtectContextAndValue(this->context, thisObject);
 
 		this->kobject = new KKJSObject(this->context, jsobject);
 	}
@@ -41,9 +41,9 @@ namespace kroll
 	{
 		if (this->thisObject != NULL) 
 		{
-			KJSUtil::UnprotectGlobalContextAndValue(this->context, this->thisObject);
+			KJSUtil::UnprotectContextAndValue(this->context, this->thisObject);
 		}
-		KJSUtil::UnprotectGlobalContextAndValue(this->context, this->jsobject);
+		KJSUtil::UnprotectContextAndValue(this->context, this->jsobject);
 	}
 
 	KValueRef KKJSMethod::Get(const char *name)

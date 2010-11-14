@@ -9,7 +9,7 @@
 
 namespace ti {
 
-typedef std::map<IWebFrame *, JSGlobalContextRef> FrameContextMap;
+typedef std::map<IWebFrame *, JSContextRef> FrameContextMap;
 
 class Win32UserWindow;
 

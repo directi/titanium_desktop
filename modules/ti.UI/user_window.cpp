@@ -1439,7 +1439,7 @@ void UserWindow::RemoveChild(AutoUserWindow child)
 	}
 }
 
-static bool ShouldHaveTitaniumObject(JSGlobalContextRef ctx, JSObjectRef global)
+static bool ShouldHaveTitaniumObject(JSContextRef ctx, JSObjectRef global)
 {
 	// We really only want URLs that are loaded via the
 	// app, ti or file protocol to have the Titanium object.
@@ -1480,7 +1480,7 @@ static bool ShouldHaveTitaniumObject(JSGlobalContextRef ctx, JSObjectRef global)
 		url.find("file://") == 0 || url.find("data:text/html;") == 0;
 }
 
-static bool IsMainFrame(JSGlobalContextRef ctx, JSObjectRef global)
+static bool IsMainFrame(JSContextRef ctx, JSObjectRef global)
 {
 	// If this global objects 'parent' property is equal to the object
 	// itself, it is likely the main frame. There might be a better way
@@ -1535,10 +1535,10 @@ void UserWindow::InsertAPI(KObjectRef frameGlobal)
 	frameGlobal->SetObject(GLOBAL_NS_VARNAME, delegateGlobalObject);
 }
 
-void UserWindow::RegisterJSContext(JSGlobalContextRef context)
+void UserWindow::RegisterJSContext(JSContextRef context)
 {
 	JSObjectRef globalObject = JSContextGetGlobalObject(context);
-	KJSUtil::RegisterGlobalContext(globalObject, context);
+	KJSUtil::RegisterContext(globalObject, context);
 
 	// Get the global object as a KKJSObject
 	KObjectRef frameGlobal = new KKJSObject(context, globalObject);
@@ -1566,7 +1566,7 @@ void UserWindow::RegisterJSContext(JSGlobalContextRef context)
 	this->FireEvent(event);
 }
 
-void UserWindow::LoadUIJavaScript(JSGlobalContextRef context)
+void UserWindow::LoadUIJavaScript(JSContextRef context)
 {
 	std::string modulePath = UIModule::GetInstance()->GetPath();
 	std::string jsPath = FileUtils::Join(modulePath.c_str(), "ui.js", NULL);
@@ -1588,7 +1588,7 @@ void UserWindow::LoadUIJavaScript(JSGlobalContextRef context)
 }
 
 void UserWindow::PageLoaded(
-	KObjectRef globalObject, std::string &url, JSGlobalContextRef context)
+	KObjectRef globalObject, std::string &url, JSContextRef context)
 {
 	AutoPtr<Event> event = this->CreateEvent(Event::PAGE_LOADED);
 	event->SetObject("scope", globalObject);

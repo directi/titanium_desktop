@@ -37,9 +37,9 @@ namespace ti
 			virtual SharedString DisplayString(int levels=3);
 			virtual ~UserWindow();
 			void UpdateWindowForURL(std::string url);
-			void RegisterJSContext(JSGlobalContextRef);
+			void RegisterJSContext(JSContextRef);
 			void InsertAPI(KObjectRef frameGlobal);
-			void PageLoaded(KObjectRef scope, std::string &url, JSGlobalContextRef context);
+			void PageLoaded(KObjectRef scope, std::string &url, JSContextRef context);
 			inline KObjectRef GetDOMWindow() { return this->domWindow; }
 			inline Host* GetHost() { return this->host; }
 			inline bool IsToolWindow() {return this->config->IsToolWindow(); }
@@ -238,7 +238,7 @@ namespace ti
 			void ReadChooserDialogObject(KObjectRef o, bool& multiple,
 				std::string& title, std::string& path, std::string& defaultName,
 				std::vector<std::string>& types, std::string& typesDescription);
-			static void LoadUIJavaScript(JSGlobalContextRef context);
+			static void LoadUIJavaScript(JSContextRef context);
 
 		private:
 			DISALLOW_EVIL_CONSTRUCTORS(UserWindow);

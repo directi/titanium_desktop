@@ -11,8 +11,6 @@
 using namespace ti;
 using namespace kroll;
 
-typedef std::map<IWebFrame *, JSGlobalContextRef> FrameContextMap;
-
 Win32WebKitFrameLoadDelegate::Win32WebKitFrameLoadDelegate(Win32UserWindow *window) :
 	window(window),
 	ref_count(1)
@@ -45,8 +43,9 @@ HRESULT STDMETHODCALLTYPE Win32WebKitFrameLoadDelegate::didClearWindowObject(
 	IWebView *webView, JSContextRef context, JSObjectRef windowScriptObject,
 	IWebFrame *frame)
 {
-	this->window->RegisterJSContext((JSGlobalContextRef) context);
-	m_frameContexts[frame] = (JSGlobalContextRef) context;
+	KJSUtil::ProtectContext(context);
+	this->window->RegisterJSContext(context);
+	m_frameContexts[frame] = context;
 	return S_OK;
 }
 
@@ -64,10 +63,9 @@ HRESULT STDMETHODCALLTYPE Win32WebKitFrameLoadDelegate::willCloseFrame(
 	FrameContextMap::iterator i = m_frameContexts.find(frame);
 	if(i != m_frameContexts.end()) 
 	{
-		JSGlobalContextRef r = m_frameContexts[frame];
+		JSContextRef r = i->second;
 		// Get rid of our references...
-		KJSUtil::UnregisterGlobalContext(r);
-		KJSUtil::UnprotectGlobalContext(r, true);
+		KJSUtil::UnprotectContext(r, true);
 		m_frameContexts.erase(i);
 	}
 	else 

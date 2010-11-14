@@ -653,35 +653,50 @@ namespace KJSUtil
 			jsAPI, kJSPropertyAttributeNone, NULL);
 		JSStringRelease(propertyName);
 
-		RegisterGlobalContext(globalObject, jsContext);
+		RegisterContext(globalObject, jsContext);
 		return jsContext;
 	}
 
-	static std::map<JSObjectRef, JSGlobalContextRef> jsContextMap;
+	static std::map<JSObjectRef, JSContextRef> jsContextMap;
 	static Poco::Mutex jsContextMapMutex;
-	void RegisterGlobalContext(JSObjectRef object, JSGlobalContextRef globalContext)
-	{
-		Poco::Mutex::ScopedLock lock(jsContextMapMutex);
-		jsContextMap[object] = globalContext;
-	}
 
-	void UnregisterGlobalContext(JSGlobalContextRef jsContext)
+	void RegisterContext(JSObjectRef globalObject, JSContextRef globalContext)
 	{
-		JSObjectRef globalObject(JSContextGetGlobalObject(jsContext));
 		Poco::Mutex::ScopedLock lock(jsContextMapMutex);
-		std::map<JSObjectRef, JSGlobalContextRef>::iterator i = jsContextMap.find(globalObject);
-		if (i != jsContextMap.end())
+		std::map<JSObjectRef, JSContextRef>::iterator i = jsContextMap.find(globalObject);
+		if (i == jsContextMap.end())
 		{
-			jsContextMap.erase(i);
+			jsContextMap[globalObject] = globalContext;
+			JSValueProtect(globalContext, globalObject);
 		}
 	}
+
+	void UnregisterContext(JSObjectRef globalObject, JSContextRef globalContext)
+	{
+		Poco::Mutex::ScopedLock lock(jsContextMapMutex);
+		std::map<JSObjectRef, JSContextRef>::iterator i = jsContextMap.find(globalObject);
+		if(i != jsContextMap.end()) 
+		{
+			JSValueUnprotect(globalContext, globalObject);
+			jsContextMap.erase(i);
+		}
+		else 
+			fprintf(stderr, "Yikes, context not found\n");
+	}
 	
-	JSGlobalContextRef GetGlobalContext(JSObjectRef object)
+	JSContextRef GetGlobalContext(JSObjectRef object, JSContextRef context)
 	{
 		Poco::Mutex::ScopedLock lock(jsContextMapMutex);
 		if (jsContextMap.find(object) == jsContextMap.end())
 		{
-			return NULL;
+			if(context != 0) {
+				jsContextMap[object] = context;
+				JSValueProtect(context, object);
+				return context;
+			} else {
+				fprintf(stderr, "Yikes need to return a null context\n");
+				return 0;
+			}
 		}
 		else
 		{
@@ -689,105 +704,115 @@ namespace KJSUtil
 		}
 	}
 
-	typedef std::list<JSObjectRef> JSObjectRefList;
-	typedef std::map<JSGlobalContextRef, JSObjectRefList*> ContextObjectMap;
-	typedef std::map<JSGlobalContextRef, Poco::AtomicCounter> ClearedContextRefs;
+	typedef std::map<JSObjectRef, int> JSObjectInContextRefCounter;
+	typedef std::map<JSContextRef, JSObjectInContextRefCounter*> JSObjectRefCounter;
+	static JSObjectRefCounter jsObjectRefCounter;
 
-	static ContextObjectMap protectedObjects;
 	static Poco::Mutex protectedObjectsMutex;
-	static ClearedContextRefs clearedContextRefs;
 
-	void ProtectGlobalContext(JSGlobalContextRef globalContext)
+	static inline void _addContext(JSContextRef globalContext)
+	{
+		JSObjectRefCounter::iterator ourContext = jsObjectRefCounter.find(globalContext);
+		if(ourContext == jsObjectRefCounter.end()) 
+		{
+			JSObjectRef globalObject = JSContextGetGlobalObject(globalContext);
+			RegisterContext(globalObject, globalContext);
+			jsObjectRefCounter[globalContext] = new JSObjectInContextRefCounter();
+		}
+	}
+
+	static inline void _delContext(JSContextRef globalContext) 
+	{
+		JSObjectRef globalObject = JSContextGetGlobalObject(globalContext);
+		UnregisterContext(globalObject, globalContext);
+		jsObjectRefCounter.erase(globalContext);
+	}
+
+	void ProtectContext(JSContextRef globalContext)
 	{
 		Poco::Mutex::ScopedLock lock(protectedObjectsMutex);
-		if (protectedObjects.find(globalContext) == protectedObjects.end())
-		{
-			JSGlobalContextRetain(globalContext);
-		}
+		_addContext(globalContext);
 	}
 
-	void ProtectGlobalContextAndValue(JSGlobalContextRef globalContext, JSObjectRef value)
+	void ProtectContextAndValue(JSContextRef globalContext, JSObjectRef value)
 	{
-		ProtectGlobalContext(globalContext);
-		JSValueProtect(globalContext, value);
-		Poco::Mutex::ScopedLock a(protectedObjectsMutex);
-		ContextObjectMap::iterator i = protectedObjects.find(globalContext);
-		if(i == protectedObjects.end()) {
-			protectedObjects[globalContext] = new JSObjectRefList();
-			i = protectedObjects.find(globalContext);
-		}
-		i->second->push_front(value);
-		i->second->unique();
-	}
-
-	void UnprotectGlobalContextAndValue(JSGlobalContextRef globalContext, JSObjectRef value)
-	{
-		Poco::Mutex::ScopedLock a(protectedObjectsMutex);
-		JSObjectRefList* l = protectedObjects[globalContext];
-		if(!l)
+		Poco::Mutex::ScopedLock lock(protectedObjectsMutex);
+		ProtectContext(globalContext);
+		JSObjectRefCounter::iterator ourCtx = jsObjectRefCounter.find(globalContext);
+		if(ourCtx == jsObjectRefCounter.end())
 		{
-			fprintf(stderr, "Can't find a context list for this global object\n");
+			fprintf(stderr, "No reference counter map found for globalContext\n");
+			return;
+		}
+		if(! ourCtx->second) ourCtx->second = new JSObjectInContextRefCounter();
+		JSObjectInContextRefCounter::iterator ourRef = ourCtx->second->find(value);
+		if(ourRef == ourCtx->second->end())
+		{
+			(*ourCtx->second)[value] = 1;
+			JSValueProtect(globalContext, value);
 		} 
 		else
 		{
-			JSObjectRefList::iterator i = l->begin();
-			while(i != l->end())
-			{
-				if(value == (*i))
-				{
-					JSValueUnprotect(globalContext, value);
-					l->erase(i);
-					break;
-				}
-				++i;
-			}
+			ourRef->second++;
 		}
-		UnprotectGlobalContext(globalContext);
 	}
 
-	void UnprotectGlobalContext(JSGlobalContextRef globalContext, bool force)
+	void UnprotectContextAndValue(JSContextRef globalContext, JSObjectRef value)
 	{
 		Poco::Mutex::ScopedLock a(protectedObjectsMutex);
-		ContextObjectMap::iterator globalObjectPos = protectedObjects.find(globalContext);
-		if(globalObjectPos != protectedObjects.end())
+		JSObjectRefCounter::iterator ourCtx = jsObjectRefCounter.find(globalContext);
+		if(ourCtx == jsObjectRefCounter.end())
 		{
-			JSObjectRefList* l = globalObjectPos->second;
-			if(force && l->size() > 0)
-			{
-				int count = 0;
-				JSObjectRefList::iterator i = l->begin();
-				while(i != l->end())
-				{
-					JSValueUnprotect(globalContext, (*i));
-					l->erase(i);
-					i = l->begin();
-					++count;
-				}
-				clearedContextRefs[globalContext] = count;
-				JSGarbageCollect(globalContext);
-			} 
-			if(l && l->size() == 0) 
-			{
-				delete l;
-				JSGlobalContextRelease(globalContext);
-				protectedObjects.erase(globalContext);
-			}
+			fprintf(stderr, "Asked to unprotect a JS context with no object list!\n");
+			return;
 		}
+		JSObjectInContextRefCounter::iterator ourRef = ourCtx->second->find(value);
+		if(ourRef == ourCtx->second->end())
+		{
+			fprintf(stderr, "Asked to unprotect a JS value with no object count!\n");
+		} 
 		else
 		{
-			if(clearedContextRefs.find(globalContext) != clearedContextRefs.end())
+			ourRef->second--;
+			if(ourRef->second == 0) 
 			{
-				clearedContextRefs[globalContext]--;
-				if(clearedContextRefs[globalContext] <= 0)
+				JSValueUnprotect(globalContext, value);
+				ourCtx->second->erase(ourRef);
+			}
+		}
+		UnprotectContext(globalContext);
+	}
+
+	void UnprotectContext(JSContextRef globalContext, bool force)
+	{
+		Poco::Mutex::ScopedLock a(protectedObjectsMutex);
+		JSObjectRefCounter::iterator ourContext = jsObjectRefCounter.find(globalContext);
+		if(ourContext != jsObjectRefCounter.end()) 
+		{
+			if(force)
+			{
+				JSObjectInContextRefCounter* objRefs = ourContext->second;
+				if(objRefs)
 				{
-					JSGlobalContextRelease(globalContext);
-					clearedContextRefs.erase(globalContext);
+					for(JSObjectInContextRefCounter::iterator i = objRefs->begin();	i != objRefs->end(); ++i) 
+					{
+						if(i->second > 0)
+						{
+							JSValueUnprotect(globalContext, i->first);
+							i->second = 0;
+						} 
+					}
+					objRefs->clear();
 				}
 			}
-			else
+			if((! ourContext->second) || ourContext->second->size() == 0)
 			{
-				fprintf(stderr, "Couldn't find a list for a JS context\n");
+				_delContext(globalContext);
 			}
+		}
+		else 
+		{
+			fprintf(stderr, "Asked to unprotect an unknown js context\n");
 		}
 	}
 
@@ -911,7 +936,7 @@ namespace KJSUtil
 
 	KValueRef GetProperty(JSObjectRef globalObject, std::string name)
 	{
-		JSGlobalContextRef jsContext = GetGlobalContext(globalObject);
+		JSContextRef jsContext = GetGlobalContext(globalObject, NULL);
 		JSStringRef jsName = JSStringCreateWithUTF8CString(name.c_str());
 		JSValueRef prop = JSObjectGetProperty(jsContext, globalObject, jsName, NULL);
 		JSStringRelease(jsName);
