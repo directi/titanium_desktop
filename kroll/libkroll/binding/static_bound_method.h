@@ -58,7 +58,7 @@ namespace kroll
 		}
 
 		template <typename T>
-		static AutoPtr<StaticBoundMethod> FromMethod(T* owner, void (T::*method)(const ValueList&, KValueRef))
+		static KMethodRef FromMethod(T* owner, void (T::*method)(const ValueList&, KValueRef))
 		{
 			MethodCallback* callback = NewCallback<T, const ValueList&, KValueRef>(static_cast<T*>(owner), method);
 			return new StaticBoundMethod(callback);

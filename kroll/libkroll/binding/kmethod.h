@@ -67,6 +67,11 @@ namespace kroll
 		 */
 		SharedString DisplayString(int levels);
 
+#ifdef NO_METHOD_AUTOPTR
+		bool Equals(KMethodRef other);
+		bool Equals(KObjectRef other);
+#endif
+
 		/**
 		 * Return the unwrapped version of this object
 		 */

@@ -42,6 +42,7 @@ namespace kroll
 		JSObjectRef jsobject;
 
 		private:
+			bool isProtected;
 		DISALLOW_EVIL_CONSTRUCTORS(KKJSObject);
 	};
 }

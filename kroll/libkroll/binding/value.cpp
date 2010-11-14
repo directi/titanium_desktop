@@ -26,6 +26,9 @@ namespace kroll
 		this->objectValue = 0;
 		this->stringValue = 0;
 		this->numberValue = 0;
+#ifdef NO_METHOD_AUTOPTR
+		this->methodValue = 0;
+#endif
 	}
 
 	Value::Value() :
@@ -33,6 +36,9 @@ namespace kroll
 		numberValue(0),
 		stringValue(0),
 		objectValue(0)
+#ifdef NO_METHOD_AUTOPTR
+		, methodValue(0)
+#endif
 	{
 	}
 
@@ -41,14 +47,32 @@ namespace kroll
 		numberValue(0),
 		stringValue(0),
 		objectValue(0)
+#ifdef NO_METHOD_AUTOPTR
+		, methodValue(0)
+#endif
 	{
 		this->SetValue(value);
 	}
+
+#ifdef NO_METHOD_AUTOPTR
+	Value::Value(KMethodRef value) :
+		type(METHOD),
+		numberValue(0),
+		stringValue(0),
+		objectValue(0),
+		methodValue(0)
+	{
+		this->SetMethod(value);
+	}
+#endif
 
 	Value::Value(const Value& value) : type(UNDEFINED),
 		numberValue(0),
 		stringValue(0),
 		objectValue(0)
+#ifdef NO_METHOD_AUTOPTR
+		, methodValue(0)
+#endif
 	{
 		this->SetValue((Value*) &value);
 	}
@@ -159,7 +183,11 @@ namespace kroll
 		return stringValue;
 	}
 	KObjectRef Value::ToObject() const { return objectValue; }
+#ifdef NO_METHOD_AUTOPTR
+	KMethodRef Value::ToMethod() const { return methodValue; }
+#else
 	KMethodRef Value::ToMethod() const { return objectValue.cast<KMethod>(); }
+#endif
 	KListRef Value::ToList() const { return objectValue.cast<KList>(); }
 
 	void Value::SetValue(KValueRef other)
@@ -263,7 +291,11 @@ namespace kroll
 	void Value::SetMethod(KMethodRef value)
 	{
 		reset();
+#ifdef NO_METHOD_AUTOPTR
+		this->methodValue = value;
+#else
 		this->objectValue = value;
+#endif
 		if (value.isNull()) {
 			this->type = NULLV;
 		} else {

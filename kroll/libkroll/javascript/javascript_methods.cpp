@@ -30,7 +30,7 @@ namespace kroll
 			
 			void OnTimer(Poco::Timer& timer)
 			{
-				Host::GetInstance()->RunOnMainThread(method, 0, args, true);
+				Host::GetInstance()->RunOnMainThread(method, args, true);
 			}
 		};
 		
@@ -119,13 +119,13 @@ namespace kroll
 		KValueRef ClearTimeout(const ValueList& args)
 		{
 			args.VerifyException("clearTimeout", "i");
-			return Host::GetInstance()->RunOnMainThread(new KFunctionPtrMethod(&StopTimer), 0, args, false);
+			return Host::GetInstance()->RunOnMainThread(new KFunctionPtrMethod(&StopTimer), args, false);
 		}
 		
 		KValueRef ClearInterval(const ValueList& args)
 		{
 			args.VerifyException("clearInterval", "i");
-			return Host::GetInstance()->RunOnMainThread(new KFunctionPtrMethod(&StopTimer), 0, args, false);
+			return Host::GetInstance()->RunOnMainThread(new KFunctionPtrMethod(&StopTimer), args, false);
 		}
 	}
 }

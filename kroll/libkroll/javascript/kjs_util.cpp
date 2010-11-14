@@ -98,6 +98,7 @@ namespace KJSUtil
 				else if (JSObjectIsFunction(jsContext, o))
 				{
 					// this is a pure JS method: proxy it
+					// Don't use AutoPtrs here - let JSCore take care of references...
 					KMethodRef tibm = new KKJSMethod(jsContext, o, thisObject);
 					krollValue = Value::NewMethod(tibm);
 				}
@@ -680,8 +681,10 @@ namespace KJSUtil
 			JSValueUnprotect(globalContext, globalObject);
 			jsContextMap.erase(i);
 		}
+#if DEBUG
 		else 
 			fprintf(stderr, "Yikes, context not found\n");
+#endif
 	}
 	
 	JSContextRef GetGlobalContext(JSObjectRef object, JSContextRef context)
@@ -763,13 +766,17 @@ namespace KJSUtil
 		JSObjectRefCounter::iterator ourCtx = jsObjectRefCounter.find(globalContext);
 		if(ourCtx == jsObjectRefCounter.end())
 		{
+#if DEBUG
 			fprintf(stderr, "Asked to unprotect a JS context with no object list!\n");
+#endif
 			return;
 		}
 		JSObjectInContextRefCounter::iterator ourRef = ourCtx->second->find(value);
 		if(ourRef == ourCtx->second->end())
 		{
+#if DEBUG
 			fprintf(stderr, "Asked to unprotect a JS value with no object count!\n");
+#endif
 		} 
 		else
 		{
@@ -798,8 +805,12 @@ namespace KJSUtil
 					{
 						if(i->second > 0)
 						{
+#if DEBUG
+							KValueRef* t = static_cast<KValueRef*>(JSObjectGetPrivate(i->first));
+							if(t)
+								fprintf(stderr, "Found a non-js object: %s\n", *t);
+#endif
 							JSValueUnprotect(globalContext, i->first);
-							i->second = 0;
 						} 
 					}
 					objRefs->clear();
@@ -810,10 +821,12 @@ namespace KJSUtil
 				_delContext(globalContext);
 			}
 		}
+#if DEBUG
 		else 
 		{
 			fprintf(stderr, "Asked to unprotect an unknown js context\n");
 		}
+#endif
 	}
 
 	KValueRef Evaluate(JSContextRef jsContext, const char* script, const char* url)

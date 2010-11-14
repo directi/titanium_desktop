@@ -30,20 +30,23 @@ namespace kroll
 
 		this->context = globalContext;
 
-		KJSUtil::ProtectContextAndValue(this->context, this->jsobject);
-		if (thisObject != NULL)
-			KJSUtil::ProtectContextAndValue(this->context, thisObject);
+		KKJSMethod::RegisterMethod(this);
+
+		//KJSUtil::ProtectContextAndValue(this->context, this->jsobject);
+		//if (thisObject != NULL)
+		//	KJSUtil::ProtectContextAndValue(this->context, thisObject);
 
 		this->kobject = new KKJSObject(this->context, jsobject);
 	}
 
 	KKJSMethod::~KKJSMethod()
 	{
-		if (this->thisObject != NULL) 
-		{
-			KJSUtil::UnprotectContextAndValue(this->context, this->thisObject);
-		}
-		KJSUtil::UnprotectContextAndValue(this->context, this->jsobject);
+		//if (this->thisObject != NULL) 
+		//{
+		//	KJSUtil::UnprotectContextAndValue(this->context, this->thisObject);
+		//}
+		//KJSUtil::UnprotectContextAndValue(this->context, this->jsobject);
+		KKJSMethod::UnregisterMethod(this);
 	}
 
 	KValueRef KKJSMethod::Get(const char *name)
@@ -81,7 +84,7 @@ namespace kroll
 		return this->jsobject;
 	}
 
-	KValueRef KKJSMethod::Call(JSObjectRef thisObject, const ValueList& args)
+	KValueRef KKJSMethod::Call(const ValueList& args)
 	{
 		JSValueRef* jsArgs = new JSValueRef[args.size()];
 		for (int i = 0; i < (int) args.size(); i++)
@@ -104,30 +107,50 @@ namespace kroll
 		return KJSUtil::ToKrollValue(jsValue, this->context, NULL);
 	}
 
-	KValueRef KKJSMethod::Call(const ValueList& args)
+	ContextRefs KKJSMethod::contextRefs;
+	Poco::Mutex KKJSMethod::contextRefsMutex;
+
+	void KKJSMethod::MapDestroyed(JSWeakObjectMapRef map, void *data)
 	{
-		return this->Call(this->jsobject, args);
+		Poco::Mutex::ScopedLock t(contextRefsMutex);
+		contextRefs.erase((JSContextRef) data);
 	}
 
-	KValueRef KKJSMethod::Call(KObjectRef thisObject, const ValueList& args)
+	void KKJSMethod::RegisterMethod(KKJSMethod* method)
 	{
-		JSValueRef thisObjectValue = KJSUtil::ToJSValue(Value::NewObject(thisObject), this->context);
-		if (!JSValueIsObject(this->context, thisObjectValue))
+		Poco::Mutex::ScopedLock t(contextRefsMutex);
+		ContextRefs::iterator pos = contextRefs.find(method->context);
+		if(pos == contextRefs.end())
 		{
-			SharedString ss(thisObject->DisplayString());
-			throw ValueException::FromFormat("Could not convert %s to JSObjectRef for KKJSMethod::Call",
-				ss->c_str());
+			contextRefs[method->context] = JSWeakObjectMapCreate(method->context, &(method->context), &KKJSMethod::MapDestroyed);
+			pos = contextRefs.find(method->context);
 		}
+		JSValueRef kvalue = KJSUtil::KMethodToJSValue(Value::NewMethod(method), method->context);
+		method->jsRef = JSValueToObject(method->context, kvalue, NULL);
+		if(method->jsRef != 0) {
+			JSWeakObjectMapSet(method->context, pos->second, &method, method->jsRef);
+			// Prevent AutoPtr's from cleaning us up - we do get cast as an AutoPtr somewhere!!...
+			method->duplicate();
+		}
+		else
+			fprintf(stderr, "Error casting KKJSMethod to a JSObjectRef\n");
+	}
 
-		JSObjectRef jsThisObject = JSValueToObject(this->context, thisObjectValue, NULL);
-		if (!jsThisObject)
+	void KKJSMethod::UnregisterMethod(KKJSMethod* method)
+	{
+		Poco::Mutex::ScopedLock t(contextRefsMutex);
+		ContextRefs::iterator pos = contextRefs.find(method->context);
+		if(pos != contextRefs.end())
 		{
-			SharedString ss(thisObject->DisplayString());
-			throw ValueException::FromFormat("Could not convert %s to JSObjectRef for KKJSMethod::Call",
-				ss->c_str());
+			if(method->jsRef != 0)
+				JSWeakObjectMapClear(method->context, pos->second, &method, method->jsRef);
+			else
+				fprintf(stderr, "Error casting KKJSMethod to a JSObjectRef\n");
 		}
-
-		return this->Call(jsThisObject, args);
+#if DEBUG
+		else
+			fprintf(stderr, "Can't find a weak object map for this context\n");
+#endif
 	}
 }
 

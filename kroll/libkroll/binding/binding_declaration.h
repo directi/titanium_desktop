@@ -4,6 +4,9 @@
 
 #include <Poco/AutoPtr.h>
 using Poco::AutoPtr;
+#ifdef NO_METHOD_AUTOPTR
+#include "UnAutoPtr.h"
+#endif
 
 namespace kroll
 {
@@ -20,7 +23,11 @@ namespace kroll
 
 	typedef AutoPtr<Value> KValueRef;
 	typedef AutoPtr<KObject> KObjectRef;
+#ifdef NO_METHOD_AUTOPTR
+	typedef UnAutoPtr<KMethod> KMethodRef;
+#else
 	typedef AutoPtr<KMethod> KMethodRef;
+#endif
 	typedef AutoPtr<KList> KListRef;
 	typedef AutoPtr<Bytes> BytesRef;
 	typedef ArgList ValueList;

@@ -80,7 +80,7 @@ namespace kroll
 		 * @return the method's return value§
 		 */
 		KValueRef RunOnMainThread(KMethodRef method, const ValueList& args,
-			bool waitForCompletion=true);
+			bool waitForCompletion);
 
 		/*
 		 * Call with a method, thisObject, and  arguments to invoke the method on the UI thread.

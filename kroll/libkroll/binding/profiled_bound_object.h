@@ -23,6 +23,9 @@ namespace kroll
 	{
 		public:
 		ProfiledBoundObject(KObjectRef delegate);
+#ifdef NO_METHOD_AUTOPTR
+		ProfiledBoundObject(KMethodRef delegate);
+#endif
 		virtual ~ProfiledBoundObject();
 		static void SetStream(Poco::FileOutputStream*);
 
