@@ -34,6 +34,9 @@ if ARGUMENTS.get('test_crash', 0):
 
 # debug build flags
 debug = ARGUMENTS.get('debug', 0)
+disable_thirdparty_check = ARGUMENTS.get('disable_thirdparty_check', 0)
+Export('build', 'debug', 'disable_thirdparty_check')
+
 if debug:
 	build.env.Append(CPPDEFINES = ('DEBUG', 1))
 	if build.is_win32():
@@ -49,8 +52,6 @@ if build.is_win32():
 	build.env.Append(CCFLAGS=['/EHsc', '/GR', '/MD'])
 	if debug:
 		build.env.Append(LINKFLAGS=['/DEBUG', '/PDB:${TARGET}.pdb'])
-
-Export('build', 'debug')
 
 ## Kroll *must not be required* for installation
 SConscript('kroll/SConscript.thirdparty')

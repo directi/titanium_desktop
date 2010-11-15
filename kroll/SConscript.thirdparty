@@ -9,7 +9,9 @@ import os.path as path
 import distutils.dir_util as dirutil
 from subprocess import call
 from progressbar import ProgressBar
+
 Import('build')
+Import('disable_thirdparty_check')
 
 revisions = {
 	"linux-i386": 35,
@@ -51,6 +53,10 @@ def fetch():
 		pbar.finish()
 
 def fetch_thirdparty():
+	if disable_thirdparty_check:
+		print "Warning: not checking thirdparty libraries"
+		return
+
 	if path.isdir(build.third_party):
 		cwd = os.getcwd();
 		os.chdir(build.third_party)
