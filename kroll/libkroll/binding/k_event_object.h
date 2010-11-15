@@ -46,7 +46,7 @@ namespace kroll
 		Poco::FastMutex listenersMutex;
 	};
 
-	class EventListener
+	class EventListener 
 	{
 	public:
 		EventListener(std::string& targetedEvent, KMethodRef callback);

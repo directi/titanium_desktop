@@ -784,6 +784,7 @@ namespace KJSUtil
 			if(ourRef->second == 0) 
 			{
 				JSValueUnprotect(globalContext, value);
+				
 				ourCtx->second->erase(ourRef);
 			}
 		}
@@ -805,11 +806,11 @@ namespace KJSUtil
 					{
 						if(i->second > 0)
 						{
-#if DEBUG
 							KValueRef* t = static_cast<KValueRef*>(JSObjectGetPrivate(i->first));
-							if(t)
-								fprintf(stderr, "Found a non-js object: %s\n", *t);
-#endif
+							if(t) {
+								int r = (*t)->referenceCount();
+								(*t)->setReferenceCount(r - i->second + 1);
+							}
 							JSValueUnprotect(globalContext, i->first);
 						} 
 					}

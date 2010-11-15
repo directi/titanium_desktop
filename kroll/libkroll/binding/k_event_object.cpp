@@ -196,6 +196,7 @@ namespace kroll
 		targetedEvent(targetedEvent),
 		callback(callback)
 	{
+		callback->release();
 	}
 
 	inline bool EventListener::Handles(std::string& event)

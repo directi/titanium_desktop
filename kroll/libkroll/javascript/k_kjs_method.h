@@ -18,7 +18,7 @@ namespace kroll
 {
 	typedef std::map<JSContextRef, JSWeakObjectMapRef> ContextRefs;
 
-	class KROLL_API KKJSMethod : public KMethod
+	class KROLL_API KKJSMethod : public KMethod, public KKJSObject
 	{
 		public:
 		KKJSMethod(JSContextRef, JSObjectRef, JSObjectRef);
@@ -30,6 +30,8 @@ namespace kroll
 		virtual SharedStringList GetPropertyNames();
 		virtual bool HasProperty(const char* name);
 		virtual bool Equals(KObjectRef);
+		virtual void release();
+		virtual void duplicate();
 
 		virtual bool SameContextGroup(JSContextRef c);
 		JSObjectRef GetJSObject();
@@ -38,16 +40,15 @@ namespace kroll
 		JSContextRef context;
 		JSObjectRef jsobject;
 		JSObjectRef thisObject;
-		AutoPtr<KKJSObject> kobject;
 
 		private:
-			JSObjectRef jsRef;
+#if BARK_UP_WEAKREF_TREE
 			static ContextRefs contextRefs;
 			static Poco::Mutex contextRefsMutex;
 			static void MapDestroyed(JSWeakObjectMapRef, void *);
 			static void RegisterMethod(KKJSMethod *);
 			static void UnregisterMethod(KKJSMethod *);
-		
+#endif
 			DISALLOW_EVIL_CONSTRUCTORS(KKJSMethod);
 	};
 }

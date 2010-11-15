@@ -9,7 +9,8 @@ namespace kroll
 {
 	KKJSMethod::KKJSMethod(JSContextRef context, JSObjectRef jsobject, JSObjectRef thisObject) :
 		KMethod("JavaScript.KKJSMethod"),
-		context(NULL),
+		KKJSObject(context, jsobject),
+		context(context),
 		jsobject(jsobject),
 		thisObject(thisObject)
 	{
@@ -30,53 +31,67 @@ namespace kroll
 
 		this->context = globalContext;
 
+#if BARK_UP_WEAKREF_TREE
 		KKJSMethod::RegisterMethod(this);
-
-		//KJSUtil::ProtectContextAndValue(this->context, this->jsobject);
-		//if (thisObject != NULL)
-		//	KJSUtil::ProtectContextAndValue(this->context, thisObject);
-
-		this->kobject = new KKJSObject(this->context, jsobject);
+#else
+		KJSUtil::ProtectContextAndValue(this->context, this->jsobject);
+		if (thisObject != NULL) {
+			KJSUtil::ProtectContextAndValue(this->context, thisObject);
+		}
+#endif
 	}
 
 	KKJSMethod::~KKJSMethod()
 	{
-		//if (this->thisObject != NULL) 
-		//{
-		//	KJSUtil::UnprotectContextAndValue(this->context, this->thisObject);
-		//}
-		//KJSUtil::UnprotectContextAndValue(this->context, this->jsobject);
+#if BARK_UP_WEAKREF_TREE
 		KKJSMethod::UnregisterMethod(this);
+#else
+		if (this->thisObject != NULL) 
+		{
+			KJSUtil::UnprotectContextAndValue(this->context, this->thisObject);
+		}
+		KJSUtil::UnprotectContextAndValue(this->context, this->jsobject);
+#endif
+	}
+
+	void KKJSMethod::release()
+	{
+		KObject::release();
+	}
+
+	void KKJSMethod::duplicate()
+	{
+		KObject::duplicate();
 	}
 
 	KValueRef KKJSMethod::Get(const char *name)
 	{
-		return kobject->Get(name);
+		return KKJSObject::Get(name);
 	}
 
 	void KKJSMethod::Set(const char *name, KValueRef value)
 	{
-		return kobject->Set(name, value);
+		return KKJSObject::Set(name, value);
 	}
 
 	bool KKJSMethod::Equals(KObjectRef other)
 	{
-		return this->kobject->Equals(other);
+		return this->KKJSObject::Equals(other);
 	}
 
 	SharedStringList KKJSMethod::GetPropertyNames()
 	{
-		return kobject->GetPropertyNames();
+		return KKJSObject::GetPropertyNames();
 	}
 
 	bool KKJSMethod::HasProperty(const char* name)
 	{
-		return kobject->HasProperty(name);
+		return KKJSObject::HasProperty(name);
 	}
 
 	bool KKJSMethod::SameContextGroup(JSContextRef c)
 	{
-		return kobject->SameContextGroup(c);
+		return KKJSObject::SameContextGroup(c);
 	}
 
 	JSObjectRef KKJSMethod::GetJSObject()
@@ -94,7 +109,7 @@ namespace kroll
 		}
 
 		JSValueRef exception = NULL;
-		JSValueRef jsValue = JSObjectCallAsFunction(this->context, thisObject,
+		JSValueRef jsValue = JSObjectCallAsFunction(this->context, jsobject,
 			this->thisObject, args.size(), jsArgs, &exception);
 
 		delete [] jsArgs; // clean up args
@@ -107,6 +122,7 @@ namespace kroll
 		return KJSUtil::ToKrollValue(jsValue, this->context, NULL);
 	}
 
+#if BARK_UP_WEAKREF_TREE
 	ContextRefs KKJSMethod::contextRefs;
 	Poco::Mutex KKJSMethod::contextRefsMutex;
 
@@ -152,5 +168,6 @@ namespace kroll
 			fprintf(stderr, "Can't find a weak object map for this context\n");
 #endif
 	}
+#endif
 }
 
