@@ -8,6 +8,7 @@
 
 #define WEB_INSPECTOR_MENU_ITEM_ID 7500
 #define NEXT_ITEM_ID_BEGIN 7501
+#include "bitmap_utils.h"
 
 namespace ti
 {
