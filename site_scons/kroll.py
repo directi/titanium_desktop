@@ -161,6 +161,11 @@ class BuildConfig(object):
 			libpath = [self.tp('openssl', 'lib')]
 			libs = ['libeay32.lib', 'ssleay32.lib']
 
+		if name is 'libproxy':
+			cpppath = [self.tp('libproxy', 'include')]
+			libpath = [self.tp('libproxy', 'lib')]
+			libs = ['libproxy.lib']
+
 		if name is 'microsoft':
 			cpppath = [self.tp('microsoft', 'include')]
 
