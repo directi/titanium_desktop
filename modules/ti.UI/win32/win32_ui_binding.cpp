@@ -251,60 +251,6 @@ namespace ti
 	/*static*/
 	HBITMAP Win32UIBinding::LoadPNGAsBitmap(std::string& path, int sizeX, int sizeY)
 	{
-/*		std::string systemPath(UTF8ToSystem(path));
-		cairo_surface_t* pngSurface =
-		cairo_image_surface_create_from_png(systemPath.c_str());
-
-		cairo_t* pngcr = cairo_create(pngSurface);
-		if (cairo_status(pngcr) != CAIRO_STATUS_SUCCESS)
-		return 0;
-
-		BITMAPINFO bitmapInfo;
-		memset(&bitmapInfo, 0, sizeof(bitmapInfo));
-		bitmapInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-		bitmapInfo.bmiHeader.biWidth = sizeX;
-		bitmapInfo.bmiHeader.biHeight = -sizeY; // Bottom-up
-		bitmapInfo.bmiHeader.biPlanes = 1;
-		bitmapInfo.bmiHeader.biBitCount = 32;
-		bitmapInfo.bmiHeader.biCompression = BI_RGB;
-		bitmapInfo.bmiHeader.biSizeImage = 0;
-		bitmapInfo.bmiHeader.biXPelsPerMeter = 1000;
-		bitmapInfo.bmiHeader.biYPelsPerMeter = bitmapInfo.bmiHeader.biXPelsPerMeter;
-		bitmapInfo.bmiHeader.biClrUsed = 0;
-		bitmapInfo.bmiHeader.biClrImportant = 0;
-
-		void* pixels = NULL;
-		HDC hdc = ::GetDC(NULL);
-		HBITMAP out = CreateDIBSection(hdc, &bitmapInfo,
-		DIB_RGB_COLORS, &pixels, NULL, 0);
-		::ReleaseDC(NULL, hdc);
-
-		BITMAP info;
-		::GetObjectW(out, sizeof(info), &info);
-		cairo_surface_t* outSurface = cairo_image_surface_create_for_data(
-		(unsigned char*) pixels, CAIRO_FORMAT_ARGB32,
-		sizeX, sizeY, info.bmWidthBytes);
-		cairo_surface_t* scaledSurface = ScaleCairoSurface(pngSurface, sizeX, sizeY);
-
-		cairo_t *cr = cairo_create(outSurface);
-
-		cairo_save(cr);
-		cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR);
-		cairo_paint(cr);
-		cairo_restore(cr);
-
-		cairo_set_source_surface(cr, scaledSurface, 0, 0);
-		cairo_rectangle(cr, 0, 0, sizeX, sizeY);
-		cairo_fill(cr);
-
-		cairo_destroy(cr);
-		cairo_surface_destroy(outSurface);
-		cairo_surface_destroy(scaledSurface);
-		cairo_destroy(pngcr);
-		cairo_surface_destroy(pngSurface);
-		*/
-
-
 		HBITMAP hbm = NULL;
 		bool retVal = false;
 		int size = 0;
@@ -399,6 +345,7 @@ namespace ti
 		png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
 
 		HBITMAP hbmScaled = BitmapUtils::ScaleBitmap(hbm, sizeX, -sizeY);
+		::DeleteObject(hbm);
 
 		return hbmScaled;
 	}
