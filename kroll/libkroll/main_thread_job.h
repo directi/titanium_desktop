@@ -19,8 +19,7 @@ namespace kroll
 	class KROLL_API MainThreadJob
 	{
 	public:
-		MainThreadJob(KMethodRef method, KObjectRef thisObject,
-			const ValueList& args, bool waitForCompletion);
+		MainThreadJob(KMethodRef method, const ValueList& args, bool waitForCompletion);
 		void Lock();
 		void Wait();
 		void Execute();
@@ -31,7 +30,6 @@ namespace kroll
 
 	private:
 		KMethodRef method;
-		KObjectRef thisObject;
 		const ValueList args;
 		bool waitForCompletion;
 		KValueRef returnValue;

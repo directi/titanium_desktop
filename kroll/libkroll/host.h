@@ -82,16 +82,6 @@ namespace kroll
 		KValueRef RunOnMainThread(KMethodRef method, const ValueList& args,
 			bool waitForCompletion);
 
-		/*
-		 * Call with a method, thisObject, and  arguments to invoke the method on the UI thread.
-		 * @param method method to execute on the main thread
-		 * @param args method arguments
-		 * @param waitForCompletion block until method is finished (default: true)
-		 * @return the method's return value§
-		 */
-		KValueRef RunOnMainThread(KMethodRef method, KObjectRef thisObject,
-			const ValueList& args, bool waitForCompletion=true);
-
 		/**
 		 * Add a module provider to the host
 		 */
@@ -216,8 +206,7 @@ namespace kroll
 
 	KROLL_API KValueRef RunOnMainThread(KMethodRef method, const ValueList& args,
 		bool waitForCompletion=true);
-	KROLL_API KValueRef RunOnMainThread(KMethodRef method, KObjectRef thisObject,
-		const ValueList& args, bool waitForCompletion=true);
+
 	KROLL_API bool IsMainThread();
 }
 

@@ -11,6 +11,7 @@
 #include "global_object.h"
 #include "k_event_object.h"
 #include "value_exception.h"
+#include "../javascript/k_kjs_method.h"
 
 namespace kroll
 {
@@ -36,13 +37,16 @@ namespace kroll
 
 	void KEventObject::AddEventListener(std::string& event, KMethodRef callback)
 	{
-		Poco::FastMutex::ScopedLock lock(this->listenersMutex);
+		Poco::Mutex::ScopedLock lock(this->listenersMutex);
 		listeners.push_back(new EventListener(event, callback));
+		KKJSMethod* c2 = dynamic_cast<KKJSMethod*>(callback.get());
+		if(c2)
+			AddRef(c2->Context(), this);
 	}
 
 	void KEventObject::RemoveEventListener(std::string& event, KMethodRef callback)
 	{
-		Poco::FastMutex::ScopedLock lock(this->listenersMutex);
+		Poco::Mutex::ScopedLock lock(this->listenersMutex);
 
 		EventListenerList::iterator i = this->listeners.begin();
 		while (i != this->listeners.end())
@@ -50,6 +54,9 @@ namespace kroll
 			EventListener* listener = *i;
 			if (listener->Handles(event) && listener->Callback()->Equals(callback))
 			{
+				KKJSMethod* c2 = dynamic_cast<KKJSMethod*>(callback.get());
+				if(c2)
+					DelRef(c2->Context(), this);
 				this->listeners.erase(i);
 				delete listener;
 				break;
@@ -60,7 +67,7 @@ namespace kroll
 
 	void KEventObject::RemoveAllEventListeners()
 	{
-		Poco::FastMutex::ScopedLock lock(this->listenersMutex);
+		Poco::Mutex::ScopedLock lock(this->listenersMutex);
 
 		EventListenerList::iterator i = this->listeners.begin();
 		while (i != this->listeners.end())
@@ -78,7 +85,7 @@ namespace kroll
 		// too add event listeners.
 		EventListenerList listenersCopy;
 		{
-			Poco::FastMutex::ScopedLock lock(this->listenersMutex);
+			Poco::Mutex::ScopedLock lock(this->listenersMutex);
 			listenersCopy = listeners;
 		}
 
@@ -119,7 +126,7 @@ namespace kroll
 		// too add event listeners.
 		EventListenerList listenersCopy;
 		{
-			Poco::FastMutex::ScopedLock lock(listenersMutex);
+			Poco::Mutex::ScopedLock lock(listenersMutex);
 			listenersCopy = listeners;
 		}
 
@@ -191,12 +198,75 @@ namespace kroll
 			this->GetType().c_str(), reason.c_str());
 	}
 
+	Poco::Mutex KEventObject::mapMutex;
+	ContextMap KEventObject::contextMap;
+
+	void KEventObject::AddRef(JSContextRef context, KEventObject* object)
+	{
+		Poco::Mutex::ScopedLock lock(mapMutex);
+		ContextMap::iterator i = contextMap.find(context);
+		if(i == contextMap.end()) {
+			contextMap[context] = new EventObjectList();
+			i = contextMap.find(context);
+		}
+		EventObjectList::iterator el = i->second->begin();
+		while(el != i->second->end())
+		{
+			if((*el) == object) {
+				return;
+			}
+			++el;
+		}
+		i->second->push_back(object);
+	}
+
+	void KEventObject::DelRef(JSContextRef context, KEventObject* object)
+	{
+		Poco::Mutex::ScopedLock lock(mapMutex);
+		ContextMap::iterator i = contextMap.find(context);
+		if(i != contextMap.end()) {
+			EventObjectList::iterator el = i->second->begin();
+			while(el != i->second->end())
+			{
+				if((*el) == object) {
+					i->second->erase(el);
+					return;
+				}
+				++el;
+			}
+		}
+	}
+
+	void KEventObject::CleanupListenersFromContext(JSContextRef context)
+	{
+		Poco::Mutex::ScopedLock lock(mapMutex);
+		ContextMap::iterator i = contextMap.find(context);
+		if(i == contextMap.end()) return;
+		for(EventObjectList::iterator l = i->second->begin(); l != i->second->end(); ++l)
+		{
+			Poco::Mutex::ScopedLock lock((*l)->listenersMutex);				
+			EventListenerList::iterator el = (*l)->listeners.begin();
+			while(el != (*l)->listeners.end())
+			{
+				KKJSMethod* callback = dynamic_cast<KKJSMethod*>((*el)->Callback().get());
+				if(callback && callback->Context() == context)
+				{
+					EventListenerList::iterator del = el;
+					++el;
+					(*l)->listeners.erase(del);
+					continue;
+				}
+				++el;
+			}
+		}
+		delete i->second;
+		contextMap.erase(i);
+	}
 
 	EventListener::EventListener(std::string& targetedEvent, KMethodRef callback) :
 		targetedEvent(targetedEvent),
 		callback(callback)
 	{
-		callback->release();
 	}
 
 	inline bool EventListener::Handles(std::string& event)
@@ -211,7 +281,7 @@ namespace kroll
 
 	bool EventListener::Dispatch(KObjectRef thisObject, const ValueList& args, bool synchronous)
 	{
-		KValueRef result = RunOnMainThread(this->callback, thisObject, args, synchronous);
+		KValueRef result = RunOnMainThread(this->callback, args, synchronous);
 		if (result->IsBool())
 			return result->ToBool();
 		return true;

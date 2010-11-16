@@ -8,7 +8,9 @@
 #define _KJS_KMETHOD_H_
 
 #include "javascript_module.h"
+#if BARK_UP_WEAKREF_TREE
 #include <JavaScriptCore/JSWeakObjectMapRefPrivate.h>
+#endif
 
 #include <vector>
 #include <string>
@@ -16,7 +18,9 @@
 
 namespace kroll
 {
+#if BARK_UP_WEAKREF_TREE
 	typedef std::map<JSContextRef, JSWeakObjectMapRef> ContextRefs;
+#endif
 
 	class KROLL_API KKJSMethod : public KMethod, public KKJSObject
 	{
@@ -35,6 +39,7 @@ namespace kroll
 
 		virtual bool SameContextGroup(JSContextRef c);
 		JSObjectRef GetJSObject();
+		JSContextRef Context() { return context; }
 
 		protected:
 		JSContextRef context;

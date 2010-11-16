@@ -14,10 +14,20 @@
 
 #include "event.h"
 
+#ifdef KROLL_API_EXPORT
+#include <JavaScriptCore/JSContextRef.h>
+#endif
+
 namespace kroll
 {
 	class EventListener;
 	typedef std::list<EventListener*> EventListenerList;
+
+#ifdef KROLL_API_EXPORT
+	class KEventObject;
+	typedef std::list<KEventObject*> EventObjectList;
+	typedef std::map<JSContextRef, EventObjectList*> ContextMap;
+#endif
 
 	class KROLL_API KEventObject : public KAccessorObject
 	{
@@ -39,11 +49,23 @@ namespace kroll
 		void _RemoveEventListener(const ValueList&, KValueRef result);
 		void _RemoveAllEventListeners(const ValueList&, KValueRef result);
 
+#ifdef KROLL_API_EXPORT
+		static void CleanupListenersFromContext(JSContextRef context);
+#endif
+
 	private:
 		void ReportDispatchError(std::string& reason);
 
 		EventListenerList listeners;
-		Poco::FastMutex listenersMutex;
+		Poco::Mutex listenersMutex;
+
+#ifdef KROLL_API_EXPORT
+		static Poco::Mutex mapMutex;
+		static ContextMap contextMap;
+
+		static void AddRef(JSContextRef context, KEventObject* obj);
+		static void DelRef(JSContextRef context, KEventObject* obj);
+#endif
 	};
 
 	class EventListener 

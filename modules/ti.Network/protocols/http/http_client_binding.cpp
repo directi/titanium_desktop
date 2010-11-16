@@ -292,20 +292,20 @@ namespace ti
 		if (eventName == Event::HTTP_STATE_CHANGED)
 		{
 			if (!this->onreadystate.isNull())
-				RunOnMainThread(this->onreadystate, GetAutoPtr(), args, true);
+				RunOnMainThread(this->onreadystate, args, true);
 
 			if (this->Get("readyState")->ToInt() == 4 && !this->onload.isNull())
 			{
-				RunOnMainThread(this->onload, GetAutoPtr(), args, true);
+				RunOnMainThread(this->onload, args, true);
 			}
 		}
 		else if (eventName == Event::HTTP_DATA_SENT && !this->onsendstream.isNull())
 		{
-			RunOnMainThread(this->onsendstream, GetAutoPtr(), args, true);
+			RunOnMainThread(this->onsendstream, args, true);
 		}
 		else if (eventName == Event::HTTP_DATA_RECEIVED && !this->ondatastream.isNull())
 		{
-			RunOnMainThread(this->ondatastream, GetAutoPtr(), args, true);
+			RunOnMainThread(this->ondatastream, args, true);
 		}
 
 		return KEventObject::FireEvent(eventName);
@@ -673,8 +673,7 @@ namespace ti
 
 		if (this->outputHandler)
 		{
-			RunOnMainThread(this->outputHandler, GetAutoPtr(),
-				ValueList(Value::NewObject(bytes)));
+			RunOnMainThread(this->outputHandler, ValueList(Value::NewObject(bytes)));
 		}
 
 		responseDataReceived += bufferSize;

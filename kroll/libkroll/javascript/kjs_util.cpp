@@ -697,7 +697,7 @@ namespace KJSUtil
 				JSValueProtect(context, object);
 				return context;
 			} else {
-				fprintf(stderr, "Yikes need to return a null context\n");
+				GetLogger()->Error("Yikes need to return a NULL context!!");
 				return 0;
 			}
 		}
@@ -726,6 +726,7 @@ namespace KJSUtil
 
 	static inline void _delContext(JSContextRef globalContext) 
 	{
+		KEventObject::CleanupListenersFromContext(globalContext);
 		JSObjectRef globalObject = JSContextGetGlobalObject(globalContext);
 		UnregisterContext(globalObject, globalContext);
 		jsObjectRefCounter.erase(globalContext);
@@ -744,10 +745,10 @@ namespace KJSUtil
 		JSObjectRefCounter::iterator ourCtx = jsObjectRefCounter.find(globalContext);
 		if(ourCtx == jsObjectRefCounter.end())
 		{
-			fprintf(stderr, "No reference counter map found for globalContext\n");
+			GetLogger()->Error("No reference counter map found for globalContext");
 			return;
 		}
-		if(! ourCtx->second) ourCtx->second = new JSObjectInContextRefCounter();
+		//if(! ourCtx->second) ourCtx->second = new JSObjectInContextRefCounter();
 		JSObjectInContextRefCounter::iterator ourRef = ourCtx->second->find(value);
 		if(ourRef == ourCtx->second->end())
 		{
@@ -809,7 +810,8 @@ namespace KJSUtil
 							KValueRef* t = static_cast<KValueRef*>(JSObjectGetPrivate(i->first));
 							if(t) {
 								int r = (*t)->referenceCount();
-								(*t)->setReferenceCount(r - i->second + 1);
+								if(r != (r - i->second + 1))
+									(*t)->setReferenceCount(r - i->second + 1);
 							}
 							JSValueUnprotect(globalContext, i->first);
 						} 

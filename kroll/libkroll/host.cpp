@@ -674,17 +674,9 @@ namespace kroll
 		this->ExitImpl(exitCode);
 	}
 
-	KValueRef Host::RunOnMainThread(KMethodRef method, const ValueList& args,
-		bool waitForCompletion)
+	KValueRef Host::RunOnMainThread(KMethodRef method, const ValueList& args, bool waitForCompletion)
 	{
-		return this->RunOnMainThread(method, 0, args, waitForCompletion);
-	}
-
-	KValueRef Host::RunOnMainThread(KMethodRef method, KObjectRef thisObject,
-		const ValueList& args, bool waitForCompletion)
-	{
-		MainThreadJob* job = new MainThreadJob(method, thisObject,
-			args, waitForCompletion);
+		MainThreadJob* job = new MainThreadJob(method, args, waitForCompletion);
 		if (this->IsMainThread() && waitForCompletion)
 		{
 			job->Execute();
@@ -761,12 +753,6 @@ namespace kroll
 
 	KValueRef RunOnMainThread(KMethodRef method, const ValueList& args,
 		bool waitForCompletion)
-	{
-		return Host::GetInstance()->RunOnMainThread(method, args, waitForCompletion);
-	}
-
-	KValueRef RunOnMainThread(KMethodRef method, KObjectRef thisObject,
-		const ValueList& args, bool waitForCompletion)
 	{
 		return Host::GetInstance()->RunOnMainThread(method, args, waitForCompletion);
 	}

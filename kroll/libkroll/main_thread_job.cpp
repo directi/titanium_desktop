@@ -15,10 +15,8 @@
 namespace kroll
 {
 
-	MainThreadJob::MainThreadJob(KMethodRef method, KObjectRef thisObject,
-		const ValueList& args, bool waitForCompletion) :
+	MainThreadJob::MainThreadJob(KMethodRef method, const ValueList& args, bool waitForCompletion) :
 		method(method),
-		thisObject(thisObject),
 		args(args),
 		waitForCompletion(waitForCompletion),
 		returnValue(NULL),
@@ -41,10 +39,7 @@ namespace kroll
 	{
 		try
 		{
-			if (thisObject.isNull())
-				this->returnValue = this->method->Call(this->args);
-			else
-				this->returnValue = this->method->Call(thisObject, this->args);
+			this->returnValue = this->method->Call(this->args);
 		}
 		catch (ValueException& e)
 		{
