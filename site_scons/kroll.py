@@ -164,7 +164,7 @@ class BuildConfig(object):
 		if name is 'libpng':
 			cpppath = [self.tp('libpng', 'include')]
 			libpath = [self.tp('libpng', 'lib')]
-			libs = ['libpng.lib']
+			libs = ['libpng.lib', 'zlib.lib']
 
 		if name is 'poco':
 			cpppath = [self.tp('poco', 'include')]
