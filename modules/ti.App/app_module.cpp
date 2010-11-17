@@ -7,7 +7,6 @@
 #include "app_module.h"
 #include "app_config.h"
 #include "app_binding.h"
-#include "properties_binding.h"
 #include <Poco/File.h>
 
 namespace ti
@@ -16,8 +15,7 @@ namespace ti
 
 	static Logger* GetLogger()
 	{
-		static Logger* logger = Logger::Get("App");
-		return logger;
+		return Logger::Get("App");
 	}
 
 	void AppModule::Initialize()
@@ -36,13 +34,6 @@ namespace ti
 		Poco::File dataPathFile(dataPath);
 		if (!dataPathFile.exists())
 			dataPathFile.createDirectories();
-
-		std::string propFilename(FileUtils::Join(
-			dataPath.c_str(), "application.properties", 0));
-
-		// @tiapi(property=True,type=App.Properties,name=App.Properties,since=0.2)
-		// @tiapi The application's private Properties object
-		binding->SetObject("Properties", new PropertiesBinding(propFilename));
 	}
 
 	void AppModule::Stop()

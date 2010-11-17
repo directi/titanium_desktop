@@ -8,11 +8,6 @@
 #include "network_status.h"
 #include "network_binding.h"
 #include "protocols/tcp/tcp_socket_binding.h"
-
-#ifndef OS_OSX
-#include "protocols/tcp/secure_tcp_socket_binding.h"
-#endif
-
 #include "protocols/tcp/tcp_server_socket_binding.h"
 #include "interface_binding.h"
 #include "ipaddress_binding.h"
@@ -71,12 +66,7 @@ namespace ti
 		 * @tiresult(for=Network.createTCPSocket,type=Network.TCPSocket) a TCPSocket object
 		 */
 		this->SetMethod("createTCPSocket",&NetworkBinding::_CreateTCPSocket);
-		// methods that are available on Titanium.Network
-		/**
-		 * @tiapi(method=True,name=Network.createTCPSocket,since=1.1.0) upgrades TCPSocket object to securetcpsocket
-		 * @tiarg(for=Network.updateToSecureTCPSocket,name=host,type=Object) the TCPSocketBinding class
-		 */
-		this->SetMethod("updateToSecureTCPSocket",&NetworkBinding::_UpdateToSecureTCPSocket);
+
 		/**
 		 * @tiapi(method=True,name=Network.createTCPServerSocket,since=1.2) Creates a TCPServerSocket object
 		 * @tiarg(for=Network.createTCPServerSocket,name=callback,type=Function) the callback to receive a new connection
@@ -287,14 +277,6 @@ namespace ti
 		args.VerifyException("createTCPSocket", "sn");
 		result->SetObject(new TCPSocketBinding(host,
 			args.GetString(0), args.GetInt(1)));
-	}
-
-	void NetworkBinding::_UpdateToSecureTCPSocket(const ValueList& args, KValueRef result)
-	{
-#ifndef OS_OSX
-		TCPSocketBinding * socket = args.GetObject(0).cast<TCPSocketBinding>();
-		SecureTCPSocketBinding::startTLS(socket);
-#endif
 	}
 
 	void NetworkBinding::_CreateTCPServerSocket(const ValueList& args, KValueRef result)

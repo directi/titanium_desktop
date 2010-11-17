@@ -7,7 +7,6 @@
 #include "app_config.h"
 #include "window_config.h"
 #include "config_utils.h"
-#include "properties_binding.h"
 
 #include <Poco/RegularExpression.h>
 #include <libxml/parser.h>
@@ -19,45 +18,9 @@
 #include <algorithm>
 #include <sstream>
 
-using Poco::Util::TitaniumPropertyFileConfiguration;
 
 namespace ti
 {
-
-static void ParsePropertyNode(xmlNodePtr node,
-	AutoPtr<TitaniumPropertyFileConfiguration> config)
-{
-	std::string name(ConfigUtils::GetPropertyValue(node, "name"));
-
-	if (name.empty())
-		return;
-
-	std::string type(ConfigUtils::GetPropertyValue(node, "type"));
-	std::string value(ConfigUtils::GetNodeValue(node));
-	if (type == "int")
-	{
-		config->setInt(name, atoi(value.c_str()));
-	}
-	else if (type == "bool")
-	{
-		config->setBool(name, ConfigUtils::StringToBool(value));
-	}
-	else if (type == "double")
-	{
-		config->setDouble(name, atof(value.c_str()));
-	}
-	else
-	{
-		config->setString(name, value);
-	}
-}
-
-static Logger* GetLogger()
-{
-	static Logger* logger = Logger::Get("App.AppConfig");
-	return logger;
-}
-
 AppConfig* AppConfig::Instance()
 {
 	static AppConfig* instance = 0;
@@ -83,7 +46,6 @@ AppConfig* AppConfig::Instance()
 
 AppConfig::AppConfig(const std::string& xmlfile)
 {
-	systemProperties = new PropertiesBinding();
 	xmlParserCtxtPtr context = xmlNewParserCtxt();
 	xmlDocPtr document = xmlCtxtReadFile(context, xmlfile.c_str(), NULL, 0);
 
@@ -154,14 +116,10 @@ AppConfig::AppConfig(const std::string& xmlfile)
 		{
 			icon = ConfigUtils::GetNodeValue(node);
 		}
-		else if (nodeName == "property")
-		{
-			ParsePropertyNode(node, systemProperties->GetConfig());
-		}
 		else if (nodeName == "title")
-		  {
-			appTitle = ConfigUtils::GetNodeValue(node);
-		  }
+		{
+		appTitle = ConfigUtils::GetNodeValue(node);
+		}
 
 		node = node->next;
 	}
