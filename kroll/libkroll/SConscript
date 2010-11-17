@@ -62,6 +62,7 @@ if build.is_linux():
 
 if build.is_win32():
 	build.add_thirdparty(libkroll_env, 'icu')
+	build.add_thirdparty(libkroll_env, 'libproxy')
 	libkroll_env.Append(LIBS=[
 		'Advapi32', 'comctl32', 'icuuc',
 		'icuin', 'iphlpapi', 'kernel32',
@@ -79,7 +80,6 @@ elif build.is_osx():
 
 build.add_thirdparty(libkroll_env, 'poco')
 build.add_thirdparty(libkroll_env, 'webkit')
-build.add_thirdparty(libkroll_env, 'libproxy')
 
 build.mark_build_target(
 	libkroll_env.SharedLibrary(path.join(build.dir, 'runtime', build.version, libkroll_name),
