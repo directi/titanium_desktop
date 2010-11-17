@@ -539,7 +539,7 @@ namespace ti
 
 	void QuieterSocketReactor::onIdle() 
 	{
-		Poco::FastMutex::ScopedLock l(conditionLock);
+		Poco::Mutex::ScopedLock l(conditionLock);
 		waiting = true;
 		idle.wait(conditionLock);
 		waiting = false;

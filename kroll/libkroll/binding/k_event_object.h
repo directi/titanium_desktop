@@ -43,7 +43,7 @@ namespace kroll
 		void ReportDispatchError(std::string& reason);
 
 		EventListenerList listeners;
-		Poco::FastMutex listenersMutex;
+		Poco::Mutex listenersMutex;
 	};
 
 	class EventListener

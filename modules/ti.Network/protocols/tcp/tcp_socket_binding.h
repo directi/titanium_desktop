@@ -45,7 +45,7 @@ namespace ti
 		virtual void onIdle();
 	private:
 		bool waiting;
-		FastMutex conditionLock;
+		Mutex conditionLock;
 		Condition idle;
 	};
 

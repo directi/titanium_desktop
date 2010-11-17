@@ -36,13 +36,13 @@ namespace kroll
 
 	void KEventObject::AddEventListener(std::string& event, KMethodRef callback)
 	{
-		Poco::FastMutex::ScopedLock lock(this->listenersMutex);
+		Poco::Mutex::ScopedLock lock(this->listenersMutex);
 		listeners.push_back(new EventListener(event, callback));
 	}
 
 	void KEventObject::RemoveEventListener(std::string& event, KMethodRef callback)
 	{
-		Poco::FastMutex::ScopedLock lock(this->listenersMutex);
+		Poco::Mutex::ScopedLock lock(this->listenersMutex);
 
 		EventListenerList::iterator i = this->listeners.begin();
 		while (i != this->listeners.end())
@@ -60,7 +60,7 @@ namespace kroll
 
 	void KEventObject::RemoveAllEventListeners()
 	{
-		Poco::FastMutex::ScopedLock lock(this->listenersMutex);
+		Poco::Mutex::ScopedLock lock(this->listenersMutex);
 
 		EventListenerList::iterator i = this->listeners.begin();
 		while (i != this->listeners.end())
@@ -78,7 +78,7 @@ namespace kroll
 		// too add event listeners.
 		EventListenerList listenersCopy;
 		{
-			Poco::FastMutex::ScopedLock lock(this->listenersMutex);
+			Poco::Mutex::ScopedLock lock(this->listenersMutex);
 			listenersCopy = listeners;
 		}
 
@@ -119,7 +119,7 @@ namespace kroll
 		// too add event listeners.
 		EventListenerList listenersCopy;
 		{
-			Poco::FastMutex::ScopedLock lock(listenersMutex);
+			Poco::Mutex::ScopedLock lock(listenersMutex);
 			listenersCopy = listeners;
 		}
 
