@@ -17,7 +17,7 @@ if build.is_linux():
 
 elif build.is_win32():
 	build.add_thirdparty(env, 'cairo')
-	env.Append(CPPPATH=[build.tp('icu', 'include')])
+	build.add_thirdparty(env, 'icu')
 	sources = sources + Glob('win32/*.cpp')
 	sources += Glob('binding/kjs*.cpp')
 	env.Append(LIBS=[

@@ -166,6 +166,12 @@ class BuildConfig(object):
 			libpath = [self.tp('libproxy', 'lib')]
 			libs = ['libproxy.lib']
 
+		if name is 'icu':
+			cpppath = [self.tp('icu', 'include')]
+
+		if name is 'libxml':
+			cpppath = [self.tp('libxml', 'include')]
+
 		if name is 'microsoft':
 			cpppath = [self.tp('microsoft', 'include')]
 

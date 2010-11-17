@@ -61,7 +61,7 @@ if build.is_linux():
 	libkroll_env.Append(LIBS=['pthread', 'libsoup-2.4', 'libproxy'])
 
 if build.is_win32():
-	libkroll_env.Append(CPPPATH=[path.join(build.third_party, 'icu', 'include')])
+	build.add_thirdparty(libkroll_env, 'icu')
 	libkroll_env.Append(LIBS=[
 		'Advapi32', 'comctl32', 'icuuc',
 		'icuin', 'iphlpapi', 'kernel32',
