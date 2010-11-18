@@ -157,14 +157,18 @@ class BuildConfig(object):
 			cpppath = [self.tp('asio', 'include')]
 
 		if name is 'openssl':
-			cpppath = [self.tp('openssl', 'include')]
-			libpath = [self.tp('openssl', 'lib')]
-			libs = ['libeay32.lib', 'ssleay32.lib']
+			if self.is_win32():
+				cpppath = [self.tp('openssl', 'include')]
+				libpath = [self.tp('openssl', 'lib')]
+				libs = ['libeay32', 'ssleay32']
+			if self.is_osx():
+				libs = ['ssl', 'crypto']
+
 
 		if name is 'libproxy':
 			cpppath = [self.tp('libproxy', 'include')]
 			libpath = [self.tp('libproxy', 'lib')]
-			libs = ['libproxy.lib']
+			libs = ['libproxy']
 
 		if name is 'icu':
 			cpppath = [self.tp('icu', 'include')]
