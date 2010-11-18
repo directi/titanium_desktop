@@ -13,7 +13,7 @@
 #endif // !UNICODE
 #endif
 
-#include "Socket.h"
+#include "SocketService.h"
 
 using namespace kroll;
 
@@ -23,14 +23,14 @@ namespace ti
 
 	void SocketModule::Initialize()
 	{
-		Socket<tcp::socket>::initialize();
+		SocketService::initialize();
 		this->socketBinding = new SocketBinding(host);
 		GlobalObject::GetInstance()->SetObject("Socket", this->socketBinding);
 	}
 
 	void SocketModule::Stop()
 	{
-		Socket<tcp::socket>::uninitialize();
+		SocketService::uninitialize();
 	}
 
 	std::string SocketModule::GetRootCertPath()

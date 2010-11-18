@@ -5,24 +5,10 @@
 #ifndef _SOCKET_UTILS_H_
 #define _SOCKET_UTILS_H_
 
-#include <kroll/kroll.h>
-
-// TODO: This is poco UnWindows.h's curse.... to be removed with poco
-#ifdef UNICODE
-#define CreateEvent  CreateEventW
-#else
-#define CreateEvent  CreateEventA
-#endif // !UNICODE
+#include "SocketService.h"
 
 #include <string>
 #include <deque>
-
-#include <asio.hpp>
-#include <asio/detail/mutex.hpp>
-
-using asio::ip::tcp;
-
-#include <boost/bind.hpp>
 
 #define BUFFER_SIZE 1024   // choose a reasonable size to send back to JS
 
@@ -36,15 +22,7 @@ namespace ti
 		Socket<T>(Host *host, const std::string & name);
 		virtual ~Socket();
 
-		static void initialize();
-		static void uninitialize();
-
 	protected:
-		static std::auto_ptr<asio::io_service> io_service;
-		static std::auto_ptr<asio::io_service::work> io_idlework;
-		static std::auto_ptr<asio::thread> io_thread;
-
-
 		Host* ti_host;
 		T *socket;
 
@@ -116,34 +94,6 @@ namespace ti
 		void handleRead(const asio::error_code& error, std::size_t bytes_transferred);
 	};
 
-
-
-	template <class T>
-	std::auto_ptr<asio::io_service> Socket<T>::io_service(new asio::io_service());
-
-	template <class T>
-	std::auto_ptr<asio::io_service::work> Socket<T>::io_idlework(
-		new asio::io_service::work(*io_service));
-
-	template <class T>
-	std::auto_ptr<asio::thread> Socket<T>::io_thread(NULL);
-
-	template <class T>
-	void Socket<T>::initialize()
-	{
-		io_thread.reset(new asio::thread(
-			boost::bind(&asio::io_service::run, Socket::io_service.get())));
-	}
-	
-	template <class T>
-	void Socket<T>::uninitialize()
-	{
-		io_service->stop();
-		io_thread->join();
-		io_idlework.reset();
-		io_thread.reset();
-		io_service.reset();
-	}
 
 	template <class T>
 	Socket<T>::Socket(Host *host, const std::string & name)

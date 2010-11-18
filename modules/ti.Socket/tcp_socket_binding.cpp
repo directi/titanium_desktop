@@ -11,9 +11,9 @@ namespace ti
 		onConnect(0),
 		hostname(hostname),
 		port(port),
-		resolver(*Socket::io_service.get())
+		resolver(*SocketService::getIOService())
 	{
-		this->socket = new tcp::socket(*Socket::io_service.get());
+		this->socket = new tcp::socket(*SocketService::getIOService());
 		this->SetMethod("connect",&TCPSocketBinding::Connect);
 		this->SetMethod("connectNB",&TCPSocketBinding::ConnectNB);
 
