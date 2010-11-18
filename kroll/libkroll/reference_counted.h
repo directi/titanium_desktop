@@ -37,11 +37,6 @@ namespace kroll
 		{
 			return count.value();
 		}
-
-		void setReferenceCount(int count) 
-		{
-			this->count = count;
-		}
 	};
 }
 #endif
