@@ -8,6 +8,8 @@
 
 #define WEB_INSPECTOR_MENU_ITEM_ID 7500
 #define NEXT_ITEM_ID_BEGIN 7501
+#include "bitmap_utils.h"
+#include "libpng13/png.h"
 
 namespace ti
 {
@@ -35,7 +37,7 @@ namespace ti
 		static HBITMAP LoadImageAsBitmap(std::string& path, int sizeX, int sizeY);
 		static HICON BitmapToIcon(HBITMAP bitmap, int sizeX, int sizeY);
 		static HBITMAP IconToBitmap(HICON icon, int sizeX, int sizeY);
-		//static HBITMAP LoadPNGAsBitmap(std::string& path, int sizeX, int sizeY);
+		static HBITMAP LoadPNGAsBitmap(std::string& path, int sizeX, int sizeY);
 		//static cairo_surface_t* ScaleCairoSurface(
 		//	cairo_surface_t *oldSurface, int newWidth, int newHeight);
 		static void ReleaseImage(HANDLE);
