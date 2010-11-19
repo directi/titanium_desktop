@@ -4,12 +4,10 @@
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include <Poco/Semaphore.h>
-
-#include "binding/kmethod.h"
 
 #include "logger.h"
 #include "main_thread_job.h"
+#include "binding/kmethod.h"
 
 
 namespace kroll

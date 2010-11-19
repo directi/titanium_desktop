@@ -6,9 +6,6 @@
 
 #include <kroll/kroll.h>
 #include <Poco/Environment.h>
-#include <Poco/UUIDGenerator.h>
-#include <Poco/Net/NetworkInterface.h>
-#include <Poco/Net/IPAddress.h>
 #include "platform_binding.h"
 
 namespace ti

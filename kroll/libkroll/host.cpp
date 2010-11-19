@@ -12,17 +12,12 @@
 
 #include <Poco/DirectoryIterator.h>
 #include <Poco/File.h>
-#include <Poco/FileStream.h>
-#include <Poco/Path.h>
 #include <Poco/Environment.h>
 #include <Poco/AutoPtr.h>
-#include <Poco/StringTokenizer.h>
-#include <Poco/Timespan.h>
 
 #include <kroll/utils/file_utils.h>
 
 using Poco::File;
-using Poco::Path;
 using Poco::Environment;
 
 #include "thread_manager.h"

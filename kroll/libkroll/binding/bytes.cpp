@@ -7,7 +7,6 @@
 #include "bytes.h"
 #include <cstring>
 #include <Poco/String.h>
-#include <Poco/StringTokenizer.h>
 
 #include "value.h"
 #include "arg_list.h"
