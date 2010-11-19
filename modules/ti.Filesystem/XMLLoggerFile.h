@@ -13,6 +13,7 @@
 #include <string>
 
 #include <kroll/kroll.h>
+#include <kroll/LoggerFile.h>
 
 namespace ti
 {

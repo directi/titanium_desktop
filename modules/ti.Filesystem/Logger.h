@@ -8,7 +8,7 @@
 
 #include <map>
 #include <kroll/kroll.h>
-
+#include <kroll/LoggerFile.h>
 
 namespace ti
 {

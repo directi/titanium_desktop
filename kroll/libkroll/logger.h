@@ -7,7 +7,6 @@
 #ifndef _LOGGER_H_
 #define _LOGGER_H_
 
-#include <Poco/Logger.h>
 #include <Poco/Message.h>
 #include <Poco/Mutex.h>
 #include <Poco/PatternFormatter.h>
@@ -16,7 +15,6 @@
 #include <fstream>
 
 #include "base.h"
-#include "LoggerFile.h"
 
 namespace kroll
 {
@@ -123,7 +121,7 @@ namespace kroll
 		Poco::PatternFormatter* formatter;
 		Poco::Mutex mutex;
 		std::vector<LoggerCallback> callbacks;
-		kroll::LoggerFile * logFile;
+		std::ofstream stream;
 	};
 
 }

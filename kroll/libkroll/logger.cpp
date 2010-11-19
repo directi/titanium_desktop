@@ -379,8 +379,7 @@ namespace kroll
 				file_path += ".";
 				file_path += getCurrentTimeString();
 			}
-
-			logFile = new LoggerFile(file_path);
+			stream.open(file_path.c_str(), std::ofstream::app);
 		}
 	}
 
@@ -388,7 +387,7 @@ namespace kroll
 	{
 		if (fileLogging)
 		{
-			delete logFile;
+			stream.close();
 		}
 	}
 
@@ -399,11 +398,13 @@ namespace kroll
 		std::string line;
 		this->formatter->format(m, line);
 
-		if (fileLogging && logFile)
+		if (fileLogging)
 		{
-			std::string newline = line;
-			newline += "\n";
-			logFile->log(newline);
+			if (stream.is_open())
+			{
+				stream << line << std::endl;
+				stream.flush();
+			}
 		}
 
 		if (consoleLogging)
