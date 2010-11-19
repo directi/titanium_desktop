@@ -7,8 +7,11 @@ import urllib
 import tarfile
 import os.path as path
 import distutils.dir_util as dirutil
+from subprocess import call
 from progressbar import ProgressBar
+
 Import('build')
+Import('disable_thirdparty_check')
 
 revisions = {
 	"linux-i386": 35,
@@ -21,6 +24,7 @@ thirdparty_name = 'thirdparty-%s-%s-r%s' % (build.os, build.arch, revisions[buil
 url = 'http://kroll.appcelerator.com.s3.amazonaws.com/kroll-%s.tgz' % (thirdparty_name)
 
 build.third_party = path.join(build.cwd(), thirdparty_name)
+if build.is_win32(): build.third_party = path.join(build.cwd(), "thirdparty_win32")
 rtdir = build.runtime_build_dir
 
 def exists():
@@ -48,7 +52,27 @@ def fetch():
 		urllib.urlcleanup()
 		pbar.finish()
 
-if not exists(): fetch()
+def fetch_thirdparty():
+	if disable_thirdparty_check:
+		print "Warning: not checking thirdparty libraries"
+		return
+
+	if path.isdir(build.third_party):
+		cwd = os.getcwd();
+		os.chdir(build.third_party)
+		print "Checking thirdparty files for update"
+		call("git fetch");
+		call("git pull origin master")
+		os.chdir(cwd)
+	else:
+		print "Thirdparty folder does not exist. cloning the thirdparty repo."
+		command = "git clone git@github.com:directi/thirdparty_win32.git"
+		call(command)
+
+
+####### scripts starts here #######
+if build.is_win32(): fetch_thirdparty()
+elif not exists(): fetch()
 
 if build.is_linux():
 	print 'WARNING:: Not copying files...'

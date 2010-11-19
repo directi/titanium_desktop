@@ -157,9 +157,27 @@ class BuildConfig(object):
 			cpppath = [self.tp('asio', 'include')]
 
 		if name is 'openssl':
-			cpppath = [self.tp('openssl', 'include')]
-			libpath = [self.tp('openssl', 'lib')]
-			libs = ['libeay32.lib', 'ssleay32.lib']
+			if self.is_win32():
+				cpppath = [self.tp('openssl', 'include')]
+				libpath = [self.tp('openssl', 'lib')]
+				libs = ['libeay32', 'ssleay32']
+			if self.is_osx():
+				libs = ['ssl', 'crypto']
+
+
+		if name is 'libproxy':
+			cpppath = [self.tp('libproxy', 'include')]
+			libpath = [self.tp('libproxy', 'lib')]
+			libs = ['libproxy']
+
+		if name is 'icu':
+			cpppath = [self.tp('icu', 'include')]
+
+		if name is 'libxml':
+			cpppath = [self.tp('libxml', 'include')]
+
+		if name is 'microsoft':
+			cpppath = [self.tp('microsoft', 'include')]
 
 		if name is 'libpng':
 			cpppath = [self.tp('libpng', 'include')]
@@ -169,8 +187,7 @@ class BuildConfig(object):
 		if name is 'poco':
 			cpppath = [self.tp('poco', 'include')]
 			libpath = [self.tp('poco', 'lib')]
-			libs = ['PocoFoundation', 'PocoNet', 'PocoUtil', 'PocoXML',
-				    'PocoZip']
+			libs = ['PocoFoundation', 'PocoNet']
 
 		if name is 'curl' and self.is_win32(): # Don't judge us!
 			cpppath = [self.tp('webkit', 'include')]

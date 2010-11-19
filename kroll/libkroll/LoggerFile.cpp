@@ -3,7 +3,7 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
-#include <fstream>
+
 #include <Poco/Path.h>
 
 #include "LoggerFile.h"
@@ -32,11 +32,13 @@ namespace kroll
 		}
 
 		LoggerWriter::getInstance()->addLoggerFile(this);
+		stream.open(this->filename.c_str(), std::ofstream::app);
 	}
 
 	LoggerFile::~LoggerFile()
 	{
 		LoggerWriter::getInstance()->removeLoggerFile(this);
+		stream.close();
 	}
 
 	void LoggerFile::log(std::string& data)
@@ -61,9 +63,6 @@ namespace kroll
 		{
 			try
 			{
-				std::ofstream stream;
-				stream.open(filename.c_str(), std::ofstream::app);
-
 				if (stream.is_open())
 				{
 					while (!tempWriteQueue->empty())
@@ -71,9 +70,9 @@ namespace kroll
 						stream.write(tempWriteQueue->front().c_str(), tempWriteQueue->front().size());
 						tempWriteQueue->pop_front();
 					}
-					stream.close();
 					delete tempWriteQueue;
 					tempWriteQueue = NULL;
+					stream.flush();
 				}
 			}
 			catch (...)

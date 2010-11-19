@@ -1,5 +1,0 @@
----
-namespace: Titanium.Desktop
-type: module
-description: A module dealing with Desktop specific functionality.
-since: 0.2.0

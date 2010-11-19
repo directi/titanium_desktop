@@ -8,7 +8,7 @@ namespace ti
 {
 	SecureTCPSocket::SecureTCPSocket(Host *host, TCPSocketBinding * tcp_socket_binding)
 		: Socket(host, string("Socket.SecureTCPSocket")),
-		ctx(*(Socket::io_service.get()), asio::ssl::context::sslv23),
+		ctx(*SocketService::getIOService(), asio::ssl::context::sslv23),
 		tcp_socket(NULL)
 	{
 		if(!tcp_socket_binding)

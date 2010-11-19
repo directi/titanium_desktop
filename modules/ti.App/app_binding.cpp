@@ -7,7 +7,6 @@
 #include <Poco/Environment.h>
 #include "app_binding.h"
 #include "app_config.h"
-#include "properties_binding.h"
 
 namespace ti
 {
@@ -125,23 +124,6 @@ namespace ti
 		this->SetMethod("restart", &AppBinding::Restart);
 
 		/**
-		 * @tiapi(method=True,name=App.createProperties,since=0.6)
-		 * @tiapi create a new properties object
-		 * @tiarg[App.Properties, properties, optional=true]
-		 * @tiarg Initial properties for the new Properties object.
-		 * @tiresult[App.Properties] A new Properties instance.
-		 */
-		this->SetMethod("createProperties", &AppBinding::CreateProperties);
-
-		/**
-		 * @tiapi(method=True,name=App.loadProperties,since=0.2)
-		 * @tiapi Loads a properties list from a file path
-		 * @tiarg[String, path] Path to a properties file.
-		 * @tiresult[Array<App.Properties>] A list of properties.
-		 */
-		this->SetMethod("loadProperties", &AppBinding::LoadProperties);
-
-		/**
 		 * @tiapi(method=True,name=App.stdout,since=0.4) Writes to stdout
 		 * @tiarg(for=App.stdout,type=any,name=data) data to write
 		 */
@@ -161,14 +143,6 @@ namespace ti
 		 */
 		this->SetMethod("stdin", &AppBinding::StdIn);
 		
-		/**
-		 * @tiapi(method=True,name=App.getSystemProperties,since=0.4)
-		 * @tiapi get the system properties defined in tiapp.xml
-		 * @tiapi (see App.Properties).
-		 * @tiresult[type=App.Properties] The system properties object 
-		 */
-		this->SetMethod("getSystemProperties", &AppBinding::GetSystemProperties);
-
 		/**
 		 * @tiapi(method=True,name=App.getIcon,since=0.4)
 		 * @tiapi Return the path to the application icon.
@@ -191,9 +165,8 @@ namespace ti
 	{
 		result->SetString(AppConfig::Instance()->GetAppName().c_str());
 	}
-  // Added by anirban.m
-  // To solve http://pt/browse/PWDESKTOP-599
-        void AppBinding::GetTitle(const ValueList& args, KValueRef result)
+
+	void AppBinding::GetTitle(const ValueList& args, KValueRef result)
 	{
 		result->SetString(AppConfig::Instance()->GetAppTitle().c_str());
 	}
@@ -239,49 +212,7 @@ namespace ti
 		std::string path = URLUtils::URLToPath(url);
 		result->SetString(path);
 	}
-
-	void AppBinding::CreateProperties(const ValueList& args, KValueRef result)
-	{
-		AutoPtr<PropertiesBinding> properties = new PropertiesBinding();
-		result->SetObject(properties);
-		
-		if (args.size() > 0 && args.at(0)->IsObject())
-		{
-			KObjectRef p = args.at(0)->ToObject();
-			SharedStringList names = p->GetPropertyNames();
-			for (size_t i = 0; i < names->size(); i++)
-			{
-				KValueRef value = p->Get(names->at(i));
-				ValueList setterArgs;
-				setterArgs.push_back(Value::NewString(names->at(i)));
-				setterArgs.push_back(value);
-				PropertiesBinding::Type type;
-				
-				if (value->IsList()) type = PropertiesBinding::List;
-				else if (value->IsInt()) type = PropertiesBinding::Int;
-				else if (value->IsDouble()) type = PropertiesBinding::Double;
-				else if (value->IsBool()) type = PropertiesBinding::Bool;
-				else type = PropertiesBinding::String;
-				
-				properties->Setter(setterArgs, type);
-			}
-		}
-	}
-
-	void AppBinding::LoadProperties(const ValueList& args, KValueRef result)
-	{
-		if (args.size() >= 1 && args.at(0)->IsString()) {
-			std::string file_path = args.at(0)->ToString();
-			KObjectRef properties = new PropertiesBinding(file_path);
-			result->SetObject(properties);
-		}
-	}
 	
-	void AppBinding::GetSystemProperties(const ValueList& args, KValueRef result)
-	{
-		result->SetObject(AppConfig::Instance()->GetSystemProperties());
-	}
-
 	void AppBinding::StdOut(const ValueList& args, KValueRef result)
 	{
 		for (size_t c=0; c < args.size(); c++)

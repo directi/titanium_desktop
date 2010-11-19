@@ -8,25 +8,27 @@
 
 #include <list>
 #include <string>
+#include <fstream>
 
 #include "base.h"
-
 #include "LoggerWriter.h"
 
 namespace kroll
 {
 	class KROLL_API LoggerFile
 	{
-		public:
-			LoggerFile(const std::string &filename);
-			virtual ~LoggerFile();
-			void log(std::string& data);
-			virtual void dumpToFile();
+	public:
+		LoggerFile(const std::string &filename);
+		virtual ~LoggerFile();
+		void log(std::string& data);
+		virtual void dumpToFile();
 
-		protected:
-			std::string filename;
-			Poco::Mutex loggerMutex;
-			std::list<std::string> writeQueue;
+	protected:
+		std::string filename;
+		Poco::Mutex loggerMutex;
+		std::list<std::string> writeQueue;
+	private:
+		std::ofstream stream;
 	};
 }
 
