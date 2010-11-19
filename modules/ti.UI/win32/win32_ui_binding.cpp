@@ -251,60 +251,6 @@ namespace ti
 	/*static*/
 	HBITMAP Win32UIBinding::LoadPNGAsBitmap(std::string& path, int sizeX, int sizeY)
 	{
-/*		std::string systemPath(UTF8ToSystem(path));
-		cairo_surface_t* pngSurface =
-		cairo_image_surface_create_from_png(systemPath.c_str());
-
-		cairo_t* pngcr = cairo_create(pngSurface);
-		if (cairo_status(pngcr) != CAIRO_STATUS_SUCCESS)
-		return 0;
-
-		BITMAPINFO bitmapInfo;
-		memset(&bitmapInfo, 0, sizeof(bitmapInfo));
-		bitmapInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-		bitmapInfo.bmiHeader.biWidth = sizeX;
-		bitmapInfo.bmiHeader.biHeight = -sizeY; // Bottom-up
-		bitmapInfo.bmiHeader.biPlanes = 1;
-		bitmapInfo.bmiHeader.biBitCount = 32;
-		bitmapInfo.bmiHeader.biCompression = BI_RGB;
-		bitmapInfo.bmiHeader.biSizeImage = 0;
-		bitmapInfo.bmiHeader.biXPelsPerMeter = 1000;
-		bitmapInfo.bmiHeader.biYPelsPerMeter = bitmapInfo.bmiHeader.biXPelsPerMeter;
-		bitmapInfo.bmiHeader.biClrUsed = 0;
-		bitmapInfo.bmiHeader.biClrImportant = 0;
-
-		void* pixels = NULL;
-		HDC hdc = ::GetDC(NULL);
-		HBITMAP out = CreateDIBSection(hdc, &bitmapInfo,
-		DIB_RGB_COLORS, &pixels, NULL, 0);
-		::ReleaseDC(NULL, hdc);
-
-		BITMAP info;
-		::GetObjectW(out, sizeof(info), &info);
-		cairo_surface_t* outSurface = cairo_image_surface_create_for_data(
-		(unsigned char*) pixels, CAIRO_FORMAT_ARGB32,
-		sizeX, sizeY, info.bmWidthBytes);
-		cairo_surface_t* scaledSurface = ScaleCairoSurface(pngSurface, sizeX, sizeY);
-
-		cairo_t *cr = cairo_create(outSurface);
-
-		cairo_save(cr);
-		cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR);
-		cairo_paint(cr);
-		cairo_restore(cr);
-
-		cairo_set_source_surface(cr, scaledSurface, 0, 0);
-		cairo_rectangle(cr, 0, 0, sizeX, sizeY);
-		cairo_fill(cr);
-
-		cairo_destroy(cr);
-		cairo_surface_destroy(outSurface);
-		cairo_surface_destroy(scaledSurface);
-		cairo_destroy(pngcr);
-		cairo_surface_destroy(pngSurface);
-		*/
-
-
 		HBITMAP hbm = NULL;
 		bool retVal = false;
 		int size = 0;
@@ -402,40 +348,6 @@ namespace ti
 
 		return hbm;
 	}
-
-
-/*
-	cairo_surface_t* Win32UIBinding::ScaleCairoSurface(
-		cairo_surface_t* oldSurface, int newWidth, int newHeight)
-	{
-		cairo_matrix_t scaleMatrix;
-		cairo_matrix_init_scale(&scaleMatrix,
-			(double) cairo_image_surface_get_width(oldSurface) / (double) newWidth,
-			(double) cairo_image_surface_get_height(oldSurface) / (double) newHeight);
-
-		cairo_pattern_t* surfacePattern = cairo_pattern_create_for_surface(oldSurface);
-		cairo_pattern_set_matrix(surfacePattern, &scaleMatrix);
-		cairo_pattern_set_filter(surfacePattern, CAIRO_FILTER_BEST);
-
-		cairo_surface_t* newSurface = cairo_surface_create_similar(
-			oldSurface, CAIRO_CONTENT_COLOR_ALPHA, newWidth, newHeight);
-		cairo_t* cr = cairo_create(newSurface);
-		cairo_set_source(cr, surfacePattern);
-
-		/* To avoid getting the edge pixels blended with 0 alpha, which would 
-		 * occur with the default EXTEND_NONE. Use EXTEND_PAD for 1.2 or newer (2) */
-/*		cairo_pattern_set_extend(cairo_get_source(cr), CAIRO_EXTEND_REFLECT);
-
-		 /* Replace the destination with the source instead of overlaying */
-/*		cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
-
-		/* Do the actual drawing */
-/*		cairo_paint(cr);
-		cairo_destroy(cr);
-
-		return newSurface;
-	 }
-*/
 
 	/*static*/
 	void Win32UIBinding::ReleaseImage(HANDLE handle)

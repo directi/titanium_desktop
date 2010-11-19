@@ -714,8 +714,8 @@ namespace kroll
 					throw exception;
 				else
 				{
-					Logger::Get("Ti.Host")->Warn("Exception supressed, GC for the exception would happen in another thread, returning false: %s", exception.DisplayString()->c_str());
-					return Value::NewBool(false);
+					Logger::Get("Ti.Host")->Warn("About to fail a Thread assertion, GC for the exception would happen in another thread: %s", exception.DisplayString()->c_str());
+					throw exception;
 				}
 			}
 		}
