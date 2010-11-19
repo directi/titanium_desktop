@@ -793,12 +793,10 @@ namespace KJSUtil
 		else
 		{
 			ourRef->second--;
-			if(ourRef->second == 0) 
-			{
+			if(ourRef->second == 0)
 				JSValueUnprotect(globalContext, value);
-				
+			if(ourRef->second <= 0)
 				ourCtx->second->erase(ourRef);
-			}
 		}
 		UnprotectContext(globalContext);
 	}
@@ -814,28 +812,24 @@ namespace KJSUtil
 				JSObjectInContextRefCounter* objRefs = ourContext->second;
 				if(objRefs)
 				{
-					for(JSObjectInContextRefCounter::iterator i = objRefs->begin();	i != objRefs->end(); ++i) 
+					JSObjectInContextRefCounter::iterator i = objRefs->begin();
+					while(i != objRefs->end())
 					{						
 						if(i->second > 0) 
 						{
-							KValueRef* t = pointerFromJS(JSObjectGetPrivate(i->first));
-							if(t)
-							{
-								int r = (*t)->referenceCount();
-								if(r != (r - i->second + 1)) 
-								{
-									//(*t)->setReferenceCount(r - i->second + 1);
-									fprintf(stderr, "Counts don't match\n");
-
-								}
-							}
+//							KValueRef* t = pointerFromJS(JSObjectGetPrivate(i->first));
 							JSValueUnprotect(globalContext, i->first);
-						} 
+							JSObjectInContextRefCounter::iterator last = i;
+							i++;
+							objRefs->erase(last);
+							continue;
+						}
+						i++;
 					}
-					objRefs->clear();
+					JSGarbageCollect(globalContext);
 				}
 			}
-			if((! ourContext->second) || ourContext->second->size() == 0)
+			if(ourContext->second->size() == 0)
 			{
 				_delContext(globalContext);
 			}
