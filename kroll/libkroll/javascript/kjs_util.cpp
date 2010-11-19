@@ -743,6 +743,12 @@ namespace KJSUtil
 		jsObjectRefCounter.erase(globalContext);
 	}
 
+	static void GarbageCollect() 
+	{
+		ValueList args;
+		RunOnMainThread(new KFunctionPtrMethod(&JavaScriptModuleInstance::GarbageCollect), args, false);
+	}
+
 	void ProtectContext(JSContextRef globalContext)
 	{
 		Poco::Mutex::ScopedLock lock(protectedObjectsMutex);
@@ -819,14 +825,11 @@ namespace KJSUtil
 						{
 //							KValueRef* t = pointerFromJS(JSObjectGetPrivate(i->first));
 							JSValueUnprotect(globalContext, i->first);
-							JSObjectInContextRefCounter::iterator last = i;
-							i++;
-							objRefs->erase(last);
-							continue;
+							i->second = 0;
 						}
 						i++;
 					}
-					JSGarbageCollect(globalContext);
+					GarbageCollect();
 				}
 			}
 			if(ourContext->second->size() == 0)

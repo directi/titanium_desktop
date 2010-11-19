@@ -54,6 +54,7 @@ libkroll_sources = get_libkroll_sources(libkroll_dir, build) + get_shared_utils(
 libkroll_env = build.env.Clone()
 
 libkroll_env.Append(CPPDEFINES=[('KROLL_API_EXPORT', 1)])
+
 if build.is_linux():
 	if os.environ.has_key('PKG_CONFIG_PATH'):
 		libkroll_env.AppendENVPath('PKG_CONFIG_PATH', os.environ['PKG_CONFIG_PATH'])
@@ -80,6 +81,7 @@ elif build.is_osx():
 
 build.add_thirdparty(libkroll_env, 'poco')
 build.add_thirdparty(libkroll_env, 'webkit')
+build.add_thirdparty(libkroll_env, 'asio')
 
 build.mark_build_target(
 	libkroll_env.SharedLibrary(path.join(build.dir, 'runtime', build.version, libkroll_name),

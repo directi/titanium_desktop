@@ -22,6 +22,8 @@ namespace kroll
 		void Stop();
 		void Run();
 
+		static KValueRef GarbageCollect(const ValueList& args);
+
 	protected:
 		std::string path;
 		JSGlobalContextRef context;

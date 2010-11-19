@@ -20,6 +20,7 @@ namespace kroll
 	{
 	public:
 		MainThreadJob(KMethodRef method, const ValueList& args, bool waitForCompletion);
+		~MainThreadJob();
 		void Lock();
 		void Wait();
 		void Execute();
@@ -30,7 +31,7 @@ namespace kroll
 
 	private:
 		KMethodRef method;
-		const ValueList args;
+		ValueList* args;
 		bool waitForCompletion;
 		KValueRef returnValue;
 		ValueException exception;
