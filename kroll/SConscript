@@ -6,7 +6,7 @@
 import os.path as path
 Import('build')
 Import('debug')
-Import('disable_thirdparty_check')
+Import('thirdparty_check')
 
 SConscript('boot/SConscript', variant_dir=path.join(build.dir, 'objs', 'boot'), duplicate=0)
 SConscript('libkroll/SConscript', variant_dir=path.join(build.dir,'objs','libkroll'), duplicate=0)

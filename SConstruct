@@ -34,8 +34,8 @@ if ARGUMENTS.get('test_crash', 0):
 
 # debug build flags
 debug = ARGUMENTS.get('debug', 0)
-disable_thirdparty_check = ARGUMENTS.get('disable_thirdparty_check', 0)
-Export('build', 'debug', 'disable_thirdparty_check')
+thirdparty_check = ARGUMENTS.get('thirdparty_check', 0)
+Export('build', 'debug', 'thirdparty_check')
 
 if debug:
 	build.env.Append(CPPDEFINES = ('DEBUG', 1))

@@ -11,7 +11,7 @@ from subprocess import call
 from progressbar import ProgressBar
 
 Import('build')
-Import('disable_thirdparty_check')
+Import('thirdparty_check')
 
 revisions = {
 	"linux-i386": 35,
@@ -53,7 +53,7 @@ def fetch():
 		pbar.finish()
 
 def fetch_thirdparty():
-	if disable_thirdparty_check:
+	if not thirdparty_check:
 		print "Warning: not checking thirdparty libraries"
 		return
 
