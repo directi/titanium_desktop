@@ -54,15 +54,14 @@ namespace KJSUtil
 	static JSValueRef GetFunctionPrototype(JSContextRef jsContext, JSValueRef* exception);
 	static JSValueRef GetArrayPrototype(JSContextRef jsContext, JSValueRef* exception);
 
-	static void * pointerToJS(KValueRef ref)
+	static void* pointerToJS(KValueRef ref)
 	{
 		return new KValueRef(ref);
 	}
 
 	static KValueRef* pointerFromJS(void *ref)
 	{
-		KValueRef *a = static_cast<KValueRef*>(ref);
-		return a;
+		return static_cast<KValueRef*>(ref);
 	}
 
 	KValueRef ToKrollValue(JSValueRef value, JSContextRef jsContext,
@@ -658,8 +657,9 @@ namespace KJSUtil
 		JSGlobalContextRef jsContext = JSGlobalContextCreate(0);
 		JSObjectRef globalObject = JSContextGetGlobalObject(jsContext);
 
-		JSValueRef jsAPI = ToJSValue(
-			Value::NewObject(GlobalObject::GetInstance()), jsContext);
+		JSValueRef jsAPI = ToJSValue(Value::NewObject(GlobalObject::GetInstance()), jsContext);
+		JSObjectRef titaniumObj = JSValueToObject(jsContext, jsAPI, NULL);
+
 		JSStringRef propertyName = JSStringCreateWithUTF8CString(PRODUCT_NAME);
 		JSObjectSetProperty(jsContext, globalObject, propertyName,
 			jsAPI, kJSPropertyAttributeNone, NULL);
@@ -815,15 +815,19 @@ namespace KJSUtil
 				if(objRefs)
 				{
 					for(JSObjectInContextRefCounter::iterator i = objRefs->begin();	i != objRefs->end(); ++i) 
-					{
-						if(i->second > 0)
+					{						
+						if(i->second > 0) 
 						{
 							KValueRef* t = pointerFromJS(JSObjectGetPrivate(i->first));
-							if(t) {
+							if(t)
+							{
 								int r = (*t)->referenceCount();
-								if(r != (r - i->second + 1))
-//									(*t)->setReferenceCount(r - i->second + 1);
+								if(r != (r - i->second + 1)) 
+								{
+									//(*t)->setReferenceCount(r - i->second + 1);
 									fprintf(stderr, "Counts don't match\n");
+
+								}
 							}
 							JSValueUnprotect(globalContext, i->first);
 						} 
@@ -838,9 +842,7 @@ namespace KJSUtil
 		}
 #if DEBUG
 		else 
-		{
 			fprintf(stderr, "Asked to unprotect an unknown js context\n");
-		}
 #endif
 	}
 

@@ -105,16 +105,5 @@ namespace kroll
 		}
 	}
 
-#ifdef NO_METHOD_AUTOPTR
-	bool KMethod::Equals(KObjectRef o)
-	{
-		return this == o.get();
-	}
-
-	bool KMethod::Equals(KMethodRef o)
-	{
-		return this == o.get();
-	}
-#endif
 }
 

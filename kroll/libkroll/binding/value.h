@@ -305,17 +305,11 @@ namespace kroll
 		bool boolValue;
 		char* stringValue;
 		KObjectRef objectValue;
-#ifdef NO_METHOD_AUTOPTR
-		KMethodRef methodValue;
-#endif
 
 		void reset();
 
 		Value();
 		Value(KValueRef value);
-#ifdef NO_METHOD_AUTOPTR
-		Value(KMethodRef value);
-#endif
 		Value(const Value& value);
 	};
 

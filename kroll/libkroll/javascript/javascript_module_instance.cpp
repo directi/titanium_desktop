@@ -17,7 +17,6 @@ namespace kroll
 	{
 		this->context = KJSUtil::CreateGlobalContext();
 		JSGlobalContextRetain(context);
-		KJSUtil::ProtectContext(context);
 
 		try
 		{

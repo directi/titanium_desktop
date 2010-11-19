@@ -29,9 +29,9 @@ namespace ti
 		onConnect(0),
 		onRead(0),
 		onError(0),
-		onClose(0),
-		count(1)
-	{
+		onClose(0)
+		, count(1)
+		{
 		/**
 		 * @tiapi(method=True,name=Network.TCPSocket.connect,since=0.2) Connects a Socket object to the host specified during creation. 
 		 * @tiarg(for=Network.TCPSocket.connect,type=Integer,name=timeout) the time in seconds to wait before the connect timesout 
@@ -634,5 +634,17 @@ namespace ti
 		{
 			GetLogger()->Error(errtxt + "Unknown error");
 		}
+	}
+
+	void TCPSocketBinding::duplicate()
+	{
+		++count;
+	}
+
+	void TCPSocketBinding::release()
+	{
+		int value = --count;
+		if(value <= 0)
+			delete this;
 	}
 }

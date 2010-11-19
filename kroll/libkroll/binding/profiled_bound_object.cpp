@@ -36,14 +36,6 @@ namespace kroll
 		count(1)
 	{
 	}
-#ifdef NO_METHOD_AUTOPTR
-	ProfiledBoundObject::ProfiledBoundObject(KMethodRef delegate) :
-		KObject(delegate->GetType()),
-		delegate(delegate),
-		count(1)
-	{
-	}
-#endif
 	ProfiledBoundObject::~ProfiledBoundObject()
 	{
 	}
