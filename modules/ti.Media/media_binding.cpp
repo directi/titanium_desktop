@@ -6,7 +6,6 @@
 #include "media_binding.h"
 #include <kroll/kroll.h>
 #include <cstring>
-#include <Poco/URI.h>
 
 namespace ti
 {

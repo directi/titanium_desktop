@@ -4,8 +4,6 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 #include <kroll/kroll.h>
-#include <Poco/Environment.h>
-#include <Poco/Process.h>
 #include "process_binding.h"
 #include "process.h"
 #include <signal.h>

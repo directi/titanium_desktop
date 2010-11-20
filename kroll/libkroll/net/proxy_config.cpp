@@ -13,10 +13,8 @@ using std::vector;
 
 #include <Poco/String.h>
 #include <Poco/NumberParser.h>
-#include <Poco/Net/IPAddress.h>
 #include <Poco/StringTokenizer.h>
 
-using Poco::Net::IPAddress;
 using Poco::StringTokenizer;
 using Poco::NumberParser;
 
