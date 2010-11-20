@@ -68,20 +68,6 @@ namespace kroll
 				NewCallback<T, const ValueList&, KValueRef>(static_cast<T*>(this), method))));
 		}
 
-		virtual void duplicate()
-		{
-			
-		}
-
-		virtual void release()
-		{
-		}
-
-		virtual int referenceCount()
-		{
-			return 1;
-		}
-
 	protected:
 		std::map<std::string, KValueRef> properties;
 		Poco::Mutex mutex;

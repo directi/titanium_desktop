@@ -54,12 +54,22 @@ namespace KJSUtil
 	static JSValueRef GetFunctionPrototype(JSContextRef jsContext, JSValueRef* exception);
 	static JSValueRef GetArrayPrototype(JSContextRef jsContext, JSValueRef* exception);
 
-	static void* pointerToJS(KValueRef ref)
+//#define CRASH_ASSERT
+
+	static inline void* pointerToJS(KValueRef ref)
 	{
+		KObject* objRef = ref->ToObject().get();
+		if(objRef) {
+#ifndef CRASH_ASSERT
+			// This needs to assert that Value::ToObject will return 0. 
+			objRef->duplicate();
+#endif
+			ref->SetObject(objRef);
+		}
 		return new KValueRef(ref);
 	}
 
-	static KValueRef* pointerFromJS(void *ref)
+	static inline KValueRef* pointerFromJS(void *ref)
 	{
 		return static_cast<KValueRef*>(ref);
 	}
@@ -737,7 +747,9 @@ namespace KJSUtil
 
 	static inline void _delContext(JSContextRef globalContext) 
 	{
+#if NDEBUG
 		KEventObject::CleanupListenersFromContext(globalContext);
+#endif
 		JSObjectRef globalObject = JSContextGetGlobalObject(globalContext);
 		UnregisterContext(globalObject, globalContext);
 		jsObjectRefCounter.erase(globalContext);
@@ -815,8 +827,9 @@ namespace KJSUtil
 		{
 			if(force)
 			{
+#if NDEBUG
 				KEventObject::CleanupListenersFromContext(globalContext);
-
+#endif
 				JSObjectInContextRefCounter* objRefs = ourContext->second;
 				if(objRefs)
 				{
@@ -828,9 +841,9 @@ namespace KJSUtil
 //							KValueRef* t = pointerFromJS(JSObjectGetPrivate(i->first));
 							JSValueUnprotect(globalContext, i->first);
 							i->second = 0;
-						} else {
+						} /*else {
 							objRefs->erase(i);
-						}
+						}*/
 						i++;
 					}
 					GarbageCollect();

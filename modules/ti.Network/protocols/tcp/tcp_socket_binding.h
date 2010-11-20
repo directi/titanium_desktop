@@ -65,10 +65,8 @@ namespace ti
 		static void removeSocket(TCPSocketBinding* tsb);
 		static void removeWriteListener(TCPSocketBinding* tsb);
 
-		virtual void duplicate();
-		virtual void release();
 	private:
-		Poco::AtomicCounter count;
+		Poco::Mutex lock;
 		inline static kroll::Logger* GetLogger()
 		{
 			return kroll::Logger::Get("Network.TCPSocket");
