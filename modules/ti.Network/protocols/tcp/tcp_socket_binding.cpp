@@ -249,9 +249,6 @@ namespace ti
 
 	void TCPSocketBinding::OnResolve(SocketAddress* a) 
 	{
-		Poco::Mutex::ScopedLock l(lock);
-		if(sock_state != SOCK_CONNECTING) return;
-
 		static const std::string eprefix = "Connect exception: ";
 		if(useKeepAlives)
 			this->socket = new DisconnectAwareSocket(inactivetime);
@@ -304,9 +301,6 @@ namespace ti
 
 	void TCPSocketBinding::OnReadReady(ReadableNotification* notification)
 	{
-		Poco::Mutex::ScopedLock l(lock);
-		if(!(sock_state == SOCK_CONNECTING || sock_state == SOCK_CONNECTED)) return;
-
 		AutoPtr<ReadableNotification> a(notification);
 		int available_bytes = this->socket->available();
 		GetLogger()->Debug("Ready for Read with %d bytes on %s", available_bytes, this->socket->peerAddress().toString().c_str());
@@ -377,9 +371,6 @@ namespace ti
 
 	void TCPSocketBinding::OnWriteReady(WritableNotification* notification)
 	{
-		Poco::Mutex::ScopedLock l(lock);
-		if(!(sock_state == SOCK_CONNECTING || sock_state == SOCK_CONNECTED)) return;
-
 		AutoPtr<WritableNotification> a(notification);
 		GetLogger()->Debug("Ready for Write on Socket: "  + this->socket->peerAddress().toString());
 		TCPSocketBinding::removeWriteListener(this);
@@ -391,9 +382,6 @@ namespace ti
 
 	void TCPSocketBinding::OnError(ErrorNotification* notification)
 	{
-		Poco::Mutex::ScopedLock l(lock);
-		if(!(sock_state == SOCK_CONNECTING || sock_state == SOCK_CONNECTED)) return;
-
 		AutoPtr<ErrorNotification> a(notification);
 		GetLogger()->Debug("Socket Error on %s:%d ", this->host.c_str(), this->port);
 		this->OnError("Unknown error");
@@ -482,7 +470,6 @@ namespace ti
 
 	void TCPSocketBinding::Close(const ValueList& args, KValueRef result)
 	{
-		Poco::Mutex::ScopedLock l(lock);
 		bool bResult = false;
 		if (this->sock_state != SOCK_CLOSED)
 		{
@@ -497,9 +484,6 @@ namespace ti
 	{
 		if(this->sock_state == SOCK_CONNECTED || this->sock_state == SOCK_CONNECTING) 
 		{
-			Poco::Mutex::ScopedLock l(lock);
-			if(!(sock_state == SOCK_CONNECTING || sock_state == SOCK_CONNECTED)) return;
-
 			this->sock_state = SOCK_CLOSING;
 			TCPSocketBinding::removeSocket(this);
 			if(this->socket)

@@ -815,6 +815,8 @@ namespace KJSUtil
 		{
 			if(force)
 			{
+				KEventObject::CleanupListenersFromContext(globalContext);
+
 				JSObjectInContextRefCounter* objRefs = ourContext->second;
 				if(objRefs)
 				{
@@ -826,6 +828,8 @@ namespace KJSUtil
 //							KValueRef* t = pointerFromJS(JSObjectGetPrivate(i->first));
 							JSValueUnprotect(globalContext, i->first);
 							i->second = 0;
+						} else {
+							objRefs->erase(i);
 						}
 						i++;
 					}

@@ -69,7 +69,6 @@ namespace ti
 		virtual void release();
 	private:
 		Poco::AtomicCounter count;
-		Poco::Mutex lock;
 		inline static kroll::Logger* GetLogger()
 		{
 			return kroll::Logger::Get("Network.TCPSocket");
