@@ -31,18 +31,19 @@ namespace kroll
 		virtual void Set(const char *name, KValueRef value);
 		virtual KValueRef Get(const char *name);
 		virtual SharedStringList GetPropertyNames();
+
 		virtual bool HasProperty(const char* name);
 		virtual bool Equals(KObjectRef);
 
 		bool SameContextGroup(JSContextRef c);
 		JSObjectRef GetJSObject();
+		JSContextRef GetContext();
 
 		protected:
 		JSContextRef context;
 		JSObjectRef jsobject;
 
 		private:
-			bool isProtected;
 		DISALLOW_EVIL_CONSTRUCTORS(KKJSObject);
 	};
 }

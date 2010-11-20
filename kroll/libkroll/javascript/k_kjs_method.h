@@ -25,35 +25,21 @@ namespace kroll
 	class KROLL_API KKJSMethod : public KMethod, public KKJSObject
 	{
 		public:
-		KKJSMethod(JSContextRef, JSObjectRef, JSObjectRef);
-		~KKJSMethod();
+			KKJSMethod(JSContextRef, JSObjectRef, JSObjectRef);
+			~KKJSMethod();
 
-		virtual void Set(const char *name, KValueRef value);
-		virtual KValueRef Get(const char *name);
-		virtual KValueRef Call(const ValueList& args);
-		virtual SharedStringList GetPropertyNames();
-		virtual bool HasProperty(const char* name);
-		virtual bool Equals(KObjectRef);
-		virtual void release();
-		virtual void duplicate();
+			virtual KValueRef Call(const ValueList& args);
+			virtual void Set(const char *name, KValueRef value);
+			virtual KValueRef Get(const char *name);
+			virtual SharedStringList GetPropertyNames();
 
-		virtual bool SameContextGroup(JSContextRef c);
-		JSObjectRef GetJSObject();
-		JSContextRef Context() { return context; }
+			virtual void release();
+			virtual void duplicate();
 
 		protected:
-		JSContextRef context;
-		JSObjectRef jsobject;
-		JSObjectRef thisObject;
+			JSObjectRef thisObject;
 
 		private:
-#if BARK_UP_WEAKREF_TREE
-			static ContextRefs contextRefs;
-			static Poco::Mutex contextRefsMutex;
-			static void MapDestroyed(JSWeakObjectMapRef, void *);
-			static void RegisterMethod(KKJSMethod *);
-			static void UnregisterMethod(KKJSMethod *);
-#endif
 			DISALLOW_EVIL_CONSTRUCTORS(KKJSMethod);
 	};
 }

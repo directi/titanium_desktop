@@ -9,37 +9,18 @@ namespace kroll
 {
 	KKJSList::KKJSList(JSContextRef context, JSObjectRef jsobject) :
 		KList("JavaScript.KKJSList"),
-		context(NULL),
-		jsobject(jsobject)
+		KKJSObject(context, jsobject)
 	{
-		/* KJS methods run in the global context that they originated from
-		 * this seems to prevent nasty crashes from trying to access invalid
-		 * contexts later. Global contexts need to be registered by all modules
-		 * that use a KJS context. */
-		JSObjectRef globalObject = JSContextGetGlobalObject(context);
-		JSContextRef globalContext = KJSUtil::GetGlobalContext(globalObject, context);
-
-		// This context hasn't been registered. Something has gone pretty
-		// terribly wrong and Kroll will likely crash soon. Nonetheless, keep
-		// the user up-to-date to keep their hopes up.
-		if (globalContext == NULL)
-			std::cerr << "Could not locate global context for a KJS method."  <<
-				" One of the modules is misbehaving." << std::endl;
-		this->context = globalContext;
-
-		KJSUtil::ProtectContextAndValue(this->context, this->jsobject);
-
-		this->kobject = new KKJSObject(this->context, this->jsobject);
 	}
 
 	KKJSList::~KKJSList()
 	{
-		KJSUtil::UnprotectContextAndValue(this->context, this->jsobject);
+		
 	}
 
 	unsigned int KKJSList::Size()
 	{
-		KValueRef length_val = this->kobject->Get("length");
+		KValueRef length_val = this->Get("length");
 		if (length_val->IsInt())
 			return (unsigned int) length_val->ToInt();
 		else
@@ -49,19 +30,19 @@ namespace kroll
 	KValueRef KKJSList::At(unsigned int index)
 	{
 		std::string name = KList::IntToChars(index);
-		KValueRef value = this->kobject->Get(name.c_str());
+		KValueRef value = this->Get(name.c_str());
 		return value;
 	}
 
 	void KKJSList::SetAt(unsigned int index, KValueRef value)
 	{
 		std::string name = KList::IntToChars(index);
-		this->kobject->Set(name.c_str(), value);
+		this->Set(name.c_str(), value);
 	}
 
 	void KKJSList::Append(KValueRef value)
 	{
-		KValueRef push_method = this->kobject->Get("push");
+		KValueRef push_method = this->Get("push");
 
 		if (push_method->IsMethod())
 		{
@@ -79,7 +60,7 @@ namespace kroll
 	{
 		if (index >= 0 && index < this->Size())
 		{
-			KValueRef spliceMethod = this->kobject->Get("splice");
+			KValueRef spliceMethod = this->Get("splice");
 			spliceMethod->ToMethod()->Call(
 				Value::NewInt(index),
 				Value::NewInt(1));
@@ -88,39 +69,28 @@ namespace kroll
 		return false;
 	}
 
-
-	KValueRef KKJSList::Get(const char* name)
+	void KKJSList::release()
 	{
-		return kobject->Get(name);
+		KKJSObject::release();
 	}
 
-	void KKJSList::Set(const char* name, KValueRef value)
+	void KKJSList::duplicate()
 	{
-		return kobject->Set(name, value);
+		KKJSObject::duplicate();
 	}
 
-	bool KKJSList::Equals(KObjectRef other)
+	void KKJSList::Set(const char *name, KValueRef value)
 	{
-		return this->kobject->Equals(other);
+		KKJSObject::Set(name, value);
+	}
+
+	KValueRef KKJSList::Get(const char *name)
+	{
+		return KKJSObject::Get(name);
 	}
 
 	SharedStringList KKJSList::GetPropertyNames()
 	{
-		 return kobject->GetPropertyNames();
-	}
-
-	bool KKJSList::HasProperty(const char* name)
-	{
-		return kobject->HasProperty(name);
-	}
-
-	bool KKJSList::SameContextGroup(JSContextRef c)
-	{
-		return kobject->SameContextGroup(c);
-	}
-
-	JSObjectRef KKJSList::GetJSObject()
-	{
-		return this->jsobject;
+		return KKJSObject::GetPropertyNames();
 	}
 }
