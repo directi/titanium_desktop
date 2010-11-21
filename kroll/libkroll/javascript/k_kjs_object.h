@@ -31,7 +31,6 @@ namespace kroll
 		virtual void Set(const char *name, KValueRef value);
 		virtual KValueRef Get(const char *name);
 		virtual SharedStringList GetPropertyNames();
-
 		virtual bool HasProperty(const char* name);
 		virtual bool Equals(KObjectRef);
 

@@ -297,7 +297,7 @@ namespace kroll
 		/**
 		 * Replace a value wth an unwrapped value
 		 */
-		static void Unwrap(KValueRef value);
+		static KValueRef Wrap(KValueRef value);
 
 	private:
 		Type type;

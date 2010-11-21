@@ -68,29 +68,4 @@ namespace kroll
 		}
 		return false;
 	}
-
-	void KKJSList::release()
-	{
-		KKJSObject::release();
-	}
-
-	void KKJSList::duplicate()
-	{
-		KKJSObject::duplicate();
-	}
-
-	void KKJSList::Set(const char *name, KValueRef value)
-	{
-		KKJSObject::Set(name, value);
-	}
-
-	KValueRef KKJSList::Get(const char *name)
-	{
-		return KKJSObject::Get(name);
-	}
-
-	SharedStringList KKJSList::GetPropertyNames()
-	{
-		return KKJSObject::GetPropertyNames();
-	}
 }

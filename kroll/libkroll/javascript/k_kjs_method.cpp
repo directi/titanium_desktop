@@ -23,31 +23,6 @@ namespace kroll
 		}
 	}
 
-	void KKJSMethod::release()
-	{
-		KKJSObject::release();
-	}
-
-	void KKJSMethod::duplicate()
-	{
-		KKJSObject::duplicate();
-	}
-
-	void KKJSMethod::Set(const char *name, KValueRef value)
-	{
-		KKJSObject::Set(name, value);
-	}
-
-	KValueRef KKJSMethod::Get(const char *name)
-	{
-		return KKJSObject::Get(name);
-	}
-
-	SharedStringList KKJSMethod::GetPropertyNames()
-	{
-		return KKJSObject::GetPropertyNames();
-	}
-
 	KValueRef KKJSMethod::Call(const ValueList& args)
 	{
 		JSValueRef* jsArgs = new JSValueRef[args.size()];

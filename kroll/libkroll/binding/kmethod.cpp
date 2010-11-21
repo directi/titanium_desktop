@@ -91,19 +91,5 @@ namespace kroll
 		args.push_back(three);
 		return this->Call(args);
 	}
-
-	KMethodRef KMethod::Unwrap(KMethodRef o)
-	{
-		AutoPtr<ProfiledBoundMethod> pmeth = o.cast<ProfiledBoundMethod>();
-		if (pmeth.isNull())
-		{
-			return o;
-		}
-		else
-		{
-			return pmeth->GetDelegate();
-		}
-	}
-
 }
 

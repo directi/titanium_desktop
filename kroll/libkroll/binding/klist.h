@@ -106,11 +106,6 @@ namespace kroll
 		 */
 		static unsigned int ToIndex(const std::string& str);
 
-		/**
-		 * Return the unwrapped version of this object
-		 */
-		static KListRef Unwrap(KListRef);
-
 	private:
 		DISALLOW_EVIL_CONSTRUCTORS(KList);
 	};

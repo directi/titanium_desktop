@@ -21,6 +21,8 @@
 
 namespace kroll
 {
+	class StaticBoundMethod;
+
 	/**
 	 * Extending this class is the easiest way to get started with your own
 	 * KObject implementation. In your sub-class' constructor, you can bind

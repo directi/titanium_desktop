@@ -320,11 +320,6 @@ namespace kroll
 		virtual std::string& GetType();
 
 		/**
-		 * Return the unwrapped version of this object
-		 */
-		static KObjectRef Unwrap(KObjectRef);
-
-		/**
 		 * If this object is already exposed as an AutoPtr, this method
 		 * returns a shared version of this object
 		 */

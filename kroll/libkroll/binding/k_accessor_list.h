@@ -9,9 +9,8 @@
 
 #include <base.h>
 
-#include "k_accessor.h"
 #include "static_bound_list.h"
-
+#include "k_accessor_object.h"
 
 namespace kroll
 {
@@ -19,13 +18,10 @@ namespace kroll
 	 * The KAccessorList allows you to expose getters and setters as property access.
 	 * @see KAccessorObject
 	 */
-	class KROLL_API KAccessorList : public StaticBoundList, public KAccessor
+	class KROLL_API KAccessorList : public StaticBoundList, public KAccessorObject
 	{
 	public:
 		KAccessorList(const char* type = "KAccessorList");
-		virtual void Set(const char* name, KValueRef value);
-		virtual KValueRef Get(const char* name);
-		virtual bool HasProperty(const char* name);
 
 	private:
 		DISALLOW_EVIL_CONSTRUCTORS(KAccessorList);

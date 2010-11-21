@@ -115,7 +115,6 @@ namespace ti
 		if (args.at(0)->IsObject())
 		{
 			KObjectRef o = args.at(0)->ToObject();
-			o = KObject::Unwrap(o);
 			newSubmenu = o.cast<Menu>();
 		}
 

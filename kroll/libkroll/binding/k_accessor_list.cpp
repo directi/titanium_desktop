@@ -15,24 +15,8 @@
 namespace kroll
 {
 	KAccessorList::KAccessorList(const char* type)
-		: StaticBoundList(type)
+		: StaticBoundList(type), KAccessorObject(type)
 	{
-	}
-
-	bool KAccessorList::HasProperty(const char* name)
-	{
-		return StaticBoundList::HasProperty(name) || this->HasGetterFor(name);
-	}
-
-	void KAccessorList::Set(const char* name, KValueRef value)
-	{
-		if (!this->UseSetter(name, value, StaticBoundList::Get(name)))
-			StaticBoundList::Set(name, value);
-	}
-
-	KValueRef KAccessorList::Get(const char* name)
-	{
-		return this->UseGetter(name, StaticBoundList::Get(name));
 	}
 }
 

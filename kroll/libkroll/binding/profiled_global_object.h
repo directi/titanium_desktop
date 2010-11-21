@@ -12,21 +12,11 @@
 
 namespace kroll
 {
-	class KROLL_API ProfiledGlobalObject : public GlobalObject
+	class KROLL_API ProfiledGlobalObject : public GlobalObject, public ProfiledBoundObject
 	{
 	public:
 		ProfiledGlobalObject(KObjectRef delegate);
 		virtual ~ProfiledGlobalObject();
-
-		virtual void Set(const char *name, KValueRef value);
-		virtual KValueRef Get(const char *name);
-		virtual SharedStringList GetPropertyNames();
-		virtual SharedString DisplayString(int levels=3);
-		virtual bool Equals(KObjectRef other);
-		bool HasProperty(const char* name);
-
-	protected:
-		AutoPtr<ProfiledBoundObject> profiledObject;
 	};
 }
 

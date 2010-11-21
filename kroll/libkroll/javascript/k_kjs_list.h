@@ -18,19 +18,18 @@ namespace kroll
 		KKJSList(JSContextRef context, JSObjectRef jsObject);
 		~KKJSList();
 
-		virtual void Set(const char *name, KValueRef value);
-		virtual KValueRef Get(const char *name);
-		virtual SharedStringList GetPropertyNames();
-
 		virtual void SetAt(unsigned int index, KValueRef value);
 		virtual void Append(KValueRef value);
 		virtual unsigned int Size();
 		virtual KValueRef At(unsigned int index);
 		virtual bool Remove(unsigned int index);
 
-		virtual void duplicate();
-		virtual void release();
+		virtual void Set(const char *name, KValueRef value) { KKJSObject::Set(name, value); }
+		virtual KValueRef Get(const char *name) { return KKJSObject::Get(name); }
+		virtual SharedStringList GetPropertyNames() { return KKJSObject::GetPropertyNames(); }
 
+		void duplicate() { KKJSObject::duplicate(); }
+		void release() { KKJSObject::release(); }
 	private:
 		DISALLOW_EVIL_CONSTRUCTORS(KKJSList);
 	};

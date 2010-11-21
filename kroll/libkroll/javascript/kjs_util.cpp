@@ -483,7 +483,6 @@ namespace KJSUtil
 		for (size_t i = 0; i < argCount; i++)
 		{
 			KValueRef argVal = ToKrollValue(jsArgs[i], jsContext, jsThis);
-			Value::Unwrap(argVal);
 			args.push_back(argVal);
 		}
 

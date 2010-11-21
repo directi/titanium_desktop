@@ -14,11 +14,9 @@
 
 namespace kroll
 {
-	ProfiledBoundMethod::ProfiledBoundMethod(KMethodRef delegate, std::string& type) :
-		ProfiledBoundObject(delegate),
-		method(delegate),
-		fullType(type),
-		count(1)
+	ProfiledBoundMethod::ProfiledBoundMethod(KMethodRef delegate, std::string& parentType) :
+		ProfiledBoundObject(delegate, parentType),
+		method(delegate)
 	{
 	}
 
@@ -43,31 +41,16 @@ namespace kroll
 
 		sw.stop();
 		this->Log("call", type, sw.elapsed());
-		return this->Wrap(value, type);
+		return Value::Wrap(value);
 	}
 
-	void ProfiledBoundMethod::Set(const char *name, KValueRef value)
+	KMethodRef ProfiledBoundMethod::Wrap(KMethodRef value, std::string parentType)
 	{
-		method->Set(name,value);
-	}
-
-	KValueRef ProfiledBoundMethod::Get(const char *name)
-	{
-		return method->Get(name);
-	}
-
-	SharedStringList ProfiledBoundMethod::GetPropertyNames()
-	{
-		return method->GetPropertyNames();
-	}
-
-	bool ProfiledBoundMethod::HasProperty(const char* name)
-	{
-		return method->HasProperty(name);
-	}
-
-	std::string& ProfiledBoundMethod::GetType()
-	{
-		return fullType;
+		ProfiledBoundMethod* po = dynamic_cast<ProfiledBoundMethod*>(value.get());
+		if(! po)
+		{
+			return new ProfiledBoundMethod(value, parentType);
+		}
+		return value;
 	}
 }

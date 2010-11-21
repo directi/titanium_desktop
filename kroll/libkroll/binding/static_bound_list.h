@@ -14,7 +14,7 @@
 namespace kroll
 {
 
-	class KROLL_API StaticBoundList : public KList
+	class KROLL_API StaticBoundList : public KList, public StaticBoundObject
 	{
 	public:
 
@@ -73,7 +73,6 @@ namespace kroll
 		virtual SharedStringList GetPropertyNames();
 
 	protected:
-		AutoPtr<StaticBoundObject> object;
 		unsigned int length;
 
 	private:
