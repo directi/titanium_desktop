@@ -54,18 +54,8 @@ namespace KJSUtil
 	static JSValueRef GetFunctionPrototype(JSContextRef jsContext, JSValueRef* exception);
 	static JSValueRef GetArrayPrototype(JSContextRef jsContext, JSValueRef* exception);
 
-//#define CRASH_ASSERT
-
 	static inline void* pointerToJS(KValueRef ref)
 	{
-		KObject* objRef = ref->ToObject().get();
-		if(objRef) {
-#ifndef CRASH_ASSERT
-			// This needs to assert that Value::ToObject will return 0. 
-			objRef->duplicate();
-#endif
-			ref->SetObject(objRef);
-		}
 		return new KValueRef(ref);
 	}
 
