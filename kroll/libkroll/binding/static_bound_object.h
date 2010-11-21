@@ -63,6 +63,10 @@ namespace kroll
 		 * Set a property on this object to the given method. When an error
 		 * occurs will throw an exception of type ValueException.
 		 */
+		// TODO: Because of this template as a forced workaround all classes deriving from
+		// StaticBoundMethod also need to derive from StaticBoundObject to preserve the inheritance tree.
+		// This happens right now as all classes deriving from StaticBoundMethod also derive from KAccessorObject
+		// which is a descendant of StaticBoundObject
 		template <typename T>
 		void SetMethod(const char* name, void (T::*method)(const ValueList&, KValueRef))
 		{
