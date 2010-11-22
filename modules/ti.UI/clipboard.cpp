@@ -4,8 +4,6 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 #include "ui_module.h"
-#include <Poco/StringTokenizer.h>
-using Poco::StringTokenizer;
 
 namespace ti
 {
@@ -81,12 +79,7 @@ namespace ti
 		}
 		else if (value->IsString())
 		{
-			StringTokenizer tokenizer(value->ToString(), "\n", 
-				StringTokenizer::TOK_TRIM | StringTokenizer::TOK_IGNORE_EMPTY);
-			for (size_t i = 0; i < tokenizer.count(); i++)
-			{
-				uriList.push_back(tokenizer[i]);
-			}
+			FileUtils::Tokenize(value->ToString(), uriList, "\n"); 
 		}
 		else
 		{
