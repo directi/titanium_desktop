@@ -8,43 +8,40 @@
 
 #define WEB_INSPECTOR_MENU_ITEM_ID 7500
 #define NEXT_ITEM_ID_BEGIN 7501
-#include "bitmap_utils.h"
-#include "libpng13/png.h"
 
 namespace ti
 {
 	class Win32UIBinding : public UIBinding
 	{
-		public:
+	public:
 		Win32UIBinding(Module* uiModule, Host *host);
 		~Win32UIBinding();
-		AutoMenu CreateMenu();
-		AutoMenuItem CreateMenuItem();
-		AutoMenuItem CreateSeparatorMenuItem();
-		AutoMenuItem CreateCheckMenuItem();
-		void SetMenu(AutoMenu);
-		AutoTrayItem AddTray(std::string& icon_path, KMethodRef cbSingleClick);
-		void SetContextMenu(AutoMenu);
-		void SetIcon(std::string& iconPath);
-		long GetIdleTime();
 
-		AutoMenu GetMenu();
-		AutoMenu GetContextMenu();
-		std::string& GetIcon();
-		static UINT nextItemId;
+		virtual AutoMenu CreateMenu();
+		virtual AutoMenuItem CreateMenuItem();
+		virtual AutoMenuItem CreateCheckMenuItem();
+		virtual AutoMenuItem CreateSeparatorMenuItem();
+
+		virtual void SetMenu(AutoMenu);
+		virtual void SetContextMenu(AutoMenu);
+		virtual void SetIcon(std::string& iconPath);
+		virtual AutoTrayItem AddTray(std::string& icon_path, KMethodRef cbSingleClick);
+
+		virtual AutoMenu GetMenu();
+		virtual AutoMenu GetContextMenu();
+		virtual long GetIdleTime();
 
 		static HICON LoadImageAsIcon(std::string& path, int sizeX, int sizeY);
 		static HBITMAP LoadImageAsBitmap(std::string& path, int sizeX, int sizeY);
-		static HICON BitmapToIcon(HBITMAP bitmap, int sizeX, int sizeY);
-		static HBITMAP IconToBitmap(HICON icon, int sizeX, int sizeY);
-		static HBITMAP LoadPNGAsBitmap(std::string& path, int sizeX, int sizeY);
-		//static cairo_surface_t* ScaleCairoSurface(
-		//	cairo_surface_t *oldSurface, int newWidth, int newHeight);
+
 		static void ReleaseImage(HANDLE);
 		static void SetProxyForURL(std::string& url);
 		static void ErrorDialog(std::string);
 
-		private:
+		std::string& GetIcon();
+		static UINT nextItemId;
+
+	private:
 		AutoPtr<Win32Menu> menu;
 		AutoPtr<Win32Menu> contextMenu;
 		std::string iconPath;
