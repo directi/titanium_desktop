@@ -5,8 +5,6 @@
  */
 
 #include "script.h"
-#include <Poco/File.h>
-#include <Poco/TemporaryFile.h>
 
 namespace kroll
 {
