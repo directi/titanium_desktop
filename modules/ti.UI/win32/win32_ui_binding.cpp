@@ -302,10 +302,8 @@ namespace ti
 
 			// now for a tonne of ugly DIB setup crap
 
-			int width = sizeX;
-			int height = sizeY;
-			//int width = info_ptr->width;
-			//int height = info_ptr->height;
+			int width = info_ptr->width;
+			int height = info_ptr->height;
 			int bpp = info_ptr->channels * 8;
 			int memWidth = (width * (bpp >> 3) + 3) & ~3;
 
@@ -346,7 +344,8 @@ namespace ti
 
 		png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
 
-		return hbm;
+		HBITMAP hbmScaled = BitmapUtils::ScaleBitmap(hbm, sizeX, -sizeY);
+		return hbmScaled;
 	}
 
 	/*static*/
