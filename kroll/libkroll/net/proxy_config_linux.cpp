@@ -14,9 +14,6 @@ using std::string;
 using std::wstring;
 using std::vector;
 
-#include <Poco/StringTokenizer.h>
-using Poco::StringTokenizer;
-
 namespace kroll
 {
 	static pxProxyFactory* GetProxyFactory()

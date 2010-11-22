@@ -13,9 +13,6 @@ using std::vector;
 
 #include <Poco/String.h>
 #include <Poco/NumberParser.h>
-#include <Poco/StringTokenizer.h>
-
-using Poco::StringTokenizer;
 using Poco::NumberParser;
 
 #include "proxy_config.h"
@@ -332,32 +329,5 @@ SharedProxy ParseProxyEntry(string entry, const string& urlScheme,
 
 	return proxy;
 }
-
-void ParseProxyList(string proxyListString,
-	vector<SharedProxy>& proxyList, const string& urlScheme)
-{
-	string sep = "; ";
-	StringTokenizer proxyTokens(proxyListString, sep,
-		StringTokenizer::TOK_IGNORE_EMPTY | StringTokenizer::TOK_TRIM);
-	for (size_t i = 0; i < proxyTokens.count(); i++)
-	{
-		string entry = proxyTokens[i];
-
-		// If this entry defines a scheme, make it override the argument.
-		string entryScheme;
-		size_t schemeEnd = entry.find('=');
-		if (schemeEnd != string::npos)
-		{
-			// This proxy only applies to the scheme before '='
-			entryScheme = entry.substr(0, schemeEnd);
-			entry = entry.substr(schemeEnd + 1);
-		}
-
-		SharedProxy proxy(ParseProxyEntry(entry, urlScheme, entryScheme));
-		GetLogger()->Debug("Proxy entry: %s", proxy->ToString().c_str());
-		proxyList.push_back(proxy);
-	}
-}
-
 } // namespace ProxyConfig
 } // namespace kroll

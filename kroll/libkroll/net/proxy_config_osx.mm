@@ -18,9 +18,6 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <CoreServices/CoreServices.h>
 #include <SystemConfiguration/SystemConfiguration.h>
-#include <Poco/StringTokenizer.h>
-
-using Poco::StringTokenizer;
 
 using std::string;
 using std::vector;
