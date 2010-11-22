@@ -24,16 +24,16 @@ namespace kroll
 	public:
 		typedef enum
 		{
-			LFATAL = Poco::Message::PRIO_FATAL,
-			LCRITICAL = Poco::Message::PRIO_CRITICAL,
-			LERROR = Poco::Message::PRIO_ERROR,
-			LWARN = Poco::Message::PRIO_WARNING,
-			LNOTICE = Poco::Message::PRIO_NOTICE,
-			LINFO = Poco::Message::PRIO_INFORMATION,
-			LDEBUG = Poco::Message::PRIO_DEBUG,
-			LTRACE = Poco::Message::PRIO_TRACE
+			LFATAL = 1,
+			LCRITICAL,
+			LERROR,
+			LWARN,
+			LNOTICE,
+			LINFO,
+			LDEBUG,
+			LTRACE
 		} Level;
-		typedef void (*LoggerCallback)(Level, std::string&);
+		typedef void (*LoggerCallback)(Level, const std::string&);
 
 	protected:
 		Logger() {}

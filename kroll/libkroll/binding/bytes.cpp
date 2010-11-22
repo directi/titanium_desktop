@@ -6,11 +6,11 @@
 
 #include "bytes.h"
 #include <cstring>
-#include <Poco/String.h>
 
 #include "value.h"
 #include "arg_list.h"
 #include "static_bound_list.h"
+#include <boost/algorithm/string.hpp>
 
 namespace kroll
 {
@@ -312,7 +312,7 @@ namespace kroll
 
 		int limit = args.GetInt(1, INT_MAX);
 
-		// We could use Poco's tokenizer here, but it doesn't split strings
+		// We could use FileUtils tokenizer here, but it doesn't split strings
 		// like "abc,def,," -> ['abc', 'def', '', ''] correctly. It produces
 		// ['abc', 'def', ''] which is a different behavior than the JS split.
 		// So we roll our own for now -- it's not very efficient right now, but
@@ -435,9 +435,9 @@ namespace kroll
 	{
 		if (this->length > 0)
 		{
-			std::string target = this->buffer;
-			std::string r = Poco::toLower(target);
-			result->SetString(r);
+			std::string ret(this->buffer, this->length);
+			boost::to_lower(ret);
+			result->SetString(ret);
 		}
 		else
 		{
@@ -449,9 +449,9 @@ namespace kroll
 	{
 		if (this->length > 0)
 		{
-			std::string target = this->buffer;
-			std::string r = Poco::toUpper(target);
-			result->SetString(r);
+			std::string ret(this->buffer, this->length);
+			boost::to_upper(ret);
+			result->SetString(ret);
 		}
 		else
 		{
