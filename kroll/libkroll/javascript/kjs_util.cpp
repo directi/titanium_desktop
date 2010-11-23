@@ -743,6 +743,11 @@ namespace KJSUtil
 	typedef std::map<JSContextRef, JSObjectInContextRefCounter*> JSObjectRefCounter;
 	static JSObjectRefCounter jsObjectRefCounter;
 
+#if TROUBLE_SHOOT_GC
+	typedef std::map<KObject*, int> SurvivingObjects;
+	static SurvivingObjects survivingObjects;
+#endif
+
 	static Poco::Mutex protectedObjectsMutex;
 
 	static inline void _addContext(JSContextRef globalContext)
@@ -845,16 +850,12 @@ namespace KJSUtil
 						JSValueUnprotect(globalContext, i->first);
 #if TROUBLE_SHOOT_GC
 						KValueRef t = pointerFromJS(i->first);
-						if(t.isNull())
-							i->second = 0;
-						else
-							i->second = t->ToObject()->referenceCount() * -1;
+						if(! t.isNull())
+							survivingObjects[t->ToObject().get()] = i->second;
 #endif
 						i++;
 					}
-//#if ! TROUBLE_SHOOT_GC
 					objRefs->clear();
-//#endif
 					GarbageCollect();
 				}
 			}
