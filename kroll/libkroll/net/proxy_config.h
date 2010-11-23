@@ -55,8 +55,6 @@ namespace kroll
 		bool ShouldBypass(Poco::URI& uri,
 			std::vector<SharedPtr<BypassEntry> >& bypassList);
 		SharedPtr<BypassEntry> ParseBypassEntry(std::string entry);
-		void ParseProxyList(std::string proxyListString,
-			std::vector<SharedProxy>& proxyList, const std::string& scheme="");
 		Logger* GetLogger();
 	};
 }

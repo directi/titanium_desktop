@@ -8,7 +8,6 @@
 #include "window_config.h"
 #include "config_utils.h"
 
-#include <Poco/RegularExpression.h>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <libxml/xpath.h>
@@ -140,27 +139,6 @@ AutoPtr<WindowConfig> AppConfig::GetWindowByURL(const std::string& url)
 		{
 			config = windows[i];
 			break;
-		}
-	}
-
-	// If we didn't find a matching window URL, try matching
-	// against the url-regex parameter of the windows configs.
-	if (config.isNull())
-	{
-		for (size_t i = 0; i < windows.size(); i++)
-		{
-			if (windows[i]->GetURLRegex().empty())
-				continue;
-
-			std::string urlRegex(windows[i]->GetURLRegex());
-			Poco::RegularExpression::Match match;
-			Poco::RegularExpression regex(windows[i]->GetURLRegex());
-			regex.match(url, match);
-			if (match.length != 0)
-			{
-				config = windows[i];
-				break;
-			}
 		}
 	}
 

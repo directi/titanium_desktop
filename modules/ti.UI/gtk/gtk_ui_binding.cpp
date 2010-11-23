@@ -11,7 +11,6 @@
 #include <X11/Xutil.h>
 #include <X11/extensions/scrnsaver.h>
 #include <gdk/gdkx.h>
-#include <Poco/Thread.h>
 #include <libsoup/soup.h>
 #include <libsoup/soup-gnome.h>
 

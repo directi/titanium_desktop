@@ -3,16 +3,6 @@
  */
 
 #include "socket_module.h"
-
-#ifdef OS_WIN32
-// TODO: This is poco UnWindows.h's curse.... to be removed with poco
-#ifdef UNICODE
-#define CreateEvent  CreateEventW
-#else
-#define CreateEvent  CreateEventA
-#endif // !UNICODE
-#endif
-
 #include "SocketService.h"
 
 using namespace kroll;

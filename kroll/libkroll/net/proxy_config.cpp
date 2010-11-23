@@ -10,13 +10,8 @@
 
 using std::string;
 using std::vector;
-
-#include <Poco/String.h>
-#include <Poco/NumberParser.h>
-#include <Poco/StringTokenizer.h>
-
-using Poco::StringTokenizer;
-using Poco::NumberParser;
+#include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include "proxy_config.h"
 
@@ -54,7 +49,7 @@ static std::string& ProxyTypeToString(ProxyType type)
 ProxyType Proxy::SchemeToProxyType(string scheme)
 {
 	scheme = FileUtils::Trim(scheme);
-	Poco::toLowerInPlace(scheme);
+	boost::to_lower(scheme);
 
 	if (scheme == "https")
 		return HTTPS;
@@ -84,14 +79,14 @@ std::string Proxy::ToString()
 
 static SharedProxy GetProxyFromEnvironment(std::string prefix)
 {
-	Poco::toUpperInPlace(prefix);
+	boost::to_upper(prefix);
 	std::string envName = prefix + "_PROXY";
 
 	std::string proxyString(EnvironmentUtils::Get(envName));
 	if (!proxyString.empty())
 		return ProxyConfig::ParseProxyEntry(proxyString, prefix, std::string());
 
-	Poco::toLowerInPlace(prefix);
+	boost::to_lower(prefix);
 	envName = prefix + "_proxy";
 	proxyString = EnvironmentUtils::Get(envName);
 	if (!proxyString.empty())
@@ -301,9 +296,9 @@ SharedProxy ParseProxyEntry(string entry, const string& urlScheme,
 		try
 		{
 			portString = FileUtils::Trim(portString);
-			port = NumberParser::parseUnsigned(portString);
+			port = boost::lexical_cast<int>(portString.c_str());
 		}
-		catch (Poco::SyntaxException& e)
+		catch (const boost::bad_lexical_cast& e)
 		{
 			port = 0;
 		}
@@ -332,32 +327,5 @@ SharedProxy ParseProxyEntry(string entry, const string& urlScheme,
 
 	return proxy;
 }
-
-void ParseProxyList(string proxyListString,
-	vector<SharedProxy>& proxyList, const string& urlScheme)
-{
-	string sep = "; ";
-	StringTokenizer proxyTokens(proxyListString, sep,
-		StringTokenizer::TOK_IGNORE_EMPTY | StringTokenizer::TOK_TRIM);
-	for (size_t i = 0; i < proxyTokens.count(); i++)
-	{
-		string entry = proxyTokens[i];
-
-		// If this entry defines a scheme, make it override the argument.
-		string entryScheme;
-		size_t schemeEnd = entry.find('=');
-		if (schemeEnd != string::npos)
-		{
-			// This proxy only applies to the scheme before '='
-			entryScheme = entry.substr(0, schemeEnd);
-			entry = entry.substr(schemeEnd + 1);
-		}
-
-		SharedProxy proxy(ParseProxyEntry(entry, urlScheme, entryScheme));
-		GetLogger()->Debug("Proxy entry: %s", proxy->ToString().c_str());
-		proxyList.push_back(proxy);
-	}
-}
-
 } // namespace ProxyConfig
 } // namespace kroll

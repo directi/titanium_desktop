@@ -11,14 +11,9 @@
 
 #ifdef OS_WIN32
 #include <windows.h>
-#undef CreateDirectory
 #endif
 
-#include <iostream>
-#include <fstream>
-#include <string>
 #include <vector>
-#include <list>
 #include <algorithm>
 
 #ifdef OS_WIN32

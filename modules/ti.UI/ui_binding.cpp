@@ -382,7 +382,7 @@ namespace ti
 		result->SetDouble(this->GetIdleTime());
 	}
 
-    void UIBinding::Log(Logger::Level level, std::string& message) 
+    void UIBinding::Log(Logger::Level level, const std::string& message)
 	{
 		std::string methodName("debug_orig");
 		switch(level) 

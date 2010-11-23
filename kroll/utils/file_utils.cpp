@@ -28,11 +28,12 @@
 #endif
 
 
-#include <iostream>
+#include <string>
 #include <sstream>
 #include <cstring>
 #include <locale>
 #include <cwctype>
+#include <fstream>
 
 namespace UTILS_NS
 {

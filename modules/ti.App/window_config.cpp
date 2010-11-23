@@ -134,10 +134,8 @@ AutoPtr<WindowConfig> WindowConfig::FromProperties(KObjectRef properties)
 	WindowConfig* c = new WindowConfig();
 	c->SetID(properties->GetString("id", c->GetID()));
 	c->SetURL(properties->GetString("url", c->GetURL()));
-	c->SetURLRegex(properties->GetString("urlRegex", c->GetURLRegex()));
 	c->SetTitle(properties->GetString("title", c->GetTitle()));
 	c->SetTitle(properties->GetString("contents", c->GetContents()));
-	c->SetURLRegex(properties->GetString("baseURL", c->GetBaseURL()));
 	c->SetX(properties->GetInt("x", c->GetX()));
 	c->SetY(properties->GetInt("y", c->GetY()));
 	c->SetWidth(properties->GetInt("width", c->GetWidth()));
@@ -238,10 +236,6 @@ AutoPtr<WindowConfig> WindowConfig::FromXMLNode(xmlNodePtr element)
 		else if (nodeName == "url")
 		{
 			config->SetURL(ConfigUtils::GetNodeValue(child));
-		}
-		else if (nodeName == "url-regex")
-		{
-			config->SetURLRegex(ConfigUtils::GetNodeValue(child));
 		}
 		else if (nodeName == "maximizable")
 		{
