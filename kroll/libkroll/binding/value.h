@@ -299,13 +299,6 @@ namespace kroll
 		 */
 		static KValueRef Wrap(KValueRef value);
 
-		// TODO: We'll probably end up with values containing null objects all over the place.
-		void assign() 
-		{
-			if(! this->objectValue.isNull())
-				this->objectValue->duplicate();
-		}
-
 	private:
 		Type type;
 		double numberValue;
