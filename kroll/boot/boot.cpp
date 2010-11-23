@@ -8,7 +8,6 @@
 #include <ComponentManager.h>
 #include <file_utils.h>
 #include <environment_utils.h>
-//#include <platform_utils.h>
 
 using namespace UTILS_NS;
 
@@ -153,14 +152,9 @@ int BootLoader::Bootstrap()
 
 			// this differentiates mobile vs desktop
 			params["location"] = "desktop"; 
-			//params["mid"] = PlatformUtils::GetMachineId();
-			//params["mac"] = PlatformUtils::GetFirstMACAddress();
 			params["os"] = OS_NAME;
 			params["ostype"] = OS_TYPE;
-			//params["osver"] = FileUtils::GetOSVersion();
-			//params["osarch"] = FileUtils::GetOSArchitecture();
 			params["ver"] = PRODUCT_VERSION;
-			//params["un"] = PlatformUtils::GetUsername();
 
 			/*
 			if (!app.isNull())

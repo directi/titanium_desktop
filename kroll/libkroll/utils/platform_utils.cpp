@@ -4,10 +4,10 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "file_utils.h"
 #include "data_utils.h"
 #include "platform_utils.h"
-#include "environment_utils.h"
+#include <kroll/utils/file_utils.h>
+#include <kroll/utils/environment_utils.h>
 
 #include <iostream>
 #include <fstream>

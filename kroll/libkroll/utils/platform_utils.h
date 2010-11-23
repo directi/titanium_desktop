@@ -9,13 +9,13 @@
 
 #include <base.h>
 
-#include "poco/KTypes.h"
+#include <poco/Types.h>
 
 #define MAC_ADDRESS_SIZE 6
 
 namespace UTILS_NS
 {
-	typedef KPoco::KUInt8 MACAddress[MAC_ADDRESS_SIZE]; /// Ethernet address.
+	typedef Poco::UInt8 MACAddress[MAC_ADDRESS_SIZE]; /// Ethernet address.
 
 	namespace PlatformUtils
 	{
