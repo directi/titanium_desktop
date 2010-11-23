@@ -6,11 +6,10 @@
 #ifndef _MENU_H_
 #define _MENU_H_
 #include <kroll/kroll.h>
-#include "NeverAutoPtrMe.h"
 
 namespace ti
 {
-	class Menu : public KAccessorObject //, private NeverAutoPtrMe
+	class Menu : public KAccessorObject 
 	{
 	public:
 		// Platform-independent implementation

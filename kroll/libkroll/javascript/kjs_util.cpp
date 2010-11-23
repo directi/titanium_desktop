@@ -15,6 +15,8 @@
 #include <kroll/utils/url_utils.h>
 #include <kroll/utils/file_utils.h>
 
+#define TROUBLE_SHOOT_GC 1
+
 namespace kroll
 {
 namespace KJSUtil
@@ -61,37 +63,33 @@ namespace KJSUtil
 
 	static inline KValueRef pointerFromJS(JSObjectRef ref)
 	{
-		if(ref == 0) return 0;
 		Value *a = static_cast<Value*>(JSObjectGetPrivate(ref));
-		//pointers[ref] = a;
 		return a;
 	}
 
+#if TROUBLE_SHOOT_GC
 	static std::map<JSObjectRef, Value*> objects;
+#endif
 
 	static inline JSObjectRef makeJSObject(JSContextRef jsContext, JSClassRef objectClass, KValueRef kValue)
 	{
 		JSObjectRef r = JSObjectMake(jsContext, objectClass, pointerToJS(kValue));
 		kValue->duplicate();
+#if TROUBLE_SHOOT_GC
 		objects[r] = kValue.get();
+#endif
 		return r;
 	}
 
 	static void FinalizeCallback(JSObjectRef jsObject)
 	{
-		std::map<JSObjectRef, Value*>::iterator i = objects.find(jsObject);
-		if(i == objects.end())
-		{
-			fprintf(stderr, "Asked to finalize an unknown object\n");
-			return;
-		}
 		KValueRef a = pointerFromJS(jsObject);
-		KObjectRef r = a->ToObject();
-		if(r)
-			r->unprotect();
-		a->release();
+#if TROUBLE_SHOOT_GC
+		std::map<JSObjectRef, Value*>::iterator i = objects.find(jsObject);
+		//KObjectRef r = a->ToObject();
 		objects.erase(jsObject);
-		//pointers.erase(jsObject);
+#endif
+		a->release();
 	}
 
 
@@ -703,7 +701,7 @@ namespace KJSUtil
 		if (i == jsContextMap.end())
 		{
 			jsContextMap[globalObject] = globalContext;
-			JSValueProtect(globalContext, globalObject);
+//			JSValueProtect(globalContext, globalObject);
 		}
 	}
 
@@ -713,7 +711,7 @@ namespace KJSUtil
 		std::map<JSObjectRef, JSContextRef>::iterator i = jsContextMap.find(globalObject);
 		if(i != jsContextMap.end()) 
 		{
-			JSValueUnprotect(globalContext, globalObject);
+//			JSValueUnprotect(globalContext, globalObject);
 			jsContextMap.erase(i);
 		}
 #if DEBUG
@@ -729,7 +727,6 @@ namespace KJSUtil
 		{
 			if(context != 0) {
 				jsContextMap[object] = context;
-				JSValueProtect(context, object);
 				return context;
 			} else {
 				GetLogger()->Error("Yikes need to return a NULL context!!");
@@ -761,9 +758,7 @@ namespace KJSUtil
 
 	static inline void _delContext(JSContextRef globalContext) 
 	{
-#if NDEBUG
 		KEventObject::CleanupListenersFromContext(globalContext);
-#endif
 		JSObjectRef globalObject = JSContextGetGlobalObject(globalContext);
 		UnregisterContext(globalObject, globalContext);
 		jsObjectRefCounter.erase(globalContext);
@@ -791,7 +786,6 @@ namespace KJSUtil
 			GetLogger()->Error("No reference counter map found for globalContext");
 			return;
 		}
-		//if(! ourCtx->second) ourCtx->second = new JSObjectInContextRefCounter();
 		JSObjectInContextRefCounter::iterator ourRef = ourCtx->second->find(value);
 		if(ourRef == ourCtx->second->end())
 		{
@@ -827,8 +821,6 @@ namespace KJSUtil
 			ourRef->second--;
 			if(ourRef->second == 0)
 				JSValueUnprotect(globalContext, value);
-			if(ourRef->second <= 0)
-				ourCtx->second->erase(ourRef);
 		}
 		UnprotectContext(globalContext);
 	}
@@ -850,16 +842,19 @@ namespace KJSUtil
 					JSObjectInContextRefCounter::iterator i = objRefs->begin();
 					while(i != objRefs->end())
 					{						
-						if(i->second > 0) 
-						{
-//							KValueRef t = pointerFromJS(i->first);
-							JSValueUnprotect(globalContext, i->first);
+						JSValueUnprotect(globalContext, i->first);
+#if TROUBLE_SHOOT_GC
+						KValueRef t = pointerFromJS(i->first);
+						if(t.isNull())
 							i->second = 0;
-						} /*else {
-							objRefs->erase(i);
-						}*/
+						else
+							i->second = t->ToObject()->referenceCount() * -1;
+#endif
 						i++;
 					}
+//#if ! TROUBLE_SHOOT_GC
+					objRefs->clear();
+//#endif
 					GarbageCollect();
 				}
 			}

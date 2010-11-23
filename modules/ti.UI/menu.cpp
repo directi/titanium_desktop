@@ -13,7 +13,6 @@ namespace ti
 
 	Menu::Menu() :
 		KAccessorObject("UI.Menu")
-		//, NeverAutoPtrMe(this)
 	{
 		this->SetMethod("appendItem", &Menu::_AppendItem);
 		this->SetMethod("getItemAt", &Menu::_GetItemAt);

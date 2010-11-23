@@ -10,11 +10,10 @@
 #include <kroll/kroll.h>
 #include "menu_item.h"
 #include "notification.h"
-#include "NeverAutoPtrMe.h"
 
 namespace ti
 {
-	class UIBinding : public KAccessorObject //, private NeverAutoPtrMe
+	class UIBinding : public KAccessorObject 
 	{
 
 	public:

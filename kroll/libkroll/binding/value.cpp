@@ -245,7 +245,6 @@ namespace kroll
 	{
 		reset();
 		this->objectValue = value;
-		objectValue->setprotect();
 		if (value.isNull()) {
 			this->type = NULLV;
 		} else {
@@ -257,7 +256,6 @@ namespace kroll
 	{
 		reset();
 		this->objectValue = value;
-		objectValue->setprotect();
 		if (value.isNull()) {
 			this->type = NULLV;
 		} else {
@@ -269,7 +267,6 @@ namespace kroll
 	{
 		reset();
 		this->objectValue = value;
-		objectValue->setprotect();
 		if (value.isNull()) {
 			this->type = NULLV;
 		} else {

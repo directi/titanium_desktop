@@ -8,7 +8,7 @@
 #include <kroll/kroll.h>
 namespace ti
 {
-	class MenuItem : public KEventObject //, private NeverAutoPtrMe
+	class MenuItem : public KEventObject 
 	{
 	public:
 		enum MenuItemType

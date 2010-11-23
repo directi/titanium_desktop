@@ -12,7 +12,6 @@ namespace ti
 
 	UIBinding::UIBinding(Host* host) :
 		KAccessorObject("UI"),
-		//NeverAutoPtrMe(this),
 		host(host)
 	{
 		instance = this;
