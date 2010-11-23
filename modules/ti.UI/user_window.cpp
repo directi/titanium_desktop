@@ -1556,7 +1556,7 @@ void UserWindow::RegisterJSContext(JSContextRef context)
 	if (hasTitaniumObject)
 	{
 		this->InsertAPI(frameGlobal);
-		//UserWindow::LoadUIJavaScript(context);
+		UserWindow::LoadUIJavaScript(context);
 	}
 
 	AutoPtr<Event> event = this->CreateEvent(Event::PAGE_INITIALIZED);
