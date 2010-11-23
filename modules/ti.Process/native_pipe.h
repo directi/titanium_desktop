@@ -18,7 +18,7 @@ namespace ti
 	{
 	public:
 		NativePipe(bool isReader);
-		~NativePipe();
+		virtual ~NativePipe();
 		void StartMonitor();
 		void StartMonitor(KMethodRef readCallback);
 		virtual void StopMonitors();

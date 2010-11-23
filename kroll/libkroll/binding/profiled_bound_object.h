@@ -22,7 +22,7 @@ namespace kroll
 	class KROLL_API ProfiledBoundObject : public KObject
 	{
 		public:
-		ProfiledBoundObject(KObjectRef delegate);
+			ProfiledBoundObject(KObjectRef delegate, std::string& parentType);
 		virtual ~ProfiledBoundObject();
 		static void SetStream(Poco::FileOutputStream*);
 
@@ -40,37 +40,15 @@ namespace kroll
 
 		bool HasProperty(const char* name);
 
-		/**
-		 * @return the delegate of this profiled bound object
-		 */
-		KObjectRef GetDelegate() { return delegate; }
-		virtual void duplicate()
-		{
-			++count;
-		}
-
-		virtual void release()
-		{
-			int value = --count;
-			if (value <= 0) {
-				delete this;
-			}
-		}
-
-		virtual int referenceCount() const
-		{
-			return count.value();
-		}
+		static KObjectRef Wrap(KObjectRef value, std::string type); 
 
 	protected:
 		KObjectRef delegate;
-		KValueRef Wrap(KValueRef value, std::string type);
+		std::string parentType;
 		std::string GetSubType(std::string name);
 		void Log(const char* eventType, std::string& name, Poco::Timestamp::TimeDiff);
-		static bool AlreadyWrapped(KValueRef);
 		static Poco::FileOutputStream *stream;
 		static Poco::Mutex logMutex;
-		Poco::AtomicCounter count;
 	};
 }
 

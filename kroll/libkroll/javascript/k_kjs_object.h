@@ -26,7 +26,7 @@ namespace kroll
 	{
 		public:
 		KKJSObject(JSContextRef context, JSObjectRef js_object);
-		~KKJSObject();
+		virtual ~KKJSObject();
 
 		virtual void Set(const char *name, KValueRef value);
 		virtual KValueRef Get(const char *name);
@@ -36,13 +36,13 @@ namespace kroll
 
 		bool SameContextGroup(JSContextRef c);
 		JSObjectRef GetJSObject();
+		JSContextRef GetContext();
 
 		protected:
 		JSContextRef context;
 		JSObjectRef jsobject;
 
 		private:
-			bool isProtected;
 		DISALLOW_EVIL_CONSTRUCTORS(KKJSObject);
 	};
 }

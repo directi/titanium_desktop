@@ -371,19 +371,5 @@ namespace kroll
 	{
 		return type;
 	}
-
-	KObjectRef KObject::Unwrap(KObjectRef o)
-	{
-		AutoPtr<ProfiledBoundObject> pobj = o.cast<ProfiledBoundObject>();
-		if (pobj.isNull())
-		{
-			return o;
-		}
-		else
-		{
-			return pobj->GetDelegate();
-		}
-	}
-
 }
 

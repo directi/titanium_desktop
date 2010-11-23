@@ -22,9 +22,9 @@ namespace ti {
 	typedef AutoPtr<TrayItem> AutoTrayItem;
 }
 
-#include <JavaScriptCore/JSObjectRef.h>
-#include <JavaScriptCore/JSStringRef.h>
-#include <JavaScriptCore/JSContextRef.h>
+//#include <JavaScriptCore/JSObjectRef.h>
+//#include <JavaScriptCore/JSStringRef.h>
+//#include <JavaScriptCore/JSContextRef.h>
 
 #include <iostream>
 #include <kroll/javascript/javascript_module.h>

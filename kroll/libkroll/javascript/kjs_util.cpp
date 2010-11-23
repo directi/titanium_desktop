@@ -54,15 +54,47 @@ namespace KJSUtil
 	static JSValueRef GetFunctionPrototype(JSContextRef jsContext, JSValueRef* exception);
 	static JSValueRef GetArrayPrototype(JSContextRef jsContext, JSValueRef* exception);
 
-	static void* pointerToJS(KValueRef ref)
+	static inline void* pointerToJS(KValueRef ref)
 	{
-		return new KValueRef(ref);
+		return const_cast<Value*>(ref.get());
 	}
 
-	static KValueRef* pointerFromJS(void *ref)
+	static inline KValueRef pointerFromJS(JSObjectRef ref)
 	{
-		return static_cast<KValueRef*>(ref);
+		if(ref == 0) return 0;
+		Value *a = static_cast<Value*>(JSObjectGetPrivate(ref));
+		//pointers[ref] = a;
+		return a;
 	}
+
+	static std::map<JSObjectRef, Value*> objects;
+
+	static inline JSObjectRef makeJSObject(JSContextRef jsContext, JSClassRef objectClass, KValueRef kValue)
+	{
+		JSObjectRef r = JSObjectMake(jsContext, objectClass, pointerToJS(kValue));
+		kValue->duplicate();
+		objects[r] = kValue.get();
+		return r;
+	}
+
+	static void FinalizeCallback(JSObjectRef jsObject)
+	{
+		std::map<JSObjectRef, Value*>::iterator i = objects.find(jsObject);
+		if(i == objects.end())
+		{
+			fprintf(stderr, "Asked to finalize an unknown object\n");
+			return;
+		}
+		KValueRef a = pointerFromJS(jsObject);
+		KObjectRef r = a->ToObject();
+		if(r)
+			r->unprotect();
+		a->release();
+		objects.erase(jsObject);
+		//pointers.erase(jsObject);
+	}
+
+
 
 	KValueRef ToKrollValue(JSValueRef value, JSContextRef jsContext,
 		JSObjectRef thisObject)
@@ -99,11 +131,11 @@ namespace KJSUtil
 			JSObjectRef o = JSValueToObject(jsContext, value, &exception);
 			if (o != NULL)
 			{
-				KValueRef* value = pointerFromJS(JSObjectGetPrivate(o));
-				if (value != NULL)
+				KValueRef value = pointerFromJS(o);
+				if (! value.isNull())
 				{
 					// This is a KJS-wrapped Kroll value: unwrap it
-					return *value;
+					return value;
 				}
 				else if (JSObjectIsFunction(jsContext, o))
 				{
@@ -188,8 +220,8 @@ namespace KJSUtil
 		else if (value->IsMethod())
 		{
 			KMethodRef meth = value->ToMethod();
-			AutoPtr<KKJSMethod> kmeth = meth.cast<KKJSMethod>();
-			if (!kmeth.isNull() && kmeth->SameContextGroup(jsContext))
+			KKJSMethod* kmeth = dynamic_cast<KKJSMethod*>(meth.get());
+			if (kmeth && kmeth->SameContextGroup(jsContext))
 			{
 				// this object is actually a pure JS callable object
 				jsValue = kmeth->GetJSObject();
@@ -203,8 +235,8 @@ namespace KJSUtil
 		else if (value->IsList())
 		{
 			KListRef list = value->ToList();
-			AutoPtr<KKJSList> klist = list.cast<KKJSList>();
-			if (!klist.isNull() && klist->SameContextGroup(jsContext))
+			KKJSList* klist = dynamic_cast<KKJSList*>(list.get());
+			if (klist && klist->SameContextGroup(jsContext))
 			{
 				// this object is actually a pure JS array
 				jsValue = klist->GetJSObject();
@@ -245,7 +277,7 @@ namespace KJSUtil
 			jsClassDefinition.setProperty = SetPropertyCallback;
 			KJSKObjectClass = JSClassCreate(&jsClassDefinition);
 		}
-		return JSObjectMake(jsContext, KJSKObjectClass, pointerToJS(objectValue));
+		return makeJSObject(jsContext, KJSKObjectClass, objectValue);
 	}
 
 	JSValueRef KMethodToJSValue(KValueRef methodValue, JSContextRef jsContext)
@@ -262,7 +294,7 @@ namespace KJSUtil
 			jsClassDefinition.callAsFunction = CallAsFunctionCallback;
 			KJSKMethodClass = JSClassCreate(&jsClassDefinition);
 		}
-		JSObjectRef jsobject = JSObjectMake(jsContext, KJSKMethodClass, pointerToJS(methodValue));
+		JSObjectRef jsobject = makeJSObject(jsContext, KJSKMethodClass, methodValue);
 		JSValueRef functionPrototype = GetFunctionPrototype(jsContext, NULL);
 		JSObjectSetPrototype(jsContext, jsobject, functionPrototype);
 		return jsobject;
@@ -283,7 +315,7 @@ namespace KJSUtil
 			KJSKListClass = JSClassCreate(&jsClassDefinition);
 		}
 
-		JSObjectRef jsobject = JSObjectMake(jsContext, KJSKListClass, pointerToJS(listValue));
+		JSObjectRef jsobject = makeJSObject(jsContext, KJSKListClass, listValue);
 		JSValueRef arrayPrototype = GetArrayPrototype(jsContext, NULL);
 		JSObjectSetPrototype(jsContext, jsobject, arrayPrototype);
 		return jsobject;
@@ -318,12 +350,6 @@ namespace KJSUtil
 		return isArrayLike;
 	}
 
-	static void FinalizeCallback(JSObjectRef jsObject)
-	{
-		KValueRef* value = pointerFromJS(JSObjectGetPrivate(jsObject));
-		delete value;
-	}
-
 	static bool PrototypeHasFunctionNamed(JSContextRef jsContext, JSObjectRef object,
 		JSStringRef name)
 	{
@@ -349,12 +375,12 @@ namespace KJSUtil
 	static bool HasPropertyCallback(JSContextRef jsContext, JSObjectRef jsObject,
 		JSStringRef jsProperty)
 	{
-		KValueRef* value = pointerFromJS(JSObjectGetPrivate(jsObject));
-		if (value == NULL)
+		KValueRef value = pointerFromJS(jsObject);
+		if (value.isNull())
 			return false;
 
 		// Convert the name to a std::string.
-		KObjectRef object = (*value)->ToObject();
+		KObjectRef object = value->ToObject();
 		std::string name(ToChars(jsProperty));
 
 		// Special properties always take precedence. This is important
@@ -362,7 +388,7 @@ namespace KJSUtil
 		// methods like toString -- we always want our special properties
 		// to override those.
 		SharedStringList specialProperties(new StringList());
-		AddSpecialPropertyNames(*value, specialProperties, true);
+		AddSpecialPropertyNames(value, specialProperties, true);
 		for (size_t i = 0; i < specialProperties->size(); i++)
 		{
 			if (name == *specialProperties->at(i))
@@ -373,7 +399,7 @@ namespace KJSUtil
 		// a method with the same name -- opt to use the prototype's version instead.
 		// This will prevent  incompatible versions of things like pop() bleeding into
 		// JavaScript.
-		if (((*value)->IsList() || (*value)->IsMethod()) &&
+		if ((value->IsList() || value->IsMethod()) &&
 			PrototypeHasFunctionNamed(jsContext, jsObject, jsProperty))
 		{
 			return false;
@@ -386,17 +412,17 @@ namespace KJSUtil
 		JSObjectRef jsObject, JSStringRef jsProperty, JSValueRef* jsException)
 	{
 
-		KValueRef* value = pointerFromJS(JSObjectGetPrivate(jsObject));
-		if (value == NULL)
+		KValueRef value = pointerFromJS(jsObject);
+		if (value.isNull())
 			return JSValueMakeUndefined(jsContext);
 
-		KObjectRef object = (*value)->ToObject();
+		KObjectRef object = value->ToObject();
 		std::string name(ToChars(jsProperty));
 		JSValueRef jsValue = NULL;
 		try
 		{
 			KValueRef kvalue = object->Get(name.c_str());
-			jsValue = GetSpecialProperty(*value, name.c_str(), jsContext, kvalue);
+			jsValue = GetSpecialProperty(value, name.c_str(), jsContext, kvalue);
 		}
 		catch (ValueException& exception)
 		{
@@ -421,11 +447,11 @@ namespace KJSUtil
 	static bool SetPropertyCallback(JSContextRef jsContext, JSObjectRef jsObject,
 		JSStringRef jsProperty, JSValueRef jsValue, JSValueRef* jsException)
 	{
-		KValueRef* value = pointerFromJS(JSObjectGetPrivate(jsObject));
-		if (value == NULL)
+		KValueRef value = pointerFromJS(jsObject);
+		if (value.isNull())
 			return false;
 
-		KObjectRef object = (*value)->ToObject();
+		KObjectRef object = value->ToObject();
 		bool success = false;
 		std::string propertyName(ToChars(jsProperty));
 		try
@@ -434,7 +460,7 @@ namespace KJSUtil
 
 			// Arrays in particular have a special behavior when
 			// you do something like set the "length" property
-			if (!DoSpecialSetBehavior(*value, propertyName.c_str(), newValue))
+			if (!DoSpecialSetBehavior(value, propertyName.c_str(), newValue))
 			{
 				object->Set(propertyName.c_str(), newValue);
 			}
@@ -464,16 +490,15 @@ namespace KJSUtil
 		JSObjectRef jsFunction, JSObjectRef jsThis, size_t argCount,
 		const JSValueRef jsArgs[], JSValueRef* jsException)
 	{
-		KValueRef* value = pointerFromJS(JSObjectGetPrivate(jsFunction));
-		if (value == NULL)
+		KValueRef value = pointerFromJS(jsFunction);
+		if (value.isNull())
 			return JSValueMakeUndefined(jsContext);
 
-		KMethodRef method = (*value)->ToMethod();
+		KMethodRef method = value->ToMethod();
 		ValueList args;
 		for (size_t i = 0; i < argCount; i++)
 		{
 			KValueRef argVal = ToKrollValue(jsArgs[i], jsContext, jsThis);
-			Value::Unwrap(argVal);
 			args.push_back(argVal);
 		}
 
@@ -596,11 +621,11 @@ namespace KJSUtil
 		JSObjectRef jsFunction, JSObjectRef jsThis, size_t argCount,
 		const JSValueRef args[], JSValueRef* exception)
 	{
-		KValueRef* value = pointerFromJS(JSObjectGetPrivate(jsThis));
-		if (value == NULL)
+		KValueRef value = pointerFromJS(jsThis);
+		if (value.isNull())
 			return JSValueMakeUndefined(jsContext);
 
-		SharedString ss = (*value)->DisplayString(2);
+		SharedString ss = value->DisplayString(2);
 		KValueRef dsv = Value::NewString(ss);
 		return ToJSValue(dsv, jsContext);
 	}
@@ -609,8 +634,8 @@ namespace KJSUtil
 		JSObjectRef jsThis, size_t numArgs, const JSValueRef args[],
 		JSValueRef* exception)
 	{
-		KValueRef* value = pointerFromJS(JSObjectGetPrivate(jsThis));
-		if (value == NULL || numArgs < 1)
+		KValueRef value = pointerFromJS(jsThis);
+		if (value.isNull() || numArgs < 1)
 		{
 			return JSValueMakeBoolean(jsContext, false);
 		}
@@ -623,26 +648,26 @@ namespace KJSUtil
 
 		// Ensure argument is a Kroll JavaScript
 		JSObjectRef otherObject = JSValueToObject(jsContext, args[0], NULL);
-		KValueRef* otherValue = pointerFromJS(JSObjectGetPrivate(otherObject));
-		if (otherValue == NULL)
+		KValueRef otherValue = pointerFromJS(otherObject);
+		if (otherValue.isNull())
 		{
 			return JSValueMakeBoolean(jsContext, false);
 		}
 
 		// Test equality
-		return JSValueMakeBoolean(jsContext, (*value)->Equals(*otherValue));
+		return JSValueMakeBoolean(jsContext, value->Equals(otherValue));
 	}
 
 	static void GetPropertyNamesCallback(JSContextRef jsContext,
 		JSObjectRef jsObject, JSPropertyNameAccumulatorRef jsProperties)
 	{
-		KValueRef* value = pointerFromJS(JSObjectGetPrivate(jsObject));
-		if (value == NULL)
+		KValueRef value = pointerFromJS(jsObject);
+		if (value.isNull())
 			return;
 
-		KObjectRef object = (*value)->ToObject();
+		KObjectRef object = value->ToObject();
 		SharedStringList props = object->GetPropertyNames();
-		AddSpecialPropertyNames(*value, props, false);
+		AddSpecialPropertyNames(value, props, false);
 		for (size_t i = 0; i < props->size(); i++)
 		{
 			SharedString propertyName = props->at(i);
@@ -658,7 +683,6 @@ namespace KJSUtil
 		JSObjectRef globalObject = JSContextGetGlobalObject(jsContext);
 
 		JSValueRef jsAPI = ToJSValue(Value::NewObject(GlobalObject::GetInstance()), jsContext);
-		JSObjectRef titaniumObj = JSValueToObject(jsContext, jsAPI, NULL);
 
 		JSStringRef propertyName = JSStringCreateWithUTF8CString(PRODUCT_NAME);
 		JSObjectSetProperty(jsContext, globalObject, propertyName,
@@ -737,7 +761,9 @@ namespace KJSUtil
 
 	static inline void _delContext(JSContextRef globalContext) 
 	{
+#if NDEBUG
 		KEventObject::CleanupListenersFromContext(globalContext);
+#endif
 		JSObjectRef globalObject = JSContextGetGlobalObject(globalContext);
 		UnregisterContext(globalObject, globalContext);
 		jsObjectRefCounter.erase(globalContext);
@@ -815,8 +841,9 @@ namespace KJSUtil
 		{
 			if(force)
 			{
+#if NDEBUG
 				KEventObject::CleanupListenersFromContext(globalContext);
-
+#endif
 				JSObjectInContextRefCounter* objRefs = ourContext->second;
 				if(objRefs)
 				{
@@ -825,12 +852,12 @@ namespace KJSUtil
 					{						
 						if(i->second > 0) 
 						{
-//							KValueRef* t = pointerFromJS(JSObjectGetPrivate(i->first));
+//							KValueRef t = pointerFromJS(i->first);
 							JSValueUnprotect(globalContext, i->first);
 							i->second = 0;
-						} else {
+						} /*else {
 							objRefs->erase(i);
-						}
+						}*/
 						i++;
 					}
 					GarbageCollect();

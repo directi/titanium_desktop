@@ -67,7 +67,6 @@ namespace kroll
 	protected:
 		SharedPtr<MethodCallback> callback;
 		AutoPtr<StaticBoundObject> object;
-		std::map<std::string, KValueRef > properties;
 
 	private:
 		DISALLOW_EVIL_CONSTRUCTORS(StaticBoundMethod);

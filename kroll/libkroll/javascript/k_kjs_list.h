@@ -11,33 +11,24 @@
 
 namespace kroll
 {
-	class KROLL_API KKJSList : public KList
+	class KROLL_API KKJSList : public KList, public KKJSObject
 	{
 
-		public:
+	public:
 		KKJSList(JSContextRef context, JSObjectRef jsObject);
-		~KKJSList();
+		virtual ~KKJSList();
 
-		virtual void Set(const char* name, KValueRef value);
 		virtual void SetAt(unsigned int index, KValueRef value);
-		virtual KValueRef Get(const char* name);
-		virtual SharedStringList GetPropertyNames();
-		virtual bool HasProperty(const char* name);
-		virtual bool Equals(KObjectRef);
 		virtual void Append(KValueRef value);
 		virtual unsigned int Size();
 		virtual KValueRef At(unsigned int index);
 		virtual bool Remove(unsigned int index);
 
-		bool SameContextGroup(JSContextRef c);
-		JSObjectRef GetJSObject();
+		virtual void Set(const char *name, KValueRef value) { KKJSObject::Set(name, value); }
+		virtual KValueRef Get(const char *name) { return KKJSObject::Get(name); }
+		virtual SharedStringList GetPropertyNames() { return KKJSObject::GetPropertyNames(); }
 
-		protected:
-		JSContextRef context;
-		JSObjectRef jsobject;
-		AutoPtr<KKJSObject> kobject;
-
-		private:
+	private:
 		DISALLOW_EVIL_CONSTRUCTORS(KKJSList);
 	};
 }

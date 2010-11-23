@@ -8,7 +8,7 @@
 #include <kroll/kroll.h>
 namespace ti
 {
-	class MenuItem : public KEventObject
+	class MenuItem : public KEventObject //, private NeverAutoPtrMe
 	{
 	public:
 		enum MenuItemType
@@ -19,7 +19,7 @@ namespace ti
 		};
 
 		MenuItem(MenuItemType type);
-		~MenuItem();
+		virtual ~MenuItem();
 
 		void _IsSeparator(const ValueList& args, KValueRef result);
 		void _IsCheck(const ValueList& args, KValueRef result);

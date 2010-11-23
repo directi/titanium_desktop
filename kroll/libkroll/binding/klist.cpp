@@ -85,19 +85,5 @@ namespace kroll
 
 		return result;
 	}
-
-	/*static*/
-	KListRef KList::Unwrap(KListRef o)
-	{
-		AutoPtr<ProfiledBoundList> plist = o.cast<ProfiledBoundList>();
-		if (plist.isNull())
-		{
-			return o;
-		}
-		else
-		{
-			return plist->GetDelegate();
-		}
-	}
 }
 

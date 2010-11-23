@@ -13,7 +13,7 @@ namespace ti
 	{
 	public:
 		Win32UserWindow(AutoPtr<WindowConfig> config, AutoUserWindow& parent);
-		~Win32UserWindow();
+		virtual ~Win32UserWindow();
 
 		void OpenFileChooserDialog(KMethodRef callback, bool multiple,
 			std::string& title, std::string& path, std::string& defaultName,

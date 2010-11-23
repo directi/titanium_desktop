@@ -8,10 +8,11 @@
 
 namespace ti
 {
-	UIBinding* UIBinding::instance = NULL;
+	AutoPtr<UIBinding> UIBinding::instance = NULL;
 
 	UIBinding::UIBinding(Host* host) :
 		KAccessorObject("UI"),
+		//NeverAutoPtrMe(this),
 		host(host)
 	{
 		instance = this;

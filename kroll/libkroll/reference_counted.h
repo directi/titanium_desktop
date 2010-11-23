@@ -15,27 +15,41 @@ namespace kroll
 	{
 		private:
 		Poco::AtomicCounter count;
+		bool protect;
 
 		public:
-		ReferenceCounted() : count(1) { }
+		ReferenceCounted() : count(1), protect(false) { }
 		virtual ~ReferenceCounted() { }
 
-		virtual void duplicate()
+		void duplicate()
 		{
 			++count;
 		}
 
-		virtual void release()
+		void release()
 		{
 			int value = --count;
 			if (value <= 0) {
-				delete this;
+				if(protect)
+					fprintf(stderr, "Asked to delete a protected object: RCount=%d\n", referenceCount());
+				else
+					delete this;
 			}
 		}
 
-		virtual int referenceCount() const
+		int referenceCount() const
 		{
 			return count.value();
+		}
+
+		void setprotect() 
+		{
+			protect = true;
+		}
+
+		void unprotect() 
+		{
+			protect = false;
 		}
 	};
 }

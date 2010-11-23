@@ -269,7 +269,7 @@ HRESULT STDMETHODCALLTYPE Win32WebKitUIDelegate::trackCustomPopupMenu(
 	// No window menu, try to use the application menu.
 	if (menu.isNull())
 	{
-		Win32UIBinding* b = static_cast<Win32UIBinding*>(UIBinding::GetInstance());
+		AutoPtr<Win32UIBinding> b = UIBinding::GetInstance().cast<Win32UIBinding>();
 		menu = b->GetContextMenu().cast<Win32Menu>();
 	}
 

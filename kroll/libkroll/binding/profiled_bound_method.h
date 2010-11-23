@@ -24,43 +24,17 @@ namespace kroll
 		// @see KMethod::Call
 		virtual KValueRef Call(const ValueList& args);
 		// @see KMethod::Set
-		virtual void Set(const char *name, KValueRef value);
+		virtual void Set(const char *name, KValueRef value) { ProfiledBoundObject::Set(name, value); }
 		// @see KMethod::Get
-		virtual KValueRef Get(const char *name);
+		virtual KValueRef Get(const char *name) { return ProfiledBoundObject::Get(name); }
 		// @see KMethod::GetPropertyNames
-		virtual SharedStringList GetPropertyNames();
+		virtual SharedStringList GetPropertyNames() { return ProfiledBoundObject::GetPropertyNames(); }
 		// @see KObject::GetType
-		virtual std::string& GetType();
+		virtual std::string& GetType() { return ProfiledBoundObject::GetType(); }
 
-		bool HasProperty(const char* name);
-
-		/**
-		 * @return the delegate of this profiled bound method
-		 */
-		KMethodRef GetDelegate() { return method; }
-		virtual void duplicate()
-		{
-			++count;
-		}
-
-		virtual void release()
-		{
-			int value = --count;
-			if (value <= 0) {
-				delete this;
-			}
-		}
-
-		virtual int referenceCount() const
-		{
-			return count.value();
-		}
-
+		static KMethodRef Wrap(KMethodRef value, std::string type); 
 	private:
 		KMethodRef method;
-		std::string fullType;
-		Poco::AtomicCounter count;
-
 	};
 }
 

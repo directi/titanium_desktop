@@ -14,24 +14,8 @@
 namespace kroll
 {
 	KAccessorMethod::KAccessorMethod(MethodCallback* callback, const char *type)
-		: StaticBoundMethod(callback, type)
+		: StaticBoundMethod(callback, type), KAccessorObject(type)
 	{
-	}
-
-	bool KAccessorMethod::HasProperty(const char* name)
-	{
-		return StaticBoundMethod::HasProperty(name) || this->HasGetterFor(name);
-	}
-
-	void KAccessorMethod::Set(const char* name, KValueRef value)
-	{
-		if (!this->UseSetter(name, value, StaticBoundMethod::Get(name)))
-			StaticBoundMethod::Set(name, value);
-	}
-
-	KValueRef KAccessorMethod::Get(const char* name)
-	{
-		return this->UseGetter(name, StaticBoundMethod::Get(name));
 	}
 }
 

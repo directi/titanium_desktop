@@ -4,10 +4,12 @@
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
 
+#include <Poco/Semaphore.h>
+
+#include "binding/kmethod.h"
 
 #include "logger.h"
 #include "main_thread_job.h"
-#include "binding/kmethod.h"
 
 
 namespace kroll
@@ -15,7 +17,7 @@ namespace kroll
 
 	MainThreadJob::MainThreadJob(KMethodRef method, const ValueList& args, bool waitForCompletion) :
 		method(method),
-		args(NULL),
+		args(args),
 		waitForCompletion(waitForCompletion),
 		returnValue(NULL),
 		exception(ValueException(NULL)),
@@ -25,17 +27,7 @@ namespace kroll
 		// thread can wait for the value to become >0 using wait()
 		// and the main thread can call set() after job execution
 		// which meets this condition.
-		this->args = new ValueList();
-		for(int i = 0; i < args.size(); ++i)
-		{
-			this->args->push_back(args.at(i));
-		}
 	}
-
-		MainThreadJob::~MainThreadJob()
-		{
-			delete this->args;
-		}
 
 	void MainThreadJob::Wait()
 	{
@@ -47,7 +39,7 @@ namespace kroll
 	{
 		try
 		{
-			this->returnValue = this->method->Call(*args);
+			this->returnValue = this->method->Call(this->args);
 		}
 		catch (ValueException& e)
 		{

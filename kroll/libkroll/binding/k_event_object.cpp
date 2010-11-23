@@ -41,7 +41,7 @@ namespace kroll
 		listeners.push_back(new EventListener(event, callback));
 		KKJSMethod* c2 = dynamic_cast<KKJSMethod*>(callback.get());
 		if(c2)
-			AddRef(c2->Context(), this);
+			AddRef(c2->GetContext(), this);
 	}
 
 	void KEventObject::RemoveEventListener(std::string& event, KMethodRef callback)
@@ -56,7 +56,7 @@ namespace kroll
 			{
 				KKJSMethod* c2 = dynamic_cast<KKJSMethod*>(callback.get());
 				if(c2)
-					DelRef(c2->Context(), this);
+					DelRef(c2->GetContext(), this);
 				this->listeners.erase(i);
 				delete listener;
 				break;
@@ -249,7 +249,7 @@ namespace kroll
 			while(el != (*l)->listeners.end())
 			{
 				KKJSMethod* callback = dynamic_cast<KKJSMethod*>((*el)->Callback().get());
-				if(callback && callback->Context() == context)
+				if(callback && callback->GetContext() == context)
 				{
 					EventListenerList::iterator del = el;
 					++el;

@@ -14,7 +14,7 @@ namespace ti
 	{
 		public:
 			OSXUserWindow(AutoPtr<WindowConfig> config, AutoUserWindow& parent);
-			~OSXUserWindow();
+			virtual ~OSXUserWindow();
 
 			void OpenChooserDialog(bool files, KMethodRef callback, bool multiple,
 				std::string& title, std::string& path, std::string& defaultName,

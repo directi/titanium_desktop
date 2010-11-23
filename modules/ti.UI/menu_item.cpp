@@ -13,6 +13,7 @@ namespace ti
 
 	MenuItem::MenuItem(MenuItemType type) :
 		KEventObject("UI.MenuItem"),
+		//NeverAutoPtrMe(this),
 		type(type),
 		enabled(true),
 		label(""),
@@ -115,7 +116,6 @@ namespace ti
 		if (args.at(0)->IsObject())
 		{
 			KObjectRef o = args.at(0)->ToObject();
-			o = KObject::Unwrap(o);
 			newSubmenu = o.cast<Menu>();
 		}
 

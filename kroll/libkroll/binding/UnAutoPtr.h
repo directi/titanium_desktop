@@ -15,8 +15,16 @@ public:
 	UnAutoPtr(C* ptr): _ptr(ptr)
 	{
 	}
-	
 
+	UnAutoPtr& operator = (const UnAutoPtr& other)  
+	{
+		if(this->_ptr != other._ptr) {
+			this->_ptr = other._ptr;
+			this->_ptr->assign();
+		}
+		return *this;
+	}
+	
 	C* operator -> ()
 	{
 		return _ptr;

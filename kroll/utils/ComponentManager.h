@@ -60,7 +60,7 @@ namespace UTILS_NS
 	public:
 		ComponentManager(const std::string &path);
 		ComponentManager(const std::string &path, const vector<SharedDependency> &dependencies);
-		~ComponentManager();
+		virtual ~ComponentManager();
 
 		bool allDependenciesResolved() const { return unresolved.empty(); }
 		std::string getModulePaths() const;

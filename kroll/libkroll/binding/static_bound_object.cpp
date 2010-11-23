@@ -16,6 +16,7 @@ namespace kroll
 	StaticBoundObject::StaticBoundObject(const char* type)
 		: KObject(type)
 	{
+		
 	}
 
 	StaticBoundObject::~StaticBoundObject()
@@ -41,6 +42,7 @@ namespace kroll
 	void StaticBoundObject::Set(const char* name, KValueRef value)
 	{
 		Poco::Mutex::ScopedLock lock(mutex);
+		KObjectRef o = value->ToObject();
 		this->properties[std::string(name)] = value;
 	}
 

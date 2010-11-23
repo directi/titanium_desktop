@@ -37,7 +37,7 @@ namespace kroll
 	{
 		static Host* hostInstance;
 		Host(int argc, const char** argv);
-		~Host();
+		virtual ~Host();
 		DISALLOW_EVIL_CONSTRUCTORS(Host);
 
 	public:

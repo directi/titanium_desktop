@@ -18,41 +18,11 @@
 namespace kroll
 {
 	ProfiledGlobalObject::ProfiledGlobalObject(KObjectRef global) :
-		profiledObject(new ProfiledBoundObject(global))
+ProfiledBoundObject(global, std::string("GlobalObject"))
 	{
 	}
 
 	ProfiledGlobalObject::~ProfiledGlobalObject()
 	{
-	}
-
-	void ProfiledGlobalObject::Set(const char* name, KValueRef value)
-	{
-		profiledObject->Set(name, value);
-	}
-
-	KValueRef ProfiledGlobalObject::Get(const char* name)
-	{
-		return profiledObject->Get(name);
-	}
-
-	SharedStringList ProfiledGlobalObject::GetPropertyNames()
-	{
-		return profiledObject->GetPropertyNames();
-	}
-
-	SharedString ProfiledGlobalObject::DisplayString(int levels)
-	{
-		return profiledObject->DisplayString(levels);
-	}
-
-	bool ProfiledGlobalObject::HasProperty(const char* name)
-	{
-		return profiledObject->HasProperty(name);
-	}
-
-	bool ProfiledGlobalObject::Equals(KObjectRef other)
-	{
-		return profiledObject->Equals(other);
 	}
 }

@@ -13,10 +13,9 @@
 
 namespace kroll
 {
-	ProfiledBoundList::ProfiledBoundList(KListRef delegate) :
-		ProfiledBoundObject(delegate),
-		list(delegate),
-		count(1)
+	ProfiledBoundList::ProfiledBoundList(KListRef delegate, std::string& parentType) :
+		ProfiledBoundObject(delegate, parentType),
+		list(delegate)
 	{
 	}
 
@@ -51,21 +50,31 @@ namespace kroll
 
 	void ProfiledBoundList::Set(const char *name, KValueRef value)
 	{
-		list->Set(name, value);
+		ProfiledBoundObject::Set(name, value);
 	}
 
 	KValueRef ProfiledBoundList::Get(const char *name)
 	{
-		return list->Get(name);
+		return ProfiledBoundObject::Get(name);
 	}
 
 	SharedStringList ProfiledBoundList::GetPropertyNames()
 	{
-		return list->GetPropertyNames();
+		return ProfiledBoundObject::GetPropertyNames();
 	}
 
 	bool ProfiledBoundList::HasProperty(const char* name)
 	{
-		return list->HasProperty(name);
+		return ProfiledBoundObject::HasProperty(name);
+	}
+
+	KListRef ProfiledBoundList::Wrap(KListRef value, std::string parentType)
+	{
+		ProfiledBoundList* po = dynamic_cast<ProfiledBoundList*>(value.get());
+		if(! po)
+		{
+			return new ProfiledBoundList(value, parentType);
+		}
+		return value;
 	}
 }

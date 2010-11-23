@@ -26,7 +26,6 @@
 #include "callback.h"
 #include "scope_method_delegate.h"
 #include "bytes.h"
-#include "void_ptr.h"
 #include "event.h"
 #include "read_event.h"
 #include "profiled_bound_object.h"

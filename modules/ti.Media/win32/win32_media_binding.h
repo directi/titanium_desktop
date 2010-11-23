@@ -21,7 +21,7 @@ namespace ti
 	{
 		public:
 		Win32MediaBinding(KObjectRef);
-		~Win32MediaBinding();
+		virtual ~Win32MediaBinding();
 
 		protected:
 		void Beep();

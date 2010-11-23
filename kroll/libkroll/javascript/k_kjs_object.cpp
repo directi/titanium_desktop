@@ -41,6 +41,11 @@ namespace kroll
 		return this->jsobject;
 	}
 
+	JSContextRef KKJSObject::GetContext()
+	{
+		return this->context;
+	}
+
 	KValueRef KKJSObject::Get(const char *name)
 	{
 		JSStringRef jsName = JSStringCreateWithUTF8CString(name);

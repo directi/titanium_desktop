@@ -11,7 +11,7 @@ namespace ti
 	{
 	public:
 		OSXMenu();
-		~OSXMenu();
+		virtual ~OSXMenu();
 
 		void AppendItemImpl(AutoMenuItem item);
 		void InsertItemAtImpl(AutoMenuItem item, unsigned int index);

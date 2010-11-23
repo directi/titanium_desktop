@@ -19,6 +19,10 @@ namespace kroll
 	{
 	}
 
+	KAccessorObject::~KAccessorObject() 
+	{
+	}
+
 	bool KAccessorObject::HasProperty(const char* name)
 	{
 		return StaticBoundObject::HasProperty(name) || this->HasGetterFor(name);

@@ -66,6 +66,8 @@ namespace ti
 		virtual AutoPtr<NativePipe> GetNativeStderr() = 0;
 		void AttachPipes(bool async);
 
+		void duplicate() { ReferenceCounted::duplicate(); }
+		void release() { ReferenceCounted::release(); }
 	protected:
 		void _GetPID(const ValueList& args, KValueRef result);
 		void _GetExitCode(const ValueList& args, KValueRef result);

@@ -67,11 +67,6 @@ namespace kroll
 		 */
 		SharedString DisplayString(int levels);
 
-		/**
-		 * Return the unwrapped version of this object
-		 */
-		static KMethodRef Unwrap(KMethodRef);
-
 		/* Convenience methods below */
 		KValueRef Call(KValueRef one);
 		KValueRef Call(KValueRef one, KValueRef two);

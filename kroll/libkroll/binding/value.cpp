@@ -11,6 +11,9 @@
 #include "../host.h"
 
 #include "value.h"
+#include "profiled_bound_object.h"
+#include "profiled_bound_method.h"
+#include "profiled_bound_list.h"
 
 namespace kroll
 {
@@ -242,6 +245,7 @@ namespace kroll
 	{
 		reset();
 		this->objectValue = value;
+		objectValue->setprotect();
 		if (value.isNull()) {
 			this->type = NULLV;
 		} else {
@@ -253,6 +257,7 @@ namespace kroll
 	{
 		reset();
 		this->objectValue = value;
+		objectValue->setprotect();
 		if (value.isNull()) {
 			this->type = NULLV;
 		} else {
@@ -264,6 +269,7 @@ namespace kroll
 	{
 		reset();
 		this->objectValue = value;
+		objectValue->setprotect();
 		if (value.isNull()) {
 			this->type = NULLV;
 		} else {
@@ -390,28 +396,31 @@ namespace kroll
 			return unknownString;
 	}
 
-	void Value::Unwrap(KValueRef value)
+	KValueRef Value::Wrap(KValueRef value)
 	{
 		if (!Host::GetInstance()->ProfilingEnabled())
 		{
-			return;
+			return value;
 		}
 
 		if (value->IsMethod())
 		{
-			KMethodRef list = KMethod::Unwrap(value->ToMethod());
-			value->SetMethod(list);
+			KMethodRef orig = value->ToMethod();
+			KMethodRef method = ProfiledBoundMethod::Wrap(orig, orig->GetType());
+			value->SetMethod(method);
 		}
 		else if (value->IsList())
 		{
-			KListRef list = KList::Unwrap(value->ToList());
+			KListRef orig = value->ToList();
+			KListRef list = ProfiledBoundList::Wrap(orig, orig->GetType());
 			value->SetList(list);
 		}
 		else if (value->IsObject())
 		{
-			KObjectRef obj = KObject::Unwrap(value->ToObject());
+			KObjectRef orig = value->ToObject();
+			KObjectRef obj = ProfiledBoundObject::Wrap(orig, orig->GetType());
 			value->SetObject(obj);
 		}
+		return value;
 	}
-
 }

@@ -18,9 +18,8 @@ namespace kroll
 	class KROLL_API KEventMethod : public KEventObject, public KMethod
 	{
 		public:
-		KEventMethod(const char* name = "") :
-			KEventObject(name),
-			count(1) {}
+		KEventMethod(const char* name = "KEventMethod") :
+			KEventObject(name), KMethod(name) {}
 
 		// @see KMethod::Call
 		virtual KValueRef Call(const ValueList& args) = 0;
@@ -55,6 +54,10 @@ namespace kroll
 			return KEventObject::DisplayString(levels);
 		}
 
+//		void duplicate() { KEventObject::duplicate(); KMethod::duplicate(); }
+
+//		void release() { KEventObject::release(); KMethod::release(); }
+
 		/**
 		 * Set a property on this object to the given method. When an error
 		 * occurs will throw an exception of type ValueException.
@@ -68,30 +71,7 @@ namespace kroll
 			KValueRef method_value = Value::NewMethod(bound_method);
 			KEventObject::Set(name, method_value);
 		}
-
-		virtual void duplicate()
-		{
-			++count;
-		}
-
-		virtual void release()
-		{
-			int value = --count;
-			if (value <= 0) {
-				delete this;
-			}
-		}
-
-		virtual int referenceCount() const
-		{
-			return count.value();
-		}
-
-		private:
-		Poco::AtomicCounter count;
-
 	};
-
 }
 
 #endif

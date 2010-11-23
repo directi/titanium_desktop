@@ -16,7 +16,7 @@ namespace kroll
 {
 	StaticBoundList::StaticBoundList(const char *type) :
 		KList(type),
-		object(new StaticBoundObject()),
+		StaticBoundObject(type),
 		length(0)
 	{
 	}
@@ -28,14 +28,14 @@ namespace kroll
 	void StaticBoundList::Append(KValueRef value)
 	{
 		std::string name = KList::IntToChars(this->length);
-		this->object->Set(name.c_str(), value);
+		StaticBoundObject::Set(name.c_str(), value);
 		this->length++;
 	}
 
 	void StaticBoundList::SetAt(unsigned int index, KValueRef value)
 	{
 		std::string name = KList::IntToChars(index);
-		this->object->Set(name.c_str(), value);
+		StaticBoundObject::Set(name.c_str(), value);
 		if (index >= this->length)
 			this->length = index + 1;
 	}
@@ -46,7 +46,7 @@ namespace kroll
 			return false;
 
 		std::string name = KList::IntToChars(index);
-		this->object->Unset(name.c_str());
+		StaticBoundObject::Unset(name.c_str());
 		for (unsigned int i = index; i + 1 < this->length; i++)
 			this->SetAt(i, this->At(i + 1));
 
@@ -62,7 +62,7 @@ namespace kroll
 	KValueRef StaticBoundList::At(unsigned int index)
 	{
 		std::string name = KList::IntToChars(index);
-		KValueRef value = this->object->Get(name.c_str());
+		KValueRef value = StaticBoundObject::Get(name.c_str());
 		return value;
 	}
 
@@ -75,18 +75,22 @@ namespace kroll
 		}
 		else
 		{
-			this->object->Set(name, value);
+			if(StaticBoundObject::Get(name).isNull()) length++;
+			StaticBoundObject::Set(name, value);
 		}
 	}
 
 	KValueRef StaticBoundList::Get(const char *name)
 	{
-		return this->object->Get(name);
-	}
-
-	SharedStringList StaticBoundList::GetPropertyNames()
-	{
-		return this->object->GetPropertyNames();
+		int index = -1;
+		if (KList::IsInt(name) && (index = atoi(name)) >= 0)
+		{
+			return this->At(index);
+		}
+		else
+		{
+			return StaticBoundObject::Get(name);
+		}
 	}
 
 	KListRef StaticBoundList::FromStringVector(std::vector<std::string>& values)
@@ -101,5 +105,9 @@ namespace kroll
 		return l;
 	}
 
+	SharedStringList StaticBoundList::GetPropertyNames()
+	{
+		return StaticBoundObject::GetPropertyNames();
+	}
 }
 

@@ -21,6 +21,8 @@
 
 namespace kroll
 {
+	class StaticBoundMethod;
+
 	/**
 	 * Extending this class is the easiest way to get started with your own
 	 * KObject implementation. In your sub-class' constructor, you can bind
@@ -61,25 +63,15 @@ namespace kroll
 		 * Set a property on this object to the given method. When an error
 		 * occurs will throw an exception of type ValueException.
 		 */
+		// TODO: Because of this template as a forced workaround all classes deriving from
+		// StaticBoundMethod also need to derive from StaticBoundObject to preserve the inheritance tree.
+		// This happens right now as all classes deriving from StaticBoundMethod also derive from KAccessorObject
+		// which is a descendant of StaticBoundObject
 		template <typename T>
 		void SetMethod(const char* name, void (T::*method)(const ValueList&, KValueRef))
 		{
 			this->Set(name, Value::NewMethod(new StaticBoundMethod(
 				NewCallback<T, const ValueList&, KValueRef>(static_cast<T*>(this), method))));
-		}
-
-		virtual void duplicate()
-		{
-			
-		}
-
-		virtual void release()
-		{
-		}
-
-		virtual int referenceCount()
-		{
-			return 1;
 		}
 
 	protected:

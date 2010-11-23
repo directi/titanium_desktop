@@ -74,7 +74,8 @@ namespace kroll
 		if (!accessor->IsMethod())
 			return;
 
-		map[name] = accessor->ToMethod();
+		KMethodRef m = accessor->ToMethod();
+		map[name] = m;
 	}
 
 	KMethodRef KAccessor::FindAccessor(std::string& name, AccessorMap& map)

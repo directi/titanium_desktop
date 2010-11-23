@@ -85,7 +85,7 @@ public:
 	virtual /* [local] */ HRESULT STDMETHODCALLTYPE windowScriptObjectAvailable(
 		/* [in] */ IWebView *webView,
 		/* [in] */ JSContextRef context,
-		/* [in] */ JSObjectRef windowScriptObject) { return E_NOTIMPL; }
+		/* [in] */ JSObjectRef windowScriptObject);
 		
 	virtual HRESULT STDMETHODCALLTYPE didClearWindowObject(
 		IWebView *webView,

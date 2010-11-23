@@ -18,7 +18,7 @@ namespace kroll
 	class ProfiledBoundList : public ProfiledBoundObject, public KList
 	{
 	public:
-		ProfiledBoundList(KListRef delegate);
+		ProfiledBoundList(KListRef delegate, std::string& type);
 		virtual ~ProfiledBoundList();
 
 		// @see KList::Append
@@ -40,31 +40,10 @@ namespace kroll
 
 		bool HasProperty(const char* name);
 
-		/**
-		 * @return the delegate of this profiled bound object
-		 */
-		KListRef GetDelegate() { return list; }
-		virtual void duplicate()
-		{
-			++count;
-		}
-
-		virtual void release()
-		{
-			int value = --count;
-			if (value <= 0) {
-				delete this;
-			}
-		}
-
-		virtual int referenceCount() const
-		{
-			return count.value();
-		}
+		static KListRef Wrap(KListRef value, std::string type); 
 
 	private:
 		KListRef list;
-		Poco::AtomicCounter count;
 
 	};
 }
