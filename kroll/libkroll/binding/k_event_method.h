@@ -54,9 +54,9 @@ namespace kroll
 			return KEventObject::DisplayString(levels);
 		}
 
-		void duplicate() { KEventObject::duplicate(); }
+//		void duplicate() { KEventObject::duplicate(); KMethod::duplicate(); }
 
-		void release() { KEventObject::release(); }
+//		void release() { KEventObject::release(); KMethod::release(); }
 
 		/**
 		 * Set a property on this object to the given method. When an error

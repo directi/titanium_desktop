@@ -17,7 +17,7 @@ namespace ti
 	{
 		public:
 		Win32UIBinding(Module* uiModule, Host *host);
-		~Win32UIBinding();
+		virtual ~Win32UIBinding();
 		AutoMenu CreateMenu();
 		AutoMenuItem CreateMenuItem();
 		AutoMenuItem CreateSeparatorMenuItem();

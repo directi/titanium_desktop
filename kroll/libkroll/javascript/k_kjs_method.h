@@ -19,16 +19,13 @@ namespace kroll
 	{
 		public:
 			KKJSMethod(JSContextRef, JSObjectRef, JSObjectRef);
-			~KKJSMethod();
+			virtual ~KKJSMethod();
 
 			virtual KValueRef Call(const ValueList& args);
 			
 			virtual void Set(const char *name, KValueRef value) { KKJSObject::Set(name, value); }
 			virtual KValueRef Get(const char *name) { return KKJSObject::Get(name); }
 			virtual SharedStringList GetPropertyNames() { return KKJSObject::GetPropertyNames(); }
-
-			void duplicate() { KKJSObject::duplicate(); }
-			void release() { KKJSObject::release(); }
 
 		protected:
 			JSObjectRef thisObject;

@@ -86,7 +86,7 @@ public:
 	};
 
 	MD5Engine();
-	~MD5Engine();
+	virtual ~MD5Engine();
 		
 	unsigned digestLength() const;
 	void reset();

@@ -145,7 +145,7 @@ namespace Snarl {
 	class SnarlInterface {
 		public:
 			SnarlInterface();
-			~SnarlInterface();
+			virtual ~SnarlInterface();
 
 			static HWND   GetSnarlWindow();		
 			static LONG32 GetGlobalMsg();

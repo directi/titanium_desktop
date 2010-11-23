@@ -10,10 +10,11 @@
 #include <kroll/kroll.h>
 #include "menu_item.h"
 #include "notification.h"
+#include "NeverAutoPtrMe.h"
 
 namespace ti
 {
-	class UIBinding : public KAccessorObject
+	class UIBinding : public KAccessorObject //, private NeverAutoPtrMe
 	{
 
 	public:
@@ -77,10 +78,10 @@ namespace ti
 		virtual void SetBadgeImage(std::string& badgeImagePath) {}
 
 		static void ErrorDialog(std::string);
-		static inline UIBinding* GetInstance() { return instance; }
+		static inline AutoPtr<UIBinding> GetInstance() { return instance; }
 
 	protected:
-		static UIBinding* instance;
+		static AutoPtr<UIBinding> instance;
 		Host* host;
 		AutoUserWindow mainWindow;
 		std::vector<AutoUserWindow> openWindows;

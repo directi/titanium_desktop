@@ -16,7 +16,7 @@ namespace ti
 
 	public:
 		TrayItem(std::string& iconURL);
-		~TrayItem();
+		virtual ~TrayItem();
 
 		virtual void SetIcon(std::string& iconPath) = 0;
 		virtual void SetMenu(AutoMenu menu) = 0;

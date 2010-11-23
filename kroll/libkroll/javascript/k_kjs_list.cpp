@@ -11,6 +11,7 @@ namespace kroll
 		KList("JavaScript.KKJSList"),
 		KKJSObject(context, jsobject)
 	{
+		
 	}
 
 	KKJSList::~KKJSList()

@@ -57,7 +57,7 @@ namespace kroll
 		// the local and the global object.
 		Poco::Mutex::ScopedLock lock(mutex);
 		local->Set(name, value);
-		global->Set(name, value);
+		//global->Set(name, value);
 	}
 
 	bool KDelegatingObject::HasProperty(const char* name)

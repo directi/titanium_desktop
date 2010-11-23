@@ -109,7 +109,7 @@ namespace kroll
 	{
 	public:
 		RootLogger(bool consoleLogging, const std::string &logFilePath, Level level);
-		~RootLogger();
+		virtual ~RootLogger();
 		static RootLogger* instance;
 		virtual void LogImpl(Poco::Message& m);
 		void AddLoggerCallback(LoggerCallback callback);

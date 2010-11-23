@@ -16,7 +16,7 @@ namespace kroll
 
 	public:
 		KKJSList(JSContextRef context, JSObjectRef jsObject);
-		~KKJSList();
+		virtual ~KKJSList();
 
 		virtual void SetAt(unsigned int index, KValueRef value);
 		virtual void Append(KValueRef value);
@@ -28,8 +28,6 @@ namespace kroll
 		virtual KValueRef Get(const char *name) { return KKJSObject::Get(name); }
 		virtual SharedStringList GetPropertyNames() { return KKJSObject::GetPropertyNames(); }
 
-		void duplicate() { KKJSObject::duplicate(); }
-		void release() { KKJSObject::release(); }
 	private:
 		DISALLOW_EVIL_CONSTRUCTORS(KKJSList);
 	};

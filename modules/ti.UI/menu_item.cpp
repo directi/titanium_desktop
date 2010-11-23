@@ -13,6 +13,7 @@ namespace ti
 
 	MenuItem::MenuItem(MenuItemType type) :
 		KEventObject("UI.MenuItem"),
+		//NeverAutoPtrMe(this),
 		type(type),
 		enabled(true),
 		label(""),

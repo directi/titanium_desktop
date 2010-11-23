@@ -20,7 +20,7 @@ namespace ti {
 	public:
 
 		TiAsyncJobRunner();
-		~TiAsyncJobRunner();
+		virtual ~TiAsyncJobRunner();
 
 		void enqueue(TiThreadTarget * job);
 
@@ -48,7 +48,7 @@ namespace ti {
 	private:
 
 		TiAsyncJobRunnerSingleton() : jobRunner() {}
-		~TiAsyncJobRunnerSingleton() {}
+		virtual ~TiAsyncJobRunnerSingleton() {}
 	};
 }
 

@@ -26,7 +26,7 @@ namespace kroll
 	{
 		public:
 		KKJSObject(JSContextRef context, JSObjectRef js_object);
-		~KKJSObject();
+		virtual ~KKJSObject();
 
 		virtual void Set(const char *name, KValueRef value);
 		virtual KValueRef Get(const char *name);

@@ -11,7 +11,7 @@ namespace ti
 	{
 		public:
 		Win32Menu();
-		~Win32Menu();
+		virtual ~Win32Menu();
 
 		void AppendItemImpl(AutoMenuItem item);
 		void InsertItemAtImpl(AutoMenuItem item, unsigned int index);

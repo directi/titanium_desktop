@@ -299,6 +299,13 @@ namespace kroll
 		 */
 		static KValueRef Wrap(KValueRef value);
 
+		// TODO: We'll probably end up with values containing null objects all over the place.
+		void assign() 
+		{
+			if(! this->objectValue.isNull())
+				this->objectValue->duplicate();
+		}
+
 	private:
 		Type type;
 		double numberValue;
@@ -312,16 +319,6 @@ namespace kroll
 		Value(KValueRef value);
 		Value(const Value& value);
 	};
-
-	class KROLL_API ValueReleasePolicy : public Poco::ReleasePolicy<Value> {
-	public:
-		static void release(Value* pObj)
-		{
-			delete pObj;
-			pObj = NULL;
-		}
-	};
-
 }
 
 #endif

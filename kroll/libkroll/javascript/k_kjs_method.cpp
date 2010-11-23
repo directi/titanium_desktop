@@ -12,7 +12,7 @@ namespace kroll
 		KKJSObject(context, jsobject),
 		thisObject(thisObject)
 	{
-			KJSUtil::ProtectContextAndValue(this->context, thisObject);
+		KJSUtil::ProtectContextAndValue(this->context, thisObject);
 	}
 
 	KKJSMethod::~KKJSMethod()

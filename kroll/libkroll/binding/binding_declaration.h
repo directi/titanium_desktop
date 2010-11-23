@@ -2,12 +2,9 @@
 #ifndef _BINDING_DECLARATION_H_
 #define _BINDING_DECLARATION_H_
 
-#ifdef NO_AUTOPTR
 #include "UnAutoPtr.h"
-#else
 #include <Poco/AutoPtr.h>
 using Poco::AutoPtr;
-#endif
 
 namespace kroll
 {
@@ -27,7 +24,7 @@ namespace kroll
 	typedef UnAutoPtr<KList> KListRef;
 	typedef UnAutoPtr<Bytes> BytesRef;
 #else
-	typedef AutoPtr<Value> KValueRef;
+	typedef UnAutoPtr<Value> KValueRef;
 	typedef AutoPtr<KObject> KObjectRef;
 	typedef AutoPtr<KMethod> KMethodRef;
 	typedef AutoPtr<KList> KListRef;

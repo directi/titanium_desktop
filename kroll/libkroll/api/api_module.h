@@ -21,7 +21,7 @@ namespace kroll
 
 		}
 
-		~APIModule()
+		virtual ~APIModule()
 		{
 
 		}

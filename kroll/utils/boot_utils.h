@@ -54,7 +54,7 @@ namespace UTILS_NS
 		void parseInfo(const std::string &value);
 
 	public:
-		~Dependency();
+		virtual ~Dependency();
 
 		enum Requirement
 		{

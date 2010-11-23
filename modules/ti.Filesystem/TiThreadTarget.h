@@ -15,7 +15,7 @@ namespace ti
 		typedef void (*Callback)(void *);
 
 		TiThreadTarget(Callback method, void * param);
-		~TiThreadTarget();
+		virtual ~TiThreadTarget();
 
 		TiThreadTarget& operator = (const TiThreadTarget& te);
 

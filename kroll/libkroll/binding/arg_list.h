@@ -34,7 +34,7 @@ namespace kroll
 		ArgList(KValueRef, KValueRef, KValueRef);
 		ArgList(KValueRef, KValueRef, KValueRef, KValueRef);
 		ArgList(const ArgList&);
-		~ArgList() {};
+		virtual ~ArgList() {};
 
 		bool Verify(std::string& argSpec) const;
 		void VerifyException(const char* name, std::string argSpec) const;

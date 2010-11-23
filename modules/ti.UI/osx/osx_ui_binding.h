@@ -15,7 +15,7 @@ namespace ti
 
 		public:
 		OSXUIBinding(Host *host);
-		~OSXUIBinding();
+		virtual ~OSXUIBinding();
 
 		AutoMenu CreateMenu();
 		AutoMenuItem CreateMenuItem();

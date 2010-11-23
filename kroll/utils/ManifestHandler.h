@@ -35,7 +35,7 @@ namespace UTILS_NS
 	public:
 		ManifestHandler(const std::string &_manifestPath);
 		ManifestHandler(const std::string &_manifestPath, const map<string, string> &manifest);
-		~ManifestHandler();
+		virtual ~ManifestHandler();
 
 		void parseManifest(const map<string, string>& manifest);
 

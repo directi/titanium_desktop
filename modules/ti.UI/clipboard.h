@@ -15,7 +15,7 @@ namespace ti
 	{
 		public:
 		Clipboard();
-		~Clipboard();
+		virtual ~Clipboard();
 
 		enum DataType { TEXT, URI_LIST, IMAGE, UNKNOWN };
 		void _GetData(const ValueList& args, KValueRef result);

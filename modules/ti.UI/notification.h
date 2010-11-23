@@ -26,7 +26,7 @@ class Notification : public KAccessorObject
 {
 public:
 	Notification();
-	~Notification();
+	virtual ~Notification();
 	void Configure(KObjectRef properties);
 
 	static bool InitializeImpl();

@@ -18,6 +18,8 @@ namespace kroll
 	{
 	public:
 		KAccessorObject(const char* name = "KAccessorObject");
+		virtual ~KAccessorObject();
+
 		virtual void Set(const char* name, KValueRef value);
 		virtual KValueRef Get(const char* name);
 		virtual bool HasProperty(const char* name);

@@ -166,7 +166,7 @@ namespace ti
 
 		if (async)
 		{
-			this->duplicate();
+			ReferenceCounted::duplicate();
 			AutoPtr<Event> event = new Event(this, Event::EXIT);
 			Pipe::FireEventAsynchronously(event);
 		}

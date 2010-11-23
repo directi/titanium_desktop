@@ -18,7 +18,7 @@ namespace kroll
 	{
 	public:
 		GlobalObject();
-		~GlobalObject();
+		virtual ~GlobalObject();
 		static void TurnOnProfiling();
 
 		inline static AutoPtr<GlobalObject> GetInstance()

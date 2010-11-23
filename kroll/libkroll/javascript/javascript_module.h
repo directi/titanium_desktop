@@ -27,7 +27,7 @@ namespace kroll
 		{
 		}
 
-		~JavaScriptModule()
+		virtual ~JavaScriptModule()
 		{
 		}
 

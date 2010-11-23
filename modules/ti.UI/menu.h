@@ -6,14 +6,16 @@
 #ifndef _MENU_H_
 #define _MENU_H_
 #include <kroll/kroll.h>
+#include "NeverAutoPtrMe.h"
+
 namespace ti
 {
-	class Menu : public KAccessorObject
+	class Menu : public KAccessorObject //, private NeverAutoPtrMe
 	{
 	public:
 		// Platform-independent implementation
 		Menu();
-		~Menu();
+		virtual ~Menu();
 
 		void _AppendItem(const ValueList& args, KValueRef result);
 		void _GetItemAt(const ValueList& args, KValueRef result);
