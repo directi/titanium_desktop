@@ -5,7 +5,6 @@ Import('build env module')
 env.Append(LIBPATH=[build.get_module('tiapp').dir])
 env.Append(CPPPATH = ['%s/modules/ti.App' % build.titanium_source_dir])
 
-build.add_thirdparty(env, 'poco')
 build.add_thirdparty(env, 'webkit')
 env.Append(LIBS=['tiappmodule'])
 

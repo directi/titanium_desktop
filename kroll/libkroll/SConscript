@@ -78,9 +78,7 @@ elif build.is_osx():
 	libkroll_env.Append(LIBS=['ssl', 'crypto'])
 	libkroll_env.Append(FRAMEWORKS=['Cocoa', 'SystemConfiguration', 'CoreServices'])
 
-build.add_thirdparty(libkroll_env, 'poco')
 build.add_thirdparty(libkroll_env, 'webkit')
-build.add_thirdparty(libkroll_env, 'asio')
 build.add_thirdparty(libkroll_env, 'openssl')
 
 build.mark_build_target(

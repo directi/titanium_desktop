@@ -3,14 +3,23 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
-#include "utils.h"
-#if defined(KROLL_API_EXPORT) || defined(_KROLL_H_)
+#include "url_utils.h"
+
+#include <fstream>
+
+#include <kroll/host.h>
+#include <kroll/utils/file_utils.h>
+
+#ifdef OS_WIN32
+#include <kroll/utils/win32/win32_utils.h>
+#else
+#include <kroll/utils/posix/posix_utils.h>
+#endif
+
 #include <Poco/URI.h>
 #include <Poco/TemporaryFile.h>
 
-#include <fstream>
-#include "../host.h"
-#endif
+
 namespace UTILS_NS
 {
 namespace URLUtils

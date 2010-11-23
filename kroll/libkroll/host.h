@@ -13,10 +13,9 @@
 
 
 #include <Poco/Mutex.h>
-#include <Poco/Timestamp.h>
+#include <boost/timer.hpp>
 
 #include "utils/application.h"
-
 #include "binding/global_object.h"
 
 #include "module.h"
@@ -58,7 +57,7 @@ namespace kroll
 		SharedApplication GetApplication();
 		bool DebugModeEnabled() const { return this->debug; }
 		bool ProfilingEnabled() const { return this->profile; }
-		Poco::Timestamp::TimeDiff GetElapsedTime() const { return timeStarted.elapsed(); }
+		double GetElapsedTime() const { return timeStarted.elapsed(); }
 		KObjectRef GetGlobalObject() { return GlobalObject::GetInstance(); }
 
 		/**
@@ -173,7 +172,7 @@ namespace kroll
 		void SetupLogging();
 
 		// other
-		Poco::Timestamp timeStarted;
+		boost::timer timeStarted;
 		Poco::Mutex jobQueueMutex;
 		std::vector<MainThreadJob*> mainThreadJobs;
 		std::vector<std::string> invalidModuleFiles;

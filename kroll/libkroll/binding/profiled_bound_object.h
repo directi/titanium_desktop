@@ -47,7 +47,7 @@ namespace kroll
 		KObjectRef delegate;
 		std::string parentType;
 		std::string GetSubType(std::string name);
-		void Log(const char* eventType, std::string& name, Poco::Timestamp::TimeDiff);
+		void Log(const char* eventType, const std::string& name, double elapsedTime);
 		static std::ofstream *stream;
 		static Poco::Mutex logMutex;
 	};

@@ -4,7 +4,6 @@ Import('build env module')
 
 env.Append(CPPDEFINES = ('TITANIUM_PROCESS_API_EXPORT', 1))
 
-build.add_thirdparty(env, 'poco')
 sources = Glob('*.cpp')
 if build.is_win32():
 	env.Append(CCFLAGS=['/MD', '/DUNICODE', '/D_UNICODE'])

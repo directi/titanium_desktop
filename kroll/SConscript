@@ -9,6 +9,8 @@ Import('debug')
 Import('thirdparty_check')
 
 SConscript('boot/SConscript', variant_dir=path.join(build.dir, 'objs', 'boot'), duplicate=0)
+build.add_thirdparty(build.env, 'asio')
+build.add_thirdparty(build.env, 'poco')
 SConscript('libkroll/SConscript', variant_dir=path.join(build.dir,'objs','libkroll'), duplicate=0)
 
 # Now that libkroll is built add it as a default for

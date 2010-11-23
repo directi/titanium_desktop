@@ -83,7 +83,9 @@ namespace kroll
 	}
 
 	void ProfiledBoundObject::Log(
-		const char* eventType, std::string& name, Poco::Timestamp::TimeDiff elapsedTime)
+		const char* eventType,
+		const std::string& name,
+		double elapsedTime)
 	{
 		Poco::ScopedLock<Poco::Mutex> lock(logMutex);
 		if ((*ProfiledBoundObject::stream)) {
