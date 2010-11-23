@@ -7,7 +7,8 @@
 #if defined(KROLL_API_EXPORT) || defined(_KROLL_H_)
 #include <Poco/URI.h>
 #include <Poco/TemporaryFile.h>
-#include <Poco/FileStream.h>
+
+#include <fstream>
 #include "../host.h"
 #endif
 namespace UTILS_NS
@@ -226,9 +227,9 @@ namespace URLUtils
 			temp.keepUntilExit();
 			path = temp.path();
 
-			std::string contents("<html><body></body></html>");
-			Poco::FileStream stream;
-			stream.open(path, std::ios::out);
+			const std::string contents("<html><body></body></html>");
+			std::ofstream stream;
+			stream.open(path.c_str(), std::ios::out);
 			stream.write(contents.c_str(), contents.size());
 			stream.close();
 		}

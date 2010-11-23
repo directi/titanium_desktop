@@ -11,7 +11,9 @@ namespace UTILS_NS
 {
 	namespace MD5Utils
 	{
-		std::string getDigestForFile(const std::string& path);
+		KROLL_API std::string GetHexRepresentation(const unsigned char * data, size_t length);
+		KROLL_API std::string calculate_md5_of(const void *content, size_t len);
+		KROLL_API std::string calculate_md5_of(const std::string & data);
 	}
 }
 #endif

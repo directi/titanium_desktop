@@ -38,11 +38,10 @@ namespace UTILS_NS
 			EVP_MD_CTX_cleanup(&mdctx);
 			return GetHexRepresentation(md_value, md_len);
 		}
-
-		std::string getDigestForFile(const std::string& path)
+		
+		std::string calculate_md5_of(const std::string & data)
 		{
-			std::string digest;
-			return digest;
-		}	
+			return calculate_md5_of(data.c_str(), data.size());
+		}
 	}
 }
