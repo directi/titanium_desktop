@@ -6,10 +6,11 @@
 
 #ifndef _KR_PROFILED_BOUND_OBJECT_H_
 #define _KR_PROFILED_BOUND_OBJECT_H_
-#include <Poco/FileStream.h>
-#include <Poco/Mutex.h>
 
 #include <base.h>
+#include <fstream>
+
+#include <Poco/Mutex.h>
 
 #include "kobject.h"
 
@@ -24,7 +25,7 @@ namespace kroll
 		public:
 			ProfiledBoundObject(KObjectRef delegate, std::string& parentType);
 		virtual ~ProfiledBoundObject();
-		static void SetStream(Poco::FileOutputStream*);
+		static void SetStream(std::ofstream*);
 
 		public:
 		// @see KObject::Set
@@ -47,7 +48,7 @@ namespace kroll
 		std::string parentType;
 		std::string GetSubType(std::string name);
 		void Log(const char* eventType, std::string& name, Poco::Timestamp::TimeDiff);
-		static Poco::FileOutputStream *stream;
+		static std::ofstream *stream;
 		static Poco::Mutex logMutex;
 	};
 }

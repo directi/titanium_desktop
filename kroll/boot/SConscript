@@ -5,7 +5,6 @@ Import('build')
 
 def get_utils(dir):
 	sources_utils = Glob('%s/*.cpp' % dir) + \
-		Glob('%s/poco/*.cpp' % dir) + \
 		Glob('%s/%s/*.cpp' % (dir, build.os))
 	if build.is_osx():
 		sources_utils.extend(Glob('%s/%s/*.mm' % (dir, build.os)))

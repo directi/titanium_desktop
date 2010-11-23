@@ -13,7 +13,6 @@
 #include <Poco/Mutex.h>
 #include <Poco/Stopwatch.h>
 #include <Poco/ScopedLock.h>
-#include <Poco/FileStream.h>
 
 #include "../host.h"
 
@@ -23,12 +22,8 @@
 
 namespace kroll
 {
-	Poco::FileOutputStream* ProfiledBoundObject::stream = 0;
+	std::ofstream * ProfiledBoundObject::stream = NULL;
 	Poco::Mutex ProfiledBoundObject::logMutex;
-	void ProfiledBoundObject::SetStream(Poco::FileOutputStream* stream)
-	{
-		ProfiledBoundObject::stream = stream;
-	}
 
 	ProfiledBoundObject::ProfiledBoundObject(KObjectRef delegate, std::string& parentType) :
 		KObject(delegate->GetType()),
@@ -38,6 +33,11 @@ namespace kroll
 	}
 	ProfiledBoundObject::~ProfiledBoundObject()
 	{
+	}
+
+	void ProfiledBoundObject::SetStream(std::ofstream* stream)
+	{
+		ProfiledBoundObject::stream = stream;
 	}
 
 	KObjectRef ProfiledBoundObject::Wrap(KObjectRef value, std::string parentType)

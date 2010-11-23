@@ -14,7 +14,6 @@
 
 #include <Poco/Mutex.h>
 #include <Poco/Timestamp.h>
-#include <Poco/FileStream.h>
 
 #include "utils/application.h"
 
@@ -159,7 +158,7 @@ namespace kroll
 		// Profiling Related variables & methods
 		bool profile;
 		std::string profilePath;
-		Poco::FileOutputStream* profileStream;
+		std::ofstream* profileStream;
 
 		void SetupProfiling();
 		void StopProfiling();
