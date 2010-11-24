@@ -708,8 +708,6 @@ bool Win32UserWindow::Close()
 			::KillTimer(this->windowHandle, this->timer);
 
 		DestroyWindow(windowHandle);
-
-		return false;
 	}
 
 	return  !this->active;
