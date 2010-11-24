@@ -20,6 +20,7 @@ def get_libkroll_sources(dir, build_obj):
 		Glob('%s/net/proxy_config.cpp' % dir) + \
 		Glob('%s/javascript/*.cpp' % dir) + \
 		Glob('%s/api/*.cpp' % dir) + \
+		Glob('%s/utils/url/*.cpp' % dir) + \
 		Glob('%s/net/*_%s.cpp' % (dir, build_obj.os))
 	if build_obj.is_linux():
 		sources += Glob('%s/linux/*.cpp' % dir)

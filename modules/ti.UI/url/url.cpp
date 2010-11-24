@@ -5,9 +5,7 @@
  */
 #include "../ui_module.h"
 #include <Poco/Environment.h>
-#include <Poco/URI.h>
-using Poco::URI;
-using std::string;
+using namespace std;
 namespace ti
 {
 	void NormalizeURLCallback(const char* url, char* buffer, int bufferLength)

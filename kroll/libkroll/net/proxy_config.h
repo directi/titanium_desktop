@@ -9,10 +9,6 @@
 #include <base.h>
 #include "../logger.h"
 
-#include <Poco/URI.h>
-
-using Poco::URI;
-typedef SharedPtr<Poco::URI> SharedURI;
 
 namespace kroll
 {
@@ -51,8 +47,8 @@ namespace kroll
 		KROLL_API SharedProxy ParseProxyEntry(std::string proxyEntry,
 			const std::string& urlScheme, const std::string& entryScheme);
 
-		SharedProxy GetProxyForURLImpl(Poco::URI& uri);
-		bool ShouldBypass(Poco::URI& uri,
+		SharedProxy GetProxyForURLImpl(const std::string & url);
+		bool ShouldBypass(const std::string & url,
 			std::vector<SharedPtr<BypassEntry> >& bypassList);
 		SharedPtr<BypassEntry> ParseBypassEntry(std::string entry);
 		Logger* GetLogger();

@@ -10,7 +10,6 @@
 #include <kroll/kroll.h>
 
 #include <Poco/Net/NameValueCollection.h>
-#include <Poco/URI.h>
 #include <Poco/Thread.h>
 #include <Poco/Runnable.h>
 #include <curl/curl.h>

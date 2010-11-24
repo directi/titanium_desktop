@@ -24,6 +24,7 @@ using std::vector;
 
 #include "proxy_config.h"
 #include <kroll/utils/osx/osx_utils.h>
+#include <kroll/utils/url/ParsedURL.h>
 
 
 namespace kroll
@@ -403,19 +404,20 @@ SharedProxy TryCFNetworkCopyProxiesForURL(const string& queryURL)
 	return 0;
 }
 
-SharedProxy GetProxyForURLImpl(Poco::URI& uri)
+SharedProxy GetProxyForURLImpl(const std::string & url)
 {
 	InitializeOSXProxyConfig();
+	ParsedURL uri(url);
 
 	// If the URL matches global bypass conditions, use a direct connection.
-	if (bypassLocalNames && uri.getHost().find(".") == string::npos)
+	if (bypassLocalNames && uri.host().find(".") == string::npos)
 		return 0;
 
-	if (ShouldBypass(uri, bypassList))
+	if (ShouldBypass(url, bypassList))
 		return 0;
 
 	// Try the proxies set via the manual global settings.
-	string scheme(uri.getScheme());
+	string scheme(uri.scheme());
 	if (scheme == "http" && httpProxy.get())
 		return httpProxy;
 	if (scheme == "https" && httpsProxy.get())
@@ -427,7 +429,7 @@ SharedProxy GetProxyForURLImpl(Poco::URI& uri)
 	if (socksProxy.get())
 		return socksProxy;
 
-	return TryCFNetworkCopyProxiesForURL(uri.toString());
+	return TryCFNetworkCopyProxiesForURL(url);
 }
 
 }

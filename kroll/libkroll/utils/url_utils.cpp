@@ -4,10 +4,9 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 #include "url_utils.h"
-#include "uri.h"
+#include "url/ParsedURL.h"
 
 #include <fstream>
-
 #include <kroll/host.h>
 #include <kroll/utils/file_utils.h>
 
@@ -17,7 +16,6 @@
 #include <kroll/utils/posix/posix_utils.h>
 #endif
 
-#include <Poco/URI.h>
 #include <Poco/TemporaryFile.h>
 
 
@@ -250,8 +248,8 @@ namespace URLUtils
 	{
 		if (url != BlankPageURL())
 		{
-			URI inURI(url);
-			if (inURI.getScheme() == "app")
+			WTF::ParsedURL inURI(url);
+			if (inURI.scheme() == "app")
 			{
 				return NormalizeAppURL(url);
 			}
@@ -261,22 +259,22 @@ namespace URLUtils
 
 	std::string URLToPath(const std::string& url)
 	{
-		URI inURI(url);
+		WTF::ParsedURL inURI(url);
 		try
 		{
 			if (url == BlankPageURL())
 			{
 				return BlankURLToFilePath();
 			}
-			if (inURI.getScheme() == "ti")
+			if (inURI.scheme() == "ti")
 			{
 				return TiURLToPath(url);
 			}
-			else if (inURI.getScheme() == "app")
+			else if (inURI.scheme() == "app")
 			{
 				return AppURLToPath(url);
 			}
-			else if (inURI.getScheme().empty())
+			else if (inURI.scheme().empty())
 			{
 				// There is no scheme for this URL, so we have to/ guess at this point if
 				// it's a path or a relative app:// URL. If a file can be found, assume thi
@@ -303,14 +301,13 @@ namespace URLUtils
 	{
 		try
 		{
-			URI inURI(tiURL);
-
-			if (inURI.getScheme() != "ti")
+			WTF::ParsedURL inURI(tiURL);
+			if (inURI.scheme() != "ti")
 			{
 				return tiURL;
 			}
 
-			std::string host(inURI.getHost());
+			std::string host(inURI.host());
 			SharedApplication app = Host::GetInstance()->GetApplication();
 			std::string path(app->GetComponentPath(host));
 
@@ -318,16 +315,7 @@ namespace URLUtils
 			{
 				throw ValueException::FromString("Could not find component "+host);
 			}
-
-			path = FileUtils::Join(path.c_str(), inURI.getPath().c_str(), NULL);
-			//std::vector<std::string> segments;
-			//inURI.getPathSegments(segments);
-
-			//for (size_t i = 0; i < segments.size(); i++)
-			//{
-			//	path = FileUtils::Join(path.c_str(), segments[i].c_str(), NULL);
-			//}
-			return path;
+			return FileUtils::Join(path.c_str(), inURI.path().c_str(), NULL);
 		}
 		catch (ValueException& e)
 		{
@@ -347,25 +335,19 @@ namespace URLUtils
 	{
 		try
 		{
-			Poco::URI inURI = Poco::URI(inURL);
-			if (inURI.getScheme() != "app")
+			WTF::ParsedURL inURI(inURL);
+			if (inURI.scheme() != "app")
 			{
 				return inURL;
 			}
 
 			std::string appURL(NormalizeAppURL(inURL));
-			inURI = Poco::URI(appURL);
+			WTF::ParsedURL appURI(appURL);
 
 			SharedApplication app = Host::GetInstance()->GetApplication();
 			std::string path(app->GetResourcesPath());
 
-			std::vector<std::string> segments;
-			inURI.getPathSegments(segments);
-			for (size_t i = 0; i < segments.size(); i++)
-			{
-				path = FileUtils::Join(path.c_str(), segments[i].c_str(), NULL);
-			}
-			return path;
+			return FileUtils::Join(path.c_str(), appURI.path().c_str(), NULL);;
 		}
 		catch (ValueException& e)
 		{

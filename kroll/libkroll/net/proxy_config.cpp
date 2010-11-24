@@ -15,7 +15,9 @@ using std::vector;
 
 #include "proxy_config.h"
 
+
 #include <kroll/utils/file_utils.h>
+#include <kroll/utils/url/ParsedURL.h>
 #include <kroll/utils/environment_utils.h>
 
 namespace kroll
@@ -124,10 +126,10 @@ SharedProxy GetHTTPSProxyOverride()
 SharedProxy GetProxyForURL(string& url)
 {
 	static Logger* logger = GetLogger();
-	URI uri(url);
+	WTF::ParsedURL uri(url);
 
 	// Don't try to detect proxy settings for URLs we know are local
-	std::string scheme(uri.getScheme());
+	std::string scheme(uri.scheme());
 	if (scheme == "app" || scheme == "ti" || scheme == "file")
 		return 0;
 
@@ -146,7 +148,7 @@ SharedProxy GetProxyForURL(string& url)
 	}
 
 	logger->Debug("Looking up proxy information for: %s", url.c_str());
-	SharedProxy proxy(ProxyConfig::GetProxyForURLImpl(uri));
+	SharedProxy proxy(ProxyConfig::GetProxyForURLImpl(url));
 
 	if (proxy.isNull())
 		logger->Debug("Using direct connection.");
@@ -161,11 +163,13 @@ static inline bool EndsWith(string haystack, string needle)
 	return haystack.find(needle) == (haystack.size() - needle.size());
 }
 
-static bool ShouldBypassWithEntry(URI& uri, SharedPtr<BypassEntry> entry)
+static bool ShouldBypassWithEntry(const std::string & url, SharedPtr<BypassEntry> entry)
 {
-	const std::string& uriHost = uri.getHost();
-	const std::string& uriScheme = uri.getScheme();
-	unsigned short uriPort = uri.getPort();
+	WTF::ParsedURL uri(url);
+	const std::string& uriHost = uri.host();
+	const std::string& uriScheme = uri.scheme();
+	const std::string& uriPort = uri.port();
+	int uri_port = ::atoi(uriPort.c_str());
 	const std::string& entryHost = entry->host;
 	const std::string& entryScheme = entry->scheme;
 	unsigned short entryPort = entry->port;
@@ -186,7 +190,7 @@ static bool ShouldBypassWithEntry(URI& uri, SharedPtr<BypassEntry> entry)
 		}
 		else if (EndsWith(uriHost, entryHost) &&
 			(entryScheme.empty() || entryScheme == uriScheme) &&
-			(entryPort == 0 || entryPort == uriPort))
+			(entryPort == 0 || entryPort == uri_port))
 		{
 			return true;
 		}
@@ -195,14 +199,14 @@ static bool ShouldBypassWithEntry(URI& uri, SharedPtr<BypassEntry> entry)
 	return false;
 }
 
-bool ShouldBypass(URI& uri, vector<SharedPtr<BypassEntry> >& bypassList)
+bool ShouldBypass(const std::string & url, vector<SharedPtr<BypassEntry> >& bypassList)
 {
 	GetLogger()->Debug("Checking whether %s should be bypassed.", 
-		uri.toString().c_str());
+		url.c_str());
 
 	for (size_t i = 0; i < bypassList.size(); i++)
 	{
-		if (ShouldBypassWithEntry(uri, bypassList.at(i)))
+		if (ShouldBypassWithEntry(url, bypassList.at(i)))
 			return true;
 	}
 

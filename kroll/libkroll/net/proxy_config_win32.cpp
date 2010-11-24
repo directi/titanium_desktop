@@ -8,6 +8,7 @@
 #include <base.h>
 
 #include "proxy_config.h"
+#include <kroll/utils/url/ParsedURL.h>
 
 #include <string>
 #include <libproxy/proxy.h>
@@ -28,9 +29,8 @@ namespace kroll
 
 	namespace ProxyConfig
 	{
-		SharedProxy GetProxyForURLImpl(URI& uri)
+		SharedProxy GetProxyForURLImpl(const std::string & url)
 		{
-			std::string url(uri.toString());
 			char* urlC = strdup(url.c_str());
 			char** proxies = px_proxy_factory_get_proxies(GetProxyFactory(), urlC);
 			free(urlC);
@@ -40,11 +40,12 @@ namespace kroll
 			const char* proxyChars = proxies[0];
 			if (!proxyChars)
 				return 0;
+			WTF::ParsedURL uri(url);
 
 			// Do not pass in an entryScheme here (third argument), because it will
 			// override the host scheme, which is the most important in this case.
 			SharedProxy proxy(ProxyConfig::ParseProxyEntry(
-				proxyChars, uri.getScheme(), std::string()));
+				proxyChars, uri.scheme(), std::string()));
 
 			for (int i = 0; proxies[i]; i++)
 				free(proxies[i]);
