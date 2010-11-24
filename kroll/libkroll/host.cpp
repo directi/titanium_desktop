@@ -10,10 +10,10 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include <Poco/Environment.h>
 #include <Poco/DirectoryIterator.h>
 
 #include <kroll/utils/file_utils.h>
+#include <kroll/utils/environment_utils.h>
 
 #include "thread_manager.h"
 
@@ -124,9 +124,9 @@ namespace kroll
 		this->SetupApplication(argc, argv);
 		this->ParseCommandLineArguments(); // Depends on this->application
 
-		if (Poco::Environment::has(DEBUG_ENV))
+		if (EnvironmentUtils::Has(DEBUG_ENV))
 		{
-			std::string debug_val = Poco::Environment::get(DEBUG_ENV);
+			std::string debug_val = EnvironmentUtils::Get(DEBUG_ENV);
 			this->debug = (debug_val == "true" || debug_val == "yes" || debug_val == "1");
 			this->consoleLogging = this->debug;
 		}
@@ -142,7 +142,7 @@ namespace kroll
 
 	static void AssertEnvironmentVariable(std::string variable)
 	{
-		if (!Poco::Environment::has(variable))
+		if (!EnvironmentUtils::Has(variable))
 		{
 			Logger* logger = Logger::Get("Host");
 			logger->Fatal("required variable '%s' not defined, aborting.");
@@ -156,9 +156,9 @@ namespace kroll
 		AssertEnvironmentVariable(RUNTIME_ENV);
 		AssertEnvironmentVariable(MODULES_ENV);
 
-		string applicationHome(Poco::Environment::get(HOME_ENV));
-		string runtimePath(Poco::Environment::get(RUNTIME_ENV));
-		string modulePaths(Poco::Environment::get(MODULES_ENV));
+		string applicationHome(EnvironmentUtils::Get(HOME_ENV));
+		string runtimePath(EnvironmentUtils::Get(RUNTIME_ENV));
+		string modulePaths(EnvironmentUtils::Get(MODULES_ENV));
 
 		if (this->debug)
 		{
