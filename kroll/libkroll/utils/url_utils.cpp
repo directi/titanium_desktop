@@ -4,6 +4,7 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 #include "url_utils.h"
+#include "uri.h"
 
 #include <fstream>
 
@@ -247,24 +248,20 @@ namespace URLUtils
 
 	std::string NormalizeURL(const std::string& url)
 	{
-		Poco::URI inURI = Poco::URI(url);
-		if (url == BlankPageURL())
+		if (url != BlankPageURL())
 		{
-			return url;
+			URI inURI(url);
+			if (inURI.getScheme() == "app")
+			{
+				return NormalizeAppURL(url);
+			}
 		}
-		if (inURI.getScheme() != "app")
-		{
-			return url;
-		}
-		else
-		{
-			return NormalizeAppURL(url);
-		}
+		return url;
 	}
 
 	std::string URLToPath(const std::string& url)
 	{
-		Poco::URI inURI = Poco::URI(url);
+		URI inURI(url);
 		try
 		{
 			if (url == BlankPageURL())
@@ -306,7 +303,7 @@ namespace URLUtils
 	{
 		try
 		{
-			Poco::URI inURI = Poco::URI(tiURL);
+			URI inURI(tiURL);
 
 			if (inURI.getScheme() != "ti")
 			{
@@ -322,13 +319,14 @@ namespace URLUtils
 				throw ValueException::FromString("Could not find component "+host);
 			}
 
-			std::vector<std::string> segments;
-			inURI.getPathSegments(segments);
+			path = FileUtils::Join(path.c_str(), inURI.getPath().c_str(), NULL);
+			//std::vector<std::string> segments;
+			//inURI.getPathSegments(segments);
 
-			for (size_t i = 0; i < segments.size(); i++)
-			{
-				path = FileUtils::Join(path.c_str(), segments[i].c_str(), NULL);
-			}
+			//for (size_t i = 0; i < segments.size(); i++)
+			//{
+			//	path = FileUtils::Join(path.c_str(), segments[i].c_str(), NULL);
+			//}
 			return path;
 		}
 		catch (ValueException& e)
