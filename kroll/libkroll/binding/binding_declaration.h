@@ -24,7 +24,7 @@ namespace kroll
 	typedef UnAutoPtr<KList> KListRef;
 	typedef UnAutoPtr<Bytes> BytesRef;
 #else
-	typedef UnAutoPtr<Value> KValueRef;
+	typedef AutoPtr<Value> KValueRef;
 	typedef AutoPtr<KObject> KObjectRef;
 	typedef AutoPtr<KMethod> KMethodRef;
 	typedef AutoPtr<KList> KListRef;

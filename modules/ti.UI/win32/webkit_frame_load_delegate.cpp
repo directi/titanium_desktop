@@ -31,6 +31,7 @@ HRESULT STDMETHODCALLTYPE Win32WebKitFrameLoadDelegate::didFinishLoadForFrame(
 {
 	JSGlobalContextRef context = frame->globalContext();
 	JSObjectRef global_object = JSContextGetGlobalObject(context);
+	KJSUtil::RegisterContext(global_object, context);
 	KObjectRef frame_global = new KKJSObject(context, global_object);
 
 	IWebDataSource *webDataSource;
@@ -77,10 +78,12 @@ HRESULT STDMETHODCALLTYPE Win32WebKitFrameLoadDelegate::willCloseFrame(
 		KJSUtil::UnprotectContext(r, true);
 		m_frameContexts.erase(i);
 	}
+#if DEBUG
 	else 
 	{
 		fprintf(stderr, "Closed a frame without a JSContextRef\n");
 	}
+#endif
 	return S_OK;
 }
 

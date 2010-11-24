@@ -56,15 +56,44 @@ namespace KJSUtil
 	static JSValueRef GetFunctionPrototype(JSContextRef jsContext, JSValueRef* exception);
 	static JSValueRef GetArrayPrototype(JSContextRef jsContext, JSValueRef* exception);
 
-	static inline void* pointerToJS(KValueRef ref)
+	class JSObjectValue 
 	{
-		return const_cast<Value*>(ref.get());
+	private:
+		int refCount;
+		KValueRef objectValue;
+		DISALLOW_EVIL_CONSTRUCTORS(JSObjectValue);
+	public:
+		void release() 
+		{ 
+			--refCount;
+			if(refCount == 0) {
+				objectValue->SetNull();
+				delete this;
+			}
+		}
+
+		void duplicate() 
+		{ 
+			++refCount; 
+		}
+
+		JSObjectValue(KValueRef value) : objectValue(value), refCount(0) { }
+		KValueRef ToValue() { return objectValue; }
+	};
+
+	typedef UnAutoPtr<JSObjectValue> JSObjectValueRef;
+
+	static inline JSObjectValueRef pointerToJS(KValueRef ref)
+	{
+		return new JSObjectValue(ref);
 	}
 
 	static inline KValueRef pointerFromJS(JSObjectRef ref)
 	{
-		Value *a = static_cast<Value*>(JSObjectGetPrivate(ref));
-		return a;
+		JSObjectValue *a = static_cast<JSObjectValue*>(JSObjectGetPrivate(ref));
+		if(a) 
+			return a->ToValue();
+		return 0;
 	}
 
 #if TROUBLE_SHOOT_GC
@@ -73,8 +102,9 @@ namespace KJSUtil
 
 	static inline JSObjectRef makeJSObject(JSContextRef jsContext, JSClassRef objectClass, KValueRef kValue)
 	{
-		JSObjectRef r = JSObjectMake(jsContext, objectClass, pointerToJS(kValue));
-		kValue->duplicate();
+		JSObjectValueRef or = pointerToJS(kValue);
+		JSObjectRef r = JSObjectMake(jsContext, objectClass, or);
+		or->duplicate();
 #if TROUBLE_SHOOT_GC
 		objects[r] = kValue.get();
 #endif
@@ -83,9 +113,9 @@ namespace KJSUtil
 
 	static void FinalizeCallback(JSObjectRef jsObject)
 	{
-		KValueRef a = pointerFromJS(jsObject);
+		JSObjectValue* a = static_cast<JSObjectValue*>(JSObjectGetPrivate(jsObject));
 #if TROUBLE_SHOOT_GC
-		std::map<JSObjectRef, Value*>::iterator i = objects.find(jsObject);
+		//std::map<JSObjectRef, Value*>::iterator i = objects.find(jsObject);
 		//KObjectRef r = a->ToObject();
 		objects.erase(jsObject);
 #endif
@@ -130,7 +160,7 @@ namespace KJSUtil
 			if (o != NULL)
 			{
 				KValueRef value = pointerFromJS(o);
-				if (! value.isNull())
+				if (value)
 				{
 					// This is a KJS-wrapped Kroll value: unwrap it
 					return value;
@@ -411,7 +441,7 @@ namespace KJSUtil
 	{
 
 		KValueRef value = pointerFromJS(jsObject);
-		if (value.isNull())
+		if (! value)
 			return JSValueMakeUndefined(jsContext);
 
 		KObjectRef object = value->ToObject();
@@ -701,7 +731,7 @@ namespace KJSUtil
 		if (i == jsContextMap.end())
 		{
 			jsContextMap[globalObject] = globalContext;
-//			JSValueProtect(globalContext, globalObject);
+			//JSValueProtect(globalContext, globalObject);
 		}
 	}
 
@@ -711,7 +741,7 @@ namespace KJSUtil
 		std::map<JSObjectRef, JSContextRef>::iterator i = jsContextMap.find(globalObject);
 		if(i != jsContextMap.end()) 
 		{
-//			JSValueUnprotect(globalContext, globalObject);
+			//JSValueUnprotect(globalContext, globalObject);
 			jsContextMap.erase(i);
 		}
 #if DEBUG
@@ -725,13 +755,8 @@ namespace KJSUtil
 		Poco::Mutex::ScopedLock lock(jsContextMapMutex);
 		if (jsContextMap.find(object) == jsContextMap.end())
 		{
-			if(context != 0) {
-				jsContextMap[object] = context;
-				return context;
-			} else {
-				GetLogger()->Error("Yikes need to return a NULL context!!");
-				return 0;
-			}
+			GetLogger()->Error("Yikes need to return a NULL context!!");
+			return 0;
 		}
 		else
 		{
@@ -744,7 +769,7 @@ namespace KJSUtil
 	static JSObjectRefCounter jsObjectRefCounter;
 
 #if TROUBLE_SHOOT_GC
-	typedef std::map<KObject*, int> SurvivingObjects;
+	typedef std::map<KObject*, Value*> SurvivingObjects;
 	static SurvivingObjects survivingObjects;
 #endif
 
@@ -763,7 +788,9 @@ namespace KJSUtil
 
 	static inline void _delContext(JSContextRef globalContext) 
 	{
+#ifdef NDEBUG
 		KEventObject::CleanupListenersFromContext(globalContext);
+#endif
 		JSObjectRef globalObject = JSContextGetGlobalObject(globalContext);
 		UnregisterContext(globalObject, globalContext);
 		jsObjectRefCounter.erase(globalContext);
@@ -826,6 +853,8 @@ namespace KJSUtil
 			ourRef->second--;
 			if(ourRef->second == 0)
 				JSValueUnprotect(globalContext, value);
+			if(ourRef->second <= 0)
+				ourCtx->second->erase(ourRef);
 		}
 		UnprotectContext(globalContext);
 	}
@@ -851,11 +880,11 @@ namespace KJSUtil
 #if TROUBLE_SHOOT_GC
 						KValueRef t = pointerFromJS(i->first);
 						if(! t.isNull())
-							survivingObjects[t->ToObject().get()] = i->second;
+							survivingObjects[t->ToObject().get()] = t.get();
 #endif
+						i->second = 0;
 						i++;
 					}
-					objRefs->clear();
 					GarbageCollect();
 				}
 			}
