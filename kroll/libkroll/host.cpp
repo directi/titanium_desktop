@@ -10,8 +10,6 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include <Poco/DirectoryIterator.h>
-
 #include <kroll/utils/file_utils.h>
 #include <kroll/utils/environment_utils.h>
 
@@ -446,24 +444,25 @@ namespace kroll
 	{
 		Poco::Mutex::ScopedLock lock(moduleMutex);
 
-		Poco::DirectoryIterator iter = Poco::DirectoryIterator(dir);
-		Poco::DirectoryIterator end;
-		while (iter != end)
+		std::vector<std::string> files;
+		FileUtils::ListDir(dir, files);
+		for(std::vector<std::string>::const_iterator
+			oIter = files.begin();
+		oIter != files.end();
+		oIter++)
 		{
-			Poco::File f = *iter;
-			if (!f.isDirectory() && !f.isHidden())
+			std::string path = FileUtils::Join(dir.c_str(), oIter->c_str(), NULL);
+			if(!FileUtils::IsDirectory(path) && !FileUtils::IsHidden(path))
 			{
-				std::string fpath(iter.path().absolute().toString());
-				if (IsModule(fpath))
+				if (IsModule(path))
 				{
-					this->LoadModule(fpath, this);
+					this->LoadModule(path, this);
 				}
 				else
 				{
-					this->AddInvalidModuleFile(fpath);
+					this->AddInvalidModuleFile(path);
 				}
 			}
-			iter++;
 		}
 	}
 
