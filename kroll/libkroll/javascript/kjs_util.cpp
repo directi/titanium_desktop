@@ -66,7 +66,8 @@ namespace KJSUtil
 		void release() 
 		{ 
 			--refCount;
-			if(refCount == 0) {
+			if(refCount == 0) 
+			{
 				objectValue->SetNull();
 				delete this;
 			}
@@ -882,9 +883,9 @@ namespace KJSUtil
 						if(! t.isNull())
 							survivingObjects[t->ToObject().get()] = t.get();
 #endif
-						i->second = 0;
 						i++;
 					}
+					objRefs->clear();
 					GarbageCollect();
 				}
 			}
