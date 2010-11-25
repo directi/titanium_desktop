@@ -6,13 +6,9 @@ env.Append(CPPDEFINES = ('TITANIUM_PROCESS_API_EXPORT', 1))
 
 sources = Glob('*.cpp')
 if build.is_win32():
-	env.Append(CCFLAGS=['/DUNICODE', '/D_UNICODE'])
 	sources += Glob('win32/*.cpp')
 else:
 	sources += Glob('posix/*.cpp')
-
-if build.is_win32():
-	env.Append(CCFLAGS=['/DUNICODE', '/D_UNICODE'])
 
 build.mark_build_target(build.utils.CopyTree(Glob('*.js'), module.dir))
 build.mark_build_target(env.SharedLibrary(

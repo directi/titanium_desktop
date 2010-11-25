@@ -55,7 +55,7 @@ if build.is_linux():
 
 if build.is_win32():
 	kboot_env.Append(LIBS=['shell32','user32', 'gdi32'])
-	kboot_env.Append(CCFLAGS=['/O2','/GL','/FD','/W3','/Wp64','/TP','/DUNICODE'])
+	kboot_env.Append(CCFLAGS=['/W3','/Wp64','/TP'])
 
 	# Generate a manifest which will later be merged with the common controls manifest
 	intermediate_manifest = path.join(build.dir, 'boot.exe.intermediate.manifest')

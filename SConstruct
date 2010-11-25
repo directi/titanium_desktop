@@ -39,6 +39,7 @@ if debug:
 	if build.is_win32():
 		build.env.Append(CCFLAGS=['/Z7', '/MD'])  # max debug
 		build.env.Append(CPPDEFINES=('WIN32_CONSOLE', 1))
+		build.env.Append(CPPDEFINES=('WIN32_LEAN_AND_MEAN',1))
 		build.env.Append(LINKFLAGS=['/LTCG', '/DEBUG', '/PDB:${TARGET}.pdb'])
 		#build.env.Append(LINKFLAGS=['/VERBOSE:LIB'])
 	else:
@@ -46,13 +47,13 @@ if debug:
 else:
 	build.env.Append(CPPDEFINES = ('NDEBUG', 1 ))
 	if build.is_win32():
-		build.env.Append(CCFLAGS=['/MD'])
+		build.env.Append(CCFLAGS=['/MD', '/O2', '/GL'])
 		build.env.Append(LINKFLAGS=['/LTCG', '/INCREMENTAL:NO', '/OPT:REF'])
 	else:
 		build.env.Append(CPPFLAGS = ['-O9']) # max optimizations
 
 if build.is_win32():
-	build.env.Append(CCFLAGS=['/EHsc', '/GR'])
+	build.env.Append(CCFLAGS=['/EHsc', '/GR', '/DUNICODE', '/D_UNICODE'])
 
 ## Kroll *must not be required* for installation
 SConscript('kroll/SConscript.thirdparty')
