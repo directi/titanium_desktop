@@ -7,10 +7,11 @@
 #ifndef _KR_EVENT_OBJECT_H_
 #define _KR_EVENT_OBJECT_H_
 
-#include <list>
-#include <Poco/Mutex.h>
-
 #include <base.h>
+
+#include <list>
+
+#include <boost/thread/mutex.hpp>
 
 #include "event.h"
 
@@ -57,10 +58,10 @@ namespace kroll
 		void ReportDispatchError(std::string& reason);
 
 		EventListenerList listeners;
-		Poco::Mutex listenersMutex;
+		boost::mutex listenersMutex;
 
 #ifdef KROLL_API_EXPORT
-		static Poco::Mutex mapMutex;
+		static boost::mutex mapMutex;
 		static ContextMap contextMap;
 
 		static void AddRef(JSContextRef context, KEventObject* obj);
