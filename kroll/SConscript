@@ -10,6 +10,8 @@ Import('thirdparty_check')
 
 SConscript('boot/SConscript', variant_dir=path.join(build.dir, 'objs', 'boot'), duplicate=0)
 build.add_thirdparty(build.env, 'asio')
+build.env.Append(CPPDEFINES = ('BOOST_ALL_NO_LIB'))
+
 build.add_thirdparty(build.env, 'poco')
 SConscript('libkroll/SConscript', variant_dir=path.join(build.dir,'objs','libkroll'), duplicate=0)
 

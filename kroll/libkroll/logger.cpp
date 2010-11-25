@@ -3,10 +3,6 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
-#include <Poco/ScopedLock.h>
-#include <Poco/PatternFormatter.h>
-#include <Poco/Path.h>
-#include <Poco/File.h>
 
 #include <cstdio>
 #include <sstream>
@@ -16,17 +12,12 @@
 
 #include <kroll/utils/file_utils.h>
 
-#define LOGGER_MAX_ENTRY_SIZE 2048
-
-using Poco::PatternFormatter;
-using Poco::Path;
-using Poco::File;
 
 namespace kroll
 {
 	std::map<std::string, Logger*> Logger::loggers;
 	char Logger::buffer[LOGGER_MAX_ENTRY_SIZE];
-	Poco::Mutex Logger::mutex;
+	boost::mutex Logger::mutex;
 
 	/*static*/
 	Logger* Logger::Get(const std::string &name)
@@ -168,7 +159,7 @@ namespace kroll
 	std::string Logger::Format(const char* format, va_list args)
 	{
 		// Protect the buffer
-		Poco::Mutex::ScopedLock lock(mutex);
+		boost::mutex::scoped_lock lock(mutex);
 
 		vsnprintf(Logger::buffer, LOGGER_MAX_ENTRY_SIZE - 1, format, args);
 		Logger::buffer[LOGGER_MAX_ENTRY_SIZE - 1] = '\0';
@@ -365,15 +356,14 @@ namespace kroll
 		fileLogging(!logFilePath.empty())
 	{
 		RootLogger::instance = this;
-		this->formatter = new PatternFormatter("[%H:%M:%S:%i] [%s] [%p] %t");
+		this->formatter = new Poco::PatternFormatter("[%H:%M:%S:%i] [%s] [%p] %t");
 
 		if (fileLogging)
 		{
 			std::string file_path(logFilePath);
 			// Before opening the logfile, ensure that a parent directory exists
 			std::string logDirectory = FileUtils::Dirname(file_path);
-			File logDirectoryFile = File(logDirectory);
-			logDirectoryFile.createDirectories();
+			FileUtils::CreateDirectory(logDirectory);
 			{
 				// appending timestamp for creating a new log file each time we run our application.
 				file_path += ".";
@@ -393,7 +383,7 @@ namespace kroll
 
 	void RootLogger::LogImpl(Poco::Message& m)
 	{
-		Poco::Mutex::ScopedLock lock(mutex);
+		boost::mutex::scoped_lock lock(mutex);
 		Level level = (Level) m.getPriority();
 		std::string line;
 		this->formatter->format(m, line);
@@ -421,7 +411,7 @@ namespace kroll
 
 	void RootLogger::AddLoggerCallback(LoggerCallback callback)
 	{
-		Poco::Mutex::ScopedLock lock(mutex);
+		boost::mutex::scoped_lock lock(mutex);
 		callbacks.push_back(callback);
 	}
 }
