@@ -220,28 +220,14 @@ namespace URLUtils
 		}
 	}
 
-	std::string& BlankPageURL()
+	std::string BlankPageURL()
 	{
-		static std::string url("app://__blank__.html");
-		return url;
+		return std::string("app://__blank__.html");
 	}
 
-	static std::string& BlankURLToFilePath()
+	static std::string BlankURLToFilePath()
 	{
-		static std::string path;
-		if (path.empty())
-		{
-			Poco::TemporaryFile temp;
-			temp.keepUntilExit();
-			path = temp.path();
-
-			const std::string contents("<html><body></body></html>");
-			std::ofstream stream;
-			stream.open(path.c_str(), std::ios::out);
-			stream.write(contents.c_str(), contents.size());
-			stream.close();
-		}
-		return path;
+		return std::string("about:blank");
 	}
 
 	std::string NormalizeURL(const std::string& url)

@@ -33,8 +33,6 @@ namespace UTILS_NS
 		 */
 		KROLL_API std::string PathToFileURL(std::string path);
 
-// These functions are not available outside a Kroll application
-#if defined(KROLL_API_EXPORT) || defined(_KROLL_H_)
 		/**
 		 * Normalize a URL. If this url is an app:// URL, ensure that it
 		 * has the app id as the hostname
@@ -50,11 +48,10 @@ namespace UTILS_NS
 		/**
 		 * Path portion of URL which is guauranteed to be a local and * blank file.
 		 */
-		KROLL_API std::string& BlankPageURL();
+		KROLL_API std::string BlankPageURL();
 
 		KROLL_API std::string TiURLToPath(const std::string& url);
 		KROLL_API std::string AppURLToPath(const std::string& url);
-#endif
 	};
 }
 #endif
