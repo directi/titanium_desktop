@@ -272,8 +272,9 @@ namespace kroll
 
 	void Host::AddModuleProvider(ModuleProvider *provider)
 	{
-		Poco::Mutex::ScopedLock lock(moduleMutex);
+		boost::mutex::scoped_lock lock(moduleMutex);
 		moduleProviders.push_back(provider);
+		lock.unlock();
 
 		if (autoScan)
 		{
@@ -287,8 +288,7 @@ namespace kroll
 	*/
 	ModuleProvider* Host::FindModuleProvider(std::string& filename)
 	{
-		Poco::Mutex::ScopedLock lock(moduleMutex);
-
+		boost::mutex::scoped_lock lock(moduleMutex);
 		std::vector<ModuleProvider*>::iterator iter;
 		for (iter = moduleProviders.begin(); iter != moduleProviders.end(); iter++)
 		{
@@ -303,8 +303,7 @@ namespace kroll
 
 	void Host::RemoveModuleProvider(ModuleProvider *provider)
 	{
-		Poco::Mutex::ScopedLock lock(moduleMutex);
-
+		boost::mutex::scoped_lock lock(moduleMutex);
 		std::vector<ModuleProvider*>::iterator iter = std::find(
 			moduleProviders.begin(), moduleProviders.end(), provider);
 		if (iter != moduleProviders.end())
@@ -390,8 +389,7 @@ namespace kroll
 
 	void Host::UnloadModules()
 	{
-		Poco::Mutex::ScopedLock lock(moduleMutex);
-
+		boost::mutex::scoped_lock lock(moduleMutex);
 		// Stop all modules before unloading them
 		for (size_t i = 0; i < this->loadedModules.size(); i++)
 		{
@@ -413,8 +411,6 @@ namespace kroll
 	void Host::LoadModules()
 	{
 		LoadBuiltinModules(this);
-
-		Poco::Mutex::ScopedLock lock(moduleMutex);
 
 		/* Scan module paths for modules which can be
 		 * loaded by the basic shared-object provider */
@@ -442,8 +438,6 @@ namespace kroll
 	*/
 	void Host::FindBasicModules(std::string& dir)
 	{
-		Poco::Mutex::ScopedLock lock(moduleMutex);
-
 		std::vector<std::string> files;
 		FileUtils::ListDir(dir, files);
 		for(std::vector<std::string>::const_iterator
@@ -482,8 +476,6 @@ namespace kroll
 	*/
 	void Host::ScanInvalidModuleFiles()
 	{
-		Poco::Mutex::ScopedLock lock(moduleMutex);
-
 		this->autoScan = false; // Do not recursively scan
 		ModuleList modulesLoaded; // Track loaded modules
 
@@ -527,8 +519,7 @@ namespace kroll
 	*/
 	void Host::StartModules(ModuleList to_init)
 	{
-		Poco::Mutex::ScopedLock lock(moduleMutex);
-
+		boost::mutex::scoped_lock lock(moduleMutex);
 		ModuleList::iterator iter = to_init.begin();
 		while (iter != to_init.end())
 		{
@@ -539,7 +530,7 @@ namespace kroll
 
 	SharedPtr<Module> Host::GetModuleByPath(std::string& path)
 	{
-		Poco::Mutex::ScopedLock lock(moduleMutex);
+		boost::mutex::scoped_lock lock(moduleMutex);
 		ModuleList::iterator iter = this->loadedModules.begin();
 		while (iter != this->loadedModules.end())
 		{
@@ -552,7 +543,7 @@ namespace kroll
 
 	SharedPtr<Module> Host::GetModuleByName(std::string& name)
 	{
-		Poco::Mutex::ScopedLock lock(moduleMutex);
+		boost::mutex::scoped_lock lock(moduleMutex);
 		ModuleList::iterator iter = this->loadedModules.begin();
 		while (iter != this->loadedModules.end())
 		{
@@ -565,8 +556,6 @@ namespace kroll
 
 	void Host::UnregisterModule(SharedPtr<Module> module)
 	{
-		Poco::Mutex::ScopedLock lock(moduleMutex);
-
 		logger->Notice("Unregistering: %s", module->GetName().c_str());
 		module->Unload();
 
@@ -593,7 +582,6 @@ namespace kroll
 
 		try
 		{
-			Poco::Mutex::ScopedLock lock(moduleMutex);
 			this->AddModuleProvider(this);
 			this->LoadModules();
 		}
@@ -614,7 +602,7 @@ namespace kroll
 
 		try
 		{
-				while (this->RunLoop()) {}
+			while (this->RunLoop()) {}
 		}
 		catch (kroll::ValueException& e)
 		{
@@ -635,7 +623,6 @@ namespace kroll
 		if (shutdown)
 			return;
 
-		Poco::Mutex::ScopedLock lock(moduleMutex);
 		this->UnloadModuleProviders();
 		this->UnloadModules();
 
@@ -671,7 +658,7 @@ namespace kroll
 		}
 		else
 		{
-			Poco::ScopedLock<Poco::Mutex> s(jobQueueMutex);
+			boost::mutex::scoped_lock lock(jobQueueMutex);
 			this->mainThreadJobs.push_back(job); // Enqueue job
 		}
 
@@ -718,7 +705,7 @@ namespace kroll
 		// job queue -- deadlock-o-rama
 		std::vector<MainThreadJob*> jobs;
 		{
-			Poco::ScopedLock<Poco::Mutex> s(jobQueueMutex);
+			boost::mutex::scoped_lock lock(jobQueueMutex);
 			jobs = this->mainThreadJobs;
 			this->mainThreadJobs.clear();
 		}

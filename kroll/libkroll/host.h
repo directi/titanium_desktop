@@ -11,9 +11,8 @@
 #include "win32/event_window.h"
 #endif
 
-
-#include <Poco/Mutex.h>
 #include <boost/timer.hpp>
+#include <boost/thread/mutex.hpp>
 
 #include "utils/application.h"
 #include "binding/global_object.h"
@@ -144,7 +143,7 @@ namespace kroll
 
 	private:
 		ModuleList loadedModules;
-		Poco::Mutex moduleMutex;
+		boost::mutex moduleMutex;
 		std::vector<ModuleProvider *> moduleProviders;
 		std::vector<std::string> modulePaths;
 		SharedApplication application;
@@ -173,7 +172,7 @@ namespace kroll
 
 		// other
 		boost::timer timeStarted;
-		Poco::Mutex jobQueueMutex;
+		boost::mutex jobQueueMutex;
 		std::vector<MainThreadJob*> mainThreadJobs;
 		std::vector<std::string> invalidModuleFiles;
 
