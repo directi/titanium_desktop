@@ -6,8 +6,16 @@
 #ifndef _HOST_EVENT_WINDOW_H
 #define _HOST_EVENT_WINDOW_H
 
+#include <base.h>
 #include <vector>
-#include <Poco/Mutex.h>
+#include <boost/thread/locks.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/shared_mutex.hpp>
+
+typedef boost::shared_mutex ReadWriteMutex;
+typedef boost::shared_lock<boost::shared_mutex> ReadLock;
+typedef boost::unique_lock<boost::shared_mutex> WriteLock;
+
 
 typedef bool (*MessageHandler)(HWND hwnd, unsigned int message, WPARAM wParam, LPARAM lParam);
 
@@ -29,7 +37,7 @@ namespace kroll
 		HWND handle;
 		Logger* logger;
 		std::vector<MessageHandler> handlers;
-		Poco::Mutex handlersMutex;
+		ReadWriteMutex handlersMutex;
 	};
 }
 

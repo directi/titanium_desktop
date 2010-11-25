@@ -107,7 +107,7 @@ HWND EventWindow::AddMessageHandler(MessageHandler handler)
 {
 	if (this->handle)
 	{
-		Poco::Mutex::ScopedLock lock(handlersMutex);
+		WriteLock lock(handlersMutex);
 		for (int i = 0; i < handlers.size(); i++)
 		{
 			MessageHandler h = handlers[i];
@@ -125,7 +125,7 @@ LRESULT CALLBACK EventWindow::Handler(
 	HWND hwnd, unsigned int message, WPARAM wParam, LPARAM lParam)
 {
 	{
-		Poco::Mutex::ScopedLock lock(handlersMutex);
+		ReadLock lock(handlersMutex);
 		for (int i = 0; i < handlers.size(); i++)
 		{
 			MessageHandler h = handlers[i];
