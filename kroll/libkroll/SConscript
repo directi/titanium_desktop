@@ -72,7 +72,6 @@ if build.is_win32():
 		'winhttp',
 	])
 	libkroll_env.Append(CCFLAGS=['/DUNICODE', '/D_UNICODE'])
-	libkroll_env.Append(LINKFLAGS=['/LTCG', '/INCREMENTAL:NO'])
 
 elif build.is_osx():
 	libkroll_env.Append(LINKFLAGS='-install_name lib' + libkroll_name + '.dylib')

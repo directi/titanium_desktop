@@ -18,7 +18,7 @@ if build.is_linux():
 
 if build.is_win32():
 	build.add_thirdparty(env, 'openssl')
-	env.Append(CCFLAGS=['/MD', '/DUNICODE', '/D_UNICODE'])
+	env.Append(CCFLAGS=['/DUNICODE', '/D_UNICODE'])
 	env.Append(LIBS=['wsock32','ws2_32', 'ole32', 'comsuppw', 'wbemuuid'])
 	env.Append(CPPDEFINES = ('WIN32_LEAN_AND_MEAN',1))
 	sources += Glob("win32/*.cpp")
