@@ -4,7 +4,6 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 #include "NamedMutex.h"
-#include "XMLLoggerFile.h"
 
 #include <Poco/Path.h>
 

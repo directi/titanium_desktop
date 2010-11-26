@@ -7,7 +7,6 @@
 #include <kroll/thread_manager.h>
 #include "filesystem_binding.h"
 #include "file.h"
-#include "Logger.h"
 #include "file_stream.h"
 #include "NamedMutex.h"
 #include "async_copy.h"
@@ -62,16 +61,6 @@ namespace ti
 		 * @tiresult(for=Filesystem.getFileStream,type=Filesystem.Filestream) a Filestream object referencing the file
 		 */
 		this->SetMethod("getFileStream",&FilesystemBinding::GetFileStream);
-		/**
-		 * @tiapi(method=True,name=Filesystem.getLogger) Returns a Logger object
-		 * @tiresult(for=Filesystem.getLogger,type=FileSystem.Logger) a Logger object referencing the logfile
-		 */
-		this->SetMethod("getLogger",&FilesystemBinding::GetLogger);
-		/**
-		 * @tiapi(method=True,name=Filesystem.getXMLLogger) Returns a Logger object
-		 * @tiresult(for=Filesystem.getXMLLogger,type=FileSystem.Logger) a Logger object referencing the logfile
-		 */
-		this->SetMethod("getXMLLogger",&FilesystemBinding::GetXMLLogger);
 		/**
 		 * @tiapi(method=True,name=Filesystem.GetNamedMutex) Returns a NamedMutex object
 		 * @tiresult(for=Filesystem.getNamedMutex,type=FileSystem.NamedMutex) a NamedMutex object
@@ -207,23 +196,6 @@ namespace ti
 	void FilesystemBinding::GetFileStream(const ValueList& args, KValueRef result)
 	{
 		result->SetObject(new ti::FileStream(FilesystemUtils::FilenameFromArguments(args)));
-	}
-	
-	void FilesystemBinding::GetLogger(const ValueList& args, KValueRef result)
-	{
-		std::string filename = args.at(0)->ToString();
-		//this->ResolveFileName(args, filename);
-		ti::Logger* logger = new ti::Logger(filename);
-		result->SetObject(logger);
-	}
-
-	void FilesystemBinding::GetXMLLogger(const ValueList& args, KValueRef result)
-	{
-		std::string filename = args.at(0)->ToString();
-		std::string rootXMLText = args.at(1)->ToString();
-		std::string xsltFile = args.at(2)->ToString();
-		ti::Logger* logger = new ti::Logger(filename, rootXMLText, xsltFile);
-		result->SetObject(logger);
 	}
 
 	void FilesystemBinding::GetNamedMutex(const ValueList& args, KValueRef result)

@@ -10,7 +10,6 @@
 #include <iostream>
 #include <sstream>
 
-#include <Poco/Mutex.h>
 #include <Poco/Stopwatch.h>
 #include <Poco/ScopedLock.h>
 
@@ -23,7 +22,7 @@
 namespace kroll
 {
 	std::ofstream * ProfiledBoundObject::stream = NULL;
-	Poco::Mutex ProfiledBoundObject::logMutex;
+	boost::mutex ProfiledBoundObject::logMutex;
 
 	ProfiledBoundObject::ProfiledBoundObject(KObjectRef delegate, std::string& parentType) :
 		KObject(delegate->GetType()),
@@ -87,7 +86,7 @@ namespace kroll
 		const std::string& name,
 		double elapsedTime)
 	{
-		Poco::ScopedLock<Poco::Mutex> lock(logMutex);
+		boost::mutex::scoped_lock lock(logMutex);
 		if ((*ProfiledBoundObject::stream)) {
 			*ProfiledBoundObject::stream << Host::GetInstance()->GetElapsedTime() << ",";
 			*ProfiledBoundObject::stream << eventType << ",";

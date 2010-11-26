@@ -9,7 +9,6 @@
 
 #include <vector>
 #include <kroll/kroll.h>
-#include <Poco/Mutex.h>
 #include <Poco/Timer.h>
 
 
@@ -31,8 +30,6 @@ namespace ti
 		void CreateTempDirectory(const ValueList& args, KValueRef result);
 		void GetFile(const ValueList& args, KValueRef result);
 		void GetFileStream(const ValueList& args, KValueRef result);
-		void GetLogger(const ValueList& args, KValueRef result);
-		void GetXMLLogger(const ValueList& args, KValueRef result);
 		void GetNamedMutex(const ValueList& args, KValueRef result);
 		void GetApplicationDirectory(const ValueList& args, KValueRef result);
 		void GetApplicationDataDirectory(const ValueList& args, KValueRef result);
