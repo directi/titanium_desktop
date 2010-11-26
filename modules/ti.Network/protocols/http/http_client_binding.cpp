@@ -295,20 +295,20 @@ namespace ti
 		if (eventName == Event::HTTP_STATE_CHANGED)
 		{
 			if (!this->onreadystate.isNull())
-				RunOnMainThread(this->onreadystate, args, true);
+				RunOnMainThread(this->onreadystate, args);
 
 			if (this->Get("readyState")->ToInt() == 4 && !this->onload.isNull())
 			{
-				RunOnMainThread(this->onload, args, true);
+				RunOnMainThread(this->onload, args);
 			}
 		}
 		else if (eventName == Event::HTTP_DATA_SENT && !this->onsendstream.isNull())
 		{
-			RunOnMainThread(this->onsendstream, args, true);
+			RunOnMainThread(this->onsendstream, args);
 		}
 		else if (eventName == Event::HTTP_DATA_RECEIVED && !this->ondatastream.isNull())
 		{
-			RunOnMainThread(this->ondatastream, args, true);
+			RunOnMainThread(this->ondatastream, args);
 		}
 
 		return KEventObject::FireEvent(eventName);

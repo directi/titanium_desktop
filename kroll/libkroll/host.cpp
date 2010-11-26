@@ -649,10 +649,10 @@ namespace kroll
 		this->ExitImpl(exitCode);
 	}
 
-	KValueRef Host::RunOnMainThread(KMethodRef method, const ValueList& args, bool waitForCompletion)
+	KValueRef Host::RunOnMainThread(KMethodRef method, const ValueList& args)
 	{
-		MainThreadJob* job = new MainThreadJob(method, args, waitForCompletion);
-		if (this->IsMainThread() && waitForCompletion)
+		MainThreadJob* job = new MainThreadJob(method, args);
+		if (this->IsMainThread())
 		{
 			job->Execute();
 		}
@@ -662,38 +662,26 @@ namespace kroll
 			this->mainThreadJobs.push_back(job); // Enqueue job
 		}
 
-		this->SignalNewMainThreadJob();
+			this->SignalNewMainThreadJob();
 
-		if (!waitForCompletion)
-		{
-			return Value::Undefined; // Handler will cleanup
-		}
-		else
-		{
 			// If this is the main thread, Wait() will fall
 			// through because we've already called Execute() above.
 			job->Wait();
+		}
 
-			KValueRef result(job->GetResult());
-			ValueException exception(job->GetException());
-			delete job;
+		KValueRef result(job->GetResult());
+		ValueException exception(job->GetException());
+		delete job;
 
-			if (!result.isNull())
-			{
-				if(result->IsObject())
-					Logger::Get("Ti.Host")->Warn("Something on the main thread better have reference to this result or GC may happen in another thread");
-				return result;
-			}
-			else 
-			{
-				if(IsMainThread()) // Don't think this will ever get hit, but see comment above...
-					throw exception;
-				else
-				{
-					Logger::Get("Ti.Host")->Warn("About to fail a Thread assertion, GC for the exception would happen in another thread: %s", exception.DisplayString()->c_str());
-					throw exception;
-				}
-			}
+		// I don't think returning objects to another thread is a very good idea... If reference is not kept in the
+		// main thread some AutoPtr might GC us in another thread...
+		if (!result.isNull())
+		{
+			return result;
+		}
+		else 
+		{
+			throw exception;
 		}
 	}
 
@@ -714,22 +702,13 @@ namespace kroll
 		{
 			MainThreadJob* job = jobs[i];
 
-			// Job might be freed soon after Execute(), so get this value now.
-			bool asynchronous = !job->ShouldWaitForCompletion();
 			job->Execute();
-
-			if (asynchronous)
-			{
-				job->PrintException();
-				delete job;
-			}
 		}
 	}
 
-	KValueRef RunOnMainThread(KMethodRef method, const ValueList& args,
-		bool waitForCompletion)
+	KValueRef RunOnMainThread(KMethodRef method, const ValueList& args)
 	{
-		return Host::GetInstance()->RunOnMainThread(method, args, waitForCompletion);
+		return Host::GetInstance()->RunOnMainThread(method, args);
 	}
 
 	bool IsMainThread()

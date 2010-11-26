@@ -115,7 +115,7 @@ namespace ti
 			if (readComplete && !this->onReadComplete.isNull())
 			{
 				ValueList args;
-				RunOnMainThread(this->onReadComplete, args, false);
+				RunOnMainThread(this->onReadComplete, args);
 			}
 			else if (size > 0 && !this->onRead.isNull())
 			{
@@ -123,7 +123,7 @@ namespace ti
 
 				BytesRef bytes(new Bytes(data, size));
 				ValueList args(Value::NewObject(bytes));
-				RunOnMainThread(this->onRead, args, false);
+				RunOnMainThread(this->onRead, args);
 			}
 		}
 		catch (ValueException& e)
@@ -132,7 +132,7 @@ namespace ti
 			ValueList args(Value::NewString(e.ToString()));
 
 			if (!this->onError.isNull())
-				RunOnMainThread(this->onError, args, false);
+				RunOnMainThread(this->onError, args);
 		}
 		catch (Poco::Exception &e)
 		{
@@ -144,7 +144,7 @@ namespace ti
 				ValueList args(Value::NewString(e.displayText()));
 
 				if (!this->onError.isNull())
-					RunOnMainThread(this->onError, args, false);
+					RunOnMainThread(this->onError, args);
 			}
 		}
 		catch (...)
@@ -153,7 +153,7 @@ namespace ti
 			ValueList args(Value::NewString("Unknown exception during read"));
 
 			if (!this->onError.isNull())
-				RunOnMainThread(this->onError, args, false);
+				RunOnMainThread(this->onError, args);
 		}
 	}
 	void TCPServerConnectionBinding::onShutdown (const Poco::AutoPtr<Poco::Net::ShutdownNotification>& notification)
@@ -193,7 +193,7 @@ namespace ti
 			if (!this->onWrite.isNull())
 			{
 				ValueList args(Value::NewInt(buffer->Length()));
-				RunOnMainThread(this->onWrite, args, false);
+				RunOnMainThread(this->onWrite, args);
 			}
 
 			Poco::Mutex::ScopedLock lock(sendDataMutex);
@@ -216,7 +216,7 @@ namespace ti
 			return;
 		}
 		ValueList args(Value::NewString(notification->name()));
-		RunOnMainThread(this->onError, args, false);
+		RunOnMainThread(this->onError, args);
 	}
 	
 	///////////////////////////////////////////////////////////////////////////////////

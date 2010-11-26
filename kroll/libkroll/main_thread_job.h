@@ -19,7 +19,7 @@ namespace kroll
 	class KROLL_API MainThreadJob
 	{
 	public:
-		MainThreadJob(KMethodRef method, const ValueList& args, bool waitForCompletion);
+		MainThreadJob(KMethodRef method, const ValueList& args);
 		void Lock();
 		void Wait();
 		void Execute();
@@ -31,7 +31,6 @@ namespace kroll
 	private:
 		KMethodRef method;
 		const ValueList args;
-		bool waitForCompletion;
 		KValueRef returnValue;
 		ValueException exception;
 		Poco::Semaphore semaphore;

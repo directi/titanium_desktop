@@ -121,7 +121,7 @@ namespace ti
 
 			try
 			{
-				RunOnMainThread(binding->callback,args,false);
+				RunOnMainThread(binding->callback,args);
 			}
 			catch(std::exception &e)
 			{

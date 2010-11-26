@@ -404,7 +404,7 @@ namespace ti
 		if(!this->onError.isNull()) 
 		{
 			ValueList args (Value::NewString(error_text.c_str()));
-			RunOnMainThread(this->onError, args, true);
+			RunOnMainThread(this->onError, args);
 		}
 	}
 
@@ -414,7 +414,7 @@ namespace ti
 		if(!this->onConnect.isNull()) 
 		{
 			ValueList args;
-			RunOnMainThread(this->onConnect, args, true);
+			RunOnMainThread(this->onConnect, args);
 		}
 	}
 
@@ -425,7 +425,7 @@ namespace ti
 			data[size] = '\0';
 			BytesRef bytes(new Bytes(data, size));
 			ValueList args (Value::NewObject(bytes));
-			RunOnMainThread(this->onRead, args, true);
+			RunOnMainThread(this->onRead, args);
 		}
 	}
 
@@ -435,7 +435,7 @@ namespace ti
 		if(!this->onClose.isNull()) 
 		{
 			ValueList args;
-			RunOnMainThread(this->onClose, args, true);
+			RunOnMainThread(this->onClose, args);
 		}
 	}
 

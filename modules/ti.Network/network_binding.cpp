@@ -359,7 +359,7 @@ namespace ti
 			KMethodRef callback = (*it++).callback;
 			try
 			{
-				RunOnMainThread(callback, args, false);
+				RunOnMainThread(callback, args);
 			}
 			catch(ValueException& e)
 			{

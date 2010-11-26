@@ -513,7 +513,7 @@ namespace kroll
 			for (size_t i = 1; i < args.size(); i++)
 				outArgs.push_back(args.at(i));
 
-			RunOnMainThread(args.GetMethod(0), outArgs, false);
+			RunOnMainThread(args.GetMethod(0), outArgs);
 		}
 	}
 

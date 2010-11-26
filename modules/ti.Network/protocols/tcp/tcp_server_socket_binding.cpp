@@ -35,7 +35,7 @@ namespace ti
 		args.push_back(Value::NewObject(conn));
 		try
 		{
-			RunOnMainThread(callback, args, false);
+			RunOnMainThread(callback, args);
 		}
 		catch(ValueException& e)
 		{
