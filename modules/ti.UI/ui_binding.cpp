@@ -417,7 +417,7 @@ namespace ti
 		if(IsMainThread()) 
 			PrivateLog(args);
 		else
-			RunOnMainThread(new KFunctionPtrMethod(&UIBinding::PrivateLog), args, false);
+			RunOnMainThread(new KFunctionPtrMethod(&UIBinding::PrivateLog), args);
     }
 
     KValueRef UIBinding::PrivateLog(const ValueList& args)

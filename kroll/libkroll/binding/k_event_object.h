@@ -40,8 +40,8 @@ namespace kroll
 		virtual void RemoveAllEventListeners();
 
 		virtual void FireEvent(std::string& event, const ValueList& args);
-		virtual bool FireEvent(std::string& event, bool synchronous=true);
-		virtual bool FireEvent(AutoPtr<Event>, bool synchronous=true);
+		virtual bool FireEvent(std::string& event);
+		virtual bool FireEvent(AutoPtr<Event>);
 
 		void _AddEventListener(const ValueList&, KValueRef result);
 		void _RemoveEventListener(const ValueList&, KValueRef result);
@@ -70,7 +70,7 @@ namespace kroll
 		EventListener(std::string& targetedEvent, KMethodRef callback);
 
 		bool Handles(std::string& event);
-		bool Dispatch(KObjectRef thisObject, const ValueList& args, bool synchronous);
+		bool Dispatch(KObjectRef thisObject, const ValueList& args);
 		KMethodRef Callback();
 
 	private:

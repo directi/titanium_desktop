@@ -95,7 +95,7 @@ namespace kroll
 			{
 				try
 				{
-					if (!listener->Dispatch(thisObject, args, true))
+					if (!listener->Dispatch(thisObject, args))
 					{
 						// Stop event dispatch if callback tells us
 						break;
@@ -110,13 +110,13 @@ namespace kroll
 		}	
 	}
 
-	bool KEventObject::FireEvent(std::string& eventName, bool synchronous)
+	bool KEventObject::FireEvent(std::string& eventName)
 	{
 		AutoPtr<Event> event(this->CreateEvent(eventName));
 		return this->FireEvent(event);
 	}
 
-	bool KEventObject::FireEvent(AutoPtr<Event> event, bool synchronous)
+	bool KEventObject::FireEvent(AutoPtr<Event> event)
 	{
 		// Make a copy of the listeners map here, because firing the event might
 		// take a while and we don't want to block other threads that just need
@@ -137,22 +137,22 @@ namespace kroll
 
 				try
 				{
-					result = listener->Dispatch(thisObject, args, synchronous);
+					result = listener->Dispatch(thisObject, args);
 				}
 				catch (ValueException& e)
 				{
 					this->ReportDispatchError(e.ToString());
 				}
 
-				if (synchronous && (event->stopped || !result))
+				if (event->stopped || !result)
 					return !event->preventedDefault;
 			}
 		}
 
 		if (this != GlobalObject::GetInstance().get())
-			GlobalObject::GetInstance()->FireEvent(event, synchronous);
+			GlobalObject::GetInstance()->FireEvent(event);
 
-		return !synchronous || !event->preventedDefault;
+		return !event->preventedDefault;
 	}
 
 	void KEventObject::_AddEventListener(const ValueList& args, KValueRef result)
@@ -272,9 +272,9 @@ namespace kroll
 		return this->callback;
 	}
 
-	bool EventListener::Dispatch(KObjectRef thisObject, const ValueList& args, bool synchronous)
+	bool EventListener::Dispatch(KObjectRef thisObject, const ValueList& args)
 	{
-		KValueRef result = RunOnMainThread(this->callback, args, synchronous);
+		KValueRef result = RunOnMainThread(this->callback, args);
 		if (result->IsBool())
 			return result->ToBool();
 		return true;

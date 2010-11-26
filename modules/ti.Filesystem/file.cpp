@@ -859,7 +859,7 @@ namespace ti
 		{
 			cb_args.push_back(Value::NewString(err));
 		}
-		RunOnMainThread(onCompleteCallback, cb_args, false);
+		RunOnMainThread(onCompleteCallback, cb_args);
 	}
 
 
@@ -926,6 +926,6 @@ namespace ti
 		{
 			cb_args.push_back(Value::NewString(err));
 		}
-		RunOnMainThread(onCompleteCallback, cb_args, false);
+		RunOnMainThread(onCompleteCallback, cb_args);
 	}
 }

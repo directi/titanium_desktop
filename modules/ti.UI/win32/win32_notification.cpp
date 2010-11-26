@@ -37,7 +37,7 @@ static bool MessageHandler(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam
 	{
 		if (wParam == Snarl::SNARL_NOTIFICATION_CLICKED)
 		{
-			RunOnMainThread(i->second, ValueList(), false);
+			RunOnMainThread(i->second, ValueList());
 		}
 		else if (wParam == Snarl::SNARL_NOTIFICATION_TIMED_OUT)
 		{

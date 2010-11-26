@@ -806,7 +806,7 @@ namespace KJSUtil
 	static void GarbageCollect() 
 	{
 		ValueList args;
-		RunOnMainThread(new KFunctionPtrMethod(&JavaScriptModuleInstance::GarbageCollect), args, false);
+		RunOnMainThread(new KFunctionPtrMethod(&JavaScriptModuleInstance::GarbageCollect), args);
 	}
 
 	void ProtectContext(JSContextRef globalContext)

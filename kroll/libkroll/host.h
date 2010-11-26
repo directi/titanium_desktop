@@ -79,8 +79,7 @@ namespace kroll
 		 * @param waitForCompletion block until method is finished (default: true)
 		 * @return the method's return value§
 		 */
-		KValueRef RunOnMainThread(KMethodRef method, const ValueList& args,
-			bool waitForCompletion);
+		KValueRef RunOnMainThread(KMethodRef method, const ValueList& args);
 
 		/**
 		 * Add a module provider to the host
@@ -204,8 +203,7 @@ namespace kroll
 		void ExitImpl(int exitcode);
 	};
 
-	KROLL_API KValueRef RunOnMainThread(KMethodRef method, const ValueList& args,
-		bool waitForCompletion=true);
+	KROLL_API KValueRef RunOnMainThread(KMethodRef method, const ValueList& args);
 }
 
 extern "C" KROLL_API int Execute(int argc, const char **argv);

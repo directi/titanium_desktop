@@ -15,10 +15,9 @@
 namespace kroll
 {
 
-	MainThreadJob::MainThreadJob(KMethodRef method, const ValueList& args, bool waitForCompletion) :
+	MainThreadJob::MainThreadJob(KMethodRef method, const ValueList& args) :
 		method(method),
 		args(args),
-		waitForCompletion(waitForCompletion),
 		returnValue(NULL),
 		exception(ValueException(NULL)),
 		semaphore(0, 1)
@@ -31,8 +30,7 @@ namespace kroll
 
 	void MainThreadJob::Wait()
 	{
-		if (this->waitForCompletion)
-			this->semaphore.wait();
+		this->semaphore.wait();
 	}
 
 	void MainThreadJob::Execute()
@@ -58,8 +56,7 @@ namespace kroll
 			this->exception = ValueException::FromString("Unknown Exception from job queue");
 		}
 
-		if (this->waitForCompletion)
-			this->semaphore.set();
+		this->semaphore.set();
 	}
 
 	KValueRef MainThreadJob::GetResult()
@@ -70,11 +67,6 @@ namespace kroll
 	ValueException MainThreadJob::GetException()
 	{
 		return this->exception;
-	}
-
-	bool MainThreadJob::ShouldWaitForCompletion()
-	{
-		return this->waitForCompletion;
 	}
 
 	void MainThreadJob::PrintException()

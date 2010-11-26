@@ -214,7 +214,7 @@ namespace ti
 		{
 			// Execute this later on the main thread
 			RunOnMainThread(this->Get("setState")->ToMethod(),
-				ValueList(Value::NewBool(!this->GetState())), false);
+				ValueList(Value::NewBool(!this->GetState())));
 		}
 	}
 

@@ -146,7 +146,7 @@ namespace ti
 				args.push_back(Value::NewInt(c));
 				args.push_back(Value::NewInt(ac->files.size()));
 				args.push_back(Value::NewBool(true));
-				RunOnMainThread(ac->callback, args, false);
+				RunOnMainThread(ac->callback, args);
 
 				logger->Debug("Callback executed");
 			}
@@ -181,7 +181,7 @@ namespace ti
 					args.push_back(Value::NewInt(c));
 					args.push_back(Value::NewInt(ac->files.size()));
 					args.push_back(Value::NewBool(false));
-					RunOnMainThread(ac->callback, args, false);
+					RunOnMainThread(ac->callback, args);
 				}
 			}
 			catch(...)

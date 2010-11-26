@@ -107,7 +107,7 @@ namespace kroll
 	void AsyncJob::DoCallback(KMethodRef method, bool reportErrors)
 	{
 		ValueList args(Value::NewObject(GetAutoPtr()));
-		RunOnMainThread(method, args, false);
+		RunOnMainThread(method, args);
 	}
 
 	void AsyncJob::SetProgress(double progress, bool callbacks)
