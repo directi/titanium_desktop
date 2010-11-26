@@ -30,9 +30,9 @@
 // DEALINGS IN THE SOFTWARE.
 
 
-#include "../platform_utils.h"
-#include "../win32/win32_utils.h"
-#include "../poco/KUnWindows.h"
+#include <kroll/utils/platform_utils.h>
+#include <kroll/utils/win32/win32_utils.h>
+//#include "../poco/KUnWindows.h"
 
 #include <Iphlpapi.h>
 

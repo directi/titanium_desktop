@@ -4,7 +4,6 @@ Import('build env module')
 
 env.Append(CPPDEFINES = ('TITANIUM_API_EXPORT', 1))
 
-build.add_thirdparty(env, 'poco')
 sources = Glob('*.cpp')
 if build.is_osx():
 	env.Append(FRAMEWORKS = ['Cocoa'])
@@ -18,13 +17,7 @@ if build.is_linux():
 elif build.is_win32():
 	build.add_thirdparty(env, 'microsoft')
 	sources.extend(Glob('win32/*.cpp'))
-	libs = [
-		'user32', 'shell32', 'kernel32', 'shlwapi',
-		'strmiids','ole32', 'comdlg32', 'comctl32',
-		'oleaut32', 'comsuppw']
-	env.Append(LIBS = libs)
-	env.Append(CPPDEFINES = ('WIN32_LEAN_AND_MEAN', 1))
-	env.Append(CCFLAGS=['/MD', '/DUNICODE', '/D_UNICODE'])
+	env.Append(LIBS=['user32', 'strmiids', 'ole32', 'oleaut32'])
 
 build.mark_build_target(env.SharedLibrary(
 	path.join(module.dir, 'timediamodule'), sources))

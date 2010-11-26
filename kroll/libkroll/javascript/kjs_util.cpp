@@ -9,7 +9,6 @@
 #include "k_kjs_object.h"
 #include "k_kjs_method.h"
 
-#include <Poco/FileStream.h>
 #include <Poco/Mutex.h>
 #include <kroll/binding/binding_declaration.h>
 #include <kroll/utils/url_utils.h>

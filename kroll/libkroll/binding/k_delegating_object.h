@@ -12,7 +12,7 @@
 
 #include <base.h>
 
-#include <Poco/Mutex.h>
+#include <boost/thread/mutex.hpp>
 
 namespace kroll
 {
@@ -56,7 +56,7 @@ namespace kroll
 		DISALLOW_EVIL_CONSTRUCTORS(KDelegatingObject);
 
 	protected:
-		Poco::Mutex mutex;
+		boost::mutex mutex;
 	};
 }
 

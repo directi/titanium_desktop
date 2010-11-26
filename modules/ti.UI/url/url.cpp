@@ -4,10 +4,7 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 #include "../ui_module.h"
-#include <Poco/Environment.h>
-#include <Poco/URI.h>
-using Poco::URI;
-using std::string;
+
 namespace ti
 {
 	void NormalizeURLCallback(const char* url, char* buffer, int bufferLength)
@@ -34,7 +31,16 @@ namespace ti
 			string newURL = url;
 			string path = URLUtils::URLToPath(newURL);
 			if (path != newURL)
-				newURL = URLUtils::PathToFileURL(path);
+			{
+				if (path == "about:blank")
+				{
+					newURL = path;
+				}
+				else
+				{
+					newURL = URLUtils::PathToFileURL(path);
+				}
+			}
 
 			strncpy(buffer, newURL.c_str(), bufferLength);
 			buffer[bufferLength - 1] = '\0';
@@ -70,8 +76,14 @@ namespace ti
 		string url1(url);
 		string path0 = URLUtils::NormalizeURL(url1);
 		string path1 = URLUtils::URLToPath(path0);
-		string path2 = URLUtils::PathToFileURL(path1);
-		strncpy(buffer, path2.c_str(), bufferLength - 1);
+		if (path0 != path1)
+		{
+			if (path1 != "about:blank")
+			{
+				path1 = URLUtils::PathToFileURL(path1);
+			}
+		}
+		strncpy(buffer, path1.c_str(), bufferLength - 1);
 	}
 
 	int CanPreprocessURLCallback(const char* url)

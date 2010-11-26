@@ -12,7 +12,6 @@
 #include <Poco/Net/HTTPRequest.h>
 #include <Poco/Net/HTTPResponse.h>
 #include <Poco/Path.h>
-#include <Poco/URI.h>
 #include <Poco/Exception.h>
 #include <Poco/Thread.h>
 #include <Poco/FileStream.h>

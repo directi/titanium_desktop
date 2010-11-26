@@ -3,12 +3,15 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2009-2010 Appcelerator, Inc. All Rights Reserved.
  */
+#include <sstream>
+
 
 #include "../../network_module.h"
 #include "http_client_binding.h"
-#include <kroll/thread_manager.h>
 #include "../../common.h"
-#include <sstream>
+#include <kroll/thread_manager.h>
+#include <kroll/utils/url/ParsedURL.h>
+
 
 using Poco::Net::NameValueCollection;
 
@@ -101,7 +104,7 @@ namespace ti
 
 		// TODO(mrobinson): If the scheme is a app:// or ti:// we should just
 		// convert the URL to a file URL here.
-		const std::string scheme = Poco::URI(url).getScheme();
+		const std::string scheme = WTF::ParsedURL(url).scheme();
 		if (scheme != "http" && scheme != "https" && scheme != "file")
 		{
 			throw ValueException::FromFormat("%s scheme is not supported by HTTPClient",

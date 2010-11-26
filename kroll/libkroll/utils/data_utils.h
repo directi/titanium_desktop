@@ -13,11 +13,6 @@ namespace UTILS_NS
 {
 	namespace DataUtils
 	{
-		/*
-		 * @returns the hexidecimal MD5 hash of a string
-		 */
-		KROLL_API std::string HexMD5(std::string);
-
 		/**
 		 * Generate a new UUID
 		 * @returns a new UUID as a string

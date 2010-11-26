@@ -4,10 +4,11 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "file_utils.h"
 #include "data_utils.h"
+#include "md5_utils.h"
 #include "platform_utils.h"
-#include "environment_utils.h"
+#include <kroll/utils/file_utils.h>
+#include <kroll/utils/environment_utils.h>
 
 #include <iostream>
 #include <fstream>
@@ -114,8 +115,8 @@ namespace PlatformUtils
 		}
 
 		// Alternatively hash the MAC address and use that as the old MID
-		std::string MACAddress(PlatformUtils::GetFirstMACAddress());
-		return DataUtils::HexMD5(MACAddress);
+		std::string mac_address(PlatformUtils::GetFirstMACAddress());
+		return MD5Utils::calculate_md5_of(mac_address);
 	}
 
 	static std::string ReadMIDFromFile(std::string& path)

@@ -5,7 +5,7 @@
  */
 
 #include "ui_module.h"
-#include <Poco/URI.h>
+#include <kroll/utils/url/ParsedURL.h>
 
 namespace ti
 {
@@ -64,10 +64,10 @@ namespace ti
 		uiBinding->ClearTray();
 	}
 
-	bool UIModule::IsResourceLocalFile(std::string string)
+	bool UIModule::IsResourceLocalFile(std::string str)
 	{
-		Poco::URI uri(string.c_str());
-		std::string scheme = uri.getScheme();
+		WTF::ParsedURL uri(str);
+		std::string scheme = uri.scheme();
 		return (scheme == "app" || scheme == "ti" || scheme == "file");
 	}
 }

@@ -6,7 +6,6 @@ Import('build')
 
 def get_shared_utils(dir, build_obj):
 	sources_utils = Glob('%s/*.cpp' % dir) + \
-		Glob('%s/poco/*.cpp' % dir) + \
 		Glob('%s/%s/*.cpp' % (dir, build_obj.os))
 	if build_obj.is_osx():
 		sources_utils.extend(Glob('%s/%s/*.mm' % (dir, build_obj.os)))
@@ -21,6 +20,7 @@ def get_libkroll_sources(dir, build_obj):
 		Glob('%s/net/proxy_config.cpp' % dir) + \
 		Glob('%s/javascript/*.cpp' % dir) + \
 		Glob('%s/api/*.cpp' % dir) + \
+		Glob('%s/utils/url/*.cpp' % dir) + \
 		Glob('%s/net/*_%s.cpp' % (dir, build_obj.os))
 	if build_obj.is_linux():
 		sources += Glob('%s/linux/*.cpp' % dir)
@@ -71,17 +71,14 @@ if build.is_win32():
 		'shell32', 'shlwapi', 'user32',
 		'winhttp',
 	])
-	libkroll_env.Append(CCFLAGS=['/DUNICODE', '/D_UNICODE'])
-	libkroll_env.Append(LINKFLAGS=['/LTCG', '/INCREMENTAL:NO'])
 
 elif build.is_osx():
 	libkroll_env.Append(LINKFLAGS='-install_name lib' + libkroll_name + '.dylib')
 	libkroll_env.Append(LIBS=['ssl', 'crypto'])
 	libkroll_env.Append(FRAMEWORKS=['Cocoa', 'SystemConfiguration', 'CoreServices'])
 
-build.add_thirdparty(libkroll_env, 'poco')
 build.add_thirdparty(libkroll_env, 'webkit')
-build.add_thirdparty(libkroll_env, 'asio')
+build.add_thirdparty(libkroll_env, 'openssl')
 
 build.mark_build_target(
 	libkroll_env.SharedLibrary(path.join(build.dir, 'runtime', build.version, libkroll_name),

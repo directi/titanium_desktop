@@ -3,13 +3,22 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
-#include "utils.h"
-#if defined(KROLL_API_EXPORT) || defined(_KROLL_H_)
-#include <Poco/URI.h>
-#include <Poco/TemporaryFile.h>
-#include <Poco/FileStream.h>
-#include "../host.h"
+#include "url_utils.h"
+#include "url/ParsedURL.h"
+
+#include <fstream>
+#include <kroll/host.h>
+#include <kroll/utils/file_utils.h>
+
+#ifdef OS_WIN32
+#include <kroll/utils/win32/win32_utils.h>
+#else
+#include <kroll/utils/posix/posix_utils.h>
 #endif
+
+#include <Poco/TemporaryFile.h>
+
+
 namespace UTILS_NS
 {
 namespace URLUtils
@@ -211,65 +220,47 @@ namespace URLUtils
 		}
 	}
 
-	std::string& BlankPageURL()
+	std::string BlankPageURL()
 	{
-		static std::string url("app://__blank__.html");
-		return url;
+		return std::string("app://__blank__.html");
 	}
 
-	static std::string& BlankURLToFilePath()
+	static std::string BlankURLToFilePath()
 	{
-		static std::string path;
-		if (path.empty())
-		{
-			Poco::TemporaryFile temp;
-			temp.keepUntilExit();
-			path = temp.path();
-
-			std::string contents("<html><body></body></html>");
-			Poco::FileStream stream;
-			stream.open(path, std::ios::out);
-			stream.write(contents.c_str(), contents.size());
-			stream.close();
-		}
-		return path;
+		return std::string("about:blank");
 	}
 
 	std::string NormalizeURL(const std::string& url)
 	{
-		Poco::URI inURI = Poco::URI(url);
-		if (url == BlankPageURL())
+		if (url != BlankPageURL())
 		{
-			return url;
+			WTF::ParsedURL inURI(url);
+			if (inURI.scheme() == "app")
+			{
+				return NormalizeAppURL(url);
+			}
 		}
-		if (inURI.getScheme() != "app")
-		{
-			return url;
-		}
-		else
-		{
-			return NormalizeAppURL(url);
-		}
+		return url;
 	}
 
 	std::string URLToPath(const std::string& url)
 	{
-		Poco::URI inURI = Poco::URI(url);
+		WTF::ParsedURL inURI(url);
 		try
 		{
 			if (url == BlankPageURL())
 			{
 				return BlankURLToFilePath();
 			}
-			if (inURI.getScheme() == "ti")
+			if (inURI.scheme() == "ti")
 			{
 				return TiURLToPath(url);
 			}
-			else if (inURI.getScheme() == "app")
+			else if (inURI.scheme() == "app")
 			{
 				return AppURLToPath(url);
 			}
-			else if (inURI.getScheme().empty())
+			else if (inURI.scheme().empty())
 			{
 				// There is no scheme for this URL, so we have to/ guess at this point if
 				// it's a path or a relative app:// URL. If a file can be found, assume thi
@@ -296,14 +287,13 @@ namespace URLUtils
 	{
 		try
 		{
-			Poco::URI inURI = Poco::URI(tiURL);
-
-			if (inURI.getScheme() != "ti")
+			WTF::ParsedURL inURI(tiURL);
+			if (inURI.scheme() != "ti")
 			{
 				return tiURL;
 			}
 
-			std::string host(inURI.getHost());
+			std::string host(inURI.host());
 			SharedApplication app = Host::GetInstance()->GetApplication();
 			std::string path(app->GetComponentPath(host));
 
@@ -311,15 +301,7 @@ namespace URLUtils
 			{
 				throw ValueException::FromString("Could not find component "+host);
 			}
-
-			std::vector<std::string> segments;
-			inURI.getPathSegments(segments);
-
-			for (size_t i = 0; i < segments.size(); i++)
-			{
-				path = FileUtils::Join(path.c_str(), segments[i].c_str(), NULL);
-			}
-			return path;
+			return FileUtils::Join(path.c_str(), inURI.path().c_str(), NULL);
 		}
 		catch (ValueException& e)
 		{
@@ -339,25 +321,19 @@ namespace URLUtils
 	{
 		try
 		{
-			Poco::URI inURI = Poco::URI(inURL);
-			if (inURI.getScheme() != "app")
+			WTF::ParsedURL inURI(inURL);
+			if (inURI.scheme() != "app")
 			{
 				return inURL;
 			}
 
 			std::string appURL(NormalizeAppURL(inURL));
-			inURI = Poco::URI(appURL);
+			WTF::ParsedURL appURI(appURL);
 
 			SharedApplication app = Host::GetInstance()->GetApplication();
 			std::string path(app->GetResourcesPath());
 
-			std::vector<std::string> segments;
-			inURI.getPathSegments(segments);
-			for (size_t i = 0; i < segments.size(); i++)
-			{
-				path = FileUtils::Join(path.c_str(), segments[i].c_str(), NULL);
-			}
-			return path;
+			return FileUtils::Join(path.c_str(), appURI.path().c_str(), NULL);;
 		}
 		catch (ValueException& e)
 		{

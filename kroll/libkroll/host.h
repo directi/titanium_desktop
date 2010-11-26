@@ -11,13 +11,10 @@
 #include "win32/event_window.h"
 #endif
 
-
-#include <Poco/Mutex.h>
-#include <Poco/Timestamp.h>
-#include <Poco/FileStream.h>
+#include <boost/timer.hpp>
+#include <boost/thread/mutex.hpp>
 
 #include "utils/application.h"
-
 #include "binding/global_object.h"
 
 #include "module.h"
@@ -59,7 +56,7 @@ namespace kroll
 		SharedApplication GetApplication();
 		bool DebugModeEnabled() const { return this->debug; }
 		bool ProfilingEnabled() const { return this->profile; }
-		Poco::Timestamp::TimeDiff GetElapsedTime() const { return timeStarted.elapsed(); }
+		double GetElapsedTime() const { return timeStarted.elapsed(); }
 		KObjectRef GetGlobalObject() { return GlobalObject::GetInstance(); }
 
 		/**
@@ -146,7 +143,7 @@ namespace kroll
 
 	private:
 		ModuleList loadedModules;
-		Poco::Mutex moduleMutex;
+		boost::mutex moduleMutex;
 		std::vector<ModuleProvider *> moduleProviders;
 		std::vector<std::string> modulePaths;
 		SharedApplication application;
@@ -159,7 +156,7 @@ namespace kroll
 		// Profiling Related variables & methods
 		bool profile;
 		std::string profilePath;
-		Poco::FileOutputStream* profileStream;
+		std::ofstream* profileStream;
 
 		void SetupProfiling();
 		void StopProfiling();
@@ -174,8 +171,8 @@ namespace kroll
 		void SetupLogging();
 
 		// other
-		Poco::Timestamp timeStarted;
-		Poco::Mutex jobQueueMutex;
+		boost::timer timeStarted;
+		boost::mutex jobQueueMutex;
 		std::vector<MainThreadJob*> mainThreadJobs;
 		std::vector<std::string> invalidModuleFiles;
 

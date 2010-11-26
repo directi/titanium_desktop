@@ -37,7 +37,7 @@ namespace kroll
 
 	void KEventObject::AddEventListener(std::string& event, KMethodRef callback)
 	{
-		Poco::Mutex::ScopedLock lock(this->listenersMutex);
+		boost::mutex::scoped_lock lock(this->listenersMutex);
 		listeners.push_back(new EventListener(event, callback));
 		KKJSMethod* c2 = dynamic_cast<KKJSMethod*>(callback.get());
 		if(c2)
@@ -46,7 +46,7 @@ namespace kroll
 
 	void KEventObject::RemoveEventListener(std::string& event, KMethodRef callback)
 	{
-		Poco::Mutex::ScopedLock lock(this->listenersMutex);
+		boost::mutex::scoped_lock lock(this->listenersMutex);
 
 		EventListenerList::iterator i = this->listeners.begin();
 		while (i != this->listeners.end())
@@ -67,7 +67,7 @@ namespace kroll
 
 	void KEventObject::RemoveAllEventListeners()
 	{
-		Poco::Mutex::ScopedLock lock(this->listenersMutex);
+		boost::mutex::scoped_lock lock(this->listenersMutex);
 
 		EventListenerList::iterator i = this->listeners.begin();
 		while (i != this->listeners.end())
@@ -85,7 +85,7 @@ namespace kroll
 		// too add event listeners.
 		EventListenerList listenersCopy;
 		{
-			Poco::Mutex::ScopedLock lock(this->listenersMutex);
+			boost::mutex::scoped_lock lock(this->listenersMutex);
 			listenersCopy = listeners;
 		}
 
@@ -126,7 +126,7 @@ namespace kroll
 		// too add event listeners.
 		EventListenerList listenersCopy;
 		{
-			Poco::Mutex::ScopedLock lock(listenersMutex);
+			boost::mutex::scoped_lock lock(listenersMutex);
 			listenersCopy = listeners;
 		}
 
@@ -198,12 +198,12 @@ namespace kroll
 			this->GetType().c_str(), reason.c_str());
 	}
 
-	Poco::Mutex KEventObject::mapMutex;
+	boost::mutex KEventObject::mapMutex;
 	ContextMap KEventObject::contextMap;
 
 	void KEventObject::AddRef(JSContextRef context, KEventObject* object)
 	{
-		Poco::Mutex::ScopedLock lock(mapMutex);
+		boost::mutex::scoped_lock lock(mapMutex);
 		ContextMap::iterator i = contextMap.find(context);
 		if(i == contextMap.end()) {
 			contextMap[context] = new EventObjectList();
@@ -222,7 +222,7 @@ namespace kroll
 
 	void KEventObject::DelRef(JSContextRef context, KEventObject* object)
 	{
-		Poco::Mutex::ScopedLock lock(mapMutex);
+		boost::mutex::scoped_lock lock(mapMutex);
 		ContextMap::iterator i = contextMap.find(context);
 		if(i != contextMap.end()) {
 			EventObjectList::iterator el = i->second->begin();
@@ -239,12 +239,12 @@ namespace kroll
 
 	void KEventObject::CleanupListenersFromContext(JSContextRef context)
 	{
-		Poco::Mutex::ScopedLock lock(mapMutex);
+		boost::mutex::scoped_lock lock(mapMutex);
 		ContextMap::iterator i = contextMap.find(context);
 		if(i == contextMap.end()) return;
 		for(EventObjectList::iterator l = i->second->begin(); l != i->second->end(); ++l)
 		{
-			Poco::Mutex::ScopedLock lock((*l)->listenersMutex);				
+			boost::mutex::scoped_lock lock((*l)->listenersMutex);				
 			EventListenerList::iterator el = (*l)->listeners.begin();
 			while(el != (*l)->listeners.end())
 			{

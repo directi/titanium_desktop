@@ -67,7 +67,7 @@ namespace FileUtils
 		std::string parent(Dirname(dir));
 		if (recursive && parent.size() > 0 && !IsDirectory(parent))
 		{
-			if (!CreateDirectory(parent, true))
+			if (!CreateDirectory(parent, recursive))
 				return false;
 		}
 

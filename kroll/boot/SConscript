@@ -5,7 +5,6 @@ Import('build')
 
 def get_utils(dir):
 	sources_utils = Glob('%s/*.cpp' % dir) + \
-		Glob('%s/poco/*.cpp' % dir) + \
 		Glob('%s/%s/*.cpp' % (dir, build.os))
 	if build.is_osx():
 		sources_utils.extend(Glob('%s/%s/*.mm' % (dir, build.os)))
@@ -13,18 +12,7 @@ def get_utils(dir):
 		sources_utils.extend(Glob('%s/posix/*.cpp' % dir))
 	return sources_utils
 
-def get_kboot_sources(boot_dir, utils_dir, build_obj, env):
-	sources = ['%s/boot.cpp' % boot_dir]
-	if build.is_osx():
-		sources += Glob('%s/*_osx.mm' % boot_dir)
-	if build.is_linux():
-		sources += Glob('%s/*_linux.cpp' % boot_dir)
-	if build.is_win32():
-		sources += Glob('%s/*_win32.cpp' % boot_dir)
-		sources += [env.RES('support/winboot.rc')]
-	return sources
-
-def get_kboot_sources1(utils_dir, build_obj, env):
+def get_kboot_sources(utils_dir, build_obj, env):
 	sources = ['boot.cpp']
 	if build.is_osx():
 		sources += Glob('*_osx.mm')
@@ -51,8 +39,7 @@ effess.copy(path.join(utils_dir, 'base.h'), path.join(build.kroll_include_dir, '
 kboot_env = build.env.Clone()
 
 kboot_dir=path.abspath('.')
-#kboot_sources = get_kboot_sources(kboot_dir, boot_utils_dir, build, kboot_env)
-kboot_sources = get_kboot_sources1(boot_utils_dir, build, kboot_env)
+kboot_sources = get_kboot_sources(boot_utils_dir, build, kboot_env)
 kboot_sources.extend(get_utils(boot_utils_dir))
 
 kboot_env.Append(CPPPATH=[boot_utils_dir])
@@ -67,27 +54,21 @@ if build.is_linux():
 	kboot_env.ParseConfig('pkg-config --cflags --libs gtk+-2.0 gdk-2.0')
 
 if build.is_win32():
-	kboot_env.Append(LIBS=['kernel32','shell32','user32','advapi32','iphlpapi','gdi32'])
-	kboot_env.Append(LINKFLAGS=['/NODEFAULTLIB:MSJAVA.lib'])
-	ccf = kboot_env['CCFLAGS']
-	if '/Z7' in ccf: ccf.remove('/Z7')
-	ccf += ['/O2','/GL','/FD','/EHsc','/W3','/Wp64','/Zi','/TP','/DUNICODE']
-	kboot_env['CCFLAGS'] = ccf
+	kboot_env.Append(LIBS=['shell32','user32', 'gdi32'])
+	kboot_env.Append(CCFLAGS=['/W3','/Wp64','/TP'])
 
 	# Generate a manifest which will later be merged with the common controls manifest
 	intermediate_manifest = path.join(build.dir, 'boot.exe.intermediate.manifest')
 	linkflags = ['/MANIFEST', '/MANIFESTFILE:%s' % intermediate_manifest]
-
-	linkflags += ['/OPT:REF','/OPT:ICF','/LTCG','/MACHINE:X86']
 	if ARGUMENTS.get('debug', 0) or ARGUMENTS.get('console',0):
 		linkflags.append('/SUBSYSTEM:CONSOLE'),
-		kboot_env.Append(CPPDEFINES=['WIN32_CONSOLE=1', 'UNICODE=1'])
+		kboot_env.Append(CPPDEFINES=['WIN32_CONSOLE=1'])
 	kboot_env.Append(LINKFLAGS=linkflags)
 
 def add_console_flags(env):
 	if build.is_win32():
 		linkflags.append('/SUBSYSTEM:CONSOLE'),
-		env.Append(CPPDEFINES=['WIN32_CONSOLE=1', 'UNICODE=1'])
+		env.Append(CPPDEFINES=['WIN32_CONSOLE=1'])
 		env.Append(LINKFLAGS=linkflags)
 	env['OBJSUFFIX'] = env['OBJSUFFIX'] + '-dev'
 	env.Append(CPPDEFINES=['DEV=1'])

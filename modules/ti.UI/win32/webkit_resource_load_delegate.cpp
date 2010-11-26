@@ -76,8 +76,8 @@ HRESULT STDMETHODCALLTYPE Win32WebKitResourceLoadDelegate::willSendRequest(
 	} else {
 		*newRequest = request;	
 		request->AddRef();
-	}
-	SysFreeString(u);*/
+	}*/
+	SysFreeString(u);
 	return E_NOTIMPL;
 }
 

@@ -7,14 +7,17 @@
 #ifndef _LOGGER_H_
 #define _LOGGER_H_
 
+#include <base.h>
+
+#include <boost/thread/mutex.hpp>
+
 #include <Poco/Message.h>
-#include <Poco/Mutex.h>
 #include <Poco/PatternFormatter.h>
 #include <cstdarg>
 #include <iostream>
 #include <fstream>
 
-#include "base.h"
+#define LOGGER_MAX_ENTRY_SIZE 2048
 
 namespace kroll
 {
@@ -43,7 +46,7 @@ namespace kroll
 
 		std::string name;
 		Level level;
-		static Poco::Mutex mutex;
+		static boost::mutex mutex;
 		static char buffer[];
 
 		static Logger* GetImpl(const std::string &name);
@@ -119,7 +122,7 @@ namespace kroll
 		const bool fileLogging;
 
 		Poco::PatternFormatter* formatter;
-		Poco::Mutex mutex;
+		boost::mutex mutex;
 		std::vector<LoggerCallback> callbacks;
 		std::ofstream stream;
 	};
