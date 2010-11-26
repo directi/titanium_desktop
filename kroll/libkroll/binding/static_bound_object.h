@@ -12,7 +12,6 @@
 #include <vector>
 #include <string>
 #include <base.h>
-#include <boost/thread/mutex.hpp>
 
 #include "value.h"
 #include "kobject.h"
@@ -75,7 +74,6 @@ namespace kroll
 
 	protected:
 		std::map<std::string, KValueRef> properties;
-		boost::mutex mutex;
 
 	private:
 		DISALLOW_EVIL_CONSTRUCTORS(StaticBoundObject);

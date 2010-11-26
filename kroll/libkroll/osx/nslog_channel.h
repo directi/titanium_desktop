@@ -9,7 +9,6 @@
 
 #include <Poco/Channel.h>
 #include <Poco/PatternFormatter.h>
-#include "Poco/Mutex.h"
 
 namespace kroll
 {

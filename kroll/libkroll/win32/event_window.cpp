@@ -7,6 +7,7 @@
 #include "event_window.h"
 
 #include <kroll/logger.h>
+#include <kroll/MainThreadUtils.h>
 #include <kroll/utils/win32/win32_utils.h>
 
 namespace kroll
@@ -105,9 +106,9 @@ void EventWindow::DestroyWindow()
 
 HWND EventWindow::AddMessageHandler(MessageHandler handler)
 {
+	ASSERT_MAIN_THREAD
 	if (this->handle)
 	{
-		WriteLock lock(handlersMutex);
 		for (int i = 0; i < handlers.size(); i++)
 		{
 			MessageHandler h = handlers[i];
@@ -124,14 +125,12 @@ HWND EventWindow::AddMessageHandler(MessageHandler handler)
 LRESULT CALLBACK EventWindow::Handler(
 	HWND hwnd, unsigned int message, WPARAM wParam, LPARAM lParam)
 {
+	ASSERT_MAIN_THREAD
+	for (int i = 0; i < handlers.size(); i++)
 	{
-		ReadLock lock(handlersMutex);
-		for (int i = 0; i < handlers.size(); i++)
-		{
-			MessageHandler h = handlers[i];
-			if (h(hwnd, message, wParam, lParam))
-				return 0;
-		}
+		MessageHandler h = handlers[i];
+		if (h(hwnd, message, wParam, lParam))
+			return 0;
 	}
 
 	return DefWindowProc(hwnd, message, wParam, lParam);
