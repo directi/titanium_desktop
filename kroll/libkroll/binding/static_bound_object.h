@@ -7,13 +7,12 @@
 #ifndef _KR_STATIC_BOUND_OBJECT_H_
 #define _KR_STATIC_BOUND_OBJECT_H_
 
+
+#include <map>
 #include <vector>
 #include <string>
-#include <map>
-
-#include <Poco/Mutex.h>
-
 #include <base.h>
+#include <boost/thread/mutex.hpp>
 
 #include "value.h"
 #include "kobject.h"
@@ -76,7 +75,7 @@ namespace kroll
 
 	protected:
 		std::map<std::string, KValueRef> properties;
-		Poco::Mutex mutex;
+		boost::mutex mutex;
 
 	private:
 		DISALLOW_EVIL_CONSTRUCTORS(StaticBoundObject);

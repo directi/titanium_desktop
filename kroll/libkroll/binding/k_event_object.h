@@ -7,10 +7,8 @@
 #ifndef _KR_EVENT_OBJECT_H_
 #define _KR_EVENT_OBJECT_H_
 
-#include <base.h>
-
 #include <list>
-
+#include <base.h>
 #include <boost/thread/mutex.hpp>
 
 #include "event.h"
