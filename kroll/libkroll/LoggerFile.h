@@ -25,7 +25,7 @@ namespace kroll
 
 	protected:
 		std::string filename;
-		Poco::Mutex loggerMutex;
+		boost::mutex loggerMutex;
 		std::list<std::string> writeQueue;
 	private:
 		std::ofstream stream;

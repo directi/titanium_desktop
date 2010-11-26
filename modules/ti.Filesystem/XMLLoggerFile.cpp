@@ -58,7 +58,7 @@ namespace ti
 
 		if(!writeQueue.empty())
 		{
-			Poco::Mutex::ScopedLock lock(loggerMutex);
+			boost::mutex::scoped_lock lock(loggerMutex);
 			tempWriteQueue = new std::list<std::string>(writeQueue.size());
 			std::copy(writeQueue.begin(), writeQueue.end(), tempWriteQueue->begin()); 
 			writeQueue.clear();

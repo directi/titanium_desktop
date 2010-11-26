@@ -20,11 +20,11 @@
 namespace kroll
 {
 	LoggerWriter * LoggerWriter::singleton = NULL;
-	Poco::Mutex LoggerWriter::singletonAccessMutex;
+	boost::mutex LoggerWriter::singletonAccessMutex;
 
 	LoggerWriter* LoggerWriter::getInstance()
 	{
-		Poco::Mutex::ScopedLock lock(singletonAccessMutex);
+		boost::mutex::scoped_lock lock(singletonAccessMutex);
 		if(!singleton)
 		{
 			singleton = new LoggerWriter();
@@ -48,7 +48,7 @@ namespace kroll
 
 	void LoggerWriter::addLoggerFile(LoggerFile * file)
 	{
-		Poco::Mutex::ScopedLock lock(filesMutex);
+		boost::mutex::scoped_lock lock(filesMutex);
 		if (file)
 		{
 			this->files.push_back(file);
@@ -62,7 +62,7 @@ namespace kroll
 
 	void LoggerWriter::removeLoggerFile(LoggerFile * file)
 	{
-		Poco::Mutex::ScopedLock lock(filesMutex);
+		boost::mutex::scoped_lock lock(filesMutex);
 		for(std::vector<LoggerFile *>::iterator
 			oIter = files.begin();
 			oIter != files.end();
@@ -109,7 +109,7 @@ namespace kroll
 		while(bRunning)
 		{
 			{
-				Poco::Mutex::ScopedLock lock(filesMutex);
+				boost::mutex::scoped_lock lock(filesMutex);
 				for(std::vector<LoggerFile *>::iterator	
 					oIter = files.begin();
 					oIter != files.end();

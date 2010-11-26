@@ -8,6 +8,8 @@
 
 #include <Poco/Event.h>
 #include <Poco/Thread.h>
+#include <boost/thread/mutex.hpp>
+
 
 #ifdef OS_OSX
 #import <Foundation/Foundation.h>
@@ -24,13 +26,13 @@ namespace kroll
 	{
 		private:
 			static LoggerWriter * singleton;
-			static Poco::Mutex singletonAccessMutex;
+			static boost::mutex singletonAccessMutex;
 
 		public:
 			static LoggerWriter* getInstance();
 
 		private:
-			Poco::Mutex filesMutex;
+			boost::mutex filesMutex;
 			std::vector<LoggerFile *> files;
 			
 			bool bRunning;
