@@ -2,6 +2,7 @@
 import os, os.path as path
 import effess
 Import('build')
+Import('debug')
 
 def get_utils(dir):
 	sources_utils = Glob('%s/*.cpp' % dir) + \
@@ -60,7 +61,7 @@ if build.is_win32():
 	# Generate a manifest which will later be merged with the common controls manifest
 	intermediate_manifest = path.join(build.dir, 'boot.exe.intermediate.manifest')
 	linkflags = ['/MANIFEST', '/MANIFESTFILE:%s' % intermediate_manifest]
-	if ARGUMENTS.get('debug', 0) or ARGUMENTS.get('console',0):
+	if debug or ARGUMENTS.get('console',0):
 		linkflags.append('/SUBSYSTEM:CONSOLE'),
 		kboot_env.Append(CPPDEFINES=['WIN32_CONSOLE=1'])
 	kboot_env.Append(LINKFLAGS=linkflags)
@@ -76,6 +77,7 @@ def add_console_flags(env):
 # Breakpad integration
 def get_breakpad(build_obj):
 	breakpad = ARGUMENTS.get('breakpad', '1') != '0'
+	if debug: breakpad = False
 	if not(build_obj.is_32()) and build_obj.is_linux():
 		breakpad = False
 	return breakpad
@@ -124,7 +126,7 @@ kboot_out = path.join(build.dir, 'kboot')
 p = kboot_env.Program(kboot_out, kboot_sources)
 build.mark_build_target(p)
 
-if not (ARGUMENTS.get('debug', 0) or ARGUMENTS.get('console',0)):
+if not (debug or ARGUMENTS.get('console',0)):
 	kboot_env_dev = kboot_env.Clone()
 	add_console_flags(kboot_env_dev)
 	kboot_out_dev = path.join(build.dir, 'kboot-dev')
@@ -148,7 +150,7 @@ if build.is_win32():
 	kboot_env.AddPostAction(p, 'mt.exe -nologo -manifest "%s" "%s" -out:"%s"' % (intermediate_manifest, cc_manifest, merged_manifest))
 	kboot_env.AddPostAction(p, ('mt.exe -nologo /outputresource:"%s.exe;#1" /manifest "%s"' % (kboot_out, merged_manifest)))
 
-	if not (ARGUMENTS.get('debug', 0) or ARGUMENTS.get('console',0)):
+	if not (debug or ARGUMENTS.get('console',0)):
 		merged_manifest = path.join(build.dir, 'kboot-dev.merged.manifest')
 		kboot_env_dev.AddPostAction(p1, 'mt.exe -nologo -manifest "%s" "%s" -out:"%s"' % (intermediate_manifest, cc_manifest, merged_manifest))
 		kboot_env_dev.AddPostAction(p1, ('mt.exe -nologo /outputresource:"%s.exe;#1" /manifest "%s"' % (kboot_out_dev, merged_manifest)))

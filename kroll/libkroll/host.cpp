@@ -76,11 +76,12 @@ namespace kroll
 	}
 
 	/*static*/
-	Host* Host::hostInstance;
+	Host* Host::hostInstance = NULL;
 
 	/*static*/
 	void Host::InitializeHost(int argc, const char** argv)
 	{
+		Host::InitializeMainThread();
 		hostInstance = new Host(argc, argv);
 	}
 
@@ -731,10 +732,4 @@ namespace kroll
 	{
 		return Host::GetInstance()->RunOnMainThread(method, args, waitForCompletion);
 	}
-
-	bool IsMainThread()
-	{
-		return Host::GetInstance()->IsMainThread();
-	}
-
 }

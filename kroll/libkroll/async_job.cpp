@@ -5,7 +5,6 @@
  */
 
 #include "thread_manager.h"
-
 #include "async_job.h"
 
 namespace kroll

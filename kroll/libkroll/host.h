@@ -53,6 +53,9 @@ namespace kroll
 		 */
 		static Host* GetInstance();
 
+		// Platform specific method InitializeMainThread
+		static void InitializeMainThread();
+
 		SharedApplication GetApplication();
 		bool DebugModeEnabled() const { return this->debug; }
 		bool ProfilingEnabled() const { return this->profile; }
@@ -203,8 +206,6 @@ namespace kroll
 
 	KROLL_API KValueRef RunOnMainThread(KMethodRef method, const ValueList& args,
 		bool waitForCompletion=true);
-
-	KROLL_API bool IsMainThread();
 }
 
 extern "C" KROLL_API int Execute(int argc, const char **argv);

@@ -39,10 +39,15 @@ namespace kroll
 		return true;
 	}
 
+	/*static */
+	void Host::InitializeMainThread()
+	{
+		mainThreadId = GetCurrentThreadId();
+	}
+
 	void Host::Initialize(int argc, const char** argv)
 	{
 		eventWindow = new EventWindow();
-		mainThreadId = GetCurrentThreadId();
 		OleInitialize(0);
 		this->AddMessageHandler(&MainThreadJobsTickleHandler);
 

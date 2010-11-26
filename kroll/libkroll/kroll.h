@@ -45,5 +45,6 @@ using Poco::AutoPtr;
 #endif
 
 #include "host.h"
+#include "MainThreadUtils.h"
 
 #endif

@@ -30,7 +30,8 @@ namespace kroll
 		return TRUE;
 	}
 
-	void Host::Initialize(int argc, const char *argv[])
+	/*static */
+	void Host::InitializeMainThread()
 	{
 		gtk_init(&argc, (char***) &argv);
 
@@ -38,7 +39,11 @@ namespace kroll
 			g_thread_init(NULL);
 
 		mainThread = pthread_self();
+	}
 
+
+	void Host::Initialize(int argc, const char *argv[])
+	{
 		// Initialize gnutls for multi-threaded usage.
 		gcry_control(GCRYCTL_SET_THREAD_CBS, &gcry_threads_pthread);
 		gnutls_global_init();

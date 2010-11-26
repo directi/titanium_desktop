@@ -52,6 +52,15 @@ namespace kroll
 		return ((unsigned long) pthread_self());
 	}
 
+	/*static */
+	void Host::InitializeMainThread()
+	{
+		if (!mainThreadCaller)
+			mainThreadCaller = [[KrollMainThreadCaller alloc] init];
+		mainThread = [NSThread currentThread];
+	}
+
+
 	void Host::Initialize(int argc, const char **argv)
 	{
 		if (!cryptoMutexes)
@@ -60,11 +69,6 @@ namespace kroll
 			CRYPTO_set_id_callback(CryptoThreadIdCallback);
 			CRYPTO_set_locking_callback(CryptoLockingCallback);
 		}
-
-		if (!mainThreadCaller)
-			mainThreadCaller = [[KrollMainThreadCaller alloc] init];
-
-		mainThread = [NSThread currentThread];
 	}
 
 	Host::~Host()
