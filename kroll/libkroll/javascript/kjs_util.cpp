@@ -66,10 +66,7 @@ namespace KJSUtil
 		{ 
 			--refCount;
 			if(refCount == 0) 
-			{
-				objectValue->SetNull();
 				delete this;
-			}
 		}
 
 		void duplicate() 
@@ -77,8 +74,21 @@ namespace KJSUtil
 			++refCount; 
 		}
 
+		int referenceCount()
+		{
+			return refCount;
+		}
+
 		JSObjectValue(KValueRef value) : objectValue(value), refCount(0) { }
 		KValueRef ToValue() { return objectValue; }
+
+		virtual ~JSObjectValue()
+		{
+			int valref = objectValue->referenceCount();
+			int objref = objectValue->ToObject()->referenceCount();
+			if(valref > 1 & objref == 1)
+				objectValue->SetNull();
+		}
 	};
 
 	typedef UnAutoPtr<JSObjectValue> JSObjectValueRef;
@@ -103,8 +113,8 @@ namespace KJSUtil
 	static inline JSObjectRef makeJSObject(JSContextRef jsContext, JSClassRef objectClass, KValueRef kValue)
 	{
 		JSObjectValueRef or = pointerToJS(kValue);
-		JSObjectRef r = JSObjectMake(jsContext, objectClass, or);
 		or->duplicate();
+		JSObjectRef r = JSObjectMake(jsContext, objectClass, or);
 #if TROUBLE_SHOOT_GC
 		objects[r] = kValue.get();
 #endif
@@ -113,7 +123,7 @@ namespace KJSUtil
 
 	static void FinalizeCallback(JSObjectRef jsObject)
 	{
-		JSObjectValue* a = static_cast<JSObjectValue*>(JSObjectGetPrivate(jsObject));
+		JSObjectValueRef a = static_cast<JSObjectValue*>(JSObjectGetPrivate(jsObject));
 #if TROUBLE_SHOOT_GC
 		//std::map<JSObjectRef, Value*>::iterator i = objects.find(jsObject);
 		//KObjectRef r = a->ToObject();
