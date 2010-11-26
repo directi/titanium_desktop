@@ -66,11 +66,9 @@ if build.is_win32():
 	build.add_thirdparty(libkroll_env, 'libproxy')
 	libkroll_env.Append(LIBS=[
 		'Advapi32', 'comctl32', 'icuuc',
-		'icuin', 'iphlpapi', 'kernel32',
+		'icuin', 'iphlpapi', 'winhttp',
 		'ole32', 'oleaut32', 'pthreadVC2',
-		'shell32', 'shlwapi', 'user32',
-		'winhttp',
-	])
+		'shell32', 'shlwapi', 'user32'])
 
 elif build.is_osx():
 	libkroll_env.Append(LINKFLAGS='-install_name lib' + libkroll_name + '.dylib')
