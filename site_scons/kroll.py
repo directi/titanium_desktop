@@ -176,13 +176,19 @@ class BuildConfig(object):
 		if name is 'libxml':
 			cpppath = [self.tp('libxml', 'include')]
 
+		if name is 'pthread':
+			if self.is_win32():
+				cpppath = [self.tp('pthread', 'include')]
+				libpath = [self.tp('pthread', 'lib')]
+				libs = ['pthreadVC2']
+
 		if name is 'microsoft':
 			cpppath = [self.tp('microsoft', 'include')]
 
 		if name is 'libpng':
 			cpppath = [self.tp('libpng', 'include')]
 			libpath = [self.tp('libpng', 'lib')]
-			libs = ['libpng.lib', 'zlib.lib']
+			libs = ['libpng', 'zlib']
 
 		if name is 'poco':
 			cpppath = [self.tp('poco', 'include')]

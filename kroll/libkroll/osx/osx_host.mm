@@ -5,8 +5,9 @@
  */
 
 #include <base.h>
-#include <kroll/host.h>
+#include <boost/thread/mutex.hpp>
 
+#include <kroll/host.h>
 #include <kroll/utils/file_utils.h>
 #include <kroll/utils/environment_utils.h>
 
@@ -17,7 +18,6 @@
 #import <signal.h>
 #import <Cocoa/Cocoa.h>
 #import <openssl/crypto.h>
-#import <Poco/Mutex.h>
 
 #define MAIN_THREAD_JOB_EVENT_SUBTYPE 6666
 
@@ -36,7 +36,7 @@
 namespace kroll
 {
 	static NSThread* mainThread;
-	static Poco::Mutex* cryptoMutexes = 0;
+	static boost::mutex* cryptoMutexes = 0;
 	static KrollMainThreadCaller* mainThreadCaller = 0;
 
 	static void CryptoLockingCallback(int mode, int n, const char* file, int line)
@@ -56,7 +56,7 @@ namespace kroll
 	{
 		if (!cryptoMutexes)
 		{
-			cryptoMutexes = new Poco::Mutex[CRYPTO_num_locks()];
+			cryptoMutexes = new boost::mutex[CRYPTO_num_locks()];
 			CRYPTO_set_id_callback(CryptoThreadIdCallback);
 			CRYPTO_set_locking_callback(CryptoLockingCallback);
 		}

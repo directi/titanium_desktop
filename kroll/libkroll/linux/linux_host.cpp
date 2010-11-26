@@ -12,9 +12,6 @@
 #include <gtk/gtk.h>
 #include <pthread.h>
 
-#include <Poco/Mutex.h>
-#include <Poco/ScopedLock.h>
-
 #include <kroll/host.h>
 #include <kroll/utils/file_utils.h>
 #include <kroll/utils/environment_utils.h>
@@ -22,8 +19,6 @@
 
 GCRY_THREAD_OPTION_PTHREAD_IMPL;
 
-using Poco::Mutex;
-using Poco::ScopedLock;
 
 namespace kroll
 {
