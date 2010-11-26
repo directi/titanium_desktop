@@ -660,8 +660,7 @@ namespace kroll
 		{
 			boost::mutex::scoped_lock lock(jobQueueMutex);
 			this->mainThreadJobs.push_back(job); // Enqueue job
-		}
-
+			
 			this->SignalNewMainThreadJob();
 
 			// If this is the main thread, Wait() will fall
