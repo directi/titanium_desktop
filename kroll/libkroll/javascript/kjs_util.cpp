@@ -9,7 +9,7 @@
 #include "k_kjs_object.h"
 #include "k_kjs_method.h"
 
-#include <Poco/Mutex.h>
+#include <kroll/MainThreadUtils.h>
 #include <kroll/binding/binding_declaration.h>
 #include <kroll/utils/url_utils.h>
 #include <kroll/utils/file_utils.h>
@@ -732,11 +732,10 @@ namespace KJSUtil
 	}
 
 	static std::map<JSObjectRef, JSContextRef> jsContextMap;
-	static Poco::Mutex jsContextMapMutex;
 
 	void RegisterContext(JSObjectRef globalObject, JSContextRef globalContext)
 	{
-		Poco::Mutex::ScopedLock lock(jsContextMapMutex);
+		ASSERT_MAIN_THREAD
 		std::map<JSObjectRef, JSContextRef>::iterator i = jsContextMap.find(globalObject);
 		if (i == jsContextMap.end())
 		{
@@ -747,7 +746,7 @@ namespace KJSUtil
 
 	void UnregisterContext(JSObjectRef globalObject, JSContextRef globalContext)
 	{
-		Poco::Mutex::ScopedLock lock(jsContextMapMutex);
+		ASSERT_MAIN_THREAD
 		std::map<JSObjectRef, JSContextRef>::iterator i = jsContextMap.find(globalObject);
 		if(i != jsContextMap.end()) 
 		{
@@ -762,7 +761,7 @@ namespace KJSUtil
 	
 	JSContextRef GetGlobalContext(JSObjectRef object, JSContextRef context)
 	{
-		Poco::Mutex::ScopedLock lock(jsContextMapMutex);
+		ASSERT_MAIN_THREAD
 		if (jsContextMap.find(object) == jsContextMap.end())
 		{
 			GetLogger()->Error("Yikes need to return a NULL context!!");
@@ -782,8 +781,6 @@ namespace KJSUtil
 	typedef std::map<KObject*, Value*> SurvivingObjects;
 	static SurvivingObjects survivingObjects;
 #endif
-
-	static Poco::Mutex protectedObjectsMutex;
 
 	static inline void _addContext(JSContextRef globalContext)
 	{
@@ -814,13 +811,13 @@ namespace KJSUtil
 
 	void ProtectContext(JSContextRef globalContext)
 	{
-		Poco::Mutex::ScopedLock lock(protectedObjectsMutex);
+		ASSERT_MAIN_THREAD
 		_addContext(globalContext);
 	}
 
 	void ProtectContextAndValue(JSContextRef globalContext, JSObjectRef value)
 	{
-		Poco::Mutex::ScopedLock lock(protectedObjectsMutex);
+		ASSERT_MAIN_THREAD
 		ProtectContext(globalContext);
 		JSObjectRefCounter::iterator ourCtx = jsObjectRefCounter.find(globalContext);
 		if(ourCtx == jsObjectRefCounter.end())
@@ -842,7 +839,7 @@ namespace KJSUtil
 
 	void UnprotectContextAndValue(JSContextRef globalContext, JSObjectRef value)
 	{
-		Poco::Mutex::ScopedLock a(protectedObjectsMutex);
+		ASSERT_MAIN_THREAD
 		JSObjectRefCounter::iterator ourCtx = jsObjectRefCounter.find(globalContext);
 		if(ourCtx == jsObjectRefCounter.end())
 		{
@@ -871,7 +868,7 @@ namespace KJSUtil
 
 	void UnprotectContext(JSContextRef globalContext, bool force)
 	{
-		Poco::Mutex::ScopedLock a(protectedObjectsMutex);
+		ASSERT_MAIN_THREAD
 		JSObjectRefCounter::iterator ourContext = jsObjectRefCounter.find(globalContext);
 		if(ourContext != jsObjectRefCounter.end()) 
 		{

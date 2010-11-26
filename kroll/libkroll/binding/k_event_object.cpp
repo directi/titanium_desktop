@@ -12,6 +12,7 @@
 #include "k_event_object.h"
 #include "value_exception.h"
 #include "../javascript/k_kjs_method.h"
+#include <kroll/MainThreadUtils.h>
 
 namespace kroll
 {
@@ -37,7 +38,7 @@ namespace kroll
 
 	void KEventObject::AddEventListener(std::string& event, KMethodRef callback)
 	{
-		boost::mutex::scoped_lock lock(this->listenersMutex);
+		ASSERT_MAIN_THREAD
 		listeners.push_back(new EventListener(event, callback));
 		KKJSMethod* c2 = dynamic_cast<KKJSMethod*>(callback.get());
 		if(c2)
@@ -46,8 +47,7 @@ namespace kroll
 
 	void KEventObject::RemoveEventListener(std::string& event, KMethodRef callback)
 	{
-		boost::mutex::scoped_lock lock(this->listenersMutex);
-
+		ASSERT_MAIN_THREAD
 		EventListenerList::iterator i = this->listeners.begin();
 		while (i != this->listeners.end())
 		{
@@ -67,8 +67,7 @@ namespace kroll
 
 	void KEventObject::RemoveAllEventListeners()
 	{
-		boost::mutex::scoped_lock lock(this->listenersMutex);
-
+		ASSERT_MAIN_THREAD
 		EventListenerList::iterator i = this->listeners.begin();
 		while (i != this->listeners.end())
 		{
@@ -83,11 +82,9 @@ namespace kroll
 		// Make a copy of the listeners map here, because firing the event might
 		// take a while and we don't want to block other threads that just need
 		// too add event listeners.
+		ASSERT_MAIN_THREAD
 		EventListenerList listenersCopy;
-		{
-			boost::mutex::scoped_lock lock(this->listenersMutex);
-			listenersCopy = listeners;
-		}
+		listenersCopy = listeners;
 
 		KObjectRef thisObject(this, true);
 		EventListenerList::iterator li = listenersCopy.begin();
@@ -124,11 +121,9 @@ namespace kroll
 		// Make a copy of the listeners map here, because firing the event might
 		// take a while and we don't want to block other threads that just need
 		// too add event listeners.
+		ASSERT_MAIN_THREAD
 		EventListenerList listenersCopy;
-		{
-			boost::mutex::scoped_lock lock(listenersMutex);
-			listenersCopy = listeners;
-		}
+		listenersCopy = listeners;
 
 		KObjectRef thisObject(this, true);
 		EventListenerList::iterator li = listenersCopy.begin();
@@ -198,12 +193,11 @@ namespace kroll
 			this->GetType().c_str(), reason.c_str());
 	}
 
-	boost::mutex KEventObject::mapMutex;
 	ContextMap KEventObject::contextMap;
 
 	void KEventObject::AddRef(JSContextRef context, KEventObject* object)
 	{
-		boost::mutex::scoped_lock lock(mapMutex);
+		ASSERT_MAIN_THREAD
 		ContextMap::iterator i = contextMap.find(context);
 		if(i == contextMap.end()) {
 			contextMap[context] = new EventObjectList();
@@ -222,7 +216,7 @@ namespace kroll
 
 	void KEventObject::DelRef(JSContextRef context, KEventObject* object)
 	{
-		boost::mutex::scoped_lock lock(mapMutex);
+		ASSERT_MAIN_THREAD
 		ContextMap::iterator i = contextMap.find(context);
 		if(i != contextMap.end()) {
 			EventObjectList::iterator el = i->second->begin();
@@ -239,12 +233,11 @@ namespace kroll
 
 	void KEventObject::CleanupListenersFromContext(JSContextRef context)
 	{
-		boost::mutex::scoped_lock lock(mapMutex);
+		ASSERT_MAIN_THREAD
 		ContextMap::iterator i = contextMap.find(context);
 		if(i == contextMap.end()) return;
 		for(EventObjectList::iterator l = i->second->begin(); l != i->second->end(); ++l)
 		{
-			boost::mutex::scoped_lock lock((*l)->listenersMutex);				
 			EventListenerList::iterator el = (*l)->listeners.begin();
 			while(el != (*l)->listeners.end())
 			{

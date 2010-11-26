@@ -9,7 +9,6 @@
 
 #include <base.h>
 #include <fstream>
-#include <boost/thread/mutex.hpp>
 
 #include "kobject.h"
 
@@ -48,7 +47,6 @@ namespace kroll
 		std::string GetSubType(std::string name);
 		void Log(const char* eventType, const std::string& name, double elapsedTime);
 		static std::ofstream *stream;
-		static boost::mutex logMutex;
 	};
 }
 

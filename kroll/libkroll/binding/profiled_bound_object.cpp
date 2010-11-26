@@ -18,11 +18,11 @@
 #include "value.h"
 #include "profiled_bound_list.h"
 #include "profiled_bound_method.h"
+#include <kroll/MainThreadUtils.h>
 
 namespace kroll
 {
 	std::ofstream * ProfiledBoundObject::stream = NULL;
-	boost::mutex ProfiledBoundObject::logMutex;
 
 	ProfiledBoundObject::ProfiledBoundObject(KObjectRef delegate, std::string& parentType) :
 		KObject(delegate->GetType()),
@@ -86,7 +86,7 @@ namespace kroll
 		const std::string& name,
 		double elapsedTime)
 	{
-		boost::mutex::scoped_lock lock(logMutex);
+		ASSERT_MAIN_THREAD
 		if ((*ProfiledBoundObject::stream)) {
 			*ProfiledBoundObject::stream << Host::GetInstance()->GetElapsedTime() << ",";
 			*ProfiledBoundObject::stream << eventType << ",";

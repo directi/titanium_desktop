@@ -10,7 +10,7 @@
 #include "value.h"
 #include "k_delegating_object.h"
 #include "static_bound_object.h"
-
+#include <kroll/MainThreadUtils.h>
 
 namespace kroll
 {
@@ -33,8 +33,7 @@ namespace kroll
 
 	KValueRef KDelegatingObject::Get(const char *name)
 	{
-		boost::mutex::scoped_lock lock(mutex);
-
+		ASSERT_MAIN_THREAD
 		KValueRef val = local->Get(name);
 		if (!val->IsUndefined())
 		{
@@ -55,7 +54,7 @@ namespace kroll
 	{
 		// We want to set the property on both
 		// the local and the global object.
-		boost::mutex::scoped_lock lock(mutex);
+		ASSERT_MAIN_THREAD
 		local->Set(name, value);
 		//global->Set(name, value);
 	}
@@ -67,8 +66,7 @@ namespace kroll
 
 	SharedStringList KDelegatingObject::GetPropertyNames()
 	{
-		boost::mutex::scoped_lock lock(mutex);
-
+		ASSERT_MAIN_THREAD
 		SharedStringList globalList = global->GetPropertyNames();
 		SharedStringList localList = local->GetPropertyNames();
 

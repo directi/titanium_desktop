@@ -16,7 +16,6 @@ namespace kroll
 	StaticBoundObject::StaticBoundObject(const char* type)
 		: KObject(type)
 	{
-		
 	}
 
 	StaticBoundObject::~StaticBoundObject()

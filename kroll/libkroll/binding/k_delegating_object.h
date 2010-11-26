@@ -6,13 +6,7 @@
 #ifndef _KR_K_DELEGATING_OBJECT_H_
 #define _KR_K_DELEGATING_OBJECT_H_
 
-#include <vector>
-#include <string>
-#include <map>
-
 #include <base.h>
-
-#include <boost/thread/mutex.hpp>
 
 namespace kroll
 {
@@ -54,9 +48,6 @@ namespace kroll
 		KObjectRef local;
 
 		DISALLOW_EVIL_CONSTRUCTORS(KDelegatingObject);
-
-	protected:
-		boost::mutex mutex;
 	};
 }
 

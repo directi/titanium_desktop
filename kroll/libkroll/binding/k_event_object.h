@@ -9,7 +9,6 @@
 
 #include <list>
 #include <base.h>
-#include <boost/thread/mutex.hpp>
 
 #include "event.h"
 
@@ -56,10 +55,8 @@ namespace kroll
 		void ReportDispatchError(std::string& reason);
 
 		EventListenerList listeners;
-		boost::mutex listenersMutex;
 
 #ifdef KROLL_API_EXPORT
-		static boost::mutex mapMutex;
 		static ContextMap contextMap;
 
 		static void AddRef(JSContextRef context, KEventObject* obj);
