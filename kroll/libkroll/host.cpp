@@ -658,8 +658,10 @@ namespace kroll
 		}
 		else
 		{
-			boost::mutex::scoped_lock lock(jobQueueMutex);
-			this->mainThreadJobs.push_back(job); // Enqueue job
+			{
+				boost::mutex::scoped_lock lock(jobQueueMutex);
+				this->mainThreadJobs.push_back(job); // Enqueue job
+			}
 			
 			this->SignalNewMainThreadJob();
 

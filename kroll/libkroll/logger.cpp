@@ -383,7 +383,6 @@ namespace kroll
 
 	void RootLogger::LogImpl(Poco::Message& m)
 	{
-		boost::mutex::scoped_lock lock(mutex);
 		Level level = (Level) m.getPriority();
 		std::string line;
 		this->formatter->format(m, line);
