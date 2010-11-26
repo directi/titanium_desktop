@@ -803,10 +803,10 @@ namespace KJSUtil
 		jsObjectRefCounter.erase(globalContext);
 	}
 
-	static void GarbageCollect() 
+	static void GarbageCollect(JSContextRef context) 
 	{
-		ValueList args;
-		RunOnMainThread(new KFunctionPtrMethod(&JavaScriptModuleInstance::GarbageCollect), args);
+		JSGarbageCollect(context);
+		JavaScriptModuleInstance::GarbageCollect(ValueList());
 	}
 
 	void ProtectContext(JSContextRef globalContext)
@@ -892,7 +892,7 @@ namespace KJSUtil
 						i++;
 					}
 					objRefs->clear();
-					GarbageCollect();
+					GarbageCollect(globalContext);
 				}
 			}
 			if(ourContext->second->size() == 0)
