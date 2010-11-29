@@ -1546,24 +1546,31 @@ void UserWindow::RegisterJSContext(JSContextRef context)
 	// We only want to set this UserWindow's DOM window property if the
 	// particular frame that just loaded was the main frame. Each frame
 	// that loads on a page will follow this same code path.
-	if (IsMainFrame(context, globalObject))
+	if (IsMainFrame(context, globalObject)) 
+	{
 		this->domWindow = frameGlobal->GetObject("window", 0);
 
-	// Only certain pages should get the Titanium object. This is to prevent
-	// malicious sites from always getting access to the user's system. This
-	// can be overridden by any other API that calls InsertAPI on this DOM window.
-	hasTitaniumObject = ShouldHaveTitaniumObject(context, globalObject);
-	if (hasTitaniumObject)
-	{
-		this->InsertAPI(frameGlobal);
-		UserWindow::LoadUIJavaScript(context);
-	}
+		// Only certain pages should get the Titanium object. This is to prevent
+		// malicious sites from always getting access to the user's system. This
+		// can be overridden by any other API that calls InsertAPI on this DOM window.
+		hasTitaniumObject = ShouldHaveTitaniumObject(context, globalObject);
+		if (hasTitaniumObject)
+		{
+			this->InsertAPI(frameGlobal);
+			UserWindow::LoadUIJavaScript(context);
+		}
 
-	AutoPtr<Event> event = this->CreateEvent(Event::PAGE_INITIALIZED);
-	event->SetObject("scope", frameGlobal);
-	event->SetString("url", config->GetURL());
-	event->SetBool("hasTitaniumObject", hasTitaniumObject);
-	this->FireEvent(event);
+		AutoPtr<Event> event = this->CreateEvent(Event::PAGE_INITIALIZED);
+		event->SetObject("scope", frameGlobal);
+		event->SetString("url", config->GetURL());
+		event->SetBool("hasTitaniumObject", hasTitaniumObject);
+		this->FireEvent(event);
+	}
+	else
+	{
+		if(ShouldHaveTitaniumObject(context, globalObject))
+			this->InsertAPI(frameGlobal);
+	}
 }
 
 void UserWindow::LoadUIJavaScript(JSContextRef context)
