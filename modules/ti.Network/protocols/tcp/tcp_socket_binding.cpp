@@ -400,12 +400,12 @@ namespace ti
 
 	void TCPSocketBinding::OnError(const std::string& error_text) 
 	{
-		this->CompleteClose();
 		if(!this->onError.isNull()) 
 		{
 			ValueList args (Value::NewString(error_text.c_str()));
 			RunOnMainThread(this->onError, args);
 		}
+		this->CompleteClose();
 	}
 
 	void TCPSocketBinding::OnConnect() 
@@ -429,11 +429,11 @@ namespace ti
 
 	void TCPSocketBinding::OnClose() 
 	{
-		this->CompleteClose();
 		if(!this->onClose.isNull()) 
 		{
 			RunOnMainThread(this->onClose);
 		}
+		this->CompleteClose();
 	}
 
 	void TCPSocketBinding::Write(const ValueList& args, KValueRef result)
