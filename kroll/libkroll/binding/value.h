@@ -7,8 +7,6 @@
 #ifndef _KR_VALUE_H_
 #define _KR_VALUE_H_
 
-#include <Poco/SharedPtr.h>
-
 #include "../reference_counted.h"
 #include "klist.h"
 

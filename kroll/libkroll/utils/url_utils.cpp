@@ -16,9 +16,6 @@
 #include <kroll/utils/posix/posix_utils.h>
 #endif
 
-#include <Poco/TemporaryFile.h>
-
-
 namespace UTILS_NS
 {
 namespace URLUtils

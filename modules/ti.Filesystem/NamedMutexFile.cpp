@@ -7,9 +7,6 @@
 #include <string>
 #include <iostream>
 
-#include <Poco/Path.h>
-#include <Poco/Exception.h>
-
 #include <kroll/kroll.h>
 
 #include "NamedMutexFile.h"

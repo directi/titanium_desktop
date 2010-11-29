@@ -8,10 +8,7 @@
 #define _API_BINDING_H_
 
 #include <map>
-#include <vector>
 #include <string>
-#include <Poco/Thread.h>
-#include <Poco/RunnableAdapter.h>
 
 #include <kroll/binding/value.h>
 #include <kroll/binding/k_accessor_object.h>
