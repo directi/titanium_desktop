@@ -889,8 +889,9 @@ namespace KJSUtil
 #endif
 						i++;
 					}
-					objRefs->clear();
+					_delContext(globalContext);
 					GarbageCollect(globalContext);
+					return;
 				}
 			}
 			if(ourContext->second->size() == 0)
