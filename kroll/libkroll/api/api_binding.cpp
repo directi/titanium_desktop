@@ -66,23 +66,6 @@ namespace kroll
 		this->SetMethod("fireEvent", &APIBinding::_FireEvent);
 
 		/**
-		 * @tiapi(method=True,name=API.runOnMainThread,since=0.5)
-		 * @tiapi Execute the method on the main thread
-		 * @tiarg[Function, method] The method to execute
-		 * @tiarg[any, ...] A variable-length list of arguments to pass to the method
-		 * @tiresult[any] The return value of the method
-		 */
-		this->SetMethod("runOnMainThread", &APIBinding::_RunOnMainThread);
-
-		/**
-		 * @tiapi(method=True,name=API.runOnMainThreadAsync,since=0.5)
-		 * @tiapi Execute the method asynchronously on the main thread
-		 * @tiarg[Function, method] The method to execute
-		 * @tiarg[any, ...] A variable-length list of arguments to pass to the method
-		 */
-		this->SetMethod("runOnMainThreadAsync", &APIBinding::_RunOnMainThreadAsync);
-
-		/**
 		 * @tiapi(method=True,name=API.createKObject,since=0.5) Create a Kroll object.
 		 * @tiarg[Object, toWrap, optional=true] An object to wrap in a new KObject.
 		 * @tiresult[Object] A new KObject.
@@ -478,42 +461,6 @@ namespace kroll
 			AutoPtr<Event> event = args.GetObject(0).cast<Event>();
 			if (!event.isNull())
 				GlobalObject::GetInstance()->FireEvent(event);
-		}
-	}
-
-	void APIBinding::_RunOnMainThread(const ValueList& args, KValueRef result)
-	{
-		if (!args.at(0)->IsMethod())
-		{
-			throw ValueException::FromString(
-				"First argument to runOnMainThread was not a function");
-
-		}
-		else
-		{
-			ValueList outArgs;
-			for (size_t i = 1; i < args.size(); i++)
-				outArgs.push_back(args.at(i));
-
-			result->SetValue(RunOnMainThread(args.GetMethod(0), outArgs));
-		}
-	}
-
-	void APIBinding::_RunOnMainThreadAsync(const ValueList& args, KValueRef result)
-	{
-		if (!args.at(0)->IsMethod())
-		{
-			throw ValueException::FromString(
-				"First argument to runOnMainThread was not a function");
-
-		}
-		else
-		{
-			ValueList outArgs;
-			for (size_t i = 1; i < args.size(); i++)
-				outArgs.push_back(args.at(i));
-
-			RunOnMainThread(args.GetMethod(0), outArgs);
 		}
 	}
 
