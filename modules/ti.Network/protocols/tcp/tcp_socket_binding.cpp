@@ -413,8 +413,7 @@ namespace ti
 		this->sock_state = SOCK_CONNECTED;
 		if(!this->onConnect.isNull()) 
 		{
-			ValueList args;
-			RunOnMainThread(this->onConnect, args);
+			RunOnMainThread(this->onConnect);
 		}
 	}
 
@@ -423,9 +422,8 @@ namespace ti
 		if(!this->onRead.isNull()) 
 		{
 			data[size] = '\0';
-			BytesRef bytes(new Bytes(data, size));
-			ValueList args (Value::NewObject(bytes));
-			RunOnMainThread(this->onRead, args);
+			RunReadJobOnMainThread(this->onRead, data, size);
+
 		}
 	}
 
@@ -434,8 +432,7 @@ namespace ti
 		this->CompleteClose();
 		if(!this->onClose.isNull()) 
 		{
-			ValueList args;
-			RunOnMainThread(this->onClose, args);
+			RunOnMainThread(this->onClose);
 		}
 	}
 

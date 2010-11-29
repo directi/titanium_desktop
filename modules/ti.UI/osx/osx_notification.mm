@@ -82,7 +82,7 @@ static void NotificationClicked(CFNotificationCenterRef center,
 		return;
 
 	KMethodRef method(callbackMap[context]);
-	RunOnMainThread(method, ArgList(), false);
+	RunOnMainThread(method);
 
 	// When a notification gets a click message it does not time out.
 	// So call TimedOut here so that the callback will be removed from

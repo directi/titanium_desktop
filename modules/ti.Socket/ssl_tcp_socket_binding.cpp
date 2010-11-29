@@ -88,8 +88,7 @@ namespace ti
 	{
 		if(!this->onHandshake.isNull())
 		{
-			ValueList args;
-			RunOnMainThread(this->onHandshake, args);
+			RunOnMainThread(this->onHandshake);
 			return;
 		}
 		GetLogger()->Warn("SecureTCPSocket::onHandshakeComplete: callback not registererd.");

@@ -103,8 +103,7 @@ namespace ti
 	{
 		if(!this->onConnect.isNull()) 
 		{
-			ValueList args;
-			RunOnMainThread(this->onConnect, args);
+			RunOnMainThread(this->onConnect);
 		}
 	}
 

@@ -1366,7 +1366,7 @@ namespace ti
 
 		KMethodRef work(new kroll::KFunctionPtrMethod(&FileChooserWork));
 		ValueList args(Value::NewObject(new VoidPtr(job)));
-		RunOnMainThread(work, args, false);
+		RunOnMainThread(work, args);
 	}
 
 	void GtkUserWindow::OpenFolderChooserDialog(KMethodRef callback,
@@ -1389,7 +1389,7 @@ namespace ti
 
 		KMethodRef work(new kroll::KFunctionPtrMethod(&FileChooserWork));
 		ValueList args(Value::NewObject(new VoidPtr(job)));
-		RunOnMainThread(work, args, false);
+		RunOnMainThread(work, args);
 	}
 
 	void GtkUserWindow::OpenSaveAsDialog(KMethodRef callback,
@@ -1409,7 +1409,7 @@ namespace ti
 
 		KMethodRef work(new kroll::KFunctionPtrMethod(&FileChooserWork));
 		ValueList args(Value::NewObject(new VoidPtr(job)));
-		RunOnMainThread(work, args, false);
+		RunOnMainThread(work, args);
 	}
 
 	void GtkUserWindow::ShowInspector(bool console)

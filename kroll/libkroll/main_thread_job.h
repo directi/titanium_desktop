@@ -9,6 +9,7 @@
 #include <Poco/Semaphore.h>
 
 #include "base.h"
+#include "binding/bytes.h"
 #include "binding/arg_list.h"
 #include "binding/value_exception.h"
 #include "binding/binding_declaration.h"
@@ -19,10 +20,13 @@ namespace kroll
 	class KROLL_API MainThreadJob
 	{
 	public:
+		MainThreadJob(KMethodRef method);
 		MainThreadJob(KMethodRef method, const ValueList& args);
+		virtual ~MainThreadJob() {}
+		virtual void Execute();
+
 		void Lock();
 		void Wait();
-		void Execute();
 		KValueRef GetResult();
 		ValueException GetException();
 		bool ShouldWaitForCompletion();
@@ -30,10 +34,24 @@ namespace kroll
 
 	private:
 		KMethodRef method;
-		const ValueList args;
 		KValueRef returnValue;
 		ValueException exception;
 		Poco::Semaphore semaphore;
+
+	protected:
+		ValueList args;
+	};
+
+	class KROLL_API MainThreadReadJob
+		: public MainThreadJob
+	{
+	private:
+		const char * data;
+		size_t size;
+	public:
+		MainThreadReadJob(KMethodRef method, const char * _data, size_t _size);
+		virtual ~MainThreadReadJob() {}
+		virtual void Execute();
 	};
 }
 

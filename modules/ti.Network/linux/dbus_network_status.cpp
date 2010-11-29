@@ -132,6 +132,6 @@ bool NetworkStatus::GetStatus()
 	if (!bus)
 		return true;
 
-	return RunOnMainThread(statusCheckWork, ValueList())->ToBool();
+	return RunOnMainThread(statusCheckWork)->ToBool();
 }
 }

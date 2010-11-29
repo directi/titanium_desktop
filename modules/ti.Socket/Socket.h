@@ -130,12 +130,10 @@ namespace ti
 	{
 		if(!this->onRead.isNull()) 
 		{
-			BytesRef bytes(new Bytes(data, size));
-			ValueList args (Value::NewObject(bytes));
-			RunOnMainThread(this->onRead, args);
+			RunReadJobOnMainThread(this->onRead, data, size);
 			return;
 		}
-		GetLogger()->Warn("Socket::onRead: not read subscriber registered:  " + string(data));
+		GetLogger()->Warn("Socket::onRead: not read subscriber registered:  " + string(data, size));
 	}
 
 	template <class T>
@@ -153,8 +151,7 @@ namespace ti
 	{
 		if(!this->onClose.isNull()) 
 		{
-			ValueList args;
-			RunOnMainThread(this->onClose, args);
+			RunOnMainThread(this->onClose);
 		}
 	}
 

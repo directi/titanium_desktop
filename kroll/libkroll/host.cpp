@@ -653,6 +653,23 @@ namespace kroll
 	KValueRef Host::RunOnMainThread(KMethodRef method, const ValueList& args)
 	{
 		MainThreadJob* job = new MainThreadJob(method, args);
+		return RunOnMainThread(job);
+	}
+
+	KValueRef Host::RunOnMainThread(KMethodRef method)
+	{
+		MainThreadJob* job = new MainThreadJob(method);
+		return RunOnMainThread(job);
+	}
+
+	KValueRef Host::RunReadJobOnMainThread(KMethodRef method, const char * data, size_t size)
+	{
+		MainThreadJob* job = new MainThreadReadJob(method, data, size);
+		return RunOnMainThread(job);
+	}
+
+	KValueRef Host::RunOnMainThread(MainThreadJob * job)
+	{
 		if (this->IsMainThread())
 		{
 			job->Execute();
@@ -703,13 +720,21 @@ namespace kroll
 		for (size_t i = 0; i < jobs.size(); i++)
 		{
 			MainThreadJob* job = jobs[i];
-
 			job->Execute();
 		}
 	}
 
+	KValueRef RunOnMainThread(KMethodRef method)
+	{
+		return Host::GetInstance()->RunOnMainThread(method);
+	}
 	KValueRef RunOnMainThread(KMethodRef method, const ValueList& args)
 	{
 		return Host::GetInstance()->RunOnMainThread(method, args);
+	}
+
+	KValueRef RunReadJobOnMainThread(KMethodRef method, const char * data, size_t size)
+	{
+		return Host::GetInstance()->RunReadJobOnMainThread(method, data, size);
 	}
 }

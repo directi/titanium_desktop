@@ -458,9 +458,8 @@ namespace ti
 	{
 		START_KROLL_THREAD;
 
-		ValueList args = ValueList();
 		KMethodRef m = this->Get("_invoke")->ToMethod();
-		KValueRef result = RunOnMainThread(m, args);
+		KValueRef result = RunOnMainThread(m);
 		if (result->ToBool())
 		{
 			timer.restart(0);

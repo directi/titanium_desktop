@@ -114,16 +114,13 @@ namespace ti
 
 			if (readComplete && !this->onReadComplete.isNull())
 			{
-				ValueList args;
-				RunOnMainThread(this->onReadComplete, args);
+				RunOnMainThread(this->onReadComplete);
 			}
 			else if (size > 0 && !this->onRead.isNull())
 			{
 				data[size] = '\0';
 
-				BytesRef bytes(new Bytes(data, size));
-				ValueList args(Value::NewObject(bytes));
-				RunOnMainThread(this->onRead, args);
+				RunReadJobOnMainThread(this->onRead, data, size);
 			}
 		}
 		catch (ValueException& e)
