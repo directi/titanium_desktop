@@ -686,12 +686,6 @@ void Win32UserWindow::Open()
 
 bool Win32UserWindow::Close()
 {
-	// Hold a reference here so we can still get the value of
-	// this->timer and this->active even after calling ::Closed
-	// which will remove us from the open window list and decrement
-	// the reference count.
-	AutoUserWindow keep(this, true);
-
 	if (!this->active)
 		return false;
 
@@ -702,12 +696,15 @@ bool Win32UserWindow::Close()
 	if (!this->active)
 	{
 		this->RemoveOldMenu();
-		UserWindow::Closed();
 
 		if (this->timer)
 			::KillTimer(this->windowHandle, this->timer);
 
+		UserWindow::Closed();
+		
 		DestroyWindow(windowHandle);
+
+		return false;
 	}
 
 	return  !this->active;
