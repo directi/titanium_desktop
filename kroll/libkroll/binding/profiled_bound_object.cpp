@@ -10,15 +10,13 @@
 #include <iostream>
 #include <sstream>
 
-#include <Poco/Stopwatch.h>
-#include <Poco/ScopedLock.h>
-
-#include "../host.h"
-
 #include "value.h"
 #include "profiled_bound_list.h"
 #include "profiled_bound_method.h"
+
+#include <kroll/host.h>
 #include <kroll/MainThreadUtils.h>
+#include <kroll/utils/time_utils.h>
 
 namespace kroll
 {
@@ -55,8 +53,7 @@ namespace kroll
 		std::string type = this->GetSubType(name);
 		KValueRef result = Value::Wrap(value);
 
-		Poco::Stopwatch sw;
-		sw.start();
+		TimeUtils::StopWatch sw(true);
 		delegate->Set(name, result);
 		sw.stop();
 
@@ -67,8 +64,7 @@ namespace kroll
 	{
 		std::string type = this->GetSubType(name);
 
-		Poco::Stopwatch sw;
-		sw.start();
+		TimeUtils::StopWatch sw(true);
 		KValueRef value = delegate->Get(name);
 		sw.stop();
 

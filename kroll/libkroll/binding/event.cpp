@@ -8,6 +8,8 @@
 #include "value.h"
 #include "k_event_object.h"
 
+#include <kroll/utils/time_utils.h>
+
 namespace kroll
 {
 	std::string Event::ALL = "all";
@@ -49,7 +51,7 @@ namespace kroll
 		KAccessorObject("Event"),
 		target(target),
 		eventName(eventName),
-		timestamp(time(NULL)),
+		timestamp(TimeUtils::getCurrentTimeInMiliSeconds()),
 		stopped(false),
 		preventedDefault(false)
 	{
@@ -73,7 +75,7 @@ namespace kroll
 
 	void Event::_GetTimestamp(const ValueList&, KValueRef result)
 	{
-		result->SetDouble((int) timestamp * 1000);
+		result->SetDouble(timestamp);
 	}
 
 	void Event::_StopPropagation(const ValueList&, KValueRef result)

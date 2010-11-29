@@ -21,7 +21,7 @@ namespace kroll
 	{
 	private:
 		const std::string eventName;
-		const time_t timestamp;
+		const double timestamp;
 		bool stopped;
 		bool preventedDefault;
 

@@ -5,13 +5,6 @@
  */
 
 
-#include <cstdio>
-#include <cstring>
-#include <iostream>
-#include <sstream>
-#include <Poco/Stopwatch.h>
-#include <Poco/ScopedLock.h>
-
 #include "value.h"
 #include "profiled_global_object.h"
 

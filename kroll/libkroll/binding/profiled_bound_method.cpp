@@ -7,10 +7,10 @@
 
 #include <cstdio>
 #include <cstring>
-#include <Poco/Stopwatch.h>
 
 #include "value.h"
 #include "profiled_bound_method.h"
+#include <kroll/utils/time_utils.h>
 
 namespace kroll
 {
@@ -26,14 +26,16 @@ namespace kroll
 
 	KValueRef ProfiledBoundMethod::Call(const ValueList& args)
 	{
-		std::string type = this->GetType();
+		const std::string type = this->GetType();
 
 		KValueRef value;
-		Poco::Stopwatch sw;
-		sw.start();
-		try {
+		TimeUtils::StopWatch sw(true);
+		try
+		{
 			value = method->Call(args);
-		} catch (...) {
+		}
+		catch (...)
+		{
 			sw.stop();
 			this->Log("call", type, sw.elapsed());
 			throw;
@@ -47,7 +49,7 @@ namespace kroll
 	KMethodRef ProfiledBoundMethod::Wrap(KMethodRef value, std::string parentType)
 	{
 		ProfiledBoundMethod* po = dynamic_cast<ProfiledBoundMethod*>(value.get());
-		if(! po)
+		if (!po)
 		{
 			return new ProfiledBoundMethod(value, parentType);
 		}
