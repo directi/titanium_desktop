@@ -43,8 +43,6 @@ namespace kroll
 		Logger::Level ValueToLevel(KValueRef v);
 		void _SetLogLevel(const ValueList& args, KValueRef result);
 		void _GetLogLevel(const ValueList& args, KValueRef result);
-		void _RunOnMainThread(const ValueList& args, KValueRef result);
-		void _RunOnMainThreadAsync(const ValueList& args, KValueRef result);
 
 		void _Print(const ValueList& args, KValueRef result);
 		void _Log(const ValueList& args, KValueRef result);
