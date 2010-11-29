@@ -49,6 +49,7 @@ namespace kroll
 		KAccessorObject("Event"),
 		target(target),
 		eventName(eventName),
+		timestamp(time(NULL)),
 		stopped(false),
 		preventedDefault(false)
 	{
@@ -67,12 +68,12 @@ namespace kroll
 
 	void Event::_GetType(const ValueList&, KValueRef result)
 	{
-		result->SetString(this->eventName);
+		result->SetString(this->eventName.c_str());
 	}
 
 	void Event::_GetTimestamp(const ValueList&, KValueRef result)
 	{
-		result->SetDouble((int) timestamp.epochMicroseconds() / 1000);
+		result->SetDouble((int) timestamp * 1000);
 	}
 
 	void Event::_StopPropagation(const ValueList&, KValueRef result)

@@ -130,7 +130,7 @@ namespace kroll
 		while (li != listenersCopy.end())
 		{
 			EventListener* listener = *li++;
-			if (listener->Handles(event->eventName))
+			if (listener->Handles(event->getEventName()))
 			{
 				ValueList args(Value::NewObject(event));
 				bool result = false;
@@ -144,15 +144,15 @@ namespace kroll
 					this->ReportDispatchError(e.ToString());
 				}
 
-				if (event->stopped || !result)
-					return !event->preventedDefault;
+				if (event->isStopped() || !result)
+					return !event->isPreventedDefault();
 			}
 		}
 
 		if (this != GlobalObject::GetInstance().get())
 			GlobalObject::GetInstance()->FireEvent(event);
 
-		return !event->preventedDefault;
+		return !event->isPreventedDefault();
 	}
 
 	void KEventObject::_AddEventListener(const ValueList& args, KValueRef result)

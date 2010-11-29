@@ -8,6 +8,7 @@
 #define _KR_EVENT_H_
 
 #include <base.h>
+#include <time.h>
 
 #include "k_accessor_object.h"
 
@@ -18,6 +19,12 @@ namespace kroll
 
 	class KROLL_API Event : public KAccessorObject
 	{
+	private:
+		const std::string eventName;
+		const time_t timestamp;
+		bool stopped;
+		bool preventedDefault;
+
 	public:
 		Event(AutoPtr<KEventObject> target, const std::string& eventName);
 		void _GetTarget(const ValueList&, KValueRef result);
@@ -27,11 +34,13 @@ namespace kroll
 		void _PreventDefault(const ValueList&, KValueRef result);
 		static void SetEventConstants(KObject* target);
 
+		// TODO: make this private
 		AutoPtr<KEventObject> target;
-		std::string eventName;
-		Poco::Timestamp timestamp;
-		bool stopped;
-		bool preventedDefault;
+
+		inline std::string getEventName() const { return this->eventName; }
+		inline bool isStopped() const { return this->stopped; }
+		inline bool isPreventedDefault() const { return this->preventedDefault; }
+
 		static std::string ALL;
 		static std::string FOCUSED;
 		static std::string UNFOCUSED;
