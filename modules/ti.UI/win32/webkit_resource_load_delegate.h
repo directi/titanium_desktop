@@ -76,7 +76,6 @@ public:
 private:
 	Win32UserWindow* userWindow;
 	int refCount;
-	IWebURLRequest* CreateRequest(unsigned long identifier, BSTR path); 
 };
 
 }

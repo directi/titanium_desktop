@@ -59,25 +59,6 @@ HRESULT STDMETHODCALLTYPE Win32WebKitResourceLoadDelegate::willSendRequest(
 	/* [in] */ IWebDataSource *dataSource,
 	/* [retval][out] */ IWebURLRequest **newRequest)
 {
-	BSTR u;
-	request->URL(&u);
-	/*std::wstring u2(u);
-	std::string url(::WideToUTF8(u2));
-	if (url.find("app://") == 0 || url.find("ti://") == 0)
-	{
-		string path0 = URLUtils::NormalizeURL(url);
-		string path1 = URLUtils::URLToPath(path0);
-		string path2 = URLUtils::PathToFileURL(path1);
-		_bstr_t path3(path2.c_str());
-		BSTR path = path3.copy();
-
-		*newRequest = CreateRequest(identifier, path);
-		SysFreeString(path);
-	} else {
-		*newRequest = request;	
-		request->AddRef();
-	}*/
-	SysFreeString(u);
 	return E_NOTIMPL;
 }
 
@@ -154,24 +135,5 @@ HRESULT STDMETHODCALLTYPE Win32WebKitResourceLoadDelegate::plugInFailedWithError
 	/* [in] */ IWebDataSource *dataSource)
 {
 	return E_NOTIMPL;
-}
-
-IWebURLRequest* Win32WebKitResourceLoadDelegate::CreateRequest(unsigned long identifier, BSTR path) {
-	IWebURLRequest *newRequest;
-	HRESULT hr = WebKitCreateInstance(CLSID_WebURLRequest,
-							0,
-							IID_IWebURLRequest,
-							(void**) &newRequest);
-	if(hr != S_OK)
-		return 0;
-
-	hr = newRequest->initWithURL(path,
-									 WebURLRequestUseProtocolCachePolicy,
-									 60);
-	if(hr != S_OK) {
-		newRequest->Release();
-		newRequest = 0;
-	}
-	return newRequest;
 }
 }
