@@ -19,7 +19,6 @@
 #include <Poco/Thread.h>
 #include <Poco/Exception.h>
 #include <Poco/Path.h>
-#include <Poco/File.h>
 #include "filesystem_binding.h"
 
 

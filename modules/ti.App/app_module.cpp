@@ -7,7 +7,6 @@
 #include "app_module.h"
 #include "app_config.h"
 #include "app_binding.h"
-#include <Poco/File.h>
 
 namespace ti
 {
@@ -30,10 +29,12 @@ namespace ti
 		host->GetGlobalObject()->SetObject("App", binding);
 
 		// Create the data directory for the app, if it doesn't exist.
-		std::string dataPath(host->GetApplication()->GetDataPath());
-		Poco::File dataPathFile(dataPath);
-		if (!dataPathFile.exists())
-			dataPathFile.createDirectories();
+		std::string datapath(host->GetApplication()->GetDataPath());
+		if (!FileUtils::IsDirectory(datapath))
+		{
+			bool recursive = true;
+			FileUtils::CreateDirectory(datapath, recursive);
+		}
 	}
 
 	void AppModule::Stop()

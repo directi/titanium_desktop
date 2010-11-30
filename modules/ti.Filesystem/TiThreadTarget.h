@@ -2,7 +2,6 @@
 #define _TI_FOUNDATION_THREADTARGET_H_
 
 
-#include <Poco/Foundation.h>
 #include <Poco/Runnable.h>
 
 

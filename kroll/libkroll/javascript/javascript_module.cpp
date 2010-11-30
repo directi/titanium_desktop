@@ -3,8 +3,6 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
-#include <iostream>
-#include <signal.h>
 
 #include <Poco/Path.h>
 
@@ -46,9 +44,9 @@ namespace kroll
 	Module* JavaScriptModule::CreateModule(const std::string& path)
 	{
 		Poco::Path p(path);
-		std::string basename = p.getBaseName();
-		std::string name = basename.substr(0,basename.length()-jsSuffix.length()+3);
-		std::string moduledir = path.substr(0,path.length()-basename.length()-3);
+		const std::string basename = p.getBaseName();
+		const std::string name = basename.substr(0,basename.length()-jsSuffix.length()+3);
+		const std::string moduledir = path.substr(0,path.length()-basename.length()-3);
 
 		Logger *logger = Logger::Get("JavaScript");
 		logger->Info("Loading JS path=%s", path.c_str());

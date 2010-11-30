@@ -5,7 +5,6 @@
  */
 #include "NamedMutex.h"
 
-#include <Poco/Path.h>
 
 #ifndef OS_WIN32
 #include <sys/types.h>

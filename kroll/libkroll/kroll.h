@@ -8,10 +8,6 @@
 #define _KROLL_H_
 
 #include "base.h"
-#include <Poco/AutoPtr.h>
-#include <vector>
-
-using Poco::AutoPtr;
 
 #ifndef OS_WIN32
 	// this is important which essentially marks all of

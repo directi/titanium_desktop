@@ -5,11 +5,6 @@
  */
 #include "filesystem_utils.h"
 
-#include <Poco/File.h>
-#include <Poco/Path.h>
-#include <Poco/FileStream.h>
-#include <Poco/Exception.h>
-
 namespace ti
 {
 

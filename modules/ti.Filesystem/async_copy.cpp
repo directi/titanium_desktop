@@ -8,6 +8,7 @@
 #include <kroll/thread_manager.h>
 #include <iostream>
 #include <sstream>
+#include <Poco/File.h>
 
 #ifndef OS_WIN32
 #include <unistd.h>
