@@ -20,7 +20,7 @@ namespace ti
 	{
 	}
 
-	void Win32MenuItem::SetLabelImpl(std::string newLabel)
+	void Win32MenuItem::SetLabelImpl(const std::string &newLabel)
 	{
 		if (!this->IsSeparator())
 		{
@@ -34,7 +34,7 @@ namespace ti
 		}
 	}
 
-	void Win32MenuItem::SetIconImpl(std::string newIconPath)
+	void Win32MenuItem::SetIconImpl(const std::string &newIconPath)
 	{
 		this->iconPath = newIconPath;
 

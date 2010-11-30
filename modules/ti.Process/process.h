@@ -28,8 +28,8 @@ namespace ti
 		virtual void ExitMonitorAsync();
 		virtual void ExitMonitorSync();
 		std::string ArgumentsToString();
-		void SetOnRead(KMethodRef method);
-		void SetOnExit(KMethodRef onExit);
+		void SetOnRead(KValueRef method);
+		void SetOnExit(KValueRef onExit);
 		void Exited(bool async);
 		void ExitCallback(const ValueList& args, KValueRef result);
 		virtual KValueRef Call(const ValueList& args);
@@ -95,8 +95,8 @@ namespace ti
 		KListRef args;
 		int pid;
 		KValueRef exitCode;
-		KMethodRef onRead;
-		KMethodRef onExit;
+		KValueRef onRead;
+		KValueRef onExit;
 		Poco::RunnableAdapter<Process>* exitMonitorAdapter;
 		Poco::Thread exitMonitorThread;
 		KMethodRef exitCallback;

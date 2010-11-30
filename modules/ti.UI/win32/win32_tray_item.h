@@ -12,7 +12,7 @@ namespace ti
 	class Win32TrayItem: public TrayItem
 	{		
 		public:
-		Win32TrayItem(std::string& iconURL, KMethodRef cbSingleClick);
+		Win32TrayItem(std::string& iconURL, KValueRef cbSingleClick);
 		virtual ~Win32TrayItem();
 		void SetIcon(std::string& iconPath);
 		void SetMenu(AutoMenu menu);

@@ -176,7 +176,7 @@ namespace ti
 		}
 	}
 
-	void Process::SetOnRead(KMethodRef newOnRead)
+	void Process::SetOnRead(KValueRef newOnRead)
 	{
 		if (running)
 		{
@@ -188,7 +188,7 @@ namespace ti
 		this->onRead = newOnRead;
 	}
 
-	void Process::SetOnExit(KMethodRef newOnExit)
+	void Process::SetOnExit(KValueRef newOnExit)
 	{
 		this->AddEventListener(Event::EXIT, newOnExit);
 		if (!this->onExit.isNull())
@@ -420,13 +420,13 @@ namespace ti
 	void Process::_SetOnRead(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("setOnRead", "m");
-		this->SetOnRead(args.GetMethod(0));
+		this->SetOnRead(args.GetValue(0));
 	}
 
 	void Process::_SetOnExit(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("setOnExit", "m");
-		this->SetOnExit(args.GetMethod(0));
+		this->SetOnExit(args.GetValue(0));
 	}
 
 	void Process::_GetStdin(const ValueList& args, KValueRef result)

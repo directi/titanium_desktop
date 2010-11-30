@@ -225,9 +225,10 @@ namespace kroll
 		 || (t == 'l' && arg->IsList())
 		 || (t == 'm' && arg->IsMethod())
 		 || (t == '0' && (arg->IsNull() || arg->IsUndefined())))
+		{
 			return true;
-		else
-			return false;
+		}
+		return false;
 	}
 
 	KValueRef ArgList::GetValue(size_t index, KValueRef defaultValue) const
@@ -236,11 +237,7 @@ namespace kroll
 		{
 			return this->at(index);
 		}
-		else
-		{
-			return defaultValue;
-		}
-
+		return defaultValue;
 	}
 
 	int ArgList::GetInt(size_t index, int defaultValue) const
@@ -249,10 +246,7 @@ namespace kroll
 		{
 			return this->at(index)->ToInt();
 		}
-		else
-		{
-			return defaultValue;
-		}
+		return defaultValue;
 	}
 
 	double ArgList::GetDouble(size_t index, double defaultValue) const
@@ -261,10 +255,7 @@ namespace kroll
 		{
 			return this->at(index)->ToDouble();
 		}
-		else
-		{
-			return defaultValue;
-		}
+		return defaultValue;
 	}
 
 	double ArgList::GetNumber(size_t index, double defaultValue) const
@@ -273,10 +264,7 @@ namespace kroll
 		{
 			return this->at(index)->ToDouble();
 		}
-		else
-		{
-			return defaultValue;
-		}
+		return defaultValue;
 	}
 
 	bool ArgList::GetBool(size_t index, bool defaultValue) const
@@ -285,10 +273,7 @@ namespace kroll
 		{
 			return this->at(index)->ToBool();
 		}
-		else
-		{
-			return defaultValue;
-		}
+		return defaultValue;
 	}
 
 	std::string ArgList::GetString(size_t index, std::string defaultValue) const
@@ -297,10 +282,7 @@ namespace kroll
 		{
 			return this->at(index)->ToString();
 		}
-		else
-		{
-			return defaultValue;
-		}
+		return defaultValue;
 	}
 
 	KObjectRef ArgList::GetObject(size_t index, KObjectRef defaultValue) const
@@ -309,10 +291,7 @@ namespace kroll
 		{
 			return this->at(index)->ToObject();
 		}
-		else
-		{
-			return defaultValue;
-		}
+		return defaultValue;
 	}
 
 	KMethodRef ArgList::GetMethod(size_t index, KMethodRef defaultValue) const
@@ -321,10 +300,7 @@ namespace kroll
 		{
 			return this->at(index)->ToMethod();
 		}
-		else
-		{
-			return defaultValue;
-		}
+		return defaultValue;
 	}
 
 	KListRef ArgList::GetList(size_t index, KListRef defaultValue) const
@@ -333,10 +309,7 @@ namespace kroll
 		{
 			return this->at(index)->ToList();
 		}
-		else
-		{
-			return defaultValue;
-		}
+		return defaultValue;
 	}
 }
 

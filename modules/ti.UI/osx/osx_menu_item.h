@@ -13,12 +13,11 @@ namespace ti
 		OSXMenuItem(MenuItemType type);
 		virtual ~OSXMenuItem();
 
-		void SetLabelImpl(std::string newLabel);
-		void SetIconImpl(std::string newIconPath);
-		void SetStateImpl(bool newState);
-		void SetCallbackImpl(KMethodRef callback);
-		void SetSubmenuImpl(AutoMenu newSubmenu);
-		void SetEnabledImpl(bool enabled);
+		virtual void SetLabelImpl(const std::string &newLabel);
+		virtual void SetIconImpl(const std::string &newIconPath);
+		virtual void SetStateImpl(bool newState);
+		virtual void SetSubmenuImpl(AutoMenu newSubmenu);
+		virtual void SetEnabledImpl(bool enabled);
 
 		NSMenuItem* CreateNative(bool registerNative=true);
 		void DestroyNative(NSMenuItem* realization);

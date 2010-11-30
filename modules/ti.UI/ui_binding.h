@@ -45,7 +45,7 @@ namespace ti
 		void _SetContextMenu(const ValueList& args, KValueRef result);
 		void _GetContextMenu(const ValueList& args, KValueRef result);
 		void _SetIcon(const ValueList& args, KValueRef result);
-		void _SetIcon(std::string iconURL);
+		void _SetIcon(const std::string &iconURL);
 		void _AddTray(const ValueList& args, KValueRef result);
 		void _ClearTray(const ValueList& args, KValueRef result);
 		void _GetIdleTime(const ValueList& args, KValueRef result);
@@ -64,7 +64,7 @@ namespace ti
 		virtual void SetMenu(AutoMenu) = 0;
 		virtual void SetContextMenu(AutoMenu) = 0;
 		virtual void SetIcon(std::string& iconPath) = 0;
-		virtual AutoTrayItem AddTray(std::string& iconPath, KMethodRef cbSingleClick) = 0;
+		virtual AutoTrayItem AddTray(std::string& iconPath, KValueRef cbSingleClick) = 0;
 		virtual AutoMenu GetMenu() = 0;
 		virtual AutoMenu GetContextMenu() = 0;
 		virtual long GetIdleTime() = 0;

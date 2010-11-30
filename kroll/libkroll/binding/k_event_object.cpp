@@ -36,27 +36,22 @@ namespace kroll
 		return new Event(AutoPtr<KEventObject>(this, true), eventName);
 	}
 
-	void KEventObject::AddEventListener(std::string& event, KMethodRef callback)
+	void KEventObject::AddEventListener(const std::string& event, KValueRef callback)
 	{
 		ASSERT_MAIN_THREAD
 		listeners.push_back(new EventListener(event, callback));
-		KKJSMethod* c2 = dynamic_cast<KKJSMethod*>(callback.get());
-		if(c2)
-			AddRef(c2->GetContext(), this);
 	}
 
-	void KEventObject::RemoveEventListener(std::string& event, KMethodRef callback)
+	void KEventObject::RemoveEventListener(const std::string& event, KValueRef callback)
 	{
 		ASSERT_MAIN_THREAD
 		EventListenerList::iterator i = this->listeners.begin();
 		while (i != this->listeners.end())
 		{
 			EventListener* listener = *i;
-			if (listener->Handles(event) && listener->Callback()->Equals(callback))
+			if (listener->handles(event)
+				&& listener->callback_is(callback))
 			{
-				KKJSMethod* c2 = dynamic_cast<KKJSMethod*>(callback.get());
-				if(c2)
-					DelRef(c2->GetContext(), this);
 				this->listeners.erase(i);
 				delete listener;
 				break;
@@ -77,7 +72,7 @@ namespace kroll
 		this->listeners.clear();
 	}
 
-	void KEventObject::FireEvent(std::string& event, const ValueList& args)
+	void KEventObject::FireEvent(const std::string& event, const ValueList& args)
 	{
 		// Make a copy of the listeners map here, because firing the event might
 		// take a while and we don't want to block other threads that just need
@@ -86,16 +81,15 @@ namespace kroll
 		EventListenerList listenersCopy;
 		listenersCopy = listeners;
 
-		KObjectRef thisObject(this, true);
 		EventListenerList::iterator li = listenersCopy.begin();
 		while (li != listenersCopy.end())
 		{
 			EventListener* listener = *li++;
-			if (listener->Handles(event))
+			if (listener->handles(event))
 			{
 				try
 				{
-					if (!listener->Dispatch(thisObject, args))
+					if (!listener->dispatch(args))
 					{
 						// Stop event dispatch if callback tells us
 						break;
@@ -110,7 +104,7 @@ namespace kroll
 		}	
 	}
 
-	bool KEventObject::FireEvent(std::string& eventName)
+	bool KEventObject::FireEvent(const std::string& eventName)
 	{
 		AutoPtr<Event> event(this->CreateEvent(eventName));
 		return this->FireEvent(event);
@@ -125,19 +119,18 @@ namespace kroll
 		EventListenerList listenersCopy;
 		listenersCopy = listeners;
 
-		KObjectRef thisObject(this, true);
 		EventListenerList::iterator li = listenersCopy.begin();
 		while (li != listenersCopy.end())
 		{
 			EventListener* listener = *li++;
-			if (listener->Handles(event->getEventName()))
+			if (listener->handles(event->getEventName()))
 			{
 				ValueList args(Value::NewObject(event));
 				bool result = false;
 
 				try
 				{
-					result = listener->Dispatch(thisObject, args);
+					result = listener->dispatch(args);
 				}
 				catch (ValueException& e)
 				{
@@ -158,17 +151,17 @@ namespace kroll
 	void KEventObject::_AddEventListener(const ValueList& args, KValueRef result)
 	{
 		std::string event;
-		KMethodRef callback;
+		KValueRef callback;
 
-		if (args.size() > 1 && args.at(0)->IsString() && args.at(1)->IsMethod())
+		if (args.size() == 2 && args.at(0)->IsString() && args.at(1)->IsMethod())
 		{
 			event = args.GetString(0);
-			callback = args.GetMethod(1);
+			callback = args.GetValue(1);
 		}
-		else if (args.size() > 0 && args.at(0)->IsMethod())
+		else if (args.size() == 1 && args.at(0)->IsMethod())
 		{
 			event = Event::ALL;
-			callback = args.GetMethod(0);
+			callback = args.GetValue(0);
 		}
 		else
 		{
@@ -176,15 +169,15 @@ namespace kroll
 		}
 
 		this->AddEventListener(event, callback);
-		result->SetMethod(callback);
+		result->SetMethod(callback->ToMethod());
 	}
 
 	void KEventObject::_RemoveEventListener(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("removeEventListener", "s m");
 
-		std::string event(args.GetString(0));
-		this->RemoveEventListener(event, args.GetMethod(1));
+		const std::string event(args.GetString(0));
+		this->RemoveEventListener(event, args.GetValue(1));
 	}
 
 	void KEventObject::ReportDispatchError(std::string& reason)
@@ -193,88 +186,26 @@ namespace kroll
 			this->GetType().c_str(), reason.c_str());
 	}
 
-	ContextMap KEventObject::contextMap;
-
-	void KEventObject::AddRef(JSContextRef context, KEventObject* object)
-	{
-		ASSERT_MAIN_THREAD
-		ContextMap::iterator i = contextMap.find(context);
-		if(i == contextMap.end()) {
-			contextMap[context] = new EventObjectList();
-			i = contextMap.find(context);
-		}
-		EventObjectList::iterator el = i->second->begin();
-		while(el != i->second->end())
-		{
-			if((*el) == object) {
-				return;
-			}
-			++el;
-		}
-		i->second->push_back(object);
-	}
-
-	void KEventObject::DelRef(JSContextRef context, KEventObject* object)
-	{
-		ASSERT_MAIN_THREAD
-		ContextMap::iterator i = contextMap.find(context);
-		if(i != contextMap.end()) {
-			EventObjectList::iterator el = i->second->begin();
-			while(el != i->second->end())
-			{
-				if((*el) == object) {
-					i->second->erase(el);
-					return;
-				}
-				++el;
-			}
-		}
-	}
-
-	void KEventObject::CleanupListenersFromContext(JSContextRef context)
-	{
-		ASSERT_MAIN_THREAD
-		ContextMap::iterator i = contextMap.find(context);
-		if(i == contextMap.end()) return;
-		for(EventObjectList::iterator l = i->second->begin(); l != i->second->end(); ++l)
-		{
-			EventListenerList::iterator el = (*l)->listeners.begin();
-			while(el != (*l)->listeners.end())
-			{
-				KKJSMethod* callback = dynamic_cast<KKJSMethod*>((*el)->Callback().get());
-				if(callback && callback->GetContext() == context)
-				{
-					EventListenerList::iterator del = el;
-					++el;
-					(*l)->listeners.erase(del);
-					continue;
-				}
-				++el;
-			}
-		}
-		delete i->second;
-		contextMap.erase(i);
-	}
-
-	EventListener::EventListener(std::string& targetedEvent, KMethodRef callback) :
+	EventListener::EventListener(const std::string& targetedEvent, KValueRef callback) :
 		targetedEvent(targetedEvent),
 		callback(callback)
 	{
 	}
 
-	inline bool EventListener::Handles(std::string& event)
+	inline bool EventListener::handles(const std::string& ev) const
 	{
-		return targetedEvent == event || targetedEvent == Event::ALL;
+		return targetedEvent == ev || targetedEvent == Event::ALL;
 	}
 
-	inline KMethodRef EventListener::Callback()
+	inline bool EventListener::callback_is(KValueRef callback) const
 	{
-		return this->callback;
+		KMethodRef callback_method = callback->ToMethod();
+		return (this->callback->ToMethod()->Equals(callback_method));
 	}
 
-	bool EventListener::Dispatch(KObjectRef thisObject, const ValueList& args)
+	bool EventListener::dispatch(const ValueList& args)
 	{
-		KValueRef result = RunOnMainThread(this->callback, args);
+		KValueRef result = RunOnMainThread(this->callback->ToMethod(), args);
 		if (result->IsBool())
 			return result->ToBool();
 		return true;

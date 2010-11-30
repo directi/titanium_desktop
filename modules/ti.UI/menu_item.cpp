@@ -224,13 +224,13 @@ namespace ti
 		this->SetStateImpl(newState);
 	}
 
-	void MenuItem::SetLabel(string& newLabel)
+	void MenuItem::SetLabel(const string& newLabel)
 	{
 		this->label = newLabel;
 		this->SetLabelImpl(newLabel);
 	}
 
-	void MenuItem::SetIcon(string& iconURL)
+	void MenuItem::SetIcon(const string& iconURL)
 	{
 		this->iconPath = this->iconURL = iconURL;
 		if (!iconURL.empty()) {
@@ -244,7 +244,7 @@ namespace ti
 		return this->state;
 	}
 
-	std::string& MenuItem::GetLabel()
+	std::string MenuItem::GetLabel() const
 	{
 		return this->label;
 	}

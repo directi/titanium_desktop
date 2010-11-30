@@ -17,7 +17,7 @@ namespace ti
 		GtkTrayItem(std::string& iconURL, KMethodRef cb);
 		virtual ~GtkTrayItem();
 
-		void SetIcon(std::string& iconPath);
+		void SetIcon(const std::string& iconPath);
 		void SetMenu(AutoMenu menu);
 		void SetHint(std::string& hint);
 		void Remove();

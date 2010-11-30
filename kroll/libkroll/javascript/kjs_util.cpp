@@ -874,7 +874,6 @@ namespace KJSUtil
 		{
 			if(force)
 			{
-				KEventObject::CleanupListenersFromContext(globalContext);
 				JSObjectInContextRefCounter* objRefs = ourContext->second;
 				if(objRefs)
 				{

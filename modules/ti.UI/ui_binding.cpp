@@ -177,9 +177,9 @@ namespace ti
 	AutoMenuItem UIBinding::__CreateMenuItem(const ValueList& args)
 	{
 		args.VerifyException("createMenuItem", "?s m|0 s|0");
-		std::string label = args.GetString(0, "");
-		KMethodRef eventListener = args.GetMethod(1, NULL);
-		std::string iconURL = args.GetString(2, "");
+		const std::string label = args.GetString(0);
+		KValueRef eventListener = args.GetValue(1);
+		const std::string iconURL = args.GetString(2);
 
 		AutoMenuItem item = this->CreateMenuItem();
 		if (!label.empty())
@@ -201,8 +201,8 @@ namespace ti
 	AutoMenuItem UIBinding::__CreateCheckMenuItem(const ValueList& args)
 	{
 		args.VerifyException("createCheckMenuItem", "?s m|0");
-		std::string label = args.GetString(0, "");
-		KMethodRef eventListener = args.GetMethod(1, NULL);
+		const std::string label = args.GetString(0);
+		KValueRef eventListener = args.GetValue(1);
 
 		AutoMenuItem item = this->CreateCheckMenuItem();
 		if (!label.empty())
@@ -273,7 +273,7 @@ namespace ti
 		this->_SetIcon(iconURL);
 	}
 
-	void UIBinding::_SetIcon(std::string iconURL)
+	void UIBinding::_SetIcon(const std::string &iconURL)
 	{
 		std::string iconPath;
 		this->iconURL = iconURL;
@@ -292,10 +292,7 @@ namespace ti
 	void UIBinding::_AddTray(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("createTrayIcon", "s,?m");
-		std::string iconURL = args.GetString(0);
-
-		KMethodRef cbSingleClick = args.GetMethod(1, NULL);
-		AutoTrayItem item = this->AddTray(iconURL, cbSingleClick);
+		AutoTrayItem item = this->AddTray(args.GetString(0), args.GetValue(1));
 		this->trayItems.push_back(item);
 		result->SetObject(item);
 	}

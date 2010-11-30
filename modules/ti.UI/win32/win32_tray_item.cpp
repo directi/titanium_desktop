@@ -13,7 +13,7 @@ namespace ti
 	UINT Win32TrayItem::trayCreatedMessage =
 		::RegisterWindowMessageA("TaskbarCreated");
 
-	Win32TrayItem::Win32TrayItem(std::string& iconURL, KMethodRef cbSingleClick) :
+	Win32TrayItem::Win32TrayItem(std::string& iconURL, KValueRef cbSingleClick) :
 		TrayItem(iconURL),
 		oldNativeMenu(0),
 		trayIconData(0)

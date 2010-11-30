@@ -34,7 +34,7 @@ namespace ti
 	{
 	}
 
-	void GtkTrayItem::SetIcon(std::string& iconPath)
+	void GtkTrayItem::SetIcon(const std::string& iconPath)
 	{
 		if (active) {
 			if (iconPath.empty()) {

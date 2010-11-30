@@ -12,20 +12,10 @@
 
 #include "event.h"
 
-#ifdef KROLL_API_EXPORT
-#include <JavaScriptCore/JSContextRef.h>
-#endif
-
 namespace kroll
 {
 	class EventListener;
 	typedef std::list<EventListener*> EventListenerList;
-
-#ifdef KROLL_API_EXPORT
-	class KEventObject;
-	typedef std::list<KEventObject*> EventObjectList;
-	typedef std::map<JSContextRef, EventObjectList*> ContextMap;
-#endif
 
 	class KROLL_API KEventObject : public KAccessorObject
 	{
@@ -35,47 +25,36 @@ namespace kroll
 
 		AutoPtr<Event> CreateEvent(const std::string& eventName);
 
-		virtual void AddEventListener(std::string& event, KMethodRef listener);
-		virtual void RemoveEventListener(std::string& event, KMethodRef listener);
+		virtual void AddEventListener(const std::string& event, KValueRef listener);
+		virtual void RemoveEventListener(const std::string& event, KValueRef listener);
 		virtual void RemoveAllEventListeners();
 
-		virtual void FireEvent(std::string& event, const ValueList& args);
-		virtual bool FireEvent(std::string& event);
+		virtual void FireEvent(const std::string& event, const ValueList& args);
+		virtual bool FireEvent(const std::string& event);
 		virtual bool FireEvent(AutoPtr<Event>);
 
 		void _AddEventListener(const ValueList&, KValueRef result);
 		void _RemoveEventListener(const ValueList&, KValueRef result);
 		void _RemoveAllEventListeners(const ValueList&, KValueRef result);
 
-#ifdef KROLL_API_EXPORT
-		static void CleanupListenersFromContext(JSContextRef context);
-#endif
-
 	private:
 		void ReportDispatchError(std::string& reason);
 
 		EventListenerList listeners;
-
-#ifdef KROLL_API_EXPORT
-		static ContextMap contextMap;
-
-		static void AddRef(JSContextRef context, KEventObject* obj);
-		static void DelRef(JSContextRef context, KEventObject* obj);
-#endif
 	};
 
 	class EventListener 
 	{
 	public:
-		EventListener(std::string& targetedEvent, KMethodRef callback);
+		EventListener(const std::string& targetedEvent, KValueRef callback);
 
-		bool Handles(std::string& event);
-		bool Dispatch(KObjectRef thisObject, const ValueList& args);
-		KMethodRef Callback();
+		bool handles(const std::string& ev) const;
+		bool dispatch(const ValueList& args);
+		bool callback_is(KValueRef callback) const;
 
 	private:
-		std::string targetedEvent;
-		KMethodRef callback;
+		const std::string targetedEvent;
+		KValueRef callback;
 	};
 }
 
