@@ -9,6 +9,7 @@
 #include <map>
 #include <kroll/kroll.h>
 
+#include <Poco/Mutex.h>
 #include "NamedMutexFile.h"
 
 namespace ti
