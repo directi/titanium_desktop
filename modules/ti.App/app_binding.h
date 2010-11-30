@@ -9,7 +9,6 @@
 
 #include <kroll/kroll.h>
 
-
 namespace ti
 {
 	class AppBinding : public KAccessorObject
