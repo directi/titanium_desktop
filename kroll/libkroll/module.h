@@ -148,9 +148,8 @@ extern "C" EXPORT ClassName* CreateModule(Host *host, const char* path) \
 public: \
 	ClassName(kroll::Host *host, const char* path, const char* name, const char* version); \
 	virtual ~ClassName(); \
-	void Initialize(); \
-	void Stop();
-
+	virtual void Initialize(); \
+	virtual void Stop();
 
 
 #endif

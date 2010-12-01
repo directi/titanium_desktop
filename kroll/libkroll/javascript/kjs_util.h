@@ -35,10 +35,8 @@ KROLL_API void ProtectContextAndValue(JSContextRef, JSObjectRef);
 KROLL_API void UnprotectContext(JSContextRef, bool force = false);
 
 KROLL_API void UnprotectContextAndValue(JSContextRef, JSObjectRef);
-KROLL_API KValueRef Evaluate(JSContextRef context, const char* script,
-	 const char* url = "string");
-KROLL_API KValueRef EvaluateFile(JSContextRef context,
-	const std::string& fullPath);
+KROLL_API KValueRef Evaluate(JSContextRef context, const char* script, const char* url = "string");
+KROLL_API KValueRef EvaluateFile(JSContextRef context, const std::string& fullPath);
 KROLL_API KValueRef GetProperty(JSObjectRef, std::string name);
 
 };

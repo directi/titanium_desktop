@@ -31,8 +31,8 @@ namespace ti
 		virtual AutoMenu GetContextMenu();
 		virtual long GetIdleTime();
 
-		static HICON LoadImageAsIcon(std::string& path, int sizeX, int sizeY);
-		static HBITMAP LoadImageAsBitmap(std::string& path, int sizeX, int sizeY);
+		static HICON LoadImageAsIcon(const std::string& path, int sizeX, int sizeY);
+		static HBITMAP LoadImageAsBitmap(const std::string& path, int sizeX, int sizeY);
 
 		static void ReleaseImage(HANDLE);
 		static void SetProxyForURL(std::string& url);

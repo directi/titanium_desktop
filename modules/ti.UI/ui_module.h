@@ -49,7 +49,7 @@ namespace ti {
 		static UIModule* GetInstance() { return instance_; }
 
 		UIBinding * GetUIBinding() { return uiBinding; }
-		void Start();
+		virtual void Start();
 
 	protected:
 		DISALLOW_EVIL_CONSTRUCTORS(UIModule);

@@ -133,7 +133,7 @@ namespace ti
 	}
 
 	/*static*/
-	HBITMAP Win32UIBinding::LoadImageAsBitmap(std::string& path, int sizeX, int sizeY)
+	HBITMAP Win32UIBinding::LoadImageAsBitmap(const std::string& path, int sizeX, int sizeY)
 	{
 		UINT flags = LR_DEFAULTSIZE | LR_LOADFROMFILE |
 			LR_LOADTRANSPARENT | LR_CREATEDIBSECTION;
@@ -167,7 +167,7 @@ namespace ti
 	}
 
 	/*static*/
-	HICON Win32UIBinding::LoadImageAsIcon(std::string& path, int sizeX, int sizeY)
+	HICON Win32UIBinding::LoadImageAsIcon(const std::string& path, int sizeX, int sizeY)
 	{
 		UINT flags = LR_DEFAULTSIZE | LR_LOADFROMFILE |
 			LR_LOADTRANSPARENT | LR_CREATEDIBSECTION;

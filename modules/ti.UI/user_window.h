@@ -219,7 +219,6 @@ namespace ti
 
 		protected:
 			Logger* logger;
-			UIBinding *binding;
 			KObjectRef domWindow;
 			Host* host;
 			AutoPtr<WindowConfig> config;
