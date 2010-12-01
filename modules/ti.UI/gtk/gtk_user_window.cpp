@@ -92,7 +92,7 @@ namespace ti
 		gtk_window_set_urgency_hint(this->gtkWindow, false);
 	}
 
-	AutoUserWindow UserWindow::CreateWindow(AutoPtr<WindowConfig> config, AutoUserWindow parent)
+	AutoUserWindow UserWindow::createWindow(AutoPtr<WindowConfig> config, AutoUserWindow parent)
 	{
 		return new GtkUserWindow(config, parent);
 	}
@@ -587,7 +587,7 @@ namespace ti
 		WebKitWebFrame* frame, gpointer data)
 	{
 		GtkUserWindow* userWindow = static_cast<GtkUserWindow*>(data);
-		AutoPtr<GtkUserWindow> newGtkWindow(UserWindow::CreateWindow(
+		AutoPtr<GtkUserWindow> newGtkWindow(UserWindow::createWindow(
 			WindowConfig::FromWindowConfig(0),
 			AutoUserWindow(userWindow, true)).cast<GtkUserWindow>());
 

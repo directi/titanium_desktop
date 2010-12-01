@@ -8,7 +8,7 @@
 
 namespace ti
 {
-UserWindow::UserWindow(AutoPtr<WindowConfig> config, AutoUserWindow parent) :
+UserWindow::UserWindow(AutoPtr<WindowConfig> config, UserWindow *parent) :
 	KEventObject("UI.UserWindow"),
 	logger(Logger::Get("UI.UserWindow")),
 	domWindow(0),
@@ -1196,7 +1196,7 @@ void UserWindow::_CreateWindow(const ValueList& args, KValueRef result)
 	if (config.isNull())
 		config = WindowConfig::Default();
 
-	result->SetObject(UserWindow::CreateWindow(config, AutoUserWindow(this, true)));
+	result->SetObject(UserWindow::createWindow(config, AutoUserWindow(this, true)));
 }
 
 void UserWindow::UpdateWindowForURL(std::string url)

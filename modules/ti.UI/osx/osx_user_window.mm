@@ -39,7 +39,7 @@ namespace ti
 		// by calling Open(...)
 	}
 
-	AutoUserWindow UserWindow::CreateWindow(AutoPtr<WindowConfig> config, AutoUserWindow parent)
+	AutoUserWindow UserWindow::createWindow(AutoPtr<WindowConfig> config, AutoUserWindow parent)
 	{
 		return new OSXUserWindow(config, parent);
 	}

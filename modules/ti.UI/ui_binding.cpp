@@ -51,7 +51,7 @@ namespace ti
 
 	void UIBinding::CreateMainWindow(AutoPtr<WindowConfig> config)
 	{
-		this->mainWindow = UserWindow::CreateWindow(config, 0);
+		this->mainWindow = UserWindow::createWindow(config, 0);
 		this->mainWindow->Open();
 	}
 
@@ -82,7 +82,7 @@ namespace ti
 		if (config.isNull())
 			config = WindowConfig::Default();
 
-		result->SetObject(UserWindow::CreateWindow(config, 0));
+		result->SetObject(UserWindow::createWindow(config, 0));
 	}
 
 	void UIBinding::ErrorDialog(std::string msg)

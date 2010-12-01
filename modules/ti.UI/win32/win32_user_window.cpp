@@ -422,7 +422,7 @@ static void GetChromeSize(Bounds& chromeSize, DWORD windowStyle)
 	chromeSize.height = rect.bottom - rect.top - 100;
 }
 
-Win32UserWindow::Win32UserWindow(AutoPtr<WindowConfig> config, AutoUserWindow& parent) :
+Win32UserWindow::Win32UserWindow(AutoPtr<WindowConfig> config, UserWindow *parent) :
 	UserWindow(config, parent),
 	frameLoadDelegate(0),
 	uiDelegate(0),
@@ -446,19 +446,15 @@ Win32UserWindow::Win32UserWindow(AutoPtr<WindowConfig> config, AutoUserWindow& p
 	
 }
 
-AutoUserWindow UserWindow::CreateWindow(AutoPtr<WindowConfig> config, AutoUserWindow parent)
+UserWindow *UserWindow::createWindow(AutoPtr<WindowConfig> config, UserWindow *parent)
 {
 	return new Win32UserWindow(config, parent);
 }
 
 Win32UserWindow::~Win32UserWindow()
 {
-
 	if (webView)
 		webView->Release();
-
-	//if (mainFrame)
-	//	mainFrame->Release();
 }
 
 typedef struct DrawChildWindowData_

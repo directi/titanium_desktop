@@ -12,7 +12,7 @@ namespace ti
 	class Win32UserWindow : public UserWindow
 	{
 	public:
-		Win32UserWindow(AutoPtr<WindowConfig> config, AutoUserWindow& parent);
+		Win32UserWindow(AutoPtr<WindowConfig> config, UserWindow *parent);
 		virtual ~Win32UserWindow();
 
 		void OpenFileChooserDialog(KMethodRef callback, bool multiple,
@@ -115,8 +115,6 @@ namespace ti
 		HBITMAP webkitBitmap;
 		UINT_PTR timer;
 		IWebView* webView;
-		//IWebFrame* mainFrame;
-		//IWebInspector* webInspector;
 		Bounds chromeSize;
 
 		// Set this flag to indicate that when the frame is loaded we want to

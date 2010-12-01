@@ -106,7 +106,7 @@ HRESULT STDMETHODCALLTYPE Win32WebKitUIDelegate::createWebViewWithRequest(
 			config->SetHeight(height);
 	}
 
-	AutoUserWindow window(UserWindow::CreateWindow(config,
+	AutoUserWindow window(UserWindow::createWindow(config,
 		this->window->GetAutoPtr().cast<UserWindow>()));
 	window->Open();
 

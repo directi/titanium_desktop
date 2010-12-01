@@ -11,10 +11,6 @@
 #include <vector>
 #include <kroll/kroll.h>
 
-#ifdef OS_WIN32
-#undef CreateWindow
-#endif
-
 #include "../ti.App/app_config.h"
 #include "../ti.App/window_config.h"
 
@@ -31,7 +27,7 @@ namespace ti
 	{
 		public:
 			// Platform-specific implementation.
-			static AutoUserWindow CreateWindow(AutoPtr<WindowConfig> config, AutoUserWindow parent);
+			static UserWindow * createWindow(AutoPtr<WindowConfig> config, UserWindow *parent);
 
 			virtual SharedString DisplayString(int levels=3);
 			virtual ~UserWindow();
@@ -229,7 +225,7 @@ namespace ti
 			std::string iconURL;
 			bool hasTitaniumObject;
 
-			UserWindow(AutoPtr<WindowConfig> config, AutoUserWindow parent);
+			UserWindow(AutoPtr<WindowConfig> config, UserWindow *parent);
 			virtual AutoUserWindow GetParent();
 			virtual void AddChild(AutoUserWindow);
 			virtual void RemoveChild(AutoUserWindow);
