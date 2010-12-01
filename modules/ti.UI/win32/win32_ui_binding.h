@@ -9,6 +9,12 @@
 #define WEB_INSPECTOR_MENU_ITEM_ID 7500
 #define NEXT_ITEM_ID_BEGIN 7501
 
+#include <kroll/kroll.h>
+#include "../ui_binding.h"
+#include "win32_menu.h"
+#include "win32_menu_item.h"
+
+
 namespace ti
 {
 	class Win32UIBinding : public UIBinding

@@ -6,8 +6,12 @@
 #ifndef _MENU_ITEM_H_
 #define _MENU_ITEM_H_
 #include <kroll/kroll.h>
+
 namespace ti
 {
+	class Menu;
+	typedef AutoPtr<Menu> AutoMenu;
+
 	class MenuItem : public KEventObject 
 	{
 	public:

@@ -5,7 +5,10 @@
  */
 #ifndef TI_WEBKIT_WIN32_UI_DELEGATE_H_
 #define TI_WEBKIT_WIN32_UI_DELEGATE_H_
-#include <windows.h>
+
+#include <kroll/kroll.h>
+#include <WebKit/WebKit.h>
+
 namespace ti
 {
 

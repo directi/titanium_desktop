@@ -3,7 +3,9 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
-#include "../ui_module.h"
+#include "webkit_policy_delegate.h"
+#include "win32_user_window.h"
+
 #include <shellapi.h>
 #include <string>
 

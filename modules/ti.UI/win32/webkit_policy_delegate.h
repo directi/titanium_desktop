@@ -5,7 +5,10 @@
  */
 #ifndef _TI_WEB_KIT_POLICY_DELEGATE_H_
 #define _TI_WEB_KIT_POLICY_DELEGATE_H_
-#include <windows.h>
+
+#include <kroll/kroll.h>
+#include <WebKit/WebKit.h>
+
 namespace ti {
 
 class Win32UserWindow;

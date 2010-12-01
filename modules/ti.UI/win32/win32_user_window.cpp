@@ -2,9 +2,18 @@
  * SEE LICENSE in the root folder for details on the license.
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
-#include "../ui_module.h"
+#include "win32_user_window.h"
+#include "win32_ui_binding.h"
+
+#include <WebKit/WebKitCOMAPI.h>
+
 #include <sstream>
 #include <cmath>
+
+#include <shellapi.h>
+#include <shlobj.h>
+#include <comutil.h>
+#include <commdlg.h>
 
 #define SetFlag(x,flag,b) ((b) ? x |= flag : x &= ~flag)
 #define UnsetFlag(x,flag) (x &= ~flag)=

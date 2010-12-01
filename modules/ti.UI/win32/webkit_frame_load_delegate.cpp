@@ -3,13 +3,15 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
-#include "../ui_module.h"
-#include <comutil.h>
-// TODO: FIXME: HELP: This is crazy the build script wasn't finding this!!
-//#include <webkit_frame_load_delegate.h>
 
-using namespace ti;
-using namespace kroll;
+#include "webkit_frame_load_delegate.h"
+#include "win32_user_window.h"
+
+#include <comutil.h>
+#include <kroll/javascript/k_kjs_object.h>
+
+namespace ti
+{
 
 Win32WebKitFrameLoadDelegate::Win32WebKitFrameLoadDelegate(Win32UserWindow *window) :
 	window(window),
@@ -146,3 +148,4 @@ HRESULT STDMETHODCALLTYPE Win32WebKitFrameLoadDelegate::didReceiveTitle(
 	return S_OK;
 }
 
+}

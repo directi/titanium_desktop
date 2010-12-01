@@ -5,7 +5,14 @@
  */
 
 #include "ui_module.h"
-#include <kroll/utils/url/ParsedURL.h>
+
+#ifdef OS_LINUX
+#include "gtk/ui_module_gtk.h"
+#elif defined(OS_OSX)
+#include "osx/ui_module_osx.h"
+#elif defined(OS_WIN32)
+#include "win32/ui_module_win32.h"
+#endif
 
 namespace ti
 {

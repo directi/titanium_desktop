@@ -3,7 +3,11 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
-#include "ui_module.h"
+#include "menu.h"
+#include "clipboard.h"
+#include "ui_binding.h"
+#include "notification.h"
+
 #include <string>
 
 namespace ti

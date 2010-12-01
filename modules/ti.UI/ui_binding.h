@@ -9,7 +9,9 @@
 
 #include <kroll/kroll.h>
 #include "menu_item.h"
-#include "notification.h"
+#include "tray_item.h"
+#include "user_window.h"
+
 
 namespace ti
 {

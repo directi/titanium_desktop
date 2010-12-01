@@ -5,8 +5,13 @@
  */
 #ifndef TI_WIN32_TRAY_ITEM_H_
 #define TI_WIN32_TRAY_ITEM_H_
+
+#include <kroll/kroll.h>
 #include <windows.h>
 #include <shellapi.h>
+
+#include "../tray_item.h"
+
 namespace ti
 {
 	class Win32TrayItem: public TrayItem

@@ -11,8 +11,11 @@
 #include <vector>
 #include <kroll/kroll.h>
 
-#include "../ti.App/app_config.h"
-#include "../ti.App/window_config.h"
+#include "menu.h"
+#include <kroll/javascript/javascript_module.h>
+
+#include "app_config.h"
+#include "window_config.h"
 
 namespace ti
 {
@@ -22,6 +25,9 @@ namespace ti
 		double width;
 		double height;
 	} Bounds;
+
+	class UserWindow;
+	typedef AutoPtr<UserWindow> AutoUserWindow;
 
 	class UserWindow : public KEventObject
 	{

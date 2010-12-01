@@ -8,34 +8,8 @@
 
 #include <kroll/kroll.h>
 
-namespace ti {
-	class UIBinding;
-	class Menu;
-	class MenuItem;
-	class UserWindow;
-
-	typedef AutoPtr<UserWindow> AutoUserWindow;
-	typedef AutoPtr<Menu> AutoMenu;
-	typedef AutoPtr<MenuItem> AutoMenuItem;
-}
-
-#include <iostream>
-#include <kroll/javascript/javascript_module.h>
-#include "window_config.h"
 #include "user_window.h"
-#include "menu.h"
-#include "menu_item.h"
-#include "tray_item.h"
 #include "ui_binding.h"
-#include "clipboard.h"
-
-#ifdef OS_LINUX
-#include "gtk/ui_module_gtk.h"
-#elif defined(OS_OSX)
-#include "osx/ui_module_osx.h"
-#elif defined(OS_WIN32)
-#include "win32/ui_module_win32.h"
-#endif
 
 #include "url/url.h"
 

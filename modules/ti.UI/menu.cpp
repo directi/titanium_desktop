@@ -6,6 +6,7 @@
 
 #include <kroll/kroll.h>
 #include "ui_module.h"
+#include "menu.h"
 namespace ti
 {
 	using std::vector;

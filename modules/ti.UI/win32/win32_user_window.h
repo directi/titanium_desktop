@@ -7,6 +7,15 @@
 #ifndef __TI_WIN32_USER_WINDOW_H
 #define __TI_WIN32_USER_WINDOW_H
 
+#include <kroll/kroll.h>
+
+#include "../user_window.h"
+#include "win32_menu.h"
+#include "webkit_ui_delegate.h"
+#include "webkit_policy_delegate.h"
+#include "webkit_frame_load_delegate.h"
+#include "webkit_resource_load_delegate.h"
+
 namespace ti
 {
 	class Win32UserWindow : public UserWindow

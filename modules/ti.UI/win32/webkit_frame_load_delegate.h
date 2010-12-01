@@ -7,7 +7,12 @@
 #ifndef TI_WIN32_WEBKIT_FRAME_LOAD_DELEGATE_H_
 #define TI_WIN32_WEBKIT_FRAME_LOAD_DELEGATE_H_
 
-namespace ti {
+#include <kroll/kroll.h>
+#include <WebKit/WebKit.h>
+#include <kroll/javascript/kjs_util.h>
+
+namespace ti
+{
 
 typedef std::map<IWebFrame *, JSContextRef> FrameContextMap;
 

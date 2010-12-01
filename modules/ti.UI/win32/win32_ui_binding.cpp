@@ -4,9 +4,14 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "../ui_module.h"
+#include "win32_ui_binding.h"
+#include "win32_tray_item.h"
 #include "image_utils.h"
-#define _WINSOCKAPI_
+#include "../url/url.h"
+
+#include <shlobj.h>
+#include <winbase.h>
+
 #include <cstdlib>
 #include <sstream>
 #include <windows.h>

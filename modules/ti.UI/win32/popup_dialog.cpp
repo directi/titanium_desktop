@@ -3,8 +3,12 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
-#include "../ui_module.h"
 #include <math.h>
+
+#include "popup_dialog.h"
+#include <windowsx.h>
+
+
 #define ID_INPUT_FIELD 101
 
 namespace ti

@@ -5,8 +5,13 @@
  */
 #ifndef _WIN32_MENU_H_
 #define _WIN32_MENU_H_
+
+#include "../menu.h"
+
 namespace ti
 {
+	class Win32MenuItem;
+
 	class Win32Menu : public Menu
 	{
 		public:
