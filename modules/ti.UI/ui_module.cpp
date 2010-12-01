@@ -38,24 +38,11 @@ namespace ti
 				"is not properly configured or packaged.";
 			this->uiBinding->ErrorDialog(msg);
 			throw ValueException::FromString(msg.c_str());
-			return;
 		}
 
 		// If there is no main window configuration, this just
 		// AppConfig::GetMainWindow returns a default configuration.
 		this->uiBinding->CreateMainWindow(config->GetMainWindow());
-
-		try
-		{
-			const std::string appIcon = host->GetApplication()->getImage();
-			if (!appIcon.empty())
-				this->uiBinding->_SetIcon(appIcon);
-		}
-		catch (ValueException& e)
-		{
-			SharedString ss = e.DisplayString();
-			Logger::Get("UI")->Error("Could not set default icon: %s", ss->c_str());
-		}
 	}
 
 	void UIModule::Stop()

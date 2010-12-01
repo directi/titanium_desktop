@@ -98,7 +98,7 @@ namespace ti
 		}
 	}
 
-	TrayItem *Win32UIBinding::AddTray(std::string& iconPath, KValueRef cbSingleClick)
+	TrayItem *Win32UIBinding::AddTray(const std::string& iconPath, KValueRef cbSingleClick)
 	{
 		return new Win32TrayItem(iconPath, cbSingleClick);
 	}

@@ -74,7 +74,7 @@ namespace ti
 		this->iconPath = iconPath;
 	}
 
-	TrayItem *GtkUIBinding::AddTray(std::string& iconPath, KValueRef cb)
+	TrayItem *GtkUIBinding::AddTray(const std::string& iconPath, KValueRef cb)
 	{
 		return new GtkTrayItem(iconPath, cb);
 	}

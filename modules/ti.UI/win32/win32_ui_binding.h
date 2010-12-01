@@ -25,7 +25,7 @@ namespace ti
 		virtual void SetMenu(AutoMenu);
 		virtual void SetContextMenu(AutoMenu);
 		virtual void SetIcon(std::string& iconPath);
-		virtual TrayItem * AddTray(std::string& icon_path, KValueRef cbSingleClick);
+		virtual TrayItem * AddTray(const std::string& icon_path, KValueRef cbSingleClick);
 
 		virtual AutoMenu GetMenu();
 		virtual AutoMenu GetContextMenu();
