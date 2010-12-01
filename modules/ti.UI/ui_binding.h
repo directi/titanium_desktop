@@ -64,7 +64,7 @@ namespace ti
 		virtual void SetMenu(AutoMenu) = 0;
 		virtual void SetContextMenu(AutoMenu) = 0;
 		virtual void SetIcon(std::string& iconPath) = 0;
-		virtual AutoTrayItem AddTray(std::string& iconPath, KValueRef cbSingleClick) = 0;
+		virtual TrayItem * AddTray(std::string& iconPath, KValueRef cbSingleClick) = 0;
 		virtual AutoMenu GetMenu() = 0;
 		virtual AutoMenu GetContextMenu() = 0;
 		virtual long GetIdleTime() = 0;
@@ -77,14 +77,14 @@ namespace ti
 		virtual void SetBadgeImage(std::string& badgeImagePath) {}
 
 		static void ErrorDialog(std::string);
-		static inline AutoPtr<UIBinding> GetInstance() { return instance; }
+		static inline UIBinding *GetInstance() { return instance; }
 
 	protected:
-		static AutoPtr<UIBinding> instance;
+		static UIBinding * instance;
 		Host* host;
 		AutoUserWindow mainWindow;
 		std::vector<AutoUserWindow> openWindows;
-		std::vector<AutoTrayItem> trayItems;
+		std::vector<TrayItem *> trayItems;
 		std::string iconURL;
 
 		static void Log(Logger::Level level, const std::string& message);

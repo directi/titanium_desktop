@@ -47,7 +47,7 @@ namespace ti
 
 		try
 		{
-			std::string appIcon = host->GetApplication()->getImage();
+			const std::string appIcon = host->GetApplication()->getImage();
 			if (!appIcon.empty())
 				this->uiBinding->_SetIcon(appIcon);
 		}
@@ -60,14 +60,10 @@ namespace ti
 
 	void UIModule::Stop()
 	{
-		// Remove app tray icons
-		uiBinding->ClearTray();
-	}
-
-	bool UIModule::IsResourceLocalFile(std::string str)
-	{
-		WTF::ParsedURL uri(str);
-		std::string scheme = uri.scheme();
-		return (scheme == "app" || scheme == "ti" || scheme == "file");
+		if(this->uiBinding)
+		{
+			delete this->uiBinding;
+			this->uiBinding = NULL;
+		}
 	}
 }

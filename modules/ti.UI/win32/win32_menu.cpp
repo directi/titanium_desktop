@@ -7,10 +7,6 @@
 
 namespace ti
 {
-	using std::vector;
-	using std::map;
-	using std::string;
-
 	Win32Menu::Win32Menu() :
 		Menu()
 	{

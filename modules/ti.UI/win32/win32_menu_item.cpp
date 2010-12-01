@@ -5,8 +5,6 @@
  */
 #include "../ui_module.h"
 
-using std::vector;
-using std::map;
 namespace ti
 {
 	Win32MenuItem::Win32MenuItem(MenuItemType type) :

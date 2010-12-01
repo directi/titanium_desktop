@@ -7,7 +7,7 @@
 
 namespace ti
 {
-	std::vector<AutoPtr<Win32TrayItem> > Win32TrayItem::trayItems;
+	std::vector<Win32TrayItem *> Win32TrayItem::trayItems;
 	UINT Win32TrayItem::trayClickedMessage =
 		::RegisterWindowMessageA(PRODUCT_NAME"TrayClicked");
 	UINT Win32TrayItem::trayCreatedMessage =
@@ -49,6 +49,17 @@ namespace ti
 	Win32TrayItem::~Win32TrayItem()
 	{
 		this->Remove();
+		for(std::vector<Win32TrayItem *>::iterator
+			oIter = trayItems.begin();
+			oIter != trayItems.end();
+		oIter++)
+		{
+			if(*oIter == this)
+			{
+				trayItems.erase(oIter);
+				break;
+			}
+		}
 	}
 	
 	void Win32TrayItem::SetIcon(std::string& iconPath)
@@ -193,7 +204,7 @@ namespace ti
 
 			for (size_t i = 0; i < trayItems.size(); i++)
 			{
-				AutoPtr<Win32TrayItem> item = trayItems[i];
+				Win32TrayItem * item = trayItems[i];
 
 				// TODO: Disabling Double Click Support.
 				// We need to revisit this logic once we are 
@@ -229,7 +240,7 @@ namespace ti
 		{
 			for (size_t i = 0; i < trayItems.size(); i++)
 			{
-				AutoPtr<Win32TrayItem> item = trayItems[i];
+				Win32TrayItem *item = trayItems[i];
 				Shell_NotifyIcon(NIM_ADD, item->trayIconData);
 			}
 			return false;
@@ -250,7 +261,7 @@ namespace ti
 		KillTimer(hWnd, 100);
 		for (size_t i = 0; i < trayItems.size(); i++)
 		{
-			AutoPtr<Win32TrayItem> item = trayItems[i];
+			Win32TrayItem *item = trayItems[i];
 			if (!(item->is_double_clicked))
 			{
 				item->HandleLeftClick();

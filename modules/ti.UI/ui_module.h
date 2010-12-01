@@ -12,19 +12,12 @@ namespace ti {
 	class UIBinding;
 	class Menu;
 	class MenuItem;
-	class TrayItem;
 	class UserWindow;
 
 	typedef AutoPtr<UserWindow> AutoUserWindow;
-	typedef AutoPtr<UIBinding> AutoUIBinding;
 	typedef AutoPtr<Menu> AutoMenu;
 	typedef AutoPtr<MenuItem> AutoMenuItem;
-	typedef AutoPtr<TrayItem> AutoTrayItem;
 }
-
-//#include <JavaScriptCore/JSObjectRef.h>
-//#include <JavaScriptCore/JSStringRef.h>
-//#include <JavaScriptCore/JSContextRef.h>
 
 #include <iostream>
 #include <kroll/javascript/javascript_module.h>
@@ -52,17 +45,17 @@ namespace ti {
 	{
 		KROLL_MODULE_CLASS(UIModule)
 
-		public:
+	public:
 		static UIModule* GetInstance() { return instance_; }
-		AutoUIBinding GetUIBinding() { return uiBinding; }
+
+		UIBinding * GetUIBinding() { return uiBinding; }
 		void Start();
-		static bool IsResourceLocalFile(std::string string);
 
-		protected:
+	protected:
 		DISALLOW_EVIL_CONSTRUCTORS(UIModule);
-		static UIModule* instance_;
-		AutoUIBinding uiBinding;
+		UIBinding * uiBinding;
 
+		static UIModule* instance_;
 	};
 }
 

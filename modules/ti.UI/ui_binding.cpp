@@ -8,7 +8,7 @@
 
 namespace ti
 {
-	AutoPtr<UIBinding> UIBinding::instance = NULL;
+	UIBinding * UIBinding::instance = NULL;
 
 	UIBinding::UIBinding(Host* host) :
 		KAccessorObject("UI"),
@@ -150,7 +150,7 @@ namespace ti
 	void UIBinding::_CreateNotification(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("createNotification", "?o");
-		AutoNotification n(new Notification());
+		Notification *n = new Notification();
 
 		if (args.GetValue(0)->IsObject())
 			n->Configure(args.GetObject(0));
@@ -292,7 +292,7 @@ namespace ti
 	void UIBinding::_AddTray(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("createTrayIcon", "s,?m");
-		AutoTrayItem item = this->AddTray(args.GetString(0), args.GetValue(1));
+		TrayItem * item = this->AddTray(args.GetString(0), args.GetValue(1));
 		this->trayItems.push_back(item);
 		result->SetObject(item);
 	}
@@ -304,7 +304,7 @@ namespace ti
 
 	void UIBinding::ClearTray()
 	{
-		std::vector<AutoTrayItem>::iterator i = this->trayItems.begin();
+		std::vector<TrayItem *>::iterator i = this->trayItems.begin();
 		while (i != this->trayItems.end())
 		{
 			(*i++)->Remove();
@@ -314,11 +314,10 @@ namespace ti
 
 	void UIBinding::UnregisterTrayItem(TrayItem* item)
 	{
-		std::vector<AutoTrayItem>::iterator i = this->trayItems.begin();
+		std::vector<TrayItem *>::iterator i = this->trayItems.begin();
 		while (i != this->trayItems.end())
 		{
-			AutoTrayItem c = *i;
-			if (c.get() == item)
+			if (*i == item)
 			{
 				i = this->trayItems.erase(i);
 			}

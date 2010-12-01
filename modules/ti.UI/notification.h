@@ -52,9 +52,6 @@ private:
 	void _Show(const ValueList& args, KValueRef result);
 	void _Hide(const ValueList& args, KValueRef result);
 };
-
-typedef AutoPtr<Notification> AutoNotification;
-
 }
 
 #endif

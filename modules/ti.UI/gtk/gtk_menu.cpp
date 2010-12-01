@@ -8,10 +8,6 @@
 
 namespace ti
 {
-	using std::vector;
-	using std::map;
-	using std::string;
-
 	GtkMenu::GtkMenu() :
 		Menu()
 	{

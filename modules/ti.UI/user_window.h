@@ -9,7 +9,6 @@
 
 #include <string>
 #include <vector>
-#include <map>
 #include <kroll/kroll.h>
 
 #ifdef OS_WIN32
@@ -220,7 +219,7 @@ namespace ti
 
 		protected:
 			Logger* logger;
-			AutoUIBinding binding;
+			UIBinding *binding;
 			KObjectRef domWindow;
 			Host* host;
 			AutoPtr<WindowConfig> config;

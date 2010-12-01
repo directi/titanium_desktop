@@ -29,7 +29,7 @@ namespace ti
 		void SetContextMenu(AutoMenu);
 		void SetDockMenu(AutoMenu);
 
-		AutoTrayItem AddTray(std::string& icon_path, KMethodRef cb);
+		TrayItem *AddTray(std::string& icon_path, KValueRef cb);
 		void SetIcon(std::string& iconPath);
 		virtual void BounceDockIcon();
 		virtual void SetDockIcon(std::string& iconPath);

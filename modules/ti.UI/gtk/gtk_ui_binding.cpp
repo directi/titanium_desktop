@@ -74,10 +74,9 @@ namespace ti
 		this->iconPath = iconPath;
 	}
 
-	AutoTrayItem GtkUIBinding::AddTray(std::string& iconPath, KMethodRef cb)
+	TrayItem *GtkUIBinding::AddTray(std::string& iconPath, KValueRef cb)
 	{
-		AutoTrayItem item = new GtkTrayItem(iconPath, cb);
-		return item;
+		return new GtkTrayItem(iconPath, cb);
 	}
 
 	long GtkUIBinding::GetIdleTime()

@@ -42,7 +42,6 @@ namespace kroll
 	void StaticBoundObject::Set(const char* name, KValueRef value)
 	{
 		ASSERT_MAIN_THREAD
-		KObjectRef o = value->ToObject();
 		this->properties[std::string(name)] = value;
 	}
 
