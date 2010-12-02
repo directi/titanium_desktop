@@ -8,10 +8,9 @@
 
 namespace ti
 {
-UserWindow::UserWindow(AutoPtr<WindowConfig> config, AutoUserWindow parent) :
+UserWindow::UserWindow(AutoPtr<WindowConfig> config, UserWindow *parent) :
 	KEventObject("UI.UserWindow"),
 	logger(Logger::Get("UI.UserWindow")),
-	binding(UIModule::GetInstance()->GetUIBinding()),
 	domWindow(0),
 	host(kroll::Host::GetInstance()),
 	config(config),
@@ -142,7 +141,7 @@ void UserWindow::Open()
 	this->FireEvent(Event::OPEN);
 
 	// We are now in the UI binding's open window list
-	this->binding->AddToOpenWindows(AutoUserWindow(this, true));
+	UIBinding::GetInstance()->AddToOpenWindows(AutoUserWindow(this, true));
 
 	// Tell the parent window that we are open for business
 	if (!parent.isNull())
@@ -202,10 +201,10 @@ void UserWindow::Closed()
 	}
 
 	// Tell the UIBinding that we are closed
-	this->binding->RemoveFromOpenWindows(AutoUserWindow(this, true));
+	UIBinding::GetInstance()->RemoveFromOpenWindows(AutoUserWindow(this, true));
 
 	// When we have no more open windows, we exit...
-	std::vector<AutoUserWindow> windows = this->binding->GetOpenWindows();
+	std::vector<AutoUserWindow> windows = UIBinding::GetInstance()->GetOpenWindows();
 	if (windows.size() == 0) 
 	{
 		this->host->Exit(0);
@@ -1197,7 +1196,7 @@ void UserWindow::_CreateWindow(const ValueList& args, KValueRef result)
 	if (config.isNull())
 		config = WindowConfig::Default();
 
-	result->SetObject(UserWindow::CreateWindow(config, AutoUserWindow(this, true)));
+	result->SetObject(UserWindow::createWindow(config, AutoUserWindow(this, true)));
 }
 
 void UserWindow::UpdateWindowForURL(std::string url)
@@ -1526,7 +1525,7 @@ void UserWindow::InsertAPI(KObjectRef frameGlobal)
 	// found in binding, KDelegatingObject will search for it in
 	// the base. When developers modify this object, it will be modified
 	// globally.
-	KObject* delegateUIAPI = new KDelegatingObject(binding, windowUIObject);
+	KObject* delegateUIAPI = new KDelegatingObject(UIBinding::GetInstance(), windowUIObject);
 	windowTiObject->Set("UI", Value::NewObject(delegateUIAPI));
 
 	// Place the Titanium object into the window's global object
@@ -1574,11 +1573,11 @@ void UserWindow::RegisterJSContext(JSGlobalContextRef context)
 
 void UserWindow::LoadUIJavaScript(JSContextRef context)
 {
-	std::string modulePath = UIModule::GetInstance()->GetPath();
-	std::string jsPath = FileUtils::Join(modulePath.c_str(), "ui.js", NULL);
+	const std::string modulePath = UIModule::GetInstance()->GetPath();
+	const std::string jsPath = FileUtils::Join(modulePath.c_str(), "ui.js", NULL);
 	try
 	{
-		KJSUtil::EvaluateFile(context, (char*) jsPath.c_str());
+		KJSUtil::EvaluateFile(context, jsPath.c_str());
 	}
 	catch (kroll::ValueException &e)
 	{

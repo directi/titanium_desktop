@@ -4,9 +4,14 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "../ui_module.h"
+#include "win32_ui_binding.h"
+#include "win32_tray_item.h"
 #include "image_utils.h"
-#define _WINSOCKAPI_
+#include "../url/url.h"
+
+#include <shlobj.h>
+#include <winbase.h>
+
 #include <cstdlib>
 #include <sstream>
 #include <windows.h>
@@ -98,7 +103,7 @@ namespace ti
 		}
 	}
 
-	TrayItem *Win32UIBinding::AddTray(std::string& iconPath, KValueRef cbSingleClick)
+	TrayItem *Win32UIBinding::AddTray(const std::string& iconPath, KValueRef cbSingleClick)
 	{
 		return new Win32TrayItem(iconPath, cbSingleClick);
 	}
@@ -133,7 +138,7 @@ namespace ti
 	}
 
 	/*static*/
-	HBITMAP Win32UIBinding::LoadImageAsBitmap(std::string& path, int sizeX, int sizeY)
+	HBITMAP Win32UIBinding::LoadImageAsBitmap(const std::string& path, int sizeX, int sizeY)
 	{
 		UINT flags = LR_DEFAULTSIZE | LR_LOADFROMFILE |
 			LR_LOADTRANSPARENT | LR_CREATEDIBSECTION;
@@ -167,7 +172,7 @@ namespace ti
 	}
 
 	/*static*/
-	HICON Win32UIBinding::LoadImageAsIcon(std::string& path, int sizeX, int sizeY)
+	HICON Win32UIBinding::LoadImageAsIcon(const std::string& path, int sizeX, int sizeY)
 	{
 		UINT flags = LR_DEFAULTSIZE | LR_LOADFROMFILE |
 			LR_LOADTRANSPARENT | LR_CREATEDIBSECTION;

@@ -4,7 +4,7 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "../ui_module.h"
+#include "../clipboard.h"
 
 namespace ti
 {

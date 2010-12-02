@@ -9,6 +9,12 @@
 #define WEB_INSPECTOR_MENU_ITEM_ID 7500
 #define NEXT_ITEM_ID_BEGIN 7501
 
+#include <kroll/kroll.h>
+#include "../ui_binding.h"
+#include "win32_menu.h"
+#include "win32_menu_item.h"
+
+
 namespace ti
 {
 	class Win32UIBinding : public UIBinding
@@ -25,14 +31,14 @@ namespace ti
 		virtual void SetMenu(AutoMenu);
 		virtual void SetContextMenu(AutoMenu);
 		virtual void SetIcon(std::string& iconPath);
-		virtual TrayItem * AddTray(std::string& icon_path, KValueRef cbSingleClick);
+		virtual TrayItem * AddTray(const std::string& icon_path, KValueRef cbSingleClick);
 
 		virtual AutoMenu GetMenu();
 		virtual AutoMenu GetContextMenu();
 		virtual long GetIdleTime();
 
-		static HICON LoadImageAsIcon(std::string& path, int sizeX, int sizeY);
-		static HBITMAP LoadImageAsBitmap(std::string& path, int sizeX, int sizeY);
+		static HICON LoadImageAsIcon(const std::string& path, int sizeX, int sizeY);
+		static HBITMAP LoadImageAsBitmap(const std::string& path, int sizeX, int sizeY);
 
 		static void ReleaseImage(HANDLE);
 		static void SetProxyForURL(std::string& url);

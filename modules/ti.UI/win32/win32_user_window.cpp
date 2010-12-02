@@ -2,9 +2,18 @@
  * SEE LICENSE in the root folder for details on the license.
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
-#include "../ui_module.h"
+#include "win32_user_window.h"
+#include "win32_ui_binding.h"
+
+#include <WebKit/WebKitCOMAPI.h>
+
 #include <sstream>
 #include <cmath>
+
+#include <shellapi.h>
+#include <shlobj.h>
+#include <comutil.h>
+#include <commdlg.h>
 
 #define SetFlag(x,flag,b) ((b) ? x |= flag : x &= ~flag)
 #define UnsetFlag(x,flag) (x &= ~flag)=
@@ -422,7 +431,7 @@ static void GetChromeSize(Bounds& chromeSize, DWORD windowStyle)
 	chromeSize.height = rect.bottom - rect.top - 100;
 }
 
-Win32UserWindow::Win32UserWindow(AutoPtr<WindowConfig> config, AutoUserWindow& parent) :
+Win32UserWindow::Win32UserWindow(AutoPtr<WindowConfig> config, UserWindow *parent) :
 	UserWindow(config, parent),
 	frameLoadDelegate(0),
 	uiDelegate(0),
@@ -446,19 +455,15 @@ Win32UserWindow::Win32UserWindow(AutoPtr<WindowConfig> config, AutoUserWindow& p
 	
 }
 
-AutoUserWindow UserWindow::CreateWindow(AutoPtr<WindowConfig> config, AutoUserWindow parent)
+UserWindow *UserWindow::createWindow(AutoPtr<WindowConfig> config, UserWindow *parent)
 {
 	return new Win32UserWindow(config, parent);
 }
 
 Win32UserWindow::~Win32UserWindow()
 {
-
 	if (webView)
 		webView->Release();
-
-	//if (mainFrame)
-	//	mainFrame->Release();
 }
 
 typedef struct DrawChildWindowData_

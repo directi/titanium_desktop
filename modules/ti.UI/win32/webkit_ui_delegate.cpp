@@ -3,8 +3,15 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
-#include "../ui_module.h"
+#include "webkit_ui_delegate.h"
+#include "win32_user_window.h"
+#include "popup_dialog.h"
+#include "win32_ui_binding.h"
+
+#include <tchar.h>
+#include <commdlg.h>
 #include <comutil.h>
+
 #define MARGIN 20
 
 namespace ti
@@ -106,7 +113,7 @@ HRESULT STDMETHODCALLTYPE Win32WebKitUIDelegate::createWebViewWithRequest(
 			config->SetHeight(height);
 	}
 
-	AutoUserWindow window(UserWindow::CreateWindow(config,
+	AutoUserWindow window(UserWindow::createWindow(config,
 		this->window->GetAutoPtr().cast<UserWindow>()));
 	window->Open();
 

@@ -9,6 +9,9 @@
 
 namespace ti
 {
+	class MenuItem;
+	typedef AutoPtr<MenuItem> AutoMenuItem;
+
 	class Menu : public KAccessorObject 
 	{
 	public:
@@ -43,5 +46,7 @@ namespace ti
 	protected:
 		std::vector<AutoMenuItem> children;
 	};
+
+	typedef AutoPtr<Menu> AutoMenu;
 }
 #endif

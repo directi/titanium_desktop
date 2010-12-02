@@ -281,7 +281,7 @@ namespace ti
 		return this->contextMenu;
 	}
 
-	TrayItem *OSXUIBinding::AddTray(std::string& iconPath, KValueRef eventListener)
+	TrayItem *OSXUIBinding::AddTray(const std::string& iconPath, KValueRef eventListener)
 	{
 		return new OSXTrayItem(iconPath, eventListener);
 	}

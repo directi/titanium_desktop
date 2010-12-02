@@ -7,9 +7,12 @@
 #define TI_POPUP_DIALOG_H_
 #define MAX_INPUT_LENGTH 1024
 
+#include <kroll/kroll.h>
+
 namespace ti {
 
-	class Win32PopupDialog {
+	class Win32PopupDialog
+	{
 	public:
 		Win32PopupDialog(HWND windowHandle);
 		virtual ~Win32PopupDialog();
@@ -26,7 +29,7 @@ namespace ti {
 		{
 			this->showCancelButton = showCancelButton;
 		}
-		
+
 		int CountMatches(std::string& message, const char *token);
 
 		int Show();

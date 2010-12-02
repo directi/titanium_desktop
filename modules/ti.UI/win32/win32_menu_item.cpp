@@ -3,7 +3,11 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
-#include "../ui_module.h"
+
+#include "win32_menu_item.h"
+#include "win32_menu.h"
+#include "win32_user_window.h"
+#include "win32_ui_binding.h"
 
 namespace ti
 {

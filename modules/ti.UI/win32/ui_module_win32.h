@@ -31,8 +31,6 @@ namespace ti
 
 #include <WebKit/WebKit.h>
 #include <WebKit/WebKitCOMAPI.h>
-//#include <cairo/cairo.h>
-//#include <cairo/cairo-win32.h>
 #include "../url/url.h"
 #include "popup_dialog.h"
 #include "webkit_frame_load_delegate.h"

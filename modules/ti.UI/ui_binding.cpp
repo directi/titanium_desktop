@@ -3,7 +3,11 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
-#include "ui_module.h"
+#include "menu.h"
+#include "clipboard.h"
+#include "ui_binding.h"
+#include "notification.h"
+
 #include <string>
 
 namespace ti
@@ -51,11 +55,23 @@ namespace ti
 
 	void UIBinding::CreateMainWindow(AutoPtr<WindowConfig> config)
 	{
-		this->mainWindow = UserWindow::CreateWindow(config, 0);
+		this->mainWindow = UserWindow::createWindow(config, 0);
 		this->mainWindow->Open();
+
+		try
+		{
+			const std::string appIcon = host->GetApplication()->getImage();
+			if (!appIcon.empty())
+				this->_SetIcon(appIcon);
+		}
+		catch (ValueException& e)
+		{
+			SharedString ss = e.DisplayString();
+			Logger::Get("UI")->Error("Could not set default icon: %s", ss->c_str());
+		}
 	}
 
-	AutoUserWindow UIBinding::GetMainWindow()
+	UserWindow *UIBinding::GetMainWindow()
 	{
 		return this->mainWindow;
 	}
@@ -82,7 +98,7 @@ namespace ti
 		if (config.isNull())
 			config = WindowConfig::Default();
 
-		result->SetObject(UserWindow::CreateWindow(config, 0));
+		result->SetObject(UserWindow::createWindow(config, 0));
 	}
 
 	void UIBinding::ErrorDialog(std::string msg)
@@ -240,13 +256,13 @@ namespace ti
 	void UIBinding::_GetMenu(const ValueList& args, KValueRef result)
 	{
 		AutoMenu menu = this->GetMenu();
-		if (menu.isNull())
+		if (menu)
 		{
-			result->SetNull();
+			result->SetObject(menu);
 		}
 		else
 		{
-			result->SetObject(menu);
+			result->SetNull();
 		}
 	}
 
@@ -409,15 +425,20 @@ namespace ti
 		script.append(escapedMessage);
 		script.append("')");
 
-        ValueList args = ValueList(Value::NewString(script));
-		if(IsMainThread()) 
+		ValueList args = ValueList(Value::NewString(script));
+		if(IsMainThread())
+		{
 			PrivateLog(args);
+		}
 		else
+		{
 			RunOnMainThread(new KFunctionPtrMethod(&UIBinding::PrivateLog), args);
-    }
+		}
+	}
 
     KValueRef UIBinding::PrivateLog(const ValueList& args)
-    {
+	{
+		ASSERT_MAIN_THREAD
 		std::string script = args.at(0)->ToString();
 		std::vector<AutoUserWindow>& openWindows = UIBinding::GetInstance()->GetOpenWindows();
 		for (size_t i = 0; i < openWindows.size(); i++)
@@ -429,7 +450,7 @@ namespace ti
 
 			try 
 			{
-				KJSUtil::Evaluate(kobj->GetContext(), script.c_str(), NULL);  
+				KJSUtil::Evaluate(kobj->GetContext(), script.c_str(), NULL);
 			} 
 			catch (ValueException& exception)
 			{
@@ -444,7 +465,7 @@ namespace ti
 				// Ignore for now atleast.
 				fprintf(stderr, "Yikes, lost a log message\n");
 			}
-        }
+		}
 		return Value::Undefined;
 	}
 }

@@ -3,7 +3,9 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
-#include "../ui_module.h"
+
+#include "win32_tray_item.h"
+#include "win32_ui_binding.h"
 
 namespace ti
 {
@@ -13,7 +15,7 @@ namespace ti
 	UINT Win32TrayItem::trayCreatedMessage =
 		::RegisterWindowMessageA("TaskbarCreated");
 
-	Win32TrayItem::Win32TrayItem(std::string& iconURL, KValueRef cbSingleClick) :
+	Win32TrayItem::Win32TrayItem(const std::string& iconURL, KValueRef cbSingleClick) :
 		TrayItem(iconURL),
 		oldNativeMenu(0),
 		trayIconData(0)
@@ -62,7 +64,7 @@ namespace ti
 		}
 	}
 	
-	void Win32TrayItem::SetIcon(std::string& iconPath)
+	void Win32TrayItem::SetIcon(const std::string& iconPath)
 	{
 		if (!this->trayIconData)
 			return;
@@ -79,7 +81,7 @@ namespace ti
 		this->menu = menu;
 	}
 	
-	void Win32TrayItem::SetHint(std::string& hint)
+	void Win32TrayItem::SetHint(const std::string& hint)
 	{
 		if (this->trayIconData)
 		{
@@ -94,7 +96,7 @@ namespace ti
 		}
 	}
 
-	void Win32TrayItem::ShowBalloonMessage(std::string & title, std::string & message)
+	void Win32TrayItem::ShowBalloonMessage(const std::string & title, const std::string & message)
 	{				
 		// Set the flags for showing balloon, espcially NIF_INFO
 		this->trayIconData->uFlags |= NIF_INFO;
@@ -112,7 +114,7 @@ namespace ti
 
 	}
 
-	void Win32TrayItem::ResetBalloonMessage(std::string & title)
+	void Win32TrayItem::ResetBalloonMessage(const std::string & title)
 	{				
 		// Set the flags for showing balloon, espcially NIF_TIP
 		this->trayIconData->uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP;
@@ -187,7 +189,7 @@ namespace ti
 		}
 	}
 	
-	UINT Win32TrayItem::GetId()
+	inline UINT Win32TrayItem::GetId() const
 	{
 		return this->trayIconData->uID;
 	}

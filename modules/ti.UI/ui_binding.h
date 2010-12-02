@@ -9,7 +9,9 @@
 
 #include <kroll/kroll.h>
 #include "menu_item.h"
-#include "notification.h"
+#include "tray_item.h"
+#include "user_window.h"
+
 
 namespace ti
 {
@@ -22,7 +24,7 @@ namespace ti
 		Host* GetHost();
 
 		void CreateMainWindow(AutoPtr<WindowConfig> config);
-		AutoUserWindow GetMainWindow();
+		UserWindow *GetMainWindow();
 		std::vector<AutoUserWindow>& GetOpenWindows();
 		void AddToOpenWindows(AutoUserWindow);
 		void RemoveFromOpenWindows(AutoUserWindow);
@@ -64,7 +66,7 @@ namespace ti
 		virtual void SetMenu(AutoMenu) = 0;
 		virtual void SetContextMenu(AutoMenu) = 0;
 		virtual void SetIcon(std::string& iconPath) = 0;
-		virtual TrayItem * AddTray(std::string& iconPath, KValueRef cbSingleClick) = 0;
+		virtual TrayItem * AddTray(const std::string& iconPath, KValueRef cbSingleClick) = 0;
 		virtual AutoMenu GetMenu() = 0;
 		virtual AutoMenu GetContextMenu() = 0;
 		virtual long GetIdleTime() = 0;
@@ -80,12 +82,13 @@ namespace ti
 		static inline UIBinding *GetInstance() { return instance; }
 
 	protected:
-		static UIBinding * instance;
 		Host* host;
-		AutoUserWindow mainWindow;
+		UserWindow* mainWindow;
 		std::vector<AutoUserWindow> openWindows;
 		std::vector<TrayItem *> trayItems;
 		std::string iconURL;
+
+		static UIBinding* instance;
 
 		static void Log(Logger::Level level, const std::string& message);
 

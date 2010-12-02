@@ -15,16 +15,16 @@ namespace ti
 	{
 
 	public:
-		TrayItem(std::string& iconURL);
+		TrayItem(const std::string& iconURL);
 		virtual ~TrayItem();
 
-		virtual void SetIcon(std::string& iconPath) = 0;
+		virtual void SetIcon(const std::string& iconPath) = 0;
 		virtual void SetMenu(AutoMenu menu) = 0;
-		virtual void SetHint(std::string& hint) = 0;
+		virtual void SetHint(const std::string& hint) = 0;
 #ifdef WIN32
-		virtual void ShowBalloonMessage(std::string & title, std::string & message) = 0;
+		virtual void ShowBalloonMessage(const std::string & title, const std::string & message) = 0;
 		void _ShowBalloonMessage(const ValueList& args, KValueRef result);
-		virtual void ResetBalloonMessage(std::string & title) = 0;
+		virtual void ResetBalloonMessage(const std::string & title) = 0;
 		void _ResetBalloonMessage(const ValueList& args, KValueRef result);
 #endif
 		virtual void Remove() = 0;
