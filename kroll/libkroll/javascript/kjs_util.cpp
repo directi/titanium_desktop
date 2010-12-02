@@ -759,9 +759,6 @@ namespace KJSUtil
 
 	static inline void _delContext(JSGlobalContextRef globalContext) 
 	{
-#ifdef NDEBUG
-		KEventObject::CleanupListenersFromContext(globalContext);
-#endif
 		JSObjectRef globalObject = JSContextGetGlobalObject(globalContext);
 		jsObjectRefCounter.erase(globalContext);
 	}
