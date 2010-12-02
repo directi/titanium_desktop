@@ -1535,10 +1535,9 @@ void UserWindow::InsertAPI(KObjectRef frameGlobal)
 	frameGlobal->SetObject(GLOBAL_NS_VARNAME, delegateGlobalObject);
 }
 
-void UserWindow::RegisterJSContext(JSContextRef context)
+void UserWindow::RegisterJSContext(JSGlobalContextRef context)
 {
 	JSObjectRef globalObject = JSContextGetGlobalObject(context);
-	KJSUtil::RegisterContext(globalObject, context);
 
 	// Get the global object as a KKJSObject
 	KObjectRef frameGlobal = new KKJSObject(context, globalObject);

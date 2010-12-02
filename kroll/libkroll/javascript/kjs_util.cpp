@@ -13,6 +13,7 @@
 #include <kroll/binding/binding_declaration.h>
 #include <kroll/utils/url_utils.h>
 #include <kroll/utils/file_utils.h>
+#include <JavascriptCore/JSContextRefPrivate.h>
 
 #define TROUBLE_SHOOT_GC 1
 
@@ -727,50 +728,14 @@ namespace KJSUtil
 			jsAPI, kJSPropertyAttributeNone, NULL);
 		JSStringRelease(propertyName);
 
-		RegisterContext(globalObject, jsContext);
+		ProtectContext(jsContext);
 		return jsContext;
 	}
-
-	static std::map<JSObjectRef, JSContextRef> jsContextMap;
-
-	void RegisterContext(JSObjectRef globalObject, JSContextRef globalContext)
-	{
-		ASSERT_MAIN_THREAD
-		std::map<JSObjectRef, JSContextRef>::iterator i = jsContextMap.find(globalObject);
-		if (i == jsContextMap.end())
-		{
-			jsContextMap[globalObject] = globalContext;
-			//JSValueProtect(globalContext, globalObject);
-		}
-	}
-
-	void UnregisterContext(JSObjectRef globalObject, JSContextRef globalContext)
-	{
-		ASSERT_MAIN_THREAD
-		std::map<JSObjectRef, JSContextRef>::iterator i = jsContextMap.find(globalObject);
-		if(i != jsContextMap.end()) 
-		{
-			//JSValueUnprotect(globalContext, globalObject);
-			jsContextMap.erase(i);
-		}
-#if DEBUG
-		else 
-			fprintf(stderr, "Yikes, context not found\n");
-#endif
-	}
 	
-	JSContextRef GetGlobalContext(JSObjectRef object, JSContextRef context)
+	JSGlobalContextRef GetGlobalContext(JSContextRef context)
 	{
 		ASSERT_MAIN_THREAD
-		if (jsContextMap.find(object) == jsContextMap.end())
-		{
-			GetLogger()->Error("Yikes need to return a NULL context!!");
-			return 0;
-		}
-		else
-		{
-			return jsContextMap[object];
-		}
+		return JSContextGetGlobalContext(context);
 	}
 
 	typedef std::map<JSObjectRef, int> JSObjectInContextRefCounter;
@@ -782,24 +747,22 @@ namespace KJSUtil
 	static SurvivingObjects survivingObjects;
 #endif
 
-	static inline void _addContext(JSContextRef globalContext)
+	static inline void _addContext(JSGlobalContextRef globalContext)
 	{
 		JSObjectRefCounter::iterator ourContext = jsObjectRefCounter.find(globalContext);
 		if(ourContext == jsObjectRefCounter.end()) 
 		{
 			JSObjectRef globalObject = JSContextGetGlobalObject(globalContext);
-			RegisterContext(globalObject, globalContext);
 			jsObjectRefCounter[globalContext] = new JSObjectInContextRefCounter();
 		}
 	}
 
-	static inline void _delContext(JSContextRef globalContext) 
+	static inline void _delContext(JSGlobalContextRef globalContext) 
 	{
 #ifdef NDEBUG
 		KEventObject::CleanupListenersFromContext(globalContext);
 #endif
 		JSObjectRef globalObject = JSContextGetGlobalObject(globalContext);
-		UnregisterContext(globalObject, globalContext);
 		jsObjectRefCounter.erase(globalContext);
 	}
 
@@ -809,16 +772,15 @@ namespace KJSUtil
 		JavaScriptModuleInstance::GarbageCollect(ValueList());
 	}
 
-	void ProtectContext(JSContextRef globalContext)
+	void ProtectContext(JSGlobalContextRef globalContext)
 	{
 		ASSERT_MAIN_THREAD
 		_addContext(globalContext);
 	}
 
-	void ProtectContextAndValue(JSContextRef globalContext, JSObjectRef value)
+	void ProtectContextAndValue(JSGlobalContextRef globalContext, JSObjectRef value)
 	{
 		ASSERT_MAIN_THREAD
-		ProtectContext(globalContext);
 		JSObjectRefCounter::iterator ourCtx = jsObjectRefCounter.find(globalContext);
 		if(ourCtx == jsObjectRefCounter.end())
 		{
@@ -837,7 +799,7 @@ namespace KJSUtil
 		}
 	}
 
-	void UnprotectContextAndValue(JSContextRef globalContext, JSObjectRef value)
+	void UnprotectContextAndValue(JSGlobalContextRef globalContext, JSObjectRef value)
 	{
 		ASSERT_MAIN_THREAD
 		JSObjectRefCounter::iterator ourCtx = jsObjectRefCounter.find(globalContext);
@@ -863,10 +825,9 @@ namespace KJSUtil
 			if(ourRef->second <= 0)
 				ourCtx->second->erase(ourRef);
 		}
-		UnprotectContext(globalContext);
 	}
 
-	void UnprotectContext(JSContextRef globalContext, bool force)
+	void UnprotectContext(JSGlobalContextRef globalContext, bool force)
 	{
 		ASSERT_MAIN_THREAD
 		JSObjectRefCounter::iterator ourContext = jsObjectRefCounter.find(globalContext);
@@ -1020,15 +981,6 @@ namespace KJSUtil
 		}
 
 		return fnPrototype;
-	}
-
-	KValueRef GetProperty(JSObjectRef globalObject, std::string name)
-	{
-		JSContextRef jsContext = GetGlobalContext(globalObject, NULL);
-		JSStringRef jsName = JSStringCreateWithUTF8CString(name.c_str());
-		JSValueRef prop = JSObjectGetProperty(jsContext, globalObject, jsName, NULL);
-		JSStringRelease(jsName);
-		return ToKrollValue(prop, jsContext, globalObject);
 	}
 }
 }

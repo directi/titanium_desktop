@@ -36,7 +36,7 @@ namespace ti
 			virtual SharedString DisplayString(int levels=3);
 			virtual ~UserWindow();
 			void UpdateWindowForURL(std::string url);
-			void RegisterJSContext(JSContextRef);
+			void RegisterJSContext(JSGlobalContextRef);
 			void InsertAPI(KObjectRef frameGlobal);
 			void PageLoaded(KObjectRef scope, std::string &url, JSContextRef context);
 			inline KObjectRef GetDOMWindow() { return this->domWindow; }

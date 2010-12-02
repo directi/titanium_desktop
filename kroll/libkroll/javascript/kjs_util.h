@@ -27,19 +27,17 @@ KROLL_API JSValueRef KListToJSValue(KValueRef, JSContextRef);
 KROLL_API std::string ToChars(JSStringRef);
 KROLL_API bool IsArrayLike(JSObjectRef, JSContextRef);
 KROLL_API JSGlobalContextRef CreateGlobalContext();
-KROLL_API void RegisterContext(JSObjectRef, JSContextRef);
-KROLL_API void UnregisterContext(JSObjectRef, JSContextRef);
-KROLL_API JSContextRef GetGlobalContext(JSObjectRef, JSContextRef);
-KROLL_API void ProtectContext(JSContextRef);
-KROLL_API void ProtectContextAndValue(JSContextRef, JSObjectRef);
-KROLL_API void UnprotectContext(JSContextRef, bool force = false);
+KROLL_API JSGlobalContextRef GetGlobalContext(JSContextRef);
+KROLL_API void ProtectContext(JSGlobalContextRef);
+KROLL_API void UnprotectContext(JSGlobalContextRef, bool force = false);
 
-KROLL_API void UnprotectContextAndValue(JSContextRef, JSObjectRef);
+KROLL_API void ProtectContextAndValue(JSGlobalContextRef, JSObjectRef);
+KROLL_API void UnprotectContextAndValue(JSGlobalContextRef, JSObjectRef);
+
 KROLL_API KValueRef Evaluate(JSContextRef context, const char* script,
 	 const char* url = "string");
 KROLL_API KValueRef EvaluateFile(JSContextRef context,
 	const std::string& fullPath);
-KROLL_API KValueRef GetProperty(JSObjectRef, std::string name);
 
 };
 }

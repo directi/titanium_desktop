@@ -9,8 +9,6 @@
 
 namespace ti {
 
-typedef std::map<IWebFrame *, JSContextRef> FrameContextMap;
-
 class Win32UserWindow;
 
 class Win32WebKitFrameLoadDelegate : public IWebFrameLoadDelegate {
@@ -92,8 +90,6 @@ public:
 		JSContextRef context,
 		JSObjectRef windowScriptObject,
 		IWebFrame *frame);
-private:
-	FrameContextMap m_frameContexts; 
 };
 
 }

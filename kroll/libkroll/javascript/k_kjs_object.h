@@ -39,7 +39,7 @@ namespace kroll
 		JSContextRef GetContext();
 
 		protected:
-		JSContextRef context;
+		JSGlobalContextRef context;
 		JSObjectRef jsobject;
 
 		private:
