@@ -7,6 +7,8 @@
 #ifndef TITANIUM_URL_H_
 #define TITANIUM_URL_H_
 
+#include <kroll/kroll.h>
+
 #ifndef KEYVALUESTRUCT
 typedef struct {
     char* key;

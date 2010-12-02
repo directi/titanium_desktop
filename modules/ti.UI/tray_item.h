@@ -7,6 +7,7 @@
 #define _TRAY_ITEM_H_
 
 #include <kroll/kroll.h>
+
 #include "menu_item.h"
 
 namespace ti

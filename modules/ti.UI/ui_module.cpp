@@ -11,13 +11,13 @@
 #elif defined(OS_OSX)
 #include "osx/ui_module_osx.h"
 #elif defined(OS_WIN32)
-#include "win32/ui_module_win32.h"
+#include "win32/win32_ui_binding.h"
 #endif
 
 namespace ti
 {
 	KROLL_MODULE(UIModule, STRING(MODULE_NAME), STRING(MODULE_VERSION))
-	UIModule* UIModule::instance_ = 0;
+	UIModule* UIModule::instance_ = NULL;
 
 	void UIModule::Initialize()
 	{
@@ -29,7 +29,7 @@ namespace ti
 	void UIModule::Start()
 	{
 #ifdef OS_WIN32
-		this->uiBinding = new Win32UIBinding(this, host);
+		this->uiBinding = new Win32UIBinding(host);
 #elif OS_OSX
 		this->uiBinding = new OSXUIBinding(host);
 #elif OS_LINUX
@@ -41,7 +41,7 @@ namespace ti
 		AppConfig* config = AppConfig::Instance();
 		if (!config)
 		{
-			std::string msg = "Error loading tiapp.xml. Your application "
+			const std::string msg = "Error loading tiapp.xml. Your application "
 				"is not properly configured or packaged.";
 			this->uiBinding->ErrorDialog(msg);
 			throw ValueException::FromString(msg.c_str());

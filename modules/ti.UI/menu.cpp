@@ -5,13 +5,12 @@
  */
 
 #include <kroll/kroll.h>
-#include "ui_module.h"
+
 #include "menu.h"
+#include "ui_binding.h"
+
 namespace ti
 {
-	using std::vector;
-	using std::string;
-
 	Menu::Menu() :
 		KAccessorObject("UI.Menu")
 	{

@@ -33,7 +33,6 @@ namespace kroll
 				boost::recursive_mutex::scoped_lock lock(count_mutex);
 				--count;
 			}
-
 			if (count == 0)
 			{
 				delete this;
