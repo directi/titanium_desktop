@@ -21,13 +21,13 @@ namespace kroll
 		ReferenceCounted() : count(1) { }
 		virtual ~ReferenceCounted() { }
 
-		void duplicate()
+		virtual void duplicate()
 		{
 			boost::mutex::scoped_lock lock(count_mutex);
 			++count;
 		}
 
-		void release()
+		virtual void release()
 		{
 			{
 				boost::mutex::scoped_lock lock(count_mutex);

@@ -20,7 +20,7 @@ namespace ti
 	class Win32UIBinding : public UIBinding
 	{
 	public:
-		Win32UIBinding(Module* uiModule, Host *host);
+		Win32UIBinding(Host *host);
 		virtual ~Win32UIBinding();
 
 		virtual AutoMenu CreateMenu();

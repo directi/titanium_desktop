@@ -4,7 +4,9 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 #include <kroll/kroll.h>
-#include "ui_module.h"
+
+#include "tray_item.h"
+#include "ui_binding.h"
 
 namespace ti
 {

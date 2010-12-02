@@ -25,7 +25,7 @@ namespace ti
 	vector<HICON> Win32UIBinding::loadedICOs;
 	vector<HBITMAP> Win32UIBinding::loadedBMPs;
 
-	Win32UIBinding::Win32UIBinding(Module *uiModule, Host *host) :
+	Win32UIBinding::Win32UIBinding(Host *host) :
 		UIBinding(host),
 		menu(0),
 		contextMenu(0),

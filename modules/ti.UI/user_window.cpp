@@ -3,8 +3,9 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
+
 #include "ui_module.h"
-#include <kroll/javascript/javascript_module_instance.h>
+#include "user_window.h"
 
 namespace ti
 {

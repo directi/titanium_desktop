@@ -7,25 +7,19 @@
 #define _UI_MODULE_H_
 
 #include <kroll/kroll.h>
-
-#include "user_window.h"
 #include "ui_binding.h"
-
-#include "url/url.h"
 
 namespace ti {
 
 	class UIModule : public kroll::Module
 	{
 		KROLL_MODULE_CLASS(UIModule)
+		virtual void Start();
 
 	public:
 		static UIModule* GetInstance() { return instance_; }
 
-		UIBinding * GetUIBinding() { return uiBinding; }
-		virtual void Start();
-
-	protected:
+	private:
 		DISALLOW_EVIL_CONSTRUCTORS(UIModule);
 		UIBinding * uiBinding;
 
