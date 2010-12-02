@@ -153,8 +153,10 @@ class BuildConfig(object):
 	def add_thirdparty(self, env, name):
 		cpppath = libpath = libs = None
 
-		if name is 'asio':
-			cpppath = [self.tp('asio', 'include')]
+		if name is 'boost':
+			cpppath = [self.tp('boost', 'include')]
+			if self.is_win32():
+				libpath = [self.tp('boost', 'lib')]
 
 		if name is 'openssl':
 			if self.is_win32():

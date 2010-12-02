@@ -17,10 +17,10 @@
 #include <string>
 #include <deque>
 
-#include <asio.hpp>
-#include <asio/detail/mutex.hpp>
+#include <boost/asio.hpp>
+#include <boost/thread/thread.hpp>
 
-using asio::ip::tcp;
+using boost::asio::ip::tcp;
 
 #include <boost/bind.hpp>
 
@@ -31,15 +31,15 @@ namespace ti
 	public:
 		static void initialize();
 		static void uninitialize();
-		static asio::io_service* getIOService()
+		static boost::asio::io_service* getIOService()
 		{
 			return io_service.get();
 		}
 
 	private:
-		static std::auto_ptr<asio::io_service> io_service;
-		static std::auto_ptr<asio::io_service::work> io_idlework;
-		static std::auto_ptr<asio::thread> io_thread;
+		static std::auto_ptr<boost::asio::io_service> io_service;
+		static std::auto_ptr<boost::asio::io_service::work> io_idlework;
+		static std::auto_ptr<boost::thread> io_thread;
 	};
 }
 #endif

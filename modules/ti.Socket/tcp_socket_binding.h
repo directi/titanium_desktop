@@ -51,9 +51,9 @@ namespace ti
 
 		void registerHandleResolve();
 
-		void handleResolve(const asio::error_code& error, tcp::resolver::iterator endpoint_iterator);
+		void handleResolve(const boost::system::error_code& error, tcp::resolver::iterator endpoint_iterator);
 		void registerHandleConnect(tcp::resolver::iterator endpoint_iterator);
-		void handleConnect(const asio::error_code& error, tcp::resolver::iterator endpoint_iterator);
+		void handleConnect(const boost::system::error_code& error, tcp::resolver::iterator endpoint_iterator);
 
 		virtual bool CompleteClose()
 		{

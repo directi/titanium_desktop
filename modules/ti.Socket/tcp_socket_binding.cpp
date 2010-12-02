@@ -110,7 +110,7 @@ namespace ti
 
 	void TCPSocketBinding::setKeepAlive(bool keep_alives)
 	{
-		asio::socket_base::keep_alive option(keep_alives);
+		boost::asio::socket_base::keep_alive option(keep_alives);
 		if (socket)
 		{
 			socket->set_option(option);
@@ -142,7 +142,7 @@ namespace ti
 				socket->connect(*endpoint_iterator);
 			}
 		}
-		catch(asio::system_error & e)
+		catch(std::exception& e)
 		{
 			this->CompleteClose();
 			return false;
@@ -165,7 +165,7 @@ namespace ti
 		{
 			endpoint_iterator = this->resolveHost();
 		}
-		catch(asio::system_error & e)
+		catch(std::exception& e)
 		{
 			this->on_error(e.what());
 			this->sock_state = SOCK_CLOSED;
@@ -201,14 +201,14 @@ namespace ti
 		tcp::resolver::query query(hostname, port);
 		resolver.async_resolve(query,
 			boost::bind(&TCPSocketBinding::handleResolve, this,
-			asio::placeholders::error, asio::placeholders::iterator));
+			boost::asio::placeholders::error, boost::asio::placeholders::iterator));
 	}
 
-	void TCPSocketBinding::handleResolve(const asio::error_code& error, tcp::resolver::iterator endpoint_iterator)
+	void TCPSocketBinding::handleResolve(const boost::system::error_code& error, tcp::resolver::iterator endpoint_iterator)
 	{
 		if (error)
 		{
-			if (error == asio::error::operation_aborted)
+			if (error == boost::asio::error::operation_aborted)
 			{
 				GetLogger()->Warn("Socket::handleResolve: operation aborted.");
 				return;
@@ -225,13 +225,13 @@ namespace ti
 		{
 			socket->async_connect(*endpoint_iterator,
 				boost::bind(&TCPSocketBinding::handleConnect, this,
-				asio::placeholders::error, ++endpoint_iterator));
+				boost::asio::placeholders::error, ++endpoint_iterator));
 			return;
 		}
 		this->on_error("TCPSocketBinding Host resolution Error");
 	}
 
-	void TCPSocketBinding::handleConnect(const asio::error_code& error, tcp::resolver::iterator endpoint_iterator)
+	void TCPSocketBinding::handleConnect(const boost::system::error_code& error, tcp::resolver::iterator endpoint_iterator)
 	{
 		if (!error)
 		{
@@ -248,7 +248,7 @@ namespace ti
 			return;
 		}
 
-		if (error == asio::error::operation_aborted)
+		if (error == boost::asio::error::operation_aborted)
 		{
 			GetLogger()->Warn("Socket::handleWrite: operation aborted.");
 			return;

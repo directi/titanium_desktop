@@ -8,7 +8,7 @@ namespace ti
 {
 	SecureTCPSocket::SecureTCPSocket(Host *host, TCPSocketBinding * tcp_socket_binding)
 		: Socket(host, string("Socket.SecureTCPSocket")),
-		ctx(*SocketService::getIOService(), asio::ssl::context::sslv23),
+		ctx(*SocketService::getIOService(), boost::asio::ssl::context::sslv23),
 		tcp_socket(NULL)
 	{
 		if(!tcp_socket_binding)
@@ -22,11 +22,11 @@ namespace ti
 
 		try
 		{
-			ctx.set_verify_mode(asio::ssl::context::verify_none);
+			ctx.set_verify_mode(boost::asio::ssl::context::verify_none);
 			ctx.use_certificate_file(FileUtils::Join(
 				host->GetApplication()->getRuntimePath().c_str(),
-				"rootcert.pem", 0), asio::ssl::context::pem);
-			socket = new asio::ssl::stream<tcp::socket&>(*tcp_socket, ctx);
+				"rootcert.pem", 0), boost::asio::ssl::context::pem);
+			socket = new boost::asio::ssl::stream<tcp::socket&>(*tcp_socket, ctx);
 		}
 		catch (std::exception &e)
 		{
@@ -61,16 +61,16 @@ namespace ti
 	void SecureTCPSocket::registerAsyncHandshake()
 	{
 		this->sock_state = SOCK_HANDSHAKE_IN_PROGRESS;
-		socket->async_handshake(asio::ssl::stream_base::client,
+		socket->async_handshake(boost::asio::ssl::stream_base::client,
 			boost::bind(&SecureTCPSocket::handleAsyncHandshake,
-			this, asio::placeholders::error));
+			this, boost::asio::placeholders::error));
 	}
 
-	void SecureTCPSocket::handleAsyncHandshake(const asio::error_code& error)
+	void SecureTCPSocket::handleAsyncHandshake(const boost::system::error_code& error)
 	{
 		if (error)
 		{
-			if (error == asio::error::operation_aborted)
+			if (error == boost::asio::error::operation_aborted)
 			{
 				this->sock_state = SOCK_CONNECTED;
 				GetLogger()->Warn("SecureTCPSocket::handleAsyncHandshake: operation aborted.");

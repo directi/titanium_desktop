@@ -15,7 +15,7 @@ if build.is_linux():
 	env.ParseConfig('pkg-config --libs --cflags gdk-2.0 dbus-glib-1')
 
 if build.is_win32():
-	env.Append(CPPDEFINES = ('ASIO_DISABLE_IOCP'))
+	env.Append(CPPDEFINES = ('BOOST_ASIO_DISABLE_IOCP'))
 
 # Copy the support files the module build directory
 build.utils.LightWeightCopy(path.join(build.cwd(), 'support'), module.dir)

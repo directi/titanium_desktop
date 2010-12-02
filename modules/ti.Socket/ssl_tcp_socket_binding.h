@@ -7,13 +7,13 @@
 
 
 #include "tcp_socket_binding.h"
-#include <asio/ssl.hpp>
+#include <boost/asio/ssl.hpp>
 
 
 namespace ti
 {
 	class SecureTCPSocket
-		: public Socket<asio::ssl::stream<tcp::socket&> >
+		: public Socket<boost::asio::ssl::stream<tcp::socket&> >
 	{
 	public:
 		SecureTCPSocket(Host *host, TCPSocketBinding * tcp_socket_binding);
@@ -45,11 +45,11 @@ namespace ti
 
 		void async_handshake(const ValueList& args, KValueRef result);
 		void registerAsyncHandshake();
-		void handleAsyncHandshake(const asio::error_code& error);
+		void handleAsyncHandshake(const boost::system::error_code& error);
 		void on_handshake();
 
 
-		asio::ssl::context ctx;
+		boost::asio::ssl::context ctx;
 		tcp::socket * tcp_socket;
 		//ctx.set_verify_mode(boost::asio::ssl::context::verify_peer);
 	};

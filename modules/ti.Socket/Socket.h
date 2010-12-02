@@ -26,7 +26,7 @@ namespace ti
 		Host* ti_host;
 		T *socket;
 
-		asio::detail::mutex write_mutex;
+		boost::mutex write_mutex;
 		std::deque<std::string> write_buffer;
 		char read_data_buffer[BUFFER_SIZE + 1];
 		bool non_blocking;
@@ -84,14 +84,14 @@ namespace ti
 		void IsClosed(const ValueList& args, KValueRef result);
 
 		void registerHandleWrite();
-		void handleWrite(const asio::error_code& error, std::size_t bytes_transferred);
+		void handleWrite(const boost::system::error_code& error, std::size_t bytes_transferred);
 		void writeAsync(const std::string &data);
 
 		bool writeSync(const std::string &data);
 		bool write(const std::string &data);
 		std::string read();
 
-		void handleRead(const asio::error_code& error, std::size_t bytes_transferred);
+		void handleRead(const boost::system::error_code& error, std::size_t bytes_transferred);
 	};
 
 
@@ -201,19 +201,19 @@ namespace ti
 	template <class T>
 	void Socket<T>::registerHandleWrite()
 	{
-		asio::async_write(*socket,
-			asio::buffer(write_buffer.front().c_str(), write_buffer.front().size()),
+		boost::asio::async_write(*socket,
+			boost::asio::buffer(write_buffer.front().c_str(), write_buffer.front().size()),
 			boost::bind(&Socket::handleWrite, this,
-			asio::placeholders::error, asio::placeholders::bytes_transferred));
+			boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
 
 	}
 
 	template <class T>
-	void Socket<T>::handleWrite(const asio::error_code& error, std::size_t bytes_transferred)
+	void Socket<T>::handleWrite(const boost::system::error_code& error, std::size_t bytes_transferred)
 	{
 		if (error)
 		{
-			if (error == asio::error::operation_aborted)
+			if (error == boost::asio::error::operation_aborted)
 			{
 				GetLogger()->Warn("Socket::handleWrite: operation aborted.");
 				return;
@@ -221,7 +221,7 @@ namespace ti
 			this->on_error(error.message());
 			return;
 		}
-		asio::detail::mutex::scoped_lock lock(write_mutex);
+		boost::mutex::scoped_lock lock(write_mutex);
 		write_buffer.pop_front();
 		if (!write_buffer.empty())
 		{
@@ -232,7 +232,7 @@ namespace ti
 	template <class T>
 	void Socket<T>::writeAsync(const std::string &data)
 	{
-		asio::detail::mutex::scoped_lock lock(write_mutex);
+		boost::mutex::scoped_lock lock(write_mutex);
 		bool write_in_progress = !write_buffer.empty();
 		write_buffer.push_back(data);
 		if (!write_in_progress)
@@ -246,9 +246,9 @@ namespace ti
 	{
 		try
 		{
-			asio::write(*socket, asio::buffer(data.c_str(), data.size()));
+			boost::asio::write(*socket, boost::asio::buffer(data.c_str(), data.size()));
 		}
-		catch(asio::system_error & e)
+		catch(std::exception& e)
 		{
 			this->CompleteClose();
 			this->on_error(e.what());
@@ -273,11 +273,11 @@ namespace ti
 	}
 
 	template <class T>
-	void Socket<T>::handleRead(const asio::error_code& error, std::size_t bytes_transferred)
+	void Socket<T>::handleRead(const boost::system::error_code& error, std::size_t bytes_transferred)
 	{
 		if (error)
 		{
-			if (error == asio::error::operation_aborted)
+			if (error == boost::asio::error::operation_aborted)
 			{
 				GetLogger()->Warn("Socket::handleRead: operation aborted.");
 				return;
@@ -293,11 +293,11 @@ namespace ti
 	template <class T>
 	void Socket<T>::registerHandleRead()
 	{
-		asio::async_read(*socket,
-			asio::buffer(read_data_buffer, BUFFER_SIZE),
-			asio::transfer_at_least(1),
+		boost::asio::async_read(*socket,
+			boost::asio::buffer(read_data_buffer, BUFFER_SIZE),
+			boost::asio::transfer_at_least(1),
 			boost::bind(&Socket::handleRead, this,
-			asio::placeholders::error, asio::placeholders::bytes_transferred));
+			boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
 	}
 
 	template <class T>
@@ -311,10 +311,10 @@ namespace ti
 		size_t size = 0;
 		try
 		{
-			size = asio::read(*socket, asio::buffer(read_data_buffer, BUFFER_SIZE),
-				asio::transfer_at_least(1));
+			size = boost::asio::read(*socket, boost::asio::buffer(read_data_buffer, BUFFER_SIZE),
+				boost::asio::transfer_at_least(1));
 		}
-		catch(asio::system_error & e)
+		catch(std::exception & e)
 		{
 			this->CompleteClose();
 			this->on_error(e.what());
