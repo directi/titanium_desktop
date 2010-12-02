@@ -7,7 +7,7 @@
 #define _KR_REFERENCE_COUNTED_H_
 
 #include <base.h>
-#include <boost/thread/mutex.hpp>
+#include <boost/thread/recursive_mutex.hpp>
 
 namespace kroll
 {
@@ -15,7 +15,7 @@ namespace kroll
 	{
 	private:
 		int count;
-		boost::mutex count_mutex;
+		boost::recursive_mutex count_mutex;
 
 	public:
 		ReferenceCounted() : count(1) { }
@@ -23,14 +23,14 @@ namespace kroll
 
 		void duplicate()
 		{
-			boost::mutex::scoped_lock lock(count_mutex);
+			boost::recursive_mutex::scoped_lock lock(count_mutex);
 			++count;
 		}
 
 		void release()
 		{
 			{
-				boost::mutex::scoped_lock lock(count_mutex);
+				boost::recursive_mutex::scoped_lock lock(count_mutex);
 				--count;
 			}
 

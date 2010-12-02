@@ -55,7 +55,7 @@ HRESULT STDMETHODCALLTYPE Win32WebKitFrameLoadDelegate::didClearWindowObject(
 	IWebFrame *frame)
 {
 	JSGlobalContextRef globalContext = frame->globalContext();
-	KJSUtil::ProtectContext(globalContext);
+	KJSUtil::RegisterContext(globalContext);
 	this->window->RegisterJSContext(globalContext);
 	return S_OK;
 }
@@ -72,7 +72,7 @@ HRESULT STDMETHODCALLTYPE Win32WebKitFrameLoadDelegate::willCloseFrame(
 	/* [in] */ IWebFrame *frame)
 {
 	// Get rid of our references...
-	KJSUtil::UnprotectContext(frame->globalContext(), true);
+	KJSUtil::UnregisterContext(frame->globalContext());
 	return S_OK;
 }
 

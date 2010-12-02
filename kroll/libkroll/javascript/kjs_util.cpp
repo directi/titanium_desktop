@@ -87,8 +87,12 @@ namespace KJSUtil
 		{
 			int valref = objectValue->referenceCount();
 			int objref = objectValue->ToObject()->referenceCount();
-			if(valref > 1 & objref == 1)
-				objectValue->SetNull();
+			if(valref > 1) {
+				if(objref == 1)
+					objectValue->SetNull();
+				else
+					fprintf(stderr, "foo");
+			}
 		}
 	};
 
@@ -728,7 +732,8 @@ namespace KJSUtil
 			jsAPI, kJSPropertyAttributeNone, NULL);
 		JSStringRelease(propertyName);
 
-		ProtectContext(jsContext);
+		JSGlobalContextRetain(jsContext);
+		RegisterContext(jsContext);
 		return jsContext;
 	}
 	
@@ -752,14 +757,12 @@ namespace KJSUtil
 		JSObjectRefCounter::iterator ourContext = jsObjectRefCounter.find(globalContext);
 		if(ourContext == jsObjectRefCounter.end()) 
 		{
-			JSObjectRef globalObject = JSContextGetGlobalObject(globalContext);
 			jsObjectRefCounter[globalContext] = new JSObjectInContextRefCounter();
 		}
 	}
 
 	static inline void _delContext(JSGlobalContextRef globalContext) 
 	{
-		JSObjectRef globalObject = JSContextGetGlobalObject(globalContext);
 		jsObjectRefCounter.erase(globalContext);
 	}
 
@@ -769,13 +772,13 @@ namespace KJSUtil
 		JavaScriptModuleInstance::GarbageCollect(ValueList());
 	}
 
-	void ProtectContext(JSGlobalContextRef globalContext)
+	void RegisterContext(JSGlobalContextRef globalContext)
 	{
 		ASSERT_MAIN_THREAD
 		_addContext(globalContext);
 	}
 
-	void ProtectContextAndValue(JSGlobalContextRef globalContext, JSObjectRef value)
+	void ProtectJSObject(JSGlobalContextRef globalContext, JSObjectRef value)
 	{
 		ASSERT_MAIN_THREAD
 		JSObjectRefCounter::iterator ourCtx = jsObjectRefCounter.find(globalContext);
@@ -796,7 +799,7 @@ namespace KJSUtil
 		}
 	}
 
-	void UnprotectContextAndValue(JSGlobalContextRef globalContext, JSObjectRef value)
+	void UnprotectJSObject(JSGlobalContextRef globalContext, JSObjectRef value)
 	{
 		ASSERT_MAIN_THREAD
 		JSObjectRefCounter::iterator ourCtx = jsObjectRefCounter.find(globalContext);
@@ -817,43 +820,37 @@ namespace KJSUtil
 		else
 		{
 			ourRef->second--;
-			if(ourRef->second == 0)
+			if(ourRef->second == 0) 
+			{
 				JSValueUnprotect(globalContext, value);
-			if(ourRef->second <= 0)
 				ourCtx->second->erase(ourRef);
+			}
 		}
 	}
 
-	void UnprotectContext(JSGlobalContextRef globalContext, bool force)
+	void UnregisterContext(JSGlobalContextRef globalContext)
 	{
 		ASSERT_MAIN_THREAD
 		JSObjectRefCounter::iterator ourContext = jsObjectRefCounter.find(globalContext);
 		if(ourContext != jsObjectRefCounter.end()) 
 		{
-			if(force)
+			JSObjectInContextRefCounter* objRefs = ourContext->second;
+			if(objRefs)
 			{
-				JSObjectInContextRefCounter* objRefs = ourContext->second;
-				if(objRefs)
-				{
-					JSObjectInContextRefCounter::iterator i = objRefs->begin();
-					while(i != objRefs->end())
-					{						
-						JSValueUnprotect(globalContext, i->first);
+				JSObjectInContextRefCounter::iterator i = objRefs->begin();
+				while(i != objRefs->end())
+				{						
+					JSValueUnprotect(globalContext, i->first);
 #if TROUBLE_SHOOT_GC
-						KValueRef t = pointerFromJS(i->first);
-						if(! t.isNull())
-							survivingObjects[t->ToObject().get()] = t.get();
+					KValueRef t = pointerFromJS(i->first);
+					if(! t.isNull())
+						survivingObjects[t->ToObject().get()] = t.get();
 #endif
-						i++;
-					}
-					_delContext(globalContext);
-					GarbageCollect(globalContext);
-					return;
+					i++;
 				}
-			}
-			if(ourContext->second->size() == 0)
-			{
 				_delContext(globalContext);
+				GarbageCollect(globalContext);
+				return;
 			}
 		}
 #if DEBUG

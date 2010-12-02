@@ -14,12 +14,12 @@ namespace kroll
 	{
 		this->context = KJSUtil::GetGlobalContext(context);
 
-		KJSUtil::ProtectContextAndValue(this->context, this->jsobject);
+		KJSUtil::ProtectJSObject(this->context, this->jsobject);
 	}
 
 	KKJSObject::~KKJSObject()
 	{
-		KJSUtil::UnprotectContextAndValue(this->context, this->jsobject);
+		KJSUtil::UnprotectJSObject(this->context, this->jsobject);
 	}
 
 	JSObjectRef KKJSObject::GetJSObject()

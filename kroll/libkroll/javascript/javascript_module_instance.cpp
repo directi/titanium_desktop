@@ -20,7 +20,6 @@ namespace kroll
 		if(instanceContext == NULL)
 		{
 			instanceContext = KJSUtil::CreateGlobalContext();
-			JSGlobalContextRetain(instanceContext);
 		}
 
 		this->context = instanceContext;
