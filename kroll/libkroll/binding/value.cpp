@@ -58,7 +58,7 @@ namespace kroll
 
 	Value::~Value()
 	{
-		
+		reset();		
 	}
 
 	KValueRef Value::NewUndefined()
