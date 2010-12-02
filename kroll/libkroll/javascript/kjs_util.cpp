@@ -85,14 +85,7 @@ namespace KJSUtil
 
 		virtual ~JSObjectValue()
 		{
-			int valref = objectValue->referenceCount();
-			int objref = objectValue->ToObject()->referenceCount();
-			if(valref > 1) {
-				if(objref == 1)
-					objectValue->SetNull();
-				else
-					fprintf(stderr, "foo");
-			}
+			
 		}
 	};
 
