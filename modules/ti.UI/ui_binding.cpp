@@ -108,6 +108,7 @@ namespace ti
 
 	UIBinding::~UIBinding()
 	{
+		Logger::RemoveLoggerCallback(&UIBinding::Log);
 		this->ClearTray();
 
 		// Shutdown notifications

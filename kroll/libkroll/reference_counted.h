@@ -20,12 +20,12 @@ namespace kroll
 		ReferenceCounted() : count(1) { }
 		virtual ~ReferenceCounted() { }
 
-		void duplicate()
+		virtual void duplicate()
 		{
 			++count;
 		}
 
-		void release()
+		virtual void release()
 		{
 			int val = (--count);
 			if (val == 0)
@@ -34,7 +34,7 @@ namespace kroll
 			}
 		}
 
-		int referenceCount() const
+		inline int referenceCount() const
 		{
 			return count;
 		}

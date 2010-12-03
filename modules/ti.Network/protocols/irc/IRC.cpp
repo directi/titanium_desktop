@@ -29,7 +29,7 @@
 
 #ifdef DEBUG
 #include <sstream>
-#define PRINTD(x) { std::ostringstream ostr; ostr << x; kroll::Logger* logger = kroll::Logger::GetRootLogger(); logger->Debug(ostr.str()); };
+#define PRINTD(x) { std::ostringstream ostr; ostr << x; Logger::Get("Network.IRC")->Debug(ostr.str()); };
 #else
 #define PRINTD(x)
 #endif

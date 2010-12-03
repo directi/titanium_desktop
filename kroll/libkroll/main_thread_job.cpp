@@ -14,7 +14,7 @@ namespace kroll
 {
 
 	MainThreadJob::MainThreadJob(KMethodRef method, const ValueList& args) :
-		method(NULL),
+		method(method),
 		args(args),
 		returnValue(NULL),
 		exception(ValueException(NULL)),
@@ -24,21 +24,18 @@ namespace kroll
 		// thread can wait for the value to become >0 using wait()
 		// and the main thread can call set() after job execution
 		// which meets this condition.
-		this->method = method;
+		method->preventDeletion();
 	}
 
 	MainThreadJob::MainThreadJob(KMethodRef method) :
-		method(NULL),
+		method(method),
 		args(ValueList()),
 		returnValue(NULL),
 		exception(ValueException(NULL)),
 		semaphore(0, 1)
 	{
-		// The semaphore starts at 0, meaning that the calling
-		// thread can wait for the value to become >0 using wait()
-		// and the main thread can call set() after job execution
-		// which meets this condition.
-		this->method = method;
+		// Too much copy paste
+		method->preventDeletion();
 	}
 
 	void MainThreadJob::Wait()
@@ -68,7 +65,7 @@ namespace kroll
 		{
 			this->exception = ValueException::FromString("Unknown Exception from job queue");
 		}
-
+		method->allowDeletion();
 		this->semaphore.set();
 	}
 

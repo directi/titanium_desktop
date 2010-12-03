@@ -8,16 +8,13 @@
 #define _LOGGER_H_
 
 #include <base.h>
+#include <cstdarg>
+#include <fstream>
 
 #include <boost/thread/recursive_mutex.hpp>
 
-#include <Poco/Message.h>
-#include <Poco/PatternFormatter.h>
-#include <cstdarg>
-#include <iostream>
-#include <fstream>
-
 #define LOGGER_MAX_ENTRY_SIZE 2048
+
 
 namespace kroll
 {
@@ -36,20 +33,20 @@ namespace kroll
 			LDEBUG,
 			LTRACE
 		} Level;
+
+		static std::string getStringForLevel(Level level);
 		typedef void (*LoggerCallback)(Level, const std::string&);
 
 	protected:
-		Logger() {}
 		Logger(const std::string &name);
 		Logger(const std::string &name, Level level);
-		virtual ~Logger() {}
+		~Logger() {}
 
-		std::string name;
+		const std::string name;
 		Level level;
-		static boost::recursive_mutex mutex;
-		static char buffer[];
 
-		static Logger* GetImpl(const std::string &name);
+		static boost::recursive_mutex mutex;
+		static char buffer[LOGGER_MAX_ENTRY_SIZE];
 		static std::map<std::string, Logger*> loggers;
 
 	private:
@@ -63,15 +60,13 @@ namespace kroll
 		bool IsCriticalEnabled() const { return this->IsEnabled(LCRITICAL); }
 		bool IsFatalEnabled() const { return this->IsEnabled(LFATAL); }
 
-		virtual void Log(Poco::Message& m);
-
 	public:
 		static Logger* Get(const std::string &name);
-		static Logger* GetRootLogger();
 		static void Initialize(bool console, const std::string &logFilePath, Level level);
 		static void Shutdown();
-		static Level GetLevel(const std::string& level, bool debugEnabled = false);
 		static void AddLoggerCallback(LoggerCallback callback);
+		static void RemoveLoggerCallback(LoggerCallback callback);
+		static Logger::Level GetLevel(const std::string& level, bool debugEnabled = false);
 		static std::string Format(const char*, va_list);
 
 		Level GetLevel() const { return this->level; }
@@ -108,25 +103,50 @@ namespace kroll
 		void Fatal(const char*, ...);
 	};
 
-	class KROLL_API RootLogger : public Logger
+	struct RootLoggerConfig
 	{
-	public:
-		RootLogger(bool consoleLogging, const std::string &logFilePath, Level level);
-		virtual ~RootLogger();
-		static RootLogger* instance;
-		virtual void LogImpl(Poco::Message& m);
-		void AddLoggerCallback(LoggerCallback callback);
-
-	protected:
 		const bool consoleLogging;
 		const bool fileLogging;
+		const std::string& path;
+		Logger::Level level;
 
-		Poco::PatternFormatter* formatter;
-		boost::recursive_mutex mutex;
-		std::vector<LoggerCallback> callbacks;
-		std::ofstream stream;
+		RootLoggerConfig(bool consoleLogging,
+			const std::string& path = std::string(""),
+			const Logger::Level level = Logger::LINFO)
+			: consoleLogging(consoleLogging),
+			fileLogging(!path.empty()),
+			path(path),
+			level(level)
+		{
+		}
 	};
 
+	class KROLL_API RootLogger
+	{
+	public:
+		static void Initialize(const RootLoggerConfig& config);
+		static void UnInitialize();
+		static RootLogger * Instance() {return RootLogger::instance; }
+
+		Logger::Level getLevel() const { return config.level; }
+		void setLevel(Logger::Level level) { config.level = level; }
+		void LogImpl(const std::string& name, const std::string& message, Logger::Level level);
+		void AddLoggerCallback(Logger::LoggerCallback callback);
+		void RemoveLoggerCallback(Logger::LoggerCallback callback);
+
+	private:
+		static RootLogger* instance;
+
+		RootLogger(const RootLoggerConfig& config);
+		~RootLogger();
+		bool IsEnabled(Logger::Level level) const { return level <= config.level; }
+
+		RootLoggerConfig config;
+		std::ofstream stream;
+
+		boost::recursive_mutex mutex;
+		std::vector<Logger::LoggerCallback> callbacks;
+	};
 }
 
 #endif // _LOGGER_H_

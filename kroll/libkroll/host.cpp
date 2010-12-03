@@ -726,15 +726,18 @@ namespace kroll
 
 	KValueRef RunOnMainThread(KMethodRef method)
 	{
+		method->preventDeletion();
 		return Host::GetInstance()->RunOnMainThread(method);
 	}
 	KValueRef RunOnMainThread(KMethodRef method, const ValueList& args)
 	{
+		method->preventDeletion();
 		return Host::GetInstance()->RunOnMainThread(method, args);
 	}
 
 	KValueRef RunReadJobOnMainThread(KMethodRef method, const char * data, size_t size)
 	{
+		method->preventDeletion();
 		return Host::GetInstance()->RunReadJobOnMainThread(method, data, size);
 	}
 }
