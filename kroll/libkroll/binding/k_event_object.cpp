@@ -200,7 +200,10 @@ namespace kroll
 	inline bool EventListener::callback_is(KValueRef callback) const
 	{
 		KMethodRef this_method = this->callback->ToMethod();
-		if(this_method.isNull()) return false;
+		if(this_method.isNull()) {
+			Logger::Get("Event")->Warn("Event wasn't cleaned up");
+			return false;
+		}
 
 		KMethodRef callback_method = callback->ToMethod();
 		return (this_method->Equals(callback_method));
@@ -208,6 +211,10 @@ namespace kroll
 
 	bool EventListener::dispatch(const ValueList& args)
 	{
+		if(this->callback->ToObject().isNull()) {
+			Logger::Get("Event")->Warn("Event wasn't cleaned up");
+			return true;
+		}
 		KValueRef result = RunOnMainThread(this->callback->ToMethod(), args);
 		if (result->IsBool())
 			return result->ToBool();

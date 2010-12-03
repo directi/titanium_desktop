@@ -15,6 +15,24 @@
 
 #define LOGGER_MAX_ENTRY_SIZE 2048
 
+#define LOG_METHOD(METHOD,LEVEL) \
+	void METHOD(const std::string &message) \
+	{ \
+		if (IsEnabled(LEVEL)) \
+		{ \
+			this->Log(LEVEL, message); \
+		} \
+	} \
+	void METHOD(const char* format, ...) \
+	{ \
+		if (IsEnabled(LEVEL)) \
+		{ \
+			va_list args; \
+			va_start(args, format); \
+			this->Log(LEVEL, format, args); \
+			va_end(args); \
+		} \
+	} \
 
 namespace kroll
 {
@@ -51,14 +69,6 @@ namespace kroll
 
 	private:
 		bool IsEnabled(Level) const	{ return level <= this->level; }
-		bool IsTraceEnabled() const { return this->IsEnabled(LTRACE); }
-		bool IsDebugEnabled() const { return this->IsEnabled(LDEBUG); }
-		bool IsInfoEnabled() const { return this->IsEnabled(LINFO); }
-		bool IsNoticeEnabled() const { return this->IsEnabled(LNOTICE); }
-		bool IsWarningEnabled() const { return this->IsEnabled(LWARN); }
-		bool IsErrorEnabled() const { return this->IsEnabled(LERROR); }
-		bool IsCriticalEnabled() const { return this->IsEnabled(LCRITICAL); }
-		bool IsFatalEnabled() const { return this->IsEnabled(LFATAL); }
 
 	public:
 		static Logger* Get(const std::string &name);
@@ -78,29 +88,14 @@ namespace kroll
 		void Log(Level, const char*, va_list);
 		void Log(Level, const char*, ...);
 
-		void Trace(const std::string&);
-		void Trace(const char*, ...);
-
-		void Debug(const std::string& );
-		void Debug(const char*, ...);
-
-		void Info(const std::string&);
-		void Info(const char*, ...);
-
-		void Notice(const std::string&);
-		void Notice(const char*, ...);
-
-		void Warn(const std::string&);
-		void Warn(const char*, ...);
-
-		void Error(const std::string&);
-		void Error(const char*, ...);
-
-		void Critical(const std::string&);
-		void Critical(const char*, ...);
-
-		void Fatal(const std::string&);
-		void Fatal(const char*, ...);
+		LOG_METHOD(Trace, Logger::LTRACE)
+		LOG_METHOD(Debug, Logger::LDEBUG)
+		LOG_METHOD(Info, Logger::LINFO)
+		LOG_METHOD(Notice, Logger::LNOTICE)
+		LOG_METHOD(Warn, Logger::LWARN)
+		LOG_METHOD(Error, Logger::LERROR)
+		LOG_METHOD(Critical, Logger::LCRITICAL)
+		LOG_METHOD(Fatal, Logger::LFATAL)
 	};
 
 	struct RootLoggerConfig
