@@ -18,7 +18,6 @@ namespace kroll
 		KValueRef SetInterval(const ValueList& args);
 		KValueRef ClearTimeout(const ValueList& args);
 		KValueRef ClearInterval(const ValueList& args);
-
 	}
 }
 

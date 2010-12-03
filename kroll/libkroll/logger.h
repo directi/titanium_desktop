@@ -11,7 +11,11 @@
 #include <cstdarg>
 #include <fstream>
 
+#ifdef DEBUG
+#include <boost/thread/mutex.hpp>
+#else
 #include <boost/thread/recursive_mutex.hpp>
+#endif
 
 #define LOGGER_MAX_ENTRY_SIZE 2048
 
@@ -63,7 +67,7 @@ namespace kroll
 		const std::string name;
 		Level level;
 
-		static boost::recursive_mutex mutex;
+		static boost::mutex mutex;
 		static char buffer[LOGGER_MAX_ENTRY_SIZE];
 		static std::map<std::string, Logger*> loggers;
 
@@ -139,7 +143,12 @@ namespace kroll
 		RootLoggerConfig config;
 		std::ofstream stream;
 
+#ifdef DEBUG
+		boost::mutex mutex;
+#else
+		// being safe on release builds.
 		boost::recursive_mutex mutex;
+#endif
 		std::vector<Logger::LoggerCallback> callbacks;
 	};
 }

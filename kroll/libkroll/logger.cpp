@@ -47,7 +47,7 @@ namespace kroll
 
 	std::map<std::string, Logger*> Logger::loggers;
 	char Logger::buffer[LOGGER_MAX_ENTRY_SIZE];
-	boost::recursive_mutex Logger::mutex;
+	boost::mutex Logger::mutex;
 
 	std::string Logger::getStringForLevel(Level level)
 	{
@@ -160,7 +160,7 @@ namespace kroll
 	std::string Logger::Format(const char* format, va_list args)
 	{
 		// Protect the buffer
-		boost::recursive_mutex::scoped_lock lock(mutex);
+		boost::mutex::scoped_lock lock(mutex);
 
 		vsnprintf(Logger::buffer, LOGGER_MAX_ENTRY_SIZE - 1, format, args);
 		Logger::buffer[LOGGER_MAX_ENTRY_SIZE - 1] = '\0';
@@ -252,6 +252,11 @@ namespace kroll
 				stream.flush();
 			}
 
+#ifdef DEBUG
+			boost::mutex::scoped_lock lock(mutex);
+#else
+			boost::recursive_mutex::scoped_lock lock(mutex);
+#endif
 			for (size_t i = 0; i < callbacks.size(); i++)
 			{
 				callbacks[i](level, line);
@@ -261,13 +266,21 @@ namespace kroll
 
 	void RootLogger::AddLoggerCallback(Logger::LoggerCallback callback)
 	{
+#ifdef DEBUG
+		boost::mutex::scoped_lock lock(mutex);
+#else
 		boost::recursive_mutex::scoped_lock lock(mutex);
+#endif
 		callbacks.push_back(callback);
 	}
 
 	void RootLogger::RemoveLoggerCallback(Logger::LoggerCallback callback)
 	{
+#ifdef DEBUG
+		boost::mutex::scoped_lock lock(mutex);
+#else
 		boost::recursive_mutex::scoped_lock lock(mutex);
+#endif
 		for(std::vector<Logger::LoggerCallback>::iterator
 			oIter = callbacks.begin();
 			oIter != callbacks.end();
