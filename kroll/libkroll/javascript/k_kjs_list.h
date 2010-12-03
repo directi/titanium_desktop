@@ -15,7 +15,7 @@ namespace kroll
 	{
 
 	public:
-		KKJSList(JSContextRef context, JSObjectRef jsObject);
+		KKJSList(JSGlobalContextRef context, JSObjectRef jsObject);
 		virtual ~KKJSList();
 
 		virtual void SetAt(unsigned int index, KValueRef value);

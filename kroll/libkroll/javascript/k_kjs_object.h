@@ -25,7 +25,7 @@ namespace kroll
 	class KROLL_API KKJSObject : public KObject
 	{
 		public:
-		KKJSObject(JSContextRef context, JSObjectRef js_object);
+		KKJSObject(JSGlobalContextRef context, JSObjectRef js_object);
 		virtual ~KKJSObject();
 
 		virtual void Set(const char *name, KValueRef value);
@@ -34,9 +34,9 @@ namespace kroll
 		virtual bool HasProperty(const char* name);
 		virtual bool Equals(KObjectRef);
 
-		bool SameContextGroup(JSContextRef c);
+		bool SameContextGroup(JSGlobalContextRef c);
 		JSObjectRef GetJSObject();
-		JSContextRef GetContext();
+		JSGlobalContextRef GetContext();
 
 		protected:
 		JSGlobalContextRef context;

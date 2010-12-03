@@ -7,7 +7,7 @@
 
 namespace kroll
 {
-	KKJSList::KKJSList(JSContextRef context, JSObjectRef jsobject) :
+	KKJSList::KKJSList(JSGlobalContextRef context, JSObjectRef jsobject) :
 		KList("JavaScript.KKJSList"),
 		KKJSObject(context, jsobject)
 	{

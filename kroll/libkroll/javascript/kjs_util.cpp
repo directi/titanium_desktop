@@ -53,8 +53,8 @@ namespace KJSUtil
 	static void AddSpecialPropertyNames(KValueRef, SharedStringList, bool);
 	static JSValueRef GetSpecialProperty(KValueRef, const char*, JSContextRef, KValueRef);
 	static bool DoSpecialSetBehavior(KValueRef target, const char* name, KValueRef newValue);
-	static JSValueRef GetFunctionPrototype(JSContextRef jsContext, JSValueRef* exception);
-	static JSValueRef GetArrayPrototype(JSContextRef jsContext, JSValueRef* exception);
+	static JSValueRef GetFunctionPrototype(JSGlobalContextRef jsContext, JSValueRef* exception);
+	static JSValueRef GetArrayPrototype(JSGlobalContextRef jsContext, JSValueRef* exception);
 
 	class JSObjectValue 
 	{
@@ -108,8 +108,18 @@ namespace KJSUtil
 	static std::map<JSObjectRef, Value*> objects;
 #endif
 
-	static inline JSObjectRef makeJSObject(JSContextRef jsContext, JSClassRef objectClass, KValueRef kValue)
+	typedef std::map<JSObjectRef, int> JSObjectInContextRefCounter;
+	typedef std::map<JSGlobalContextRef, JSObjectInContextRefCounter*> JSObjectRefCounter;
+	static JSObjectRefCounter jsObjectRefCounter;
+
+	static inline JSObjectRef makeJSObject(JSGlobalContextRef jsContext, JSClassRef objectClass, KValueRef kValue)
 	{
+		if(jsObjectRefCounter.find(jsContext) == jsObjectRefCounter.end())
+		{
+			Logger::Get("KKJSUtil")->Warn("Cowardly refusing to create an object in a dead context");
+			return 0;
+		}
+
 		JSObjectValueRef or = pointerToJS(kValue);
 		or->duplicate();
 		JSObjectRef r = JSObjectMake(jsContext, objectClass, or);
@@ -132,7 +142,7 @@ namespace KJSUtil
 
 
 
-	KValueRef ToKrollValue(JSValueRef value, JSContextRef jsContext,
+	KValueRef ToKrollValue(JSValueRef value, JSGlobalContextRef jsContext,
 		JSObjectRef thisObject)
 	{
 		KValueRef krollValue = 0;
@@ -217,7 +227,14 @@ namespace KJSUtil
 		}
 	}
 
-	JSValueRef ToJSValue(KValueRef value, JSContextRef jsContext)
+	KValueRef ToKrollValue(JSValueRef value, JSContextRef jsContext,
+		JSObjectRef thisObject)
+	{
+		return ToKrollValue(value, GetGlobalContext(jsContext), thisObject);
+	}
+
+
+	JSValueRef ToJSValue(KValueRef value, JSGlobalContextRef jsContext)
 	{
 		JSValueRef jsValue = NULL;
 		if (value->IsInt())
@@ -300,7 +317,12 @@ namespace KJSUtil
 
 	}
 
-	JSValueRef KObjectToJSValue(KValueRef objectValue, JSContextRef jsContext)
+	JSValueRef ToJSValue(KValueRef ref, JSContextRef ctx)
+	{
+		return ToJSValue(ref, GetGlobalContext(ctx));
+	}
+
+	JSValueRef KObjectToJSValue(KValueRef objectValue, JSGlobalContextRef jsContext)
 	{
 		if (KJSKObjectClass == NULL)
 		{
@@ -316,7 +338,7 @@ namespace KJSUtil
 		return makeJSObject(jsContext, KJSKObjectClass, objectValue);
 	}
 
-	JSValueRef KMethodToJSValue(KValueRef methodValue, JSContextRef jsContext)
+	JSValueRef KMethodToJSValue(KValueRef methodValue, JSGlobalContextRef jsContext)
 	{
 		if (KJSKMethodClass == NULL)
 		{
@@ -336,7 +358,7 @@ namespace KJSUtil
 		return jsobject;
 	}
 
-	JSValueRef KListToJSValue(KValueRef listValue, JSContextRef jsContext)
+	JSValueRef KListToJSValue(KValueRef listValue, JSGlobalContextRef jsContext)
 	{
 
 		if (KJSKListClass == NULL)
@@ -367,7 +389,7 @@ namespace KJSUtil
 		return string;
 	}
 
-	bool IsArrayLike(JSObjectRef object, JSContextRef jsContext)
+	bool IsArrayLike(JSObjectRef object, JSGlobalContextRef jsContext)
 	{
 		bool isArrayLike = true;
 
@@ -716,17 +738,16 @@ namespace KJSUtil
 	JSGlobalContextRef CreateGlobalContext()
 	{
 		JSGlobalContextRef jsContext = JSGlobalContextCreate(0);
-		JSObjectRef globalObject = JSContextGetGlobalObject(jsContext);
+		RegisterContext(jsContext);
 
 		JSValueRef jsAPI = ToJSValue(Value::NewObject(GlobalObject::GetInstance()), jsContext);
-
 		JSStringRef propertyName = JSStringCreateWithUTF8CString(PRODUCT_NAME);
+		JSObjectRef globalObject = JSContextGetGlobalObject(jsContext);
 		JSObjectSetProperty(jsContext, globalObject, propertyName,
 			jsAPI, kJSPropertyAttributeNone, NULL);
 		JSStringRelease(propertyName);
 
 		JSGlobalContextRetain(jsContext);
-		RegisterContext(jsContext);
 		return jsContext;
 	}
 	
@@ -736,9 +757,10 @@ namespace KJSUtil
 		return JSContextGetGlobalContext(context);
 	}
 
-	typedef std::map<JSObjectRef, int> JSObjectInContextRefCounter;
-	typedef std::map<JSContextRef, JSObjectInContextRefCounter*> JSObjectRefCounter;
-	static JSObjectRefCounter jsObjectRefCounter;
+	bool HasContext(JSGlobalContextRef context)
+	{
+		return jsObjectRefCounter.find(context) != jsObjectRefCounter.end();
+	}
 
 #if TROUBLE_SHOOT_GC
 	typedef std::map<KObject*, Value*> SurvivingObjects;
@@ -759,7 +781,7 @@ namespace KJSUtil
 		jsObjectRefCounter.erase(globalContext);
 	}
 
-	static void GarbageCollect(JSContextRef context) 
+	static void GarbageCollect(JSGlobalContextRef context) 
 	{
 		JSGarbageCollect(context);
 		JavaScriptModuleInstance::GarbageCollect(ValueList());
@@ -852,7 +874,7 @@ namespace KJSUtil
 #endif
 	}
 
-	KValueRef Evaluate(JSContextRef jsContext, const char* script, const char* url)
+	KValueRef Evaluate(JSGlobalContextRef jsContext, const char* script, const char* url)
 	{
 		JSObjectRef globalObject = JSContextGetGlobalObject(jsContext);
 		JSStringRef scriptContents = JSStringCreateWithUTF8CString(script);
@@ -871,7 +893,7 @@ namespace KJSUtil
 		return ToKrollValue(returnValue, jsContext, globalObject);
 	}
 
-	KValueRef EvaluateFile(JSContextRef jsContext, const std::string& fullPath)
+	KValueRef EvaluateFile(JSGlobalContextRef jsContext, const std::string& fullPath)
 	{
 		GetLogger()->Debug("Evaluating JavaScript file at: %s", fullPath.c_str());
 		std::string scriptContents(FileUtils::ReadFile(fullPath));
@@ -904,7 +926,7 @@ namespace KJSUtil
 	 *
 	 * NOTE: The return value is not protected.
 	 */
-	static JSValueRef GetFunctionPrototype(JSContextRef jsContext, JSValueRef* exception) 
+	static JSValueRef GetFunctionPrototype(JSGlobalContextRef jsContext, JSValueRef* exception) 
 	{
 		JSObjectRef globalObject = JSContextGetGlobalObject(jsContext);
 		JSStringRef fnPropName = JSStringCreateWithUTF8CString("Function");
@@ -940,7 +962,7 @@ namespace KJSUtil
 	 *
 	 * NOTE: The return value is not protected.
 	 */
-	static JSValueRef GetArrayPrototype(JSContextRef jsContext, JSValueRef* exception) 
+	static JSValueRef GetArrayPrototype(JSGlobalContextRef jsContext, JSValueRef* exception) 
 	{
 		JSObjectRef globalObject = JSContextGetGlobalObject(jsContext);
 		JSStringRef fnPropName = JSStringCreateWithUTF8CString("Array");

@@ -7,13 +7,11 @@
 
 namespace kroll
 {
-	KKJSObject::KKJSObject(JSContextRef context, JSObjectRef jsobject) :
+	KKJSObject::KKJSObject(JSGlobalContextRef context, JSObjectRef jsobject) :
 		KObject("JavaScript.KKJSObject"),
-		context(NULL),
+		context(context),
 		jsobject(jsobject)
 	{
-		this->context = KJSUtil::GetGlobalContext(context);
-
 		KJSUtil::ProtectJSObject(this->context, this->jsobject);
 	}
 
@@ -27,7 +25,7 @@ namespace kroll
 		return this->jsobject;
 	}
 
-	JSContextRef KKJSObject::GetContext()
+	JSGlobalContextRef KKJSObject::GetContext()
 	{
 		return this->context;
 	}
@@ -106,7 +104,7 @@ namespace kroll
 		return hasProperty;
 	}
 
-	bool KKJSObject::SameContextGroup(JSContextRef contextIn)
+	bool KKJSObject::SameContextGroup(JSGlobalContextRef contextIn)
 	{
 		return JSContextGetGroup(this->context) == JSContextGetGroup(contextIn);
 	}

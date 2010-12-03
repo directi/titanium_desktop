@@ -18,7 +18,7 @@ namespace kroll
 	class KROLL_API KKJSMethod : public KMethod, public KKJSObject
 	{
 		public:
-			KKJSMethod(JSContextRef, JSObjectRef, JSObjectRef);
+			KKJSMethod(JSGlobalContextRef, JSObjectRef, JSObjectRef);
 			virtual ~KKJSMethod();
 
 			virtual KValueRef Call(const ValueList& args);

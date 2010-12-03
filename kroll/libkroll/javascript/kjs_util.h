@@ -19,13 +19,13 @@ namespace kroll
 namespace KJSUtil
 {
 
-KROLL_API KValueRef ToKrollValue(JSValueRef, JSContextRef, JSObjectRef);
-KROLL_API JSValueRef ToJSValue(KValueRef, JSContextRef);
-KROLL_API JSValueRef KObjectToJSValue(KValueRef, JSContextRef);
-KROLL_API JSValueRef KMethodToJSValue(KValueRef, JSContextRef);
-KROLL_API JSValueRef KListToJSValue(KValueRef, JSContextRef);
+KROLL_API KValueRef ToKrollValue(JSValueRef, JSGlobalContextRef, JSObjectRef);
+KROLL_API JSValueRef ToJSValue(KValueRef, JSGlobalContextRef);
+KROLL_API JSValueRef KObjectToJSValue(KValueRef, JSGlobalContextRef);
+KROLL_API JSValueRef KMethodToJSValue(KValueRef, JSGlobalContextRef);
+KROLL_API JSValueRef KListToJSValue(KValueRef, JSGlobalContextRef);
 KROLL_API std::string ToChars(JSStringRef);
-KROLL_API bool IsArrayLike(JSObjectRef, JSContextRef);
+KROLL_API bool IsArrayLike(JSObjectRef, JSGlobalContextRef);
 KROLL_API JSGlobalContextRef CreateGlobalContext();
 KROLL_API JSGlobalContextRef GetGlobalContext(JSContextRef);
 KROLL_API void RegisterContext(JSGlobalContextRef);
@@ -34,11 +34,12 @@ KROLL_API void UnregisterContext(JSGlobalContextRef);
 KROLL_API void ProtectJSObject(JSGlobalContextRef, JSObjectRef);
 KROLL_API void UnprotectJSObject(JSGlobalContextRef, JSObjectRef);
 
-KROLL_API KValueRef Evaluate(JSContextRef context, const char* script,
+KROLL_API KValueRef Evaluate(JSGlobalContextRef context, const char* script,
 	 const char* url = "string");
-KROLL_API KValueRef EvaluateFile(JSContextRef context,
+KROLL_API KValueRef EvaluateFile(JSGlobalContextRef context,
 	const std::string& fullPath);
 
+bool HasContext(JSGlobalContextRef ctx);
 };
 }
 

@@ -7,7 +7,7 @@
 
 namespace kroll
 {
-	KKJSMethod::KKJSMethod(JSContextRef context, JSObjectRef jsobject, JSObjectRef thisObject) :
+	KKJSMethod::KKJSMethod(JSGlobalContextRef context, JSObjectRef jsobject, JSObjectRef thisObject) :
 		KMethod("JavaScript.KKJSMethod"),
 		KKJSObject(context, jsobject),
 		thisObject(thisObject)
@@ -25,6 +25,12 @@ namespace kroll
 
 	KValueRef KKJSMethod::Call(const ValueList& args)
 	{
+		if(! KJSUtil::HasContext(this->context))
+		{
+			Logger::Get("KKSJMethod")->Warn("Can't call this method with no context");
+			return Value::Undefined;
+		}
+
 		JSValueRef* jsArgs = new JSValueRef[args.size()];
 		for (int i = 0; i < (int) args.size(); i++)
 		{

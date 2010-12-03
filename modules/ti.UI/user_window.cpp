@@ -1439,7 +1439,7 @@ void UserWindow::RemoveChild(AutoUserWindow child)
 	}
 }
 
-static bool ShouldHaveTitaniumObject(JSContextRef ctx, JSObjectRef global)
+static bool ShouldHaveTitaniumObject(JSGlobalContextRef ctx, JSObjectRef global)
 {
 	// We really only want URLs that are loaded via the
 	// app, ti or file protocol to have the Titanium object.
@@ -1480,7 +1480,7 @@ static bool ShouldHaveTitaniumObject(JSContextRef ctx, JSObjectRef global)
 		url.find("file://") == 0 || url.find("data:text/html;") == 0;
 }
 
-static bool IsMainFrame(JSContextRef ctx, JSObjectRef global)
+static bool IsMainFrame(JSGlobalContextRef ctx, JSObjectRef global)
 {
 	// If this global objects 'parent' property is equal to the object
 	// itself, it is likely the main frame. There might be a better way
@@ -1572,7 +1572,7 @@ void UserWindow::RegisterJSContext(JSGlobalContextRef context)
 	}
 }
 
-void UserWindow::LoadUIJavaScript(JSContextRef context)
+void UserWindow::LoadUIJavaScript(JSGlobalContextRef context)
 {
 	const std::string modulePath = UIModule::GetInstance()->GetPath();
 	const std::string jsPath = FileUtils::Join(modulePath.c_str(), "ui.js", NULL);
@@ -1594,7 +1594,7 @@ void UserWindow::LoadUIJavaScript(JSContextRef context)
 }
 
 void UserWindow::PageLoaded(
-	KObjectRef globalObject, std::string &url, JSContextRef context)
+	KObjectRef globalObject, std::string &url, JSGlobalContextRef context)
 {
 	AutoPtr<Event> event = this->CreateEvent(Event::PAGE_LOADED);
 	event->SetObject("scope", globalObject);
