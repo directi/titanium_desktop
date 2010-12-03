@@ -12,27 +12,41 @@
 
 #include <kroll/utils/file_utils.h>
 
-//#define LOG_METHOD(METHOD,LEVEL) \
-//	void Logger::METHOD(const std::string &message) \
-//	{ \
-//		if (IsEnabled(LEVEL)) \
-//		{ \
-//			this->Log(LEVEL, message); \
-//		} \
-//	} \
-//	void Logger::METHOD(const char* format, ...) \
-//	{ \
-//		if (IsEnabled(LEVEL)) \
-//		{ \
-//			va_list args; \
-//			va_start(args, format); \
-//			this->Log(LEVEL, format, args); \
-//			va_end(args); \
-//		} \
-//	} \
 
 namespace kroll
 {
+	static std::string getCurrentTimeString()
+	{
+		time_t time_of_day;
+		char buffer[ 80 ];
+		time_of_day = time( NULL );
+		strftime( buffer, 80, "%d_%B_%Y_%H_%M_%S", localtime( &time_of_day ) );
+		printf( "%s\n", buffer );
+		std::string str(buffer);
+		return str;
+	}
+
+	static std::string getCurrentLogTimeString()
+	{
+		time_t time_of_day;
+		char buffer[ 80 ];
+		time_of_day = time( NULL );
+		strftime( buffer, 80, "%d-%B-%Y %H:%M:%S", localtime( &time_of_day ) );
+		printf( "%s\n", buffer );
+		std::string str(buffer);
+		return str;
+	}
+
+	static std::string formatMsg(const std::string& name, const std::string& message, Logger::Level level)
+	{
+		std::string formatted("[");
+		formatted += getCurrentLogTimeString() + "] [";
+		formatted += name + "] [";
+		formatted += Logger::getStringForLevel(level) + "] ";;
+		formatted += message;
+		return formatted;
+	}
+
 	std::map<std::string, Logger*> Logger::loggers;
 	char Logger::buffer[LOGGER_MAX_ENTRY_SIZE];
 	boost::mutex Logger::mutex;
@@ -59,38 +73,6 @@ namespace kroll
 			return "Trace";
 		};
 		return "";
-	}
-
-	static std::string getCurrentTimeString()
-	{
-		time_t time_of_day;
-		char buffer[ 80 ];
-		time_of_day = time( NULL );
-		strftime( buffer, 80, "%d_%B_%Y_%H_%M_%S", localtime( &time_of_day ) );
-		printf( "%s\n", buffer );
-		std::string str(buffer);
-		return str;
-	}
-
-	static std::string getCurrentLoggerTimeString()
-	{
-		time_t time_of_day;
-		char buffer[ 80 ];
-		time_of_day = time( NULL );
-		strftime( buffer, 80, "%d-%B-%Y %H:%M:%S", localtime( &time_of_day ) );
-		printf( "%s\n", buffer );
-		std::string str(buffer);
-		return str;
-	}
-
-	static std::string formatMsg(const std::string& name, const std::string& message, Logger::Level level)
-	{
-		std::string formatted("[");
-		formatted += getCurrentLoggerTimeString() + "] [";
-		formatted += name + "] [";
-		formatted += Logger::getStringForLevel(level) + "] ";;
-		formatted += message;
-		return formatted;
 	}
 
 	Logger* Logger::Get(const std::string &name)
@@ -125,8 +107,6 @@ namespace kroll
 		loggers.clear();
 		RootLogger::UnInitialize();
 	}
-
-
 
 	void Logger::AddLoggerCallback(LoggerCallback callback)
 	{
@@ -214,158 +194,6 @@ namespace kroll
 			va_list args;
 			va_start(args, format);
 			this->Log(level, format, args);
-			va_end(args);
-		}
-	}
-
-	void Logger::Trace(const std::string &message)
-	{
-		if (IsTraceEnabled())
-		{
-			this->Log(LTRACE, message);
-		}
-	}
-
-	void Logger::Trace(const char* format, ...)
-	{
-		if (IsTraceEnabled())
-		{
-			va_list args;
-			va_start(args, format);
-			this->Log(LTRACE, format, args);
-			va_end(args);
-		}
-	}
-
-	void Logger::Debug(const std::string &message)
-	{
-		if (IsDebugEnabled())
-		{
-			this->Log(LDEBUG, message);
-		}
-	}
-
-	void Logger::Debug(const char* format, ...)
-	{
-		if (IsDebugEnabled())
-		{
-			va_list args;
-			va_start(args, format);
-			this->Log(LDEBUG, format, args);
-			va_end(args);
-		}
-	}
-
-	void Logger::Info(const std::string &message)
-	{
-		if (IsInfoEnabled())
-		{
-			this->Log(LINFO, message);
-		}
-	}
-
-	void Logger::Info(const char* format, ...)
-	{
-		if (IsInfoEnabled())
-		{
-			va_list args;
-			va_start(args, format);
-			this->Log(LINFO, format, args);
-			va_end(args);
-		}
-	}
-
-	void Logger::Notice(const std::string &message)
-	{
-		if (IsNoticeEnabled())
-		{
-			this->Log(LNOTICE, message);
-		}
-	}
-
-	void Logger::Notice(const char* format, ...)
-	{
-		if (IsNoticeEnabled())
-		{
-			va_list args;
-			va_start(args, format);
-			this->Log(LNOTICE, format, args);
-			va_end(args);
-		}
-	}
-
-	void Logger::Warn(const std::string &message)
-	{
-		if (IsWarningEnabled())
-		{
-			this->Log(LWARN, message);
-		}
-	}
-
-	void Logger::Warn(const char* format, ...)
-	{
-		if (IsWarningEnabled())
-		{
-			va_list args;
-			va_start(args, format);
-			this->Log(LWARN, format, args);
-			va_end(args);
-		}
-	}
-
-	void Logger::Error(const std::string &message)
-	{
-		if (IsErrorEnabled())
-		{
-			this->Log(LERROR, message);
-		}
-	}
-
-	void Logger::Error(const char* format, ...)
-	{
-		if (IsErrorEnabled())
-		{
-			va_list args;
-			va_start(args, format);
-			this->Log(LERROR, format, args);
-			va_end(args);
-		}
-	}
-
-	void Logger::Critical(const std::string &message)
-	{
-		if (IsCriticalEnabled())
-		{
-			this->Log(LCRITICAL, message);
-		}
-	}
-
-	void Logger::Critical(const char* format, ...)
-	{
-		if (IsCriticalEnabled())
-		{
-			va_list args;
-			va_start(args, format);
-			this->Log(LCRITICAL, format, args);
-			va_end(args);
-		}
-	}
-
-	void Logger::Fatal(const std::string &message)
-	{
-		if (IsFatalEnabled())
-		{
-			this->Log(LFATAL, message);
-		}
-	}
-
-	void Logger::Fatal(const char* format, ...)
-	{
-		if (IsFatalEnabled())
-		{
-			va_list args;
-			va_start(args, format);
-			this->Log(LFATAL, format, args);
 			va_end(args);
 		}
 	}
