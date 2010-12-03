@@ -354,12 +354,12 @@ namespace kroll
 	void APIBinding::_SetLogLevel(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("setLogLevel", "s|n");
-		Logger::GetRootLogger()->SetLevel(ValueToLevel(args.at(0)));
+		RootLogger::Instance()->setLevel(ValueToLevel(args.at(0)));
 	}
 
 	void APIBinding::_GetLogLevel(const ValueList& args, KValueRef result)
 	{
-		result->SetInt(Logger::GetRootLogger()->GetLevel());
+		result->SetInt(RootLogger::Instance()->getLevel());
 	}
 
 	void APIBinding::_Print(const ValueList& args, KValueRef result)

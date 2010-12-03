@@ -12,6 +12,24 @@
 
 #include <kroll/utils/file_utils.h>
 
+//#define LOG_METHOD(METHOD,LEVEL) \
+//	void Logger::METHOD(const std::string &message) \
+//	{ \
+//		if (IsEnabled(LEVEL)) \
+//		{ \
+//			this->Log(LEVEL, message); \
+//		} \
+//	} \
+//	void Logger::METHOD(const char* format, ...) \
+//	{ \
+//		if (IsEnabled(LEVEL)) \
+//		{ \
+//			va_list args; \
+//			va_start(args, format); \
+//			this->Log(LEVEL, format, args); \
+//			va_end(args); \
+//		} \
+//	} \
 
 namespace kroll
 {
@@ -19,54 +37,28 @@ namespace kroll
 	char Logger::buffer[LOGGER_MAX_ENTRY_SIZE];
 	boost::mutex Logger::mutex;
 
-	/*static*/
-	Logger* Logger::Get(const std::string &name)
+	std::string Logger::getStringForLevel(Level level)
 	{
-		std::string logger_name = std::string(PRODUCT_NAME) + "." + name;
-		return Logger::GetImpl(logger_name);
-	}
-
-	/*static*/
-	void Logger::Initialize(bool console, const std::string &logFilePath, Level level)
-	{
-		Logger::loggers[PRODUCT_NAME] = 
-			new RootLogger(console, logFilePath, level);
-	}
-
-	/*static*/
-	void Logger::Shutdown()
-	{
-		std::map<std::string, Logger*>::iterator i = loggers.begin();
-		while (i != loggers.end())
+		switch(level)
 		{
-			Logger* l = (i++)->second;
-			delete l;
-		}
-		loggers.clear();
-	}
-
-	/*static*/
-	Logger* Logger::GetRootLogger()
-	{
-		return RootLogger::instance;
-	}
-
-	/*static*/
-	void Logger::AddLoggerCallback(LoggerCallback callback)
-	{
-		RootLogger* rootLogger = 
-			reinterpret_cast<RootLogger*>(GetRootLogger());
-		rootLogger->AddLoggerCallback(callback);
-	}
-
-	/*static*/
-	Logger* Logger::GetImpl(const std::string &name)
-	{
-		if (loggers.find(name) == loggers.end())
-		{
-			loggers[name] = new Logger(name);
-		}
-		return loggers[name];
+		case LFATAL:
+			return "Fatal";
+		case LCRITICAL:
+			return "Critical";
+		case LERROR:
+			return "Error";
+		case LWARN:
+			return "Warning";
+		case LNOTICE:
+			return "Notice";
+		case LINFO:
+			return "Information";
+		case LDEBUG:
+			return "Debug";
+		case LTRACE:
+			return "Trace";
+		};
+		return "";
 	}
 
 	static std::string getCurrentTimeString()
@@ -80,6 +72,80 @@ namespace kroll
 		return str;
 	}
 
+	static std::string getCurrentLoggerTimeString()
+	{
+		time_t time_of_day;
+		char buffer[ 80 ];
+		time_of_day = time( NULL );
+		strftime( buffer, 80, "%d-%B-%Y %H:%M:%S", localtime( &time_of_day ) );
+		printf( "%s\n", buffer );
+		std::string str(buffer);
+		return str;
+	}
+
+	static std::string formatMsg(const std::string& name, const std::string& message, Logger::Level level)
+	{
+		std::string formatted("[");
+		formatted += getCurrentLoggerTimeString() + "] [";
+		formatted += name + "] [";
+		formatted += Logger::getStringForLevel(level) + "] ";;
+		formatted += message;
+		return formatted;
+	}
+
+	Logger* Logger::Get(const std::string &name)
+	{
+		if (loggers.find(name) == loggers.end())
+		{
+			std::string logger_name = std::string(PRODUCT_NAME) + "." + name;
+			loggers[name] = new Logger(logger_name);
+		}
+		return loggers[name];
+	}
+
+	void Logger::Initialize(bool console, const std::string &logFilePath, Level level)
+	{
+		std::string path(logFilePath);
+		// appending timestamp for creating a new log file each time we run our application.
+		path += ".";
+		path += getCurrentTimeString();
+
+		RootLoggerConfig config(console, path, level);
+		RootLogger::Initialize(config);
+	}
+
+	void Logger::Shutdown()
+	{
+		std::map<std::string, Logger*>::iterator i = loggers.begin();
+		while (i != loggers.end())
+		{
+			Logger* l = (i++)->second;
+			delete l;
+		}
+		loggers.clear();
+		RootLogger::UnInitialize();
+	}
+
+
+
+	void Logger::AddLoggerCallback(LoggerCallback callback)
+	{
+		RootLogger::Instance()->AddLoggerCallback(callback);
+	}
+
+	void Logger::RemoveLoggerCallback(LoggerCallback callback)
+	{
+		RootLogger::Instance()->RemoveLoggerCallback(callback);
+	}
+
+	Logger::Logger(const std::string &name)
+		: name(name),
+		level(RootLogger::Instance()->getLevel())
+	{ }
+
+	Logger::Logger(const std::string &name, Level level)
+		: name(name),
+		level(level) { }
 
 	Logger::Level Logger::GetLevel(const std::string& level, bool debugEnabled)
 	{
@@ -104,57 +170,14 @@ namespace kroll
 		return Logger::LINFO;
 	}
 
-	Logger::Logger(const std::string &name) :
-		name(name)
-	{
-		Logger* parent = this->GetParent();
-		this->level = parent->GetLevel();
-	}
-
-	Logger::Logger(const std::string &name, Level level) :
-		name(name),
-		level(level)
-	{ }
-
 	void Logger::SetLevel(Logger::Level level)
 	{
+		this->Log(Logger::LWARN, "Logger Level changed from %s to %s",
+			getStringForLevel(this->level),
+			getStringForLevel(level));
 		this->level = level;
 	}
 
-	Logger* Logger::GetChild(const std::string &name)
-	{
-		std::string childName = this->name + "." + name;
-		return Logger::GetImpl(childName);
-	}
-
-	Logger* Logger::GetParent()
-	{
-		size_t lastPeriodPos = this->name.rfind(".");
-		if (lastPeriodPos == std::string::npos)
-		{
-			// in some cases this causes an infinite loop
-			if (RootLogger::instance == NULL)
-			{
-				return NULL;
-			}
-			
-			return Logger::GetRootLogger();
-		}
-		else
-		{
-			std::string parentName = this->name.substr(0, lastPeriodPos);
-			return Logger::GetImpl(parentName);
-		}
-	}
-
-	void Logger::Log(Poco::Message& m)
-	{
-		if (IsEnabled(level))
-		{
-			RootLogger* root = RootLogger::instance;
-			root->LogImpl(m);
-		}
-	}
 	/*static*/
 	std::string Logger::Format(const char* format, va_list args)
 	{
@@ -172,8 +195,7 @@ namespace kroll
 	{
 		if (IsEnabled(level))
 		{
-			Poco::Message m(this->name, message, (Poco::Message::Priority) level);
-			this->Log(m);
+			RootLogger::Instance()->LogImpl(this->name, message, level);
 		}
 	}
 
@@ -181,8 +203,7 @@ namespace kroll
 	{
 		if (IsEnabled(level))
 		{
-			std::string messageText = Logger::Format(format, args);
-			this->Log(level, messageText);
+			this->Log(level, Logger::Format(format, args));
 		}
 	}
 
@@ -350,67 +371,87 @@ namespace kroll
 	}
 
 	RootLogger* RootLogger::instance = NULL;
-	RootLogger::RootLogger(bool consoleLogging, const std::string &logFilePath, Level level) :
-		Logger(PRODUCT_NAME, level),
-		consoleLogging(consoleLogging),
-		fileLogging(!logFilePath.empty())
+	
+	void RootLogger::Initialize(const RootLoggerConfig& config)
+	{
+		if(!RootLogger::instance)
+		{
+			RootLogger::instance = new RootLogger(config);
+		}
+	}
+	void RootLogger::UnInitialize()
+	{
+		if(RootLogger::instance)
+		{
+			delete RootLogger::instance;
+			RootLogger::instance = NULL;
+		}
+	}
+
+	RootLogger::RootLogger(const RootLoggerConfig& config)
+		: config(config)
 	{
 		RootLogger::instance = this;
-		this->formatter = new Poco::PatternFormatter("[%H:%M:%S:%i] [%s] [%p] %t");
 
-		if (fileLogging)
+		if (config.fileLogging)
 		{
-			std::string file_path(logFilePath);
 			// Before opening the logfile, ensure that a parent directory exists
-			std::string logDirectory = FileUtils::Dirname(file_path);
-			FileUtils::CreateDirectory(logDirectory);
-			{
-				// appending timestamp for creating a new log file each time we run our application.
-				file_path += ".";
-				file_path += getCurrentTimeString();
-			}
-			stream.open(file_path.c_str(), std::ofstream::app);
+			FileUtils::CreateDirectory(FileUtils::Dirname(config.path));
+			stream.open(config.path.c_str(), std::ofstream::app);
 		}
 	}
 
 	RootLogger::~RootLogger()
 	{
-		if (fileLogging)
+		if (config.fileLogging)
 		{
 			stream.close();
 		}
 	}
 
-	void RootLogger::LogImpl(Poco::Message& m)
+	void RootLogger::LogImpl(const std::string& name, const std::string& message, Logger::Level level)
 	{
-		Level level = (Level) m.getPriority();
-		std::string line;
-		this->formatter->format(m, line);
-
-		if (fileLogging)
+		if (IsEnabled(level))
 		{
-			if (stream.is_open())
+			const std::string line = formatMsg(name, message, level);
+			if (config.consoleLogging)
+			{
+				printf("%s\n", line.c_str());
+				fflush(stdout);
+			}
+
+			if (config.fileLogging && stream.is_open())
 			{
 				stream << line << std::endl;
 				stream.flush();
 			}
-		}
 
-		if (consoleLogging)
-		{
-			printf("%s\n", line.c_str());
-			fflush(stdout);
-		}
-
-		for (size_t i = 0; i < callbacks.size(); i++)
-		{
-			callbacks[i](level, line);
+			for (size_t i = 0; i < callbacks.size(); i++)
+			{
+				callbacks[i](level, line);
+			}
 		}
 	}
 
-	void RootLogger::AddLoggerCallback(LoggerCallback callback)
+	void RootLogger::AddLoggerCallback(Logger::LoggerCallback callback)
 	{
 		boost::mutex::scoped_lock lock(mutex);
 		callbacks.push_back(callback);
+	}
+
+	void RootLogger::RemoveLoggerCallback(Logger::LoggerCallback callback)
+	{
+		boost::mutex::scoped_lock lock(mutex);
+		for(std::vector<Logger::LoggerCallback>::iterator
+			oIter = callbacks.begin();
+			oIter != callbacks.end();
+		oIter++)
+		{
+			if (*oIter == callback)
+			{
+				callbacks.erase(oIter);
+				break;
+			}
+		}
 	}
 }
