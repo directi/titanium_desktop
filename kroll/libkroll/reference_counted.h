@@ -39,7 +39,7 @@ namespace kroll
 			}
 		}
 
-		int referenceCount() const
+		inline int referenceCount() const
 		{
 			return count;
 		}
