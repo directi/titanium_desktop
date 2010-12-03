@@ -432,7 +432,8 @@ namespace ti
 		}
 		else
 		{
-			RunOnMainThread(new KFunctionPtrMethod(&UIBinding::PrivateLog), args);
+			KMethodRef function = new KFunctionPtrMethod(&UIBinding::PrivateLog);
+			RunOnMainThread(function, args);
 		}
 	}
 

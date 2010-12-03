@@ -17,7 +17,7 @@ namespace kroll
 {
 	std::map<std::string, Logger*> Logger::loggers;
 	char Logger::buffer[LOGGER_MAX_ENTRY_SIZE];
-	boost::mutex Logger::mutex;
+	boost::recursive_mutex Logger::mutex;
 
 	/*static*/
 	Logger* Logger::Get(const std::string &name)
@@ -159,7 +159,7 @@ namespace kroll
 	std::string Logger::Format(const char* format, va_list args)
 	{
 		// Protect the buffer
-		boost::mutex::scoped_lock lock(mutex);
+		boost::recursive_mutex::scoped_lock lock(mutex);
 
 		vsnprintf(Logger::buffer, LOGGER_MAX_ENTRY_SIZE - 1, format, args);
 		Logger::buffer[LOGGER_MAX_ENTRY_SIZE - 1] = '\0';
@@ -410,7 +410,7 @@ namespace kroll
 
 	void RootLogger::AddLoggerCallback(LoggerCallback callback)
 	{
-		boost::mutex::scoped_lock lock(mutex);
+		boost::recursive_mutex::scoped_lock lock(mutex);
 		callbacks.push_back(callback);
 	}
 }

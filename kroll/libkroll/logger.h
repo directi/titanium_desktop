@@ -9,7 +9,7 @@
 
 #include <base.h>
 
-#include <boost/thread/mutex.hpp>
+#include <boost/thread/recursive_mutex.hpp>
 
 #include <Poco/Message.h>
 #include <Poco/PatternFormatter.h>
@@ -46,7 +46,7 @@ namespace kroll
 
 		std::string name;
 		Level level;
-		static boost::mutex mutex;
+		static boost::recursive_mutex mutex;
 		static char buffer[];
 
 		static Logger* GetImpl(const std::string &name);
@@ -122,7 +122,7 @@ namespace kroll
 		const bool fileLogging;
 
 		Poco::PatternFormatter* formatter;
-		boost::mutex mutex;
+		boost::recursive_mutex mutex;
 		std::vector<LoggerCallback> callbacks;
 		std::ofstream stream;
 	};

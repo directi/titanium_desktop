@@ -59,14 +59,13 @@ namespace KJSUtil
 	class JSObjectValue 
 	{
 	private:
-		int refCount;
+		Poco::AtomicCounter refCount;
 		KValueRef objectValue;
 		DISALLOW_EVIL_CONSTRUCTORS(JSObjectValue);
 	public:
 		void release() 
 		{ 
-			--refCount;
-			if(refCount == 0) 
+			if(--refCount == 0) 
 				delete this;
 		}
 
@@ -85,11 +84,10 @@ namespace KJSUtil
 
 		virtual ~JSObjectValue()
 		{
-			
 		}
 	};
 
-	typedef UnAutoPtr<JSObjectValue> JSObjectValueRef;
+	typedef JSObjectValue* JSObjectValueRef;
 
 	static inline JSObjectValueRef pointerToJS(KValueRef ref)
 	{

@@ -199,8 +199,11 @@ namespace kroll
 
 	inline bool EventListener::callback_is(KValueRef callback) const
 	{
+		KMethodRef this_method = this->callback->ToMethod();
+		if(this_method.isNull()) return false;
+
 		KMethodRef callback_method = callback->ToMethod();
-		return (this->callback->ToMethod()->Equals(callback_method));
+		return (this_method->Equals(callback_method));
 	}
 
 	bool EventListener::dispatch(const ValueList& args)

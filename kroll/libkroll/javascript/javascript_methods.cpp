@@ -7,7 +7,7 @@
 #include "javascript_methods.h"
 #include <kroll/host.h>
 #include <Poco/Timer.h>
-#include <boost/thread/mutex.hpp>
+#include <boost/thread/recursive_mutex.hpp>
 
 namespace kroll
 {
@@ -38,7 +38,7 @@ namespace kroll
 		static int currentTimerId = 0;
 		static std::map<int, Poco::Timer*> timers;
 		static std::map<int, MainThreadCaller*> callers;
-		static boost::mutex timersMutex;
+		static boost::recursive_mutex timersMutex;
 		
 		static KValueRef CreateTimer(const ValueList& args, bool interval)
 		{
@@ -61,7 +61,7 @@ namespace kroll
 			
 			if (!method.isNull())
 			{
-				boost::mutex::scoped_lock lock(timersMutex);
+				boost::recursive_mutex::scoped_lock lock(timersMutex);
 				int id = currentTimerId;
 				timers[id] = new Poco::Timer(duration, interval ? duration : 0);
 				callers[id] = new MainThreadCaller();
@@ -84,7 +84,7 @@ namespace kroll
 		static KValueRef StopTimer(const ValueList& args)
 		{
 			int id = args.GetInt(0);
-			boost::mutex::scoped_lock lock(timersMutex);
+			boost::recursive_mutex::scoped_lock lock(timersMutex);
 			
 			std::map<int, Poco::Timer*>::iterator timerIter = timers.find(id);
 			std::map<int, MainThreadCaller*>::iterator callerIter = callers.find(id);

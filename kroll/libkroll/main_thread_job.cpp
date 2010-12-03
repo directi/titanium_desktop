@@ -14,7 +14,7 @@ namespace kroll
 {
 
 	MainThreadJob::MainThreadJob(KMethodRef method, const ValueList& args) :
-		method(method),
+		method(NULL),
 		args(args),
 		returnValue(NULL),
 		exception(ValueException(NULL)),
@@ -24,10 +24,11 @@ namespace kroll
 		// thread can wait for the value to become >0 using wait()
 		// and the main thread can call set() after job execution
 		// which meets this condition.
+		this->method = method;
 	}
 
 	MainThreadJob::MainThreadJob(KMethodRef method) :
-		method(method),
+		method(NULL),
 		args(ValueList()),
 		returnValue(NULL),
 		exception(ValueException(NULL)),
@@ -37,6 +38,7 @@ namespace kroll
 		// thread can wait for the value to become >0 using wait()
 		// and the main thread can call set() after job execution
 		// which meets this condition.
+		this->method = method;
 	}
 
 	void MainThreadJob::Wait()

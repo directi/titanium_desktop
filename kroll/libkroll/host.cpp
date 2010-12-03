@@ -273,7 +273,7 @@ namespace kroll
 
 	void Host::AddModuleProvider(ModuleProvider *provider)
 	{
-		boost::mutex::scoped_lock lock(moduleMutex);
+		boost::recursive_mutex::scoped_lock lock(moduleMutex);
 		moduleProviders.push_back(provider);
 		lock.unlock();
 
@@ -289,7 +289,7 @@ namespace kroll
 	*/
 	ModuleProvider* Host::FindModuleProvider(std::string& filename)
 	{
-		boost::mutex::scoped_lock lock(moduleMutex);
+		boost::recursive_mutex::scoped_lock lock(moduleMutex);
 		std::vector<ModuleProvider*>::iterator iter;
 		for (iter = moduleProviders.begin(); iter != moduleProviders.end(); iter++)
 		{
@@ -304,7 +304,7 @@ namespace kroll
 
 	void Host::RemoveModuleProvider(ModuleProvider *provider)
 	{
-		boost::mutex::scoped_lock lock(moduleMutex);
+		boost::recursive_mutex::scoped_lock lock(moduleMutex);
 		std::vector<ModuleProvider*>::iterator iter = std::find(
 			moduleProviders.begin(), moduleProviders.end(), provider);
 		if (iter != moduleProviders.end())
@@ -390,7 +390,7 @@ namespace kroll
 
 	void Host::UnloadModules()
 	{
-		boost::mutex::scoped_lock lock(moduleMutex);
+		boost::recursive_mutex::scoped_lock lock(moduleMutex);
 		// Stop all modules before unloading them
 		for (size_t i = 0; i < this->loadedModules.size(); i++)
 		{
@@ -520,7 +520,7 @@ namespace kroll
 	*/
 	void Host::StartModules(ModuleList to_init)
 	{
-		boost::mutex::scoped_lock lock(moduleMutex);
+		boost::recursive_mutex::scoped_lock lock(moduleMutex);
 		ModuleList::iterator iter = to_init.begin();
 		while (iter != to_init.end())
 		{
@@ -531,7 +531,7 @@ namespace kroll
 
 	SharedPtr<Module> Host::GetModuleByPath(std::string& path)
 	{
-		boost::mutex::scoped_lock lock(moduleMutex);
+		boost::recursive_mutex::scoped_lock lock(moduleMutex);
 		ModuleList::iterator iter = this->loadedModules.begin();
 		while (iter != this->loadedModules.end())
 		{
@@ -544,7 +544,7 @@ namespace kroll
 
 	SharedPtr<Module> Host::GetModuleByName(std::string& name)
 	{
-		boost::mutex::scoped_lock lock(moduleMutex);
+		boost::recursive_mutex::scoped_lock lock(moduleMutex);
 		ModuleList::iterator iter = this->loadedModules.begin();
 		while (iter != this->loadedModules.end())
 		{
@@ -677,7 +677,7 @@ namespace kroll
 		else
 		{
 			{
-				boost::mutex::scoped_lock lock(jobQueueMutex);
+				boost::recursive_mutex::scoped_lock lock(jobQueueMutex);
 				this->mainThreadJobs.push_back(job); // Enqueue job
 			}
 			
@@ -712,7 +712,7 @@ namespace kroll
 		// job queue -- deadlock-o-rama
 		std::vector<MainThreadJob*> jobs;
 		{
-			boost::mutex::scoped_lock lock(jobQueueMutex);
+			boost::recursive_mutex::scoped_lock lock(jobQueueMutex);
 			jobs = this->mainThreadJobs;
 			this->mainThreadJobs.clear();
 		}

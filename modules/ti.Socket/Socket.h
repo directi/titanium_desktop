@@ -26,7 +26,7 @@ namespace ti
 		Host* ti_host;
 		T *socket;
 
-		boost::mutex write_mutex;
+		boost::recursive_mutex write_mutex;
 		std::deque<std::string> write_buffer;
 		char read_data_buffer[BUFFER_SIZE + 1];
 		bool non_blocking;
@@ -221,7 +221,7 @@ namespace ti
 			this->on_error(error.message());
 			return;
 		}
-		boost::mutex::scoped_lock lock(write_mutex);
+		boost::recursive_mutex::scoped_lock lock(write_mutex);
 		write_buffer.pop_front();
 		if (!write_buffer.empty())
 		{
@@ -232,7 +232,7 @@ namespace ti
 	template <class T>
 	void Socket<T>::writeAsync(const std::string &data)
 	{
-		boost::mutex::scoped_lock lock(write_mutex);
+		boost::recursive_mutex::scoped_lock lock(write_mutex);
 		bool write_in_progress = !write_buffer.empty();
 		write_buffer.push_back(data);
 		if (!write_in_progress)

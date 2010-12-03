@@ -12,7 +12,7 @@
 #endif
 
 #include <boost/timer.hpp>
-#include <boost/thread/mutex.hpp>
+#include <boost/thread/recursive_mutex.hpp>
 
 #include "utils/application.h"
 #include "binding/global_object.h"
@@ -149,7 +149,7 @@ namespace kroll
 
 	private:
 		ModuleList loadedModules;
-		boost::mutex moduleMutex;
+		boost::recursive_mutex moduleMutex;
 		std::vector<ModuleProvider *> moduleProviders;
 		std::vector<std::string> modulePaths;
 		SharedApplication application;
@@ -178,7 +178,7 @@ namespace kroll
 
 		// other
 		boost::timer timeStarted;
-		boost::mutex jobQueueMutex;
+		boost::recursive_mutex jobQueueMutex;
 		std::vector<MainThreadJob*> mainThreadJobs;
 		std::vector<std::string> invalidModuleFiles;
 

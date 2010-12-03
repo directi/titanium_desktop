@@ -7,15 +7,14 @@
 #define _KR_REFERENCE_COUNTED_H_
 
 #include <base.h>
-#include <boost/thread/recursive_mutex.hpp>
+#include <Poco/AtomicCounter.h>
 
 namespace kroll
 {
 	class KROLL_API ReferenceCounted
 	{
 	private:
-		int count;
-		boost::recursive_mutex count_mutex;
+		Poco::AtomicCounter count;
 
 	public:
 		ReferenceCounted() : count(1) { }
@@ -23,17 +22,13 @@ namespace kroll
 
 		void duplicate()
 		{
-			boost::recursive_mutex::scoped_lock lock(count_mutex);
 			++count;
 		}
 
 		void release()
 		{
-			{
-				boost::recursive_mutex::scoped_lock lock(count_mutex);
-				--count;
-			}
-			if (count == 0)
+			int val = (--count);
+			if (val == 0)
 			{
 				delete this;
 			}
