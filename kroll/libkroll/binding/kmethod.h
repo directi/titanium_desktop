@@ -81,8 +81,8 @@ namespace kroll
 		virtual void duplicate() { ++count; }
 
 		virtual void release() { 
-			int val = --count;
-			if(val == 0 && canDelete)
+			--count;
+			if(count == 0 && canDelete)
 				delete this;
 		}
 

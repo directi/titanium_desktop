@@ -21,7 +21,7 @@ namespace ti {
 
 	private:
 		DISALLOW_EVIL_CONSTRUCTORS(UIModule);
-		UIBinding * uiBinding;
+		AutoPtr<UIBinding> uiBinding;
 
 		static UIModule* instance_;
 	};

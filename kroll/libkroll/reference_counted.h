@@ -27,11 +27,9 @@ namespace kroll
 
 		virtual void release()
 		{
-			int val = (--count);
-			if (val == 0)
-			{
+			--count;
+			if (count == 0)
 				delete this;
-			}
 		}
 
 		inline int referenceCount() const

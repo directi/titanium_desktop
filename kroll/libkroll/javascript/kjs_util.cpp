@@ -65,7 +65,8 @@ namespace KJSUtil
 	public:
 		void release() 
 		{ 
-			if(--refCount == 0) 
+			--refCount;
+			if(refCount == 0) 
 				delete this;
 		}
 
@@ -84,6 +85,7 @@ namespace KJSUtil
 
 		virtual ~JSObjectValue()
 		{
+			
 		}
 	};
 
