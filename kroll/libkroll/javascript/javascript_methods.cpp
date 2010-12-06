@@ -6,7 +6,7 @@
 
 #include "javascript_methods.h"
 #include <kroll/host.h>
-#include <Poco/Timer.h>
+//#include <Poco/Timer.h>
 #include <boost/thread/recursive_mutex.hpp>
 
 namespace kroll
@@ -29,14 +29,14 @@ namespace kroll
 			KMethodRef method;
 			ValueList args;
 			
-			void OnTimer(Poco::Timer& timer)
-			{
-				Host::GetInstance()->RunOnMainThread(method, args);
-			}
+			//void OnTimer(Poco::Timer& timer)
+			//{
+			//	Host::GetInstance()->RunOnMainThread(method, args);
+			//}
 		};
 		
 		static int currentTimerId = 0;
-		static std::map<int, Poco::Timer*> timers;
+		//static std::map<int, Poco::Timer*> timers;
 		static std::map<int, MainThreadCaller*> callers;
 		static boost::recursive_mutex timersMutex;
 		
@@ -61,18 +61,19 @@ namespace kroll
 			
 			if (!method.isNull())
 			{
-				boost::recursive_mutex::scoped_lock lock(timersMutex);
-				int id = currentTimerId;
-				timers[id] = new Poco::Timer(duration, interval ? duration : 0);
-				callers[id] = new MainThreadCaller();
-				callers[id]->method = method;
-				callers[id]->args = methodArgs;
-				
-				Poco::TimerCallback<MainThreadCaller> callback(*callers[id], &MainThreadCaller::OnTimer);
-				timers[id]->start(callback);
-				
-				currentTimerId++;
-				return Value::NewInt(id);
+				throw ValueException::FromString("JavaScriptMethods::CreateTimer Not Implemented");
+				//boost::recursive_mutex::scoped_lock lock(timersMutex);
+				//int id = currentTimerId;
+				//timers[id] = new Poco::Timer(duration, interval ? duration : 0);
+				//callers[id] = new MainThreadCaller();
+				//callers[id]->method = method;
+				//callers[id]->args = methodArgs;
+				//
+				//Poco::TimerCallback<MainThreadCaller> callback(*callers[id], &MainThreadCaller::OnTimer);
+				//timers[id]->start(callback);
+				//
+				//currentTimerId++;
+				//return Value::NewInt(id);
 			}
 			else
 			{
@@ -86,22 +87,22 @@ namespace kroll
 			int id = args.GetInt(0);
 			boost::recursive_mutex::scoped_lock lock(timersMutex);
 			
-			std::map<int, Poco::Timer*>::iterator timerIter = timers.find(id);
-			std::map<int, MainThreadCaller*>::iterator callerIter = callers.find(id);
-			if (timerIter != timers.end() && callerIter != callers.end())
-			{
-				MainThreadCaller* caller = callerIter->second;
-				Poco::Timer* timer = timerIter->second;
-				
-				// same as stop() but safe to be called from within the Timer callback
-				timer->restart(0);
-				callers.erase(callerIter);
-				timers.erase(timerIter);
-				delete caller;
-				delete timer;
-				
-				return Value::NewBool(true);
-			}
+			//std::map<int, Poco::Timer*>::iterator timerIter = timers.find(id);
+			//std::map<int, MainThreadCaller*>::iterator callerIter = callers.find(id);
+			//if (timerIter != timers.end() && callerIter != callers.end())
+			//{
+			//	MainThreadCaller* caller = callerIter->second;
+			//	Poco::Timer* timer = timerIter->second;
+			//	
+			//	// same as stop() but safe to be called from within the Timer callback
+			//	timer->restart(0);
+			//	callers.erase(callerIter);
+			//	timers.erase(timerIter);
+			//	delete caller;
+			//	delete timer;
+			//	
+			//	return Value::NewBool(true);
+			//}
 			return Value::NewBool(false);
 		}
 		
