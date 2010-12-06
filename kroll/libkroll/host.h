@@ -13,6 +13,8 @@
 
 #include <boost/timer.hpp>
 #include <boost/thread/recursive_mutex.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/condition_variable.hpp>
 
 #include "utils/application.h"
 #include "binding/global_object.h"
@@ -83,6 +85,8 @@ namespace kroll
 		KValueRef RunOnMainThread(KMethodRef method, const ValueList& args);
 		KValueRef RunReadJobOnMainThread(KMethodRef method, const char * data, size_t size);
 		KValueRef RunOnMainThread(MainThreadJob * job);
+
+		void ToggleMainThreadJobs();
 
 
 		/**
@@ -158,6 +162,9 @@ namespace kroll
 		bool debug;
 		bool waitForDebugger;
 		bool autoScan;
+		bool isExecutionSuspended;
+		boost::condition_variable hangNonMainThread;
+		boost::mutex hangLock;
 
 		// Profiling Related variables & methods
 		bool profile;

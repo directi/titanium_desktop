@@ -113,7 +113,8 @@ namespace kroll
 		fileLogging(true),
 		logFilePath(""),
 		consoleLogging(true),
-		logger(0)
+		logger(0),
+		isExecutionSuspended(false)
 	{
 #ifdef DEBUG
 		this->debug = true;
@@ -676,6 +677,12 @@ namespace kroll
 		}
 		else
 		{
+			boost::unique_lock<boost::mutex> lock(hangLock);
+			while(isExecutionSuspended)
+			{
+				hangNonMainThread.wait(lock);
+			}
+
 			{
 				boost::recursive_mutex::scoped_lock lock(jobQueueMutex);
 				this->mainThreadJobs.push_back(job); // Enqueue job
@@ -722,6 +729,22 @@ namespace kroll
 			MainThreadJob* job = jobs[i];
 			job->Execute();
 		}
+	}
+
+	void Host::ToggleMainThreadJobs()
+	{
+		{
+			boost::lock_guard<boost::mutex> lock(hangLock);
+			if(isExecutionSuspended)
+			{
+				isExecutionSuspended = false;
+			}
+			else
+			{
+				isExecutionSuspended = true;
+			}
+		}
+		hangNonMainThread.notify_all();
 	}
 
 	KValueRef RunOnMainThread(KMethodRef method)

@@ -774,6 +774,10 @@ namespace KJSUtil
 		{
 			jsObjectRefCounter[globalContext] = new JSObjectInContextRefCounter();
 		}
+		else
+		{
+			GetLogger()->Warn("Asked to register and already registered context\n");
+		}
 	}
 
 	static inline void _delContext(JSGlobalContextRef globalContext) 

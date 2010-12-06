@@ -24,7 +24,6 @@ namespace kroll
 		// thread can wait for the value to become >0 using wait()
 		// and the main thread can call set() after job execution
 		// which meets this condition.
-		method->preventDeletion();
 	}
 
 	MainThreadJob::MainThreadJob(KMethodRef method) :
