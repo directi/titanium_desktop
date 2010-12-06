@@ -7,14 +7,8 @@
 #define _TI_FILE_H_
 
 #include <kroll/kroll.h>
-#include "file_stream.h"
 
-#ifdef OS_WIN32
-#include <windows.h>
-#include <commdlg.h>
-#include <shellapi.h>
-#include <shlobj.h>
-#elif OS_OSX
+#ifdef OS_OSX
 #import <Foundation/Foundation.h>
 #endif
 
@@ -22,63 +16,20 @@
 
 namespace ti
 {
-	class File;
-
-	struct MD5DigestStruct {
-		ti::File * file;
-		KMethodRef onCompleteCallback;
-
-		MD5DigestStruct()
-			: file(NULL), onCompleteCallback(NULL)
-		{
-		}
-
-		MD5DigestStruct(ti::File * _file, KMethodRef _onCompleteCallback)
-			: file(_file), onCompleteCallback(_onCompleteCallback)
-		{
-		}
-	};
-
-	struct UnzipStruct {
-		ti::File * file;
-		std::string destDir;
-		KMethodRef onCompleteCallback;
-		KMethodRef progressCallback;
-
-		UnzipStruct()
-			: file(NULL),
-			destDir(""),
-			onCompleteCallback(NULL),
-			progressCallback(NULL)
-		{
-		}
-
-		UnzipStruct(ti::File * _file,
-			const std::string & _destDir,
-			KMethodRef _onCompleteCallback,
-			KMethodRef _progressCallback)
-			: file(_file),
-			destDir(_destDir),
-			onCompleteCallback(_onCompleteCallback),
-			progressCallback(_progressCallback)
-		{
-		}
-	};
-
 	class File : public StaticBoundObject
 	{
 	public:
-		File(std::string filename);
+		File(const std::string &name);
 		virtual ~File();
 
-		std::string& GetFilename() { return this->filename; }
-		virtual SharedString DisplayString(int levels=3)
+		std::string GetFilename() const { return this->filename; }
+		virtual SharedString DisplayString(int levels = 3)
 		{
 			return new string(GetFilename());
 		}
 
 	private:
-		std::string filename;
+		const std::string filename;
 
 		void Open(const ValueList& args, KValueRef result);
 		void ToString(const ValueList& args, KValueRef result);
@@ -122,6 +73,49 @@ namespace ti
 		static void UnzipThread(void * param);
 		static void MD5DigestThread(void * param);
 	};
+
+	struct MD5DigestStruct {
+		ti::File * file;
+		KMethodRef onCompleteCallback;
+
+		MD5DigestStruct()
+			: file(NULL), onCompleteCallback(NULL)
+		{
+		}
+
+		MD5DigestStruct(ti::File * _file, KMethodRef _onCompleteCallback)
+			: file(_file), onCompleteCallback(_onCompleteCallback)
+		{
+		}
+	};
+
+	struct UnzipStruct
+	{
+		ti::File * file;
+		std::string destDir;
+		KMethodRef onCompleteCallback;
+		KMethodRef progressCallback;
+
+		UnzipStruct()
+			: file(NULL),
+			destDir(""),
+			onCompleteCallback(NULL),
+			progressCallback(NULL)
+		{
+		}
+
+		UnzipStruct(ti::File * _file,
+			const std::string & _destDir,
+			KMethodRef _onCompleteCallback,
+			KMethodRef _progressCallback)
+			: file(_file),
+			destDir(_destDir),
+			onCompleteCallback(_onCompleteCallback),
+			progressCallback(_progressCallback)
+		{
+		}
+	};
+
 }
 
 #endif 
