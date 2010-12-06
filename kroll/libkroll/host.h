@@ -86,7 +86,8 @@ namespace kroll
 		KValueRef RunReadJobOnMainThread(KMethodRef method, const char * data, size_t size);
 		KValueRef RunOnMainThread(MainThreadJob * job);
 
-		void ToggleMainThreadJobs();
+		void SuspendMainThreadJobs();
+		void ResumeMainThreadJobs();
 
 
 		/**

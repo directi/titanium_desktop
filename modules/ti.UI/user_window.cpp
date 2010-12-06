@@ -1526,7 +1526,7 @@ void UserWindow::InsertAPI(KObjectRef frameGlobal)
 	// found in binding, KDelegatingObject will search for it in
 	// the base. When developers modify this object, it will be modified
 	// globally.
-	KObject* delegateUIAPI = new KDelegatingObject(UIBinding::GetInstance(), windowUIObject);
+	KObjectRef delegateUIAPI = new KDelegatingObject(UIBinding::GetInstance(), windowUIObject);
 	windowTiObject->Set("UI", Value::NewObject(delegateUIAPI));
 
 	// Place the Titanium object into the window's global object

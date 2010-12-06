@@ -195,9 +195,9 @@ HRESULT STDMETHODCALLTYPE Win32WebKitUIDelegate::runJavaScriptAlertPanelWithMess
 	//popupDialog.SetMessage(msg);
 	//int r = popupDialog.Show();
 
-	Host::GetInstance()->ToggleMainThreadJobs();
+	Host::GetInstance()->SuspendMainThreadJobs();
 	MessageBox(0, msg.c_str(), title.c_str(), 0);
-	Host::GetInstance()->ToggleMainThreadJobs();
+	Host::GetInstance()->ResumeMainThreadJobs();
 
 	return S_OK;
 }
@@ -213,9 +213,9 @@ HRESULT STDMETHODCALLTYPE Win32WebKitUIDelegate::runJavaScriptConfirmPanelWithMe
 	if (message)
 		msg.append(bstr_t(message));
 
-	Host::GetInstance()->ToggleMainThreadJobs();
+	Host::GetInstance()->SuspendMainThreadJobs();
 	int r = MessageBox(0, msg.c_str(), title.c_str(), MB_ICONINFORMATION | MB_OKCANCEL);
-	Host::GetInstance()->ToggleMainThreadJobs();
+	Host::GetInstance()->ResumeMainThreadJobs();
 	*result = (r == IDOK);
 
 	return S_OK;
@@ -243,9 +243,9 @@ HRESULT STDMETHODCALLTYPE Win32WebKitUIDelegate::runJavaScriptTextInputPanelWith
 	popupDialog.SetShowInputText(true);
 	popupDialog.SetInputText(def);
 	popupDialog.SetShowCancelButton(true);
-	Host::GetInstance()->ToggleMainThreadJobs();
+	Host::GetInstance()->SuspendMainThreadJobs();
 	int r = popupDialog.Show();
-	Host::GetInstance()->ToggleMainThreadJobs();
+	Host::GetInstance()->ResumeMainThreadJobs();
 
 	if (r == IDOK)
 	{

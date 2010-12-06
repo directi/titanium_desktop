@@ -677,10 +677,12 @@ namespace kroll
 		}
 		else
 		{
+			{
 			boost::unique_lock<boost::mutex> lock(hangLock);
 			while(isExecutionSuspended)
 			{
-				hangNonMainThread.wait(lock);
+ 				hangNonMainThread.wait(lock);
+			}
 			}
 
 			{
@@ -731,18 +733,17 @@ namespace kroll
 		}
 	}
 
-	void Host::ToggleMainThreadJobs()
+	void Host::SuspendMainThreadJobs()
+	{
+		boost::lock_guard<boost::mutex> lock(hangLock);
+		isExecutionSuspended = true;
+	}
+
+	void Host::ResumeMainThreadJobs()
 	{
 		{
 			boost::lock_guard<boost::mutex> lock(hangLock);
-			if(isExecutionSuspended)
-			{
-				isExecutionSuspended = false;
-			}
-			else
-			{
-				isExecutionSuspended = true;
-			}
+			isExecutionSuspended = false;
 		}
 		hangNonMainThread.notify_all();
 	}
