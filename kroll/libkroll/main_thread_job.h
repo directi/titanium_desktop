@@ -25,18 +25,14 @@ namespace kroll
 		virtual ~MainThreadJob() {}
 		virtual void Execute();
 
-		void Lock();
-		void Wait();
 		KValueRef GetResult();
 		ValueException GetException();
-		bool ShouldWaitForCompletion();
 		void PrintException();
 
 	private:
 		KMethodRef method;
 		KValueRef returnValue;
 		ValueException exception;
-		Poco::Semaphore semaphore;
 
 	protected:
 		ValueList args;

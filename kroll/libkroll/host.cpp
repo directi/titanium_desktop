@@ -691,16 +691,12 @@ namespace kroll
 			}
 
 			this->SignalNewMainThreadJob();
-
-			job->Wait();
 		}
 
 		KValueRef result(job->GetResult());
 		ValueException exception(job->GetException());
 		delete job;
 
-		// I don't think returning objects to another thread is a very good idea... If reference is not kept in the
-		// main thread some AutoPtr might GC us in another thread...
 		if (!result.isNull())
 		{
 			return result;
