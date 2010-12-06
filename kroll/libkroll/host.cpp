@@ -678,6 +678,11 @@ namespace kroll
 		else
 		{
 			{
+				boost::recursive_mutex::scoped_lock lock(jobQueueMutex);
+				this->mainThreadJobs.push_back(job); // Enqueue job
+			}
+			
+			{
 			boost::unique_lock<boost::mutex> lock(hangLock);
 			while(isExecutionSuspended)
 			{
@@ -685,15 +690,8 @@ namespace kroll
 			}
 			}
 
-			{
-				boost::recursive_mutex::scoped_lock lock(jobQueueMutex);
-				this->mainThreadJobs.push_back(job); // Enqueue job
-			}
-			
 			this->SignalNewMainThreadJob();
 
-			// If this is the main thread, Wait() will fall
-			// through because we've already called Execute() above.
 			job->Wait();
 		}
 
