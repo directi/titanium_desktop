@@ -1041,7 +1041,7 @@ void Win32UserWindow::SetupIcon()
 	std::string iconPath(this->iconPath);
 	if (iconPath.empty())
 	{
-		Win32UIBinding * b = static_cast<Win32UIBinding *>(UIBinding::GetInstance());
+		AutoPtr<Win32UIBinding> b = UIBinding::GetInstance().cast<Win32UIBinding>();
 		iconPath = b->GetIcon();
 	}
 
@@ -1158,7 +1158,7 @@ void Win32UserWindow::SetupMenu()
 	// No window menu, try to use the application menu.
 	if (menu.isNull())
 	{
-		Win32UIBinding * b = static_cast<Win32UIBinding *>(UIBinding::GetInstance());
+		AutoPtr<Win32UIBinding> b = UIBinding::GetInstance().cast<Win32UIBinding>();
 		menu = b->GetMenu().cast<Win32Menu>();
 	}
 

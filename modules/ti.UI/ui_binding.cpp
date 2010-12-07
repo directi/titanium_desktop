@@ -12,7 +12,7 @@
 
 namespace ti
 {
-	UIBinding * UIBinding::instance = NULL;
+	AutoPtr<UIBinding> UIBinding::instance = NULL;
 
 	UIBinding::UIBinding(Host* host) :
 		KAccessorObject("UI"),
@@ -109,7 +109,7 @@ namespace ti
 	UIBinding::~UIBinding()
 	{
 		Logger::RemoveLoggerCallback(&UIBinding::Log);
-		this->ClearTray();
+//		this->ClearTray();
 
 		// Shutdown notifications
 		Notification::ShutdownImpl();
