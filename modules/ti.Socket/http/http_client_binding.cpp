@@ -209,7 +209,7 @@ namespace ti
 		args.VerifyException("getResponseHeader", "s");
 		std::string name(args.GetString(0));
 
-		if (this->responseHeaders.has(name))
+		if (this->responseHeaders.find(name) != this->responseHeaders.end())
 		{
 			result->SetString(this->responseHeaders[name].c_str());
 		}
@@ -223,14 +223,15 @@ namespace ti
 	{
 		KListRef headers(new StaticBoundList());
 
-		NameValueCollection::ConstIterator i = this->responseHeaders.begin();
-		while (i != this->responseHeaders.end())
+		for(std::map<std::string, std::string>::const_iterator
+			i = this->responseHeaders.begin();
+			i != this->responseHeaders.end();
+		i++)
 		{
 			KListRef headerEntry(new StaticBoundList());
 			headerEntry->Append(Value::NewString(i->first));
 			headerEntry->Append(Value::NewString(i->second));
 			headers->Append(Value::NewList(headerEntry));
-			i++;
 		}
 
 		result->SetList(headers);
@@ -239,7 +240,7 @@ namespace ti
 	void HTTPClientBinding::SetCookie(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("setCookie", "ss");
-		this->requestCookies.add(args.GetString(0), args.GetString(1));
+		this->requestCookies[args.GetString(0)] = args.GetString(1);
 	}
 
 	void HTTPClientBinding::ClearCookies(const ValueList& args, KValueRef result)
@@ -520,21 +521,21 @@ namespace ti
 		return curlHeaders;
 	}
 
-	void SetRequestCookies(CURL* handle, NameValueCollection& cookies)
+	void SetRequestCookies(CURL* handle, const std::map<std::string, std::string> & cookies)
 	{
 		if (cookies.empty())
 			return;
 
 		std::string cookieString;
-		NameValueCollection::ConstIterator i = cookies.begin();
-		while (i != cookies.end())
+		for(std::map<std::string, std::string>::const_iterator
+			i = cookies.begin();
+			i!= cookies.end();
+		i++)
 		{
 			cookieString.append(i->first);
 			cookieString.append("=");
 			cookieString.append(i->second);
 			cookieString.append(";");
-
-			i++;
 		}
 
 		SET_CURL_OPTION(handle, CURLOPT_COOKIE, cookieString.c_str());
@@ -612,7 +613,15 @@ namespace ti
 		if (header == "\r\n" || header == "\n") // This is the end of header chunk
 		{
 			this->sawHTTPStatus = false;
-			this->responseHeaders = this->nextResponseHeaders;
+
+			this->responseHeaders.clear();
+			for(std::map<std::string, std::string>::const_iterator
+				i = this->nextResponseHeaders.begin();
+				i != this->nextResponseHeaders.end();
+			i++)
+			{
+				this->responseHeaders[i->first] = i->second;
+			}
 			this->nextResponseHeaders.clear();
 
 			long httpStatus = 0;
@@ -641,7 +650,7 @@ namespace ti
 
 			std::string headerName(header.substr(0, splitPos));
 			std::string headerValue(FileUtils::Trim(header.substr(splitPos + 1)));
-			nextResponseHeaders.add(headerName, headerValue);
+			nextResponseHeaders[headerName] = headerValue;
 
 			Poco::toLowerInPlace(headerName);
 			if (headerName == "set-cookie")
@@ -845,7 +854,6 @@ namespace ti
 			// This error buffer cannot be shared, because it's not protected by a mutex.
 			SET_CURL_OPTION(curlHandle, CURLOPT_URL, url.c_str());
 			SET_CURL_OPTION(curlHandle, CURLOPT_ERRORBUFFER, &curlErrorBuffer);
-
 			SET_CURL_OPTION(curlHandle, CURLOPT_HEADERFUNCTION, &CurlHeaderCallback);
 			SET_CURL_OPTION(curlHandle, CURLOPT_WRITEFUNCTION, &CurlWriteCallback);
 			SET_CURL_OPTION(curlHandle, CURLOPT_PROGRESSFUNCTION, &CurlProgressCallback);

@@ -9,7 +9,6 @@
 
 #include <kroll/kroll.h>
 
-#include <Poco/Net/NameValueCollection.h>
 #include <Poco/Thread.h>
 #include <Poco/Runnable.h>
 #include <curl/curl.h>
@@ -42,10 +41,10 @@ namespace ti
 		CURL* curlHandle;
 		std::string username;
 		std::string password;
-		Poco::Net::NameValueCollection requestCookies;
+		std::map<std::string, std::string> requestCookies;
 		std::map<std::string, KObjectRef> responseCookies;
-		Poco::Net::NameValueCollection responseHeaders;
-		Poco::Net::NameValueCollection nextResponseHeaders;
+		std::map<std::string, std::string> responseHeaders;
+		std::map<std::string, std::string> nextResponseHeaders;
 		std::vector<std::string> requestHeaders;
 
 		KMethodRef outputHandler;
