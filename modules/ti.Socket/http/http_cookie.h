@@ -8,15 +8,13 @@
 #define _HTTP_COOKIE_H_
 
 #include <kroll/kroll.h>
-#include <Poco/Net/HTTPCookie.h>
 
 namespace ti
 {
 	class HTTPCookie : public KAccessorObject
 	{
 	public:
-		HTTPCookie();
-		HTTPCookie(Poco::Net::HTTPCookie& cookie);
+		HTTPCookie(const std::map<std::string, std::string> & cookieParts);
 		void InitializeBinding();
 
 		void GetName(const ValueList& args, KValueRef result);
@@ -29,8 +27,8 @@ namespace ti
 		void SetDomain(const ValueList& args, KValueRef result);
 		void GetPath(const ValueList& args, KValueRef result);
 		void SetPath(const ValueList& args, KValueRef result);
-		void GetMaxAge(const ValueList& args, KValueRef result);
-		void SetMaxAge(const ValueList& args, KValueRef result);
+		void GetExpires(const ValueList& args, KValueRef result);
+		void SetExpires(const ValueList& args, KValueRef result);
 		void GetComment(const ValueList& args, KValueRef result);
 		void SetComment(const ValueList& args, KValueRef result);
 		void IsHTTPOnly(const ValueList& args, KValueRef result);
@@ -41,8 +39,22 @@ namespace ti
 
 		SharedString DisplayString(int levels);
 
+		int getVersion() const { return this->version; }
+		std::string  getName() const { return this->name; }
+		
 	private:
-		Poco::Net::HTTPCookie cookie;
+		void parseCookieParts(const std::map<std::string, std::string> & cookieParts);
+		std::string toString() const;
+
+		int         version;
+		std::string name;
+		std::string value;
+		std::string comment;
+		std::string domain;
+		std::string path;
+		bool        secure;
+		std::string expires;
+		bool        httpOnly;
 	};
 }
 

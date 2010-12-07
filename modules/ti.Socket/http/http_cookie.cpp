@@ -7,17 +7,62 @@
 
 namespace ti
 {
-	HTTPCookie::HTTPCookie() :
-		KAccessorObject("Network.HTTPCookie")
+	HTTPCookie::HTTPCookie(const std::map<std::string, std::string> & cookieParts) : 
+		KAccessorObject("Socket.HTTPCookie"),
+		version(0),
+		secure(false),
+		httpOnly(false)
 	{
+		this->parseCookieParts(cookieParts);
 		this->InitializeBinding();
 	}
 
-	HTTPCookie::HTTPCookie(Poco::Net::HTTPCookie& cookie) : 
-		KAccessorObject("Network.HTTPCookie"),
-		cookie(cookie)
+	void HTTPCookie::parseCookieParts(const std::map<std::string, std::string> & cookieParts)
 	{
-		this->InitializeBinding();
+		for (std::map<std::string, std::string>::const_iterator
+			it = cookieParts.begin(); it != cookieParts.end(); ++it)
+		{
+			const std::string& name  = it->first;
+			const std::string& value = it->second;
+			if (name == "comment")
+			{
+				comment = value;
+			}
+			else if (name == "domain")
+			{
+				domain = value;
+			}
+			else if (name, "path")
+			{
+				path =value;
+			}
+			else if (name, "max-age")
+			{
+				expires = value;
+			}
+			else if (name, "secure")
+			{
+				secure = true;
+			}
+			else if (name, "expires")
+			{
+				expires = value;
+			}
+			else if (name, "version")
+			{
+					version = atoi(value.c_str());
+			}
+			else if (name, "HttpOnly")
+			{
+				httpOnly = true;
+			}
+			else
+			{
+				this->name  = name;
+				this->value = value;
+			}
+		}
+
 	}
 
 	void HTTPCookie::InitializeBinding()
@@ -93,18 +138,18 @@ namespace ti
 		this->SetMethod("setPath", &HTTPCookie::SetPath);
 
 		/**
-		 * @tiapi(method=True,name=Network.HTTPCookie.getMaxAge,since=0.7)
+		 * @tiapi(method=True,name=Network.HTTPCookie.getExpires,since=0.7)
 		 * @tiapi Get the lifetime of the cookie, in seconds.
 		 * @tiresult[Integer] lifetime in seconds. 0 = discard, -1 = never expire
 		 */
-		this->SetMethod("getMaxAge", &HTTPCookie::GetMaxAge);
+		this->SetMethod("getExpires", &HTTPCookie::GetExpires);
 
 		/**
-		 * @tiapi(method=True,name=Network.HTTPCookie.setMaxAge,since=0.7)
+		 * @tiapi(method=True,name=Network.HTTPCookie.SetExpires,since=0.7)
 		 * @tiapi Set the lifetime of the cookie, in seconds.
 		 * @tiarg[Integer,lifetime] the lifetime in seconds. 0 = discard, -1 = never expire
 		 */
-		this->SetMethod("setMaxAge", &HTTPCookie::SetMaxAge);
+		this->SetMethod("setExpires", &HTTPCookie::SetExpires);
 
 		/**
 		 * @tiapi(method=True,name=Network.HTTPCookie.getComment,since=0.7)
@@ -158,29 +203,29 @@ namespace ti
 
 	void HTTPCookie::GetName(const ValueList& args, KValueRef result)
 	{
-		result->SetString(this->cookie.getName().c_str());
+		result->SetString(this->getName().c_str());
 	}
 
 	void HTTPCookie::SetName(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("setName", "s");
-		this->cookie.setName(args.GetString(0));
+		this->name = args.GetString(0);
 	}
 
 	void HTTPCookie::GetValue(const ValueList& args, KValueRef result)
 	{
-		result->SetString(this->cookie.getValue().c_str());
+		result->SetString(this->value.c_str());
 	}
 
 	void HTTPCookie::SetValue(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("setValue", "s");
-		this->cookie.setValue(args.GetString(0));
+		this->value = args.GetString(0);
 	}
 
 	void HTTPCookie::GetVersion(const ValueList& args, KValueRef result)
 	{
-		result->SetInt(this->cookie.getVersion());
+		result->SetInt(this->version);
 	}
 
 	void HTTPCookie::SetVersion(const ValueList& args, KValueRef result)
@@ -192,84 +237,161 @@ namespace ti
 			// Version is out of range, can only be 0 or 1	
 			throw ValueException::FromString("HTTPCookie version invalid, must be 0 or 1");
 		}
-		this->cookie.setVersion(version);
+		this->version = version;
 	}
 
 	void HTTPCookie::GetDomain(const ValueList& args, KValueRef result)
 	{
-		result->SetString(this->cookie.getDomain().c_str());
+		result->SetString(this->domain.c_str());
 	}
 
 	void HTTPCookie::SetDomain(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("setDomain", "s");
-		this->cookie.setDomain(args.GetString(0));
+		this->domain = args.GetString(0);
 	}
 
 	void HTTPCookie::GetPath(const ValueList& args, KValueRef result)
 	{
-		result->SetString(this->cookie.getPath().c_str());
+		result->SetString(this->path.c_str());
 	}
 
 	void HTTPCookie::SetPath(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("setPath", "s");
-		this->cookie.setPath(args.GetString(0));
+		this->path = args.GetString(0);
 	}
 
-	void HTTPCookie::GetMaxAge(const ValueList& args, KValueRef result)
+	void HTTPCookie::GetExpires(const ValueList& args, KValueRef result)
 	{
-		result->SetInt(this->cookie.getMaxAge());
+		result->SetString(this->expires.c_str());
 	}
 
-	void HTTPCookie::SetMaxAge(const ValueList& args, KValueRef result)
+	void HTTPCookie::SetExpires(const ValueList& args, KValueRef result)
 	{
-		args.VerifyException("setMaxAge", "i");
-		this->cookie.setMaxAge(args.GetInt(0));
+		args.VerifyException("SetExpires", "s");
+		this->expires = args.GetString(0);
 	}
 
 	void HTTPCookie::GetComment(const ValueList& args, KValueRef result)
 	{
-		result->SetString(this->cookie.getComment().c_str());
+		result->SetString(this->comment.c_str());
 	}
 
 	void HTTPCookie::SetComment(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("setComment", "s");
-		this->cookie.setComment(args.GetString(0));
+		this->comment = args.GetString(0);
 	}
 
 	void HTTPCookie::IsHTTPOnly(const ValueList& args, KValueRef result)
 	{
-		result->SetBool(this->cookie.getHttpOnly());
+		result->SetBool(this->httpOnly);
 	}
 
 	void HTTPCookie::SetHTTPOnly(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("setHTTPOnly", "b");
-		this->cookie.setHttpOnly(args.GetBool(0));
+		this->httpOnly = args.GetBool(0);
 	}
 
 	void HTTPCookie::IsSecure(const ValueList& args, KValueRef result)
 	{
-		result->SetBool(this->cookie.getSecure());
+		result->SetBool(this->secure);
 	}
 
 	void HTTPCookie::SetSecure(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("setSecure", "b");
-		this->cookie.setSecure(args.GetBool(0));
+		this->secure = args.GetBool(0);
 	}
 
 	void HTTPCookie::ToString(const ValueList& args, KValueRef result)
 	{
-		result->SetString(this->cookie.toString().c_str());
+		result->SetString(this->toString().c_str());
 	}
 
 	SharedString HTTPCookie::DisplayString(int levels)
 	{
-		SharedString cookieString = new std::string(this->cookie.toString());
+		SharedString cookieString = new std::string(this->toString());
 		return cookieString;
+	}
+
+	std::string HTTPCookie::toString() const
+	{
+		std::string result;
+		result.reserve(256);
+		result.append(name);
+		result.append("=");
+		if (version == 0)
+		{
+			// Netscape cookie
+			result.append(value);
+			if (!domain.empty())
+			{
+				result.append("; domain=");
+				result.append(domain);
+			}
+			if (!path.empty())
+			{
+				result.append("; path=");
+				result.append(path);
+			}
+			if (!expires.empty())
+			{
+				result.append("; expires=");
+				result.append(expires);
+			}
+			if (secure)
+			{
+				result.append("; secure");
+			}
+			if (httpOnly)
+			{
+				result.append("; HttpOnly");
+			}
+		}
+		else
+		{
+			// RFC 2109 cookie
+			result.append("\"");
+			result.append(value);
+			result.append("\"");
+			if (!comment.empty())
+			{
+				result.append("; Comment=\"");
+				result.append(comment);
+				result.append("\"");
+			}
+			if (!domain.empty())
+			{
+				result.append("; Domain=\"");
+				result.append(domain);
+				result.append("\"");
+			}
+			if (!path.empty())
+			{
+				result.append("; Path=\"");
+				result.append(path);
+				result.append("\"");
+			}
+			if (!expires.empty())
+			{
+				result.append("; Max-Age=\"");
+				result.append(expires);
+				result.append("\"");
+			}
+			if (secure)
+			{
+				result.append("; secure");
+			}
+			if (httpOnly)
+			{
+				result.append("; HttpOnly");
+			}
+			result.append("; Version=\"1\"");
+		}
+		return result;
 	}
 }
 

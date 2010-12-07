@@ -12,19 +12,17 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include <Poco/Net/NameValueCollection.h>
-
 
 namespace ti
 {
 	static Logger* GetLogger()
 	{
-		static Logger* logger = Logger::Get("Network.HTTPClient");
+		static Logger* logger = Logger::Get("Socket.HTTPClient");
 		return logger;
 	}
 
 	HTTPClientBinding::HTTPClientBinding(Host* host) :
-		KEventObject("Network.HTTPClient"),
+		KEventObject("Socket.HTTPClient"),
 		host(host),
 		async(true),
 		timeout(5 * 60 * 1000),
@@ -456,7 +454,7 @@ namespace ti
 	}
 
 	static void SplitParameters(const std::string::const_iterator& begin,
-		const std::string::const_iterator& end, Poco::Net::NameValueCollection& parameters)
+		const std::string::const_iterator& end, std::map<std::string, std::string> & parameters)
 	{
 		std::string pname;
 		std::string pvalue;
@@ -496,17 +494,17 @@ namespace ti
 				else pvalue += *it++;
 			}
 			boost::trim(pvalue);
-			if (!pname.empty()) parameters.add(pname, pvalue);
+			if (!pname.empty()) parameters[pname] = pvalue;
 			if (it != end) ++it;
 		}
 	}
 
 	void HTTPClientBinding::GetResponseCookie(const std::string &cookieLine)
 	{
-		Poco::Net::NameValueCollection cookiePairs;
-		SplitParameters(cookieLine.begin(), cookieLine.end(), cookiePairs);
-		Poco::Net::HTTPCookie pocoCookie(cookiePairs);
-		responseCookies[pocoCookie.getName()] = new HTTPCookie(pocoCookie);
+		std::map<std::string, std::string> cookieParts;
+		SplitParameters(cookieLine.begin(), cookieLine.end(), cookieParts);
+		HTTPCookie * cookie = new HTTPCookie(cookieParts);
+		responseCookies[cookie->getName()] = cookie;
 	}
 
 	struct curl_slist* HTTPClientBinding::SetRequestHeaders(CURL* handle)
