@@ -15,7 +15,7 @@
 #include "profiled_bound_method.h"
 
 #include <kroll/host.h>
-#include <kroll/MainThreadUtils.h>
+#include <kroll/Assertion.h>
 #include <kroll/utils/time_utils.h>
 
 namespace kroll

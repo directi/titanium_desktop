@@ -87,7 +87,7 @@ namespace kroll
 		KValueRef RunOnMainThread(MainThreadJob * job);
 
 		void SuspendMainThreadJobs();
-		void ResumeMainThreadJobs();
+		void ResumeMainThreadJobs(bool stepping = false);
 
 
 		/**
@@ -146,6 +146,8 @@ namespace kroll
 		 * Return true if this thread is the main thread.
 		 */
 		bool IsMainThread();
+
+		bool IsExecutionSuspended() { return isExecutionSuspended; }
 
 #ifdef OS_WIN32
 		HWND AddMessageHandler(MessageHandler handler);

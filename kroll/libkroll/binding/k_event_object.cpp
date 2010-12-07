@@ -12,7 +12,7 @@
 #include "k_event_object.h"
 #include "value_exception.h"
 #include "../javascript/k_kjs_method.h"
-#include <kroll/MainThreadUtils.h>
+#include <kroll/Assertion.h>
 
 namespace kroll
 {

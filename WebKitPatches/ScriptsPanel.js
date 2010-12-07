@@ -396,7 +396,7 @@ WebInspector.ScriptsPanel.prototype = {
 
     debuggerResumed: function()
     {
-		InjectedScriptAccess.getDefault().evaluate('Titanium.debuggerResumed();', "window", function(a){});
+		InjectedScriptAccess.getDefault().evaluate('Titanium.debuggerResumed(' + this._stepping + ');', "window", function(a){});
 
         this._paused = false;
         this._waitingToPause = false;

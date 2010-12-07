@@ -9,7 +9,7 @@
 #include "k_kjs_object.h"
 #include "k_kjs_method.h"
 
-#include <kroll/MainThreadUtils.h>
+#include <kroll/Assertion.h>
 #include <kroll/binding/binding_declaration.h>
 #include <kroll/utils/url_utils.h>
 #include <kroll/utils/file_utils.h>
@@ -821,6 +821,8 @@ namespace KJSUtil
 	void UnprotectJSObject(JSGlobalContextRef globalContext, JSObjectRef value)
 	{
 		ASSERT_MAIN_THREAD
+		ASSERT(! Host::GetInstance()->IsExecutionSuspended());
+
 		JSObjectRefCounter::iterator ourCtx = jsObjectRefCounter.find(globalContext);
 		if(ourCtx == jsObjectRefCounter.end())
 		{

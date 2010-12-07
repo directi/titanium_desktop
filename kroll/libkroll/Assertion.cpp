@@ -5,7 +5,7 @@
  */
 
 #include <kroll/host.h>
-#include <kroll/MainThreadUtils.h>
+#include <kroll/Assertion.h>
 			
 namespace kroll
 {

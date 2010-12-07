@@ -1214,6 +1214,7 @@ void Win32UserWindow::ShowInspector(bool console)
 	hr = webViewPrivate->inspector(&webInspector);
 	if (webInspector)
 	{
+		Host::GetInstance()->SuspendMainThreadJobs();
 		if (console)
 		{
 			webInspector->showConsole();

@@ -9,7 +9,7 @@
 
 #include "value.h"
 #include "static_bound_list.h"
-#include <kroll/MainThreadUtils.h>
+#include <kroll/Assertion.h>
 
 namespace kroll
 {

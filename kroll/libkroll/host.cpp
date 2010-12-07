@@ -12,7 +12,7 @@
 
 #include <kroll/utils/file_utils.h>
 #include <kroll/utils/environment_utils.h>
-#include <kroll/MainThreadUtils.h>
+#include <kroll/Assertion.h>
 
 #include "thread_manager.h"
 
@@ -674,6 +674,12 @@ namespace kroll
 	{
 		if (this->IsMainThread())
 		{
+			if(isExecutionSuspended)
+				return Value::Undefined; //TODO: This is usually the window.resized event - we need to stop triggering 
+										// the JS event if the window size has not changed. The inspector calls resize
+										// to make sure the components are properly aligned. Then replace this with an
+										// assertion.
+
 			job->Execute();
 		}
 		else
@@ -729,10 +735,13 @@ namespace kroll
 		isExecutionSuspended = true;
 	}
 
-	void Host::ResumeMainThreadJobs()
+	void Host::ResumeMainThreadJobs(bool stepping)
 	{
 		ASSERT_MAIN_THREAD
-		isExecutionSuspended = false;
+		if(stepping)
+			fprintf(stderr, "stepping");// TODO: Implement a timer to clear the suspended flag...
+		else
+			isExecutionSuspended = false;
 		this->SignalNewMainThreadJob();
 	}
 

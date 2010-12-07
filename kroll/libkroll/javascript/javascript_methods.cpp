@@ -140,7 +140,8 @@ namespace kroll
 
 		KValueRef DebuggerResumed(const ValueList& args)
 		{
-			Host::GetInstance()->ResumeMainThreadJobs();
+			bool stepping = args.at(0)->ToBool();
+			Host::GetInstance()->ResumeMainThreadJobs(stepping);
 			return Value::Undefined;
 		}
 	}

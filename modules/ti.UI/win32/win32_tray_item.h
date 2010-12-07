@@ -25,7 +25,6 @@ namespace ti
 		virtual void ShowBalloonMessage(const std::string & title, const std::string & message);
 		virtual void ResetBalloonMessage(const std::string & title);
 
-		void Remove();
 		void ShowTrayMenu();
 		void HandleRightClick();
 		void HandleLeftClick();
@@ -39,6 +38,8 @@ namespace ti
 		HMENU oldNativeMenu;
 		NOTIFYICONDATA* trayIconData;
 		bool is_double_clicked;
+
+		void Remove();
 
 		static std::vector<Win32TrayItem *> trayItems;
 		static UINT trayClickedMessage;

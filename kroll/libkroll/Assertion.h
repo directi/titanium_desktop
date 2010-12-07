@@ -7,9 +7,6 @@
 #ifndef _KR_MAIN_THREAD_UTILS_H_
 #define _KR_MAIN_THREAD_UTILS_H_
 
-#include <base.h>
-#include <assert.h>
-
 namespace kroll
 {
 	KROLL_API bool IsMainThread();
@@ -20,7 +17,8 @@ namespace kroll
     ((void(*)())0)(); /* More reliable, but doesn't say BBADBEEF */ \
 } while(false);
 
-#define ASSERT_MAIN_THREAD if(!IsMainThread()) { CRASH() };
+#define ASSERT(a) if(!a) CRASH();
+#define ASSERT_MAIN_THREAD ASSERT(IsMainThread())
 
 
 #endif

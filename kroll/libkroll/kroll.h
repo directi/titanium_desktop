@@ -40,6 +40,6 @@
 #endif
 
 #include "host.h"
-#include "MainThreadUtils.h"
+#include "Assertion.h"
 
 #endif

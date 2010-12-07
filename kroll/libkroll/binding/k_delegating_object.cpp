@@ -10,7 +10,7 @@
 #include "value.h"
 #include "k_delegating_object.h"
 #include "static_bound_object.h"
-#include <kroll/MainThreadUtils.h>
+#include <kroll/Assertion.h>
 
 namespace kroll
 {
