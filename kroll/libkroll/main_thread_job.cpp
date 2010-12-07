@@ -21,7 +21,7 @@ namespace kroll
 		executed(false),
 		waiting(false)
 	{
-		method->preventDeletion();
+		
 	}
 
 	MainThreadJob::MainThreadJob(KMethodRef method) :
@@ -32,7 +32,7 @@ namespace kroll
 		executed(false),
 		waiting(false)
 	{
-		method->preventDeletion();
+		
 	}
 
 	void MainThreadJob::Execute()
@@ -61,33 +61,25 @@ namespace kroll
 		{
 			this->exception = ValueException::FromString("Unknown Exception from job queue");
 		}
-		method->allowDeletion();
 	
 		{
 			boost::lock_guard<boost::mutex> lock(completionLock);
 			executed = true;
+			if(waiting)
+				completion.notify_one();
 		}
-
-		bool signal;
-		{
-			boost::lock_guard<boost::mutex> lock(completionLock);
-			signal = waiting;
-		}
-		if(signal)
-			completion.notify_all();
-
 		isExec = false;
 	}
 
 	void MainThreadJob::Wait()
 	{
 		boost::unique_lock<boost::mutex> lock(completionLock);
+		waiting = true;
 		while(! executed)
 		{
-			waiting = true;
 			completion.wait(lock);
-			waiting = false;
 		}
+		waiting = false;
 	}
 
 	KValueRef MainThreadJob::GetResult()
