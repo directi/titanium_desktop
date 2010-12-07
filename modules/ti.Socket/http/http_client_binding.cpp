@@ -10,9 +10,10 @@
 #include <kroll/thread_manager.h>
 #include <kroll/utils/url/ParsedURL.h>
 
+#include <boost/algorithm/string.hpp>
 
+#include <Poco/Net/NameValueCollection.h>
 
-using Poco::Net::NameValueCollection;
 
 namespace ti
 {
@@ -94,7 +95,7 @@ namespace ti
 		args.VerifyException("open", "s s ?b s s");
 
 		this->httpMethod = args.GetString(0);
-		Poco::toUpperInPlace(this->httpMethod);
+		boost::to_upper(this->httpMethod);
 		if (this->httpMethod.empty())
 			this->httpMethod = "GET";
 
@@ -455,7 +456,7 @@ namespace ti
 	}
 
 	static void SplitParameters(const std::string::const_iterator& begin,
-		const std::string::const_iterator& end, NameValueCollection& parameters)
+		const std::string::const_iterator& end, Poco::Net::NameValueCollection& parameters)
 	{
 		std::string pname;
 		std::string pvalue;
@@ -468,7 +469,7 @@ namespace ti
 			pvalue.clear();
 			while (it != end && std::isspace(*it)) ++it;
 			while (it != end && *it != '=' && *it != ';') pname += *it++;
-			Poco::trimRightInPlace(pname);
+			boost::trim(pname);
 			if (it != end && *it != ';') ++it;
 			while (it != end && std::isspace(*it)) ++it;
 			while (it != end && *it != ';')
@@ -494,7 +495,7 @@ namespace ti
 				}
 				else pvalue += *it++;
 			}
-			Poco::trimRightInPlace(pvalue);
+			boost::trim(pvalue);
 			if (!pname.empty()) parameters.add(pname, pvalue);
 			if (it != end) ++it;
 		}
@@ -502,7 +503,7 @@ namespace ti
 
 	void HTTPClientBinding::GetResponseCookie(std::string cookieLine)
 	{
-		NameValueCollection cookiePairs;
+		Poco::Net::NameValueCollection cookiePairs;
 		SplitParameters(cookieLine.begin(), cookieLine.end(), cookiePairs);
 		Poco::Net::HTTPCookie pocoCookie(cookiePairs);
 		responseCookies[pocoCookie.getName()] = new HTTPCookie(pocoCookie);
