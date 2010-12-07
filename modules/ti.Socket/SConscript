@@ -2,7 +2,7 @@
 from os import path
 Import('build env module')
 
-sources = Glob('*.cpp')
+sources = Glob('*.cpp') + Glob('http/*.cpp')
 
 env.Append(CPPDEFINES = ('TITANIUM_SOCKET_API_EXPORT', 1))
 
@@ -15,6 +15,7 @@ if build.is_linux():
 	env.ParseConfig('pkg-config --libs --cflags gdk-2.0 dbus-glib-1')
 
 if build.is_win32():
+	build.add_thirdparty(env, 'curl')
 	env.Append(CPPDEFINES = ('BOOST_ASIO_DISABLE_IOCP'))
 
 # Copy the support files the module build directory

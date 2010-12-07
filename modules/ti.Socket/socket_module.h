@@ -6,6 +6,7 @@
 #define _SOCKET_MODULE_H_
 
 #include "socket_binding.h"
+#include <curl/curl.h>
 
 #if defined(OS_OSX) || defined(OS_LINUX)
 #define EXPORT __attribute__((visibility("default")))
@@ -28,6 +29,7 @@ namespace ti
 
 	public:
 		static std::string GetRootCertPath();
+		static CURLSH* GetCurlShareHandle();
 
 	private:
 		AutoPtr<SocketBinding> socketBinding;
