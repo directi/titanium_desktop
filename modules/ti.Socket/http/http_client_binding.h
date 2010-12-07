@@ -74,7 +74,7 @@ namespace ti
 		void BeginWithPostDataObject(KObjectRef object);
 		void SetRequestData();
 		void ChangeState(int readyState);
-		void GetResponseCookie(std::string cookieLine);
+		void GetResponseCookie(const std::string &cookieLine);
 		struct curl_slist* SetRequestHeaders(CURL* handle);
 		void ExecuteRequest();
 		bool FireEvent(std::string& eventName);

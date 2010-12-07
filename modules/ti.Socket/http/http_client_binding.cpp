@@ -501,7 +501,7 @@ namespace ti
 		}
 	}
 
-	void HTTPClientBinding::GetResponseCookie(std::string cookieLine)
+	void HTTPClientBinding::GetResponseCookie(const std::string &cookieLine)
 	{
 		Poco::Net::NameValueCollection cookiePairs;
 		SplitParameters(cookieLine.begin(), cookieLine.end(), cookiePairs);
@@ -524,9 +524,6 @@ namespace ti
 
 	void SetRequestCookies(CURL* handle, const std::map<std::string, std::string> & cookies)
 	{
-		if (cookies.empty())
-			return;
-
 		std::string cookieString;
 		for(std::map<std::string, std::string>::const_iterator
 			i = cookies.begin();
@@ -538,8 +535,11 @@ namespace ti
 			cookieString.append(i->second);
 			cookieString.append(";");
 		}
-
-		SET_CURL_OPTION(handle, CURLOPT_COOKIE, cookieString.c_str());
+		
+		if (!cookieString.empty())
+		{
+			SET_CURL_OPTION(handle, CURLOPT_COOKIE, cookieString.c_str());
+		}
 	}
 
 	size_t HTTPClientBinding::WriteRequestDataToBuffer(char* buffer, size_t bufferSize)
@@ -653,7 +653,7 @@ namespace ti
 			std::string headerValue(FileUtils::Trim(header.substr(splitPos + 1)));
 			nextResponseHeaders[headerName] = headerValue;
 
-			Poco::toLowerInPlace(headerName);
+			boost::to_lower(headerName);
 			if (headerName == "set-cookie")
 				this->GetResponseCookie(headerValue);
 		}
