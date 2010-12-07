@@ -4,6 +4,7 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 #include "file.h"
+#include "file_stream.h"
 #include "filesystem_utils.h"
 
 #include "TiAsyncJobRunner.h"
@@ -16,6 +17,7 @@
 #include <Poco/StreamCopier.h>
 
 #include <kroll/utils/zip_utils.h>
+#include <kroll/utils/file_utils.h>
 
 #ifndef OS_WIN32
 #include <sys/types.h>
@@ -27,6 +29,8 @@
 #endif
 
 #ifdef OS_WIN32
+#include <shellapi.h>
+#include <shlobj.h>
 #define MIN_PATH_LENGTH 3
 #else
 #define MIN_PATH_LENGTH 1
@@ -35,21 +39,24 @@
 
 namespace ti
 {
-	File::File(std::string filename) :
-		StaticBoundObject("Filesystem.File")
+	std::string getAbsolutePath(const std::string & path)
 	{
-
-		Poco::Path pocoPath(Poco::Path::expand(filename));
-		this->filename = pocoPath.absolute().toString();
+		Poco::Path pocoPath(Poco::Path::expand(path));
+		std::string retpath = pocoPath.absolute().toString();
 
 		// If the filename we were given contains a trailing slash, just remove it
 		// so that users can count on reproducible results from toString.
-		size_t length = this->filename.length();
-		if (length > MIN_PATH_LENGTH && this->filename[length - 1] == Poco::Path::separator())
+		size_t length = retpath.length();
+		if (length > MIN_PATH_LENGTH && retpath[length - 1] == Poco::Path::separator())
 		{
-			this->filename.resize(length - 1);
+			retpath.resize(length - 1);
 		}
-
+		return retpath;
+	}
+	File::File(const std::string &name)
+		: StaticBoundObject("Filesystem.File"),
+		filename(getAbsolutePath(name))
+	{
 		this->SetMethod("open", &File::Open);
 		this->SetMethod("toString", &File::ToString);
 		this->SetMethod("toURL", &File::ToURL);
@@ -123,68 +130,20 @@ namespace ti
 
 	void File::IsFile(const ValueList& args, KValueRef result)
 	{
-		try
-		{
-			Poco::File file(this->filename);
-			bool isFile = file.isFile();
-			result->SetBool(isFile);
-		}
-		catch (Poco::FileNotFoundException&)
-		{
-			result->SetBool(false);
-		}
-		catch (Poco::PathNotFoundException&)
-		{
-			result->SetBool(false);
-		}
-		catch (Poco::Exception& exc)
-		{
-			throw ValueException::FromString(exc.displayText());
-		}
+		bool bRet = FileUtils::IsFile(this->filename);
+		result->SetBool(bRet);
 	}
 
 	void File::IsDirectory(const ValueList& args, KValueRef result)
 	{
-		try
-		{
-			Poco::File dir(this->filename);
-			bool isDir = dir.isDirectory();
-			result->SetBool(isDir);
-		}
-		catch (Poco::FileNotFoundException&)
-		{
-			result->SetBool(false);
-		}
-		catch (Poco::PathNotFoundException&)
-		{
-			result->SetBool(false);
-		}
-		catch (Poco::Exception& exc)
-		{
-			throw ValueException::FromString(exc.displayText());
-		}
+		bool bRet = FileUtils::IsDirectory(this->filename);
+		result->SetBool(bRet);
 	}
 
 	void File::IsHidden(const ValueList& args, KValueRef result)
 	{
-		try
-		{
-			Poco::File file(this->filename);
-			bool isHidden = file.isHidden();
-			result->SetBool(isHidden);
-		}
-		catch (Poco::FileNotFoundException&)
-		{
-			result->SetBool(false);
-		}
-		catch (Poco::PathNotFoundException&)
-		{
-			result->SetBool(false);
-		}
-		catch (Poco::Exception& exc)
-		{
-			throw ValueException::FromString(exc.displayText());
-		}
+		bool bRet = FileUtils::IsHidden(this->filename);
+		result->SetBool(bRet);
 	}
 
 	void File::IsSymbolicLink(const ValueList& args, KValueRef result)
@@ -353,37 +312,14 @@ namespace ti
 
 	void File::CreateDirectory(const ValueList& args, KValueRef result)
 	{
-		try
+		bool recursive = false;
+		if(args.size() > 0)
 		{
-			bool createParents = false;
-			if(args.size() > 0)
-			{
-				createParents = args.at(0)->ToBool();
-			}
+			recursive = args.at(0)->ToBool();
+		}
 
-			Poco::File dir(this->filename);
-			bool created = false;
-			if(! dir.exists())
-			{
-				if(createParents)
-				{
-					dir.createDirectories();
-					created = true;
-				}
-				else {
-					created = dir.createDirectory();
-				}
-			}
-#ifndef OS_WIN32
-		// directories must have execute bit by default or you can CD into them
-		chmod(this->filename.c_str(),S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH|S_IXUSR|S_IXGRP|S_IXOTH);
-#endif		
-			result->SetBool(created);
-		}
-		catch (Poco::Exception& exc)
-		{
-			throw ValueException::FromString(exc.displayText());
-		}
+		bool bRet = FileUtils::CreateDirectory(this->filename, recursive);
+		result->SetBool(bRet);
 	}
 
 	void File::DeleteDirectory(const ValueList& args, KValueRef result)
@@ -563,7 +499,7 @@ namespace ti
 
 	void File::GetNativePath(const ValueList& args, KValueRef result)
 	{
-		result->SetString(this->filename);
+		result->SetString(this->filename.c_str());
 	}
 
 	void File::GetSize(const ValueList& args, KValueRef result)
@@ -759,14 +695,6 @@ namespace ti
 
 		Poco::Path pocoPath(Poco::Path::expand(args.at(0)->ToString()));
 		destDir = pocoPath.absolute().toString();
-
-		// If the filename we were given contains a trailing slash, just remove it
-		// so that users can count on reproducible results from toString.
-		size_t length = this->filename.length();
-		if (length > MIN_PATH_LENGTH && this->filename[length - 1] == Poco::Path::separator())
-		{
-			this->filename.resize(length - 1);
-		}
 
 		KMethodRef onCompleteCallback = NULL;
 		if (args.at(1)->IsMethod())
