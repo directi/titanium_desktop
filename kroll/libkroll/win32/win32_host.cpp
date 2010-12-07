@@ -138,7 +138,7 @@ namespace kroll
 
 	void Host::SignalNewMainThreadJob()
 	{
-		SendMessage(eventWindow->GetHandle(), tickleRequestMessage, 0, 0);
+		PostMessage(eventWindow->GetHandle(), tickleRequestMessage, 0, 0);
 	}
 
 	HWND Host::AddMessageHandler(MessageHandler handler)

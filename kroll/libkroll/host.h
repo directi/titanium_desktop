@@ -164,8 +164,6 @@ namespace kroll
 		bool waitForDebugger;
 		bool autoScan;
 		bool isExecutionSuspended;
-		boost::condition_variable hangNonMainThread;
-		boost::mutex hangLock;
 
 		// Profiling Related variables & methods
 		bool profile;
