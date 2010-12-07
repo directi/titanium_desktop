@@ -6,14 +6,14 @@
 #ifndef _MAIN_THREAD_JOB_H
 #define _MAIN_THREAD_JOB_H
 
-#include <Poco/Semaphore.h>
-
 #include "base.h"
 #include "binding/bytes.h"
 #include "binding/arg_list.h"
 #include "binding/value_exception.h"
 #include "binding/binding_declaration.h"
 
+#include <boost/thread/condition_variable.hpp>
+#include <boost/thread/mutex.hpp>
 
 namespace kroll
 {
@@ -29,10 +29,17 @@ namespace kroll
 		ValueException GetException();
 		void PrintException();
 
+		void Wait();
+
 	private:
 		KMethodRef method;
 		KValueRef returnValue;
 		ValueException exception;
+		bool executed;
+		bool waiting;
+		boost::condition_variable completion;
+		boost::mutex completionLock;
+
 
 	protected:
 		ValueList args;

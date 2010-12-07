@@ -27,7 +27,7 @@ namespace kroll
 
 	public:
 
-		KMethod(const char *type = "KMethod") : KObject(type), canDelete(true), count(1) {}
+		KMethod(const char *type = "KMethod") : KObject(type) {}
 		virtual ~KMethod() {}
 
 		/**
@@ -78,24 +78,7 @@ namespace kroll
 		KValueRef Call(const char* one, KValueRef two, KValueRef three,
 			KValueRef four);
 
-		virtual void duplicate() { ++count; }
-
-		virtual void release() { 
-			--count;
-			if(count == 0 && canDelete)
-				delete this;
-		}
-
-		void allowDeletion() {
-			canDelete = true;
-			if(count == 0)
-				delete this;
-		}
-		void preventDeletion() { canDelete = false; }
-
 	private:
-		Poco::AtomicCounter count;
-		bool canDelete;
 		DISALLOW_EVIL_CONSTRUCTORS(KMethod);
 	};
 }

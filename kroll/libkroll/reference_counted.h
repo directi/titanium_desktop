@@ -20,19 +20,19 @@ namespace kroll
 		ReferenceCounted() : count(1) { }
 		virtual ~ReferenceCounted() { }
 
-		virtual void duplicate()
+		void duplicate()
 		{
 			++count;
 		}
 
-		virtual void release()
+		void release()
 		{
 			--count;
 			if (count == 0)
 				delete this;
 		}
 
-		inline int referenceCount() const
+		int referenceCount() const
 		{
 			return count;
 		}

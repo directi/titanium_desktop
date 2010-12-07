@@ -17,22 +17,30 @@ namespace kroll
 		method(method),
 		args(args),
 		returnValue(NULL),
-		exception(NULL)
+		exception(NULL),
+		executed(false),
+		waiting(false)
 	{
-		method->preventDeletion();
+		
 	}
 
 	MainThreadJob::MainThreadJob(KMethodRef method) :
 		method(method),
 		args(ValueList()),
 		returnValue(NULL),
-		exception(NULL)
+		exception(NULL),
+		executed(false),
+		waiting(false)
 	{
-		method->preventDeletion();
+		
 	}
 
 	void MainThreadJob::Execute()
 	{
+		static bool isExec = false;
+		if(isExec)
+			fprintf(stderr, "Screwed, we just execed one MainThreadJob on top of another!\n");
+		isExec = true;
 		try
 		{
 			this->returnValue = this->method->Call(this->args);
@@ -53,7 +61,25 @@ namespace kroll
 		{
 			this->exception = ValueException::FromString("Unknown Exception from job queue");
 		}
-		method->allowDeletion();
+	
+		{
+			boost::lock_guard<boost::mutex> lock(completionLock);
+			executed = true;
+			if(waiting)
+				completion.notify_one();
+		}
+		isExec = false;
+	}
+
+	void MainThreadJob::Wait()
+	{
+		boost::unique_lock<boost::mutex> lock(completionLock);
+		waiting = true;
+		while(! executed)
+		{
+			completion.wait(lock);
+		}
+		waiting = false;
 	}
 
 	KValueRef MainThreadJob::GetResult()

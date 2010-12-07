@@ -12,6 +12,7 @@
 
 #include <kroll/utils/file_utils.h>
 #include <kroll/utils/environment_utils.h>
+#include <kroll/MainThreadUtils.h>
 
 #include "thread_manager.h"
 
@@ -682,15 +683,9 @@ namespace kroll
 				this->mainThreadJobs.push_back(job); // Enqueue job
 			}
 			
-			{
-			boost::unique_lock<boost::mutex> lock(hangLock);
-			while(isExecutionSuspended)
-			{
- 				hangNonMainThread.wait(lock);
-			}
-			}
-
 			this->SignalNewMainThreadJob();
+
+			job->Wait();
 		}
 
 		KValueRef result(job->GetResult());
@@ -709,10 +704,11 @@ namespace kroll
 
 	void Host::RunMainThreadJobs()
 	{
-		// Prevent other threads trying to queue while we clear the queue.
-		// But don't block the invocation task while we actually execute
-		// the jobs -- one of these jobs may try to add something to the
-		// job queue -- deadlock-o-rama
+		if(isExecutionSuspended)
+		{
+			return;
+		}
+
 		std::vector<MainThreadJob*> jobs;
 		{
 			boost::recursive_mutex::scoped_lock lock(jobQueueMutex);
@@ -729,33 +725,28 @@ namespace kroll
 
 	void Host::SuspendMainThreadJobs()
 	{
-		boost::lock_guard<boost::mutex> lock(hangLock);
+		ASSERT_MAIN_THREAD
 		isExecutionSuspended = true;
 	}
 
 	void Host::ResumeMainThreadJobs()
 	{
-		{
-			boost::lock_guard<boost::mutex> lock(hangLock);
-			isExecutionSuspended = false;
-		}
-		hangNonMainThread.notify_all();
+		ASSERT_MAIN_THREAD
+		isExecutionSuspended = false;
+		this->SignalNewMainThreadJob();
 	}
 
 	KValueRef RunOnMainThread(KMethodRef method)
 	{
-		method->preventDeletion();
 		return Host::GetInstance()->RunOnMainThread(method);
 	}
 	KValueRef RunOnMainThread(KMethodRef method, const ValueList& args)
 	{
-		method->preventDeletion();
 		return Host::GetInstance()->RunOnMainThread(method, args);
 	}
 
 	KValueRef RunReadJobOnMainThread(KMethodRef method, const char * data, size_t size)
 	{
-		method->preventDeletion();
 		return Host::GetInstance()->RunReadJobOnMainThread(method, data, size);
 	}
 }
