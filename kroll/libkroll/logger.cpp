@@ -4,35 +4,37 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include <cstdio>
-#include <sstream>
-#include <cstring>
-
 #include "logger.h"
 
 #include <kroll/utils/file_utils.h>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/date_time/time_facet.hpp>
 
 
 namespace kroll
 {
 	static std::string getCurrentTimeString()
 	{
-		time_t time_of_day;
-		char buffer[ 80 ];
-		time_of_day = time( NULL );
-		strftime( buffer, 80, "%d_%B_%Y_%H_%M_%S", localtime( &time_of_day ) );
-		std::string str(buffer);
-		return str;
+		std::ostringstream msg;
+		const boost::posix_time::ptime now =
+			boost::posix_time::microsec_clock::local_time();
+		boost::posix_time::time_facet*const f=
+			new boost::posix_time::time_facet("%d_%b_%Y_%H_%M_%S");
+		msg.imbue(std::locale(msg.getloc(),f));
+		msg << now;
+		return msg.str();
 	}
 
 	static std::string getCurrentLogTimeString()
 	{
-		time_t time_of_day;
-		char buffer[ 80 ];
-		time_of_day = time( NULL );
-		strftime( buffer, 80, "%d-%B-%Y %H:%M:%S", localtime( &time_of_day ) );
-		std::string str(buffer);
-		return str;
+		std::ostringstream msg;
+		const boost::posix_time::ptime now =
+			boost::posix_time::microsec_clock::local_time();
+		boost::posix_time::time_facet*const f=
+			new boost::posix_time::time_facet("%d-%b-%Y %H:%M:%s");
+		msg.imbue(std::locale(msg.getloc(),f));
+		msg << now;
+		return msg.str();
 	}
 
 	static std::string formatMsg(const std::string& name, const std::string& message, Logger::Level level)
