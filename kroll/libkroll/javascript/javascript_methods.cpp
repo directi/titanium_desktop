@@ -6,7 +6,7 @@
 
 #include "javascript_methods.h"
 #include <kroll/host.h>
-//#include <Poco/Timer.h>
+#include <kroll/utils/Timer.h>
 #include <boost/thread/recursive_mutex.hpp>
 
 namespace kroll
@@ -23,24 +23,24 @@ namespace kroll
 			global->SetMethod("clearInterval", new KFunctionPtrMethod(&ClearInterval));
 		}
 		
-		class MainThreadCaller
-		{
-		public:
-			KMethodRef method;
-			ValueList args;
-			
-			//void OnTimer(Poco::Timer& timer)
-			//{
-			//	Host::GetInstance()->RunOnMainThread(method, args);
-			//}
-		};
+		//class MainThreadCaller
+		//{
+		//public:
+		//	KMethodRef method;
+		//	ValueList args;
+		//	
+		//	//void OnTimer(Poco::Timer& timer)
+		//	//{
+		//	//	Host::GetInstance()->RunOnMainThread(method, args);
+		//	//}
+		//};
 		
-		static int currentTimerId = 0;
-		//static std::map<int, Poco::Timer*> timers;
-		static std::map<int, MainThreadCaller*> callers;
+		//static int currentTimerId = 0;
+		static std::map<int, Timer*> timers;
+		//static std::map<int, MainThreadCaller*> callers;
 		static boost::recursive_mutex timersMutex;
 		
-		static KValueRef CreateTimer(const ValueList& args, bool interval)
+		static KValueRef CreateTimer(const ValueList& args, bool recursive)
 		{
 			KMethodRef method = 0;
 			if (args.at(0)->IsMethod())
@@ -61,9 +61,14 @@ namespace kroll
 			
 			if (!method.isNull())
 			{
-				throw ValueException::FromString("JavaScriptMethods::CreateTimer Not Implemented");
+#ifdef WIN32
+				boost::recursive_mutex::scoped_lock lock(timersMutex);
+				Timer * timer = new Win32Timer(duration, recursive, method, methodArgs);
+				timers[timer->getID()] = timer;
+				timer->start();
+				return Value::NewInt(timer->getID());
+#else
 				//boost::recursive_mutex::scoped_lock lock(timersMutex);
-				//int id = currentTimerId;
 				//timers[id] = new Poco::Timer(duration, interval ? duration : 0);
 				//callers[id] = new MainThreadCaller();
 				//callers[id]->method = method;
@@ -74,6 +79,8 @@ namespace kroll
 				//
 				//currentTimerId++;
 				//return Value::NewInt(id);
+				throw ValueException::FromString("JavaScriptMethods::CreateTimer Not Implemented");
+#endif
 			}
 			else
 			{
@@ -84,9 +91,20 @@ namespace kroll
 		// this gets called on the main thread to avoid deadlock during the thread callback
 		static KValueRef StopTimer(const ValueList& args)
 		{
+			bool bRet = false;
+#ifdef OS_WIN32
 			int id = args.GetInt(0);
 			boost::recursive_mutex::scoped_lock lock(timersMutex);
-			
+			std::map<int, Timer*>::iterator timerIter = timers.find(id);
+			if (timerIter != timers.end())
+			{
+				Timer * timer = timerIter->second;
+				bRet = timer->stop();
+				timers.erase(timerIter);
+				delete timer;
+			}
+#else
+			//boost::recursive_mutex::scoped_lock lock(timersMutex);
 			//std::map<int, Poco::Timer*>::iterator timerIter = timers.find(id);
 			//std::map<int, MainThreadCaller*>::iterator callerIter = callers.find(id);
 			//if (timerIter != timers.end() && callerIter != callers.end())
@@ -101,9 +119,10 @@ namespace kroll
 			//	delete caller;
 			//	delete timer;
 			//	
-			//	return Value::NewBool(true);
+			//	bRet = true;
 			//}
-			return Value::NewBool(false);
+#endif
+			return Value::NewBool(bRet);
 		}
 		
 		KValueRef SetTimeout(const ValueList& args)
