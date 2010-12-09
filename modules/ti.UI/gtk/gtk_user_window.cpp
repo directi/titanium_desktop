@@ -228,7 +228,6 @@ namespace ti
 			this->Minimize();
 
 		UserWindow::Open();
-		this->FireEvent(Event::OPENED);
 	}
 
 	void GtkUserWindow::Open()

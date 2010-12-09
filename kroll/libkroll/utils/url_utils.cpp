@@ -143,28 +143,29 @@ namespace URLUtils
 	}
 
 
-	std::string FileURLToPath(std::string url)
+	std::string FileURLToPath(const std::string &url)
 	{
-		size_t fileLength = 7; // file://
-		if (url.find("file://") == 0)
+		std::string newurl(url);
+		const size_t fileLength = 7; // file://
+		if (newurl.find("file://") == 0)
 		{
-			url = url.substr(fileLength);
+			newurl = newurl.substr(fileLength);
 		}
 
 		if ('/' != KR_PATH_SEP_CHAR)
 		{
-			for (size_t i = 0; i < url.size(); i++)
+			for (size_t i = 0; i < newurl.size(); i++)
 			{
-				if (url[i] == '/')
+				if (newurl[i] == '/')
 				{
-						url[i] = KR_PATH_SEP_CHAR;
+					newurl[i] = KR_PATH_SEP_CHAR;
 				}
 			}
 		}
-		return url;
+		return newurl;
 	}
 
-	std::string PathToFileURL(std::string pathIn)
+	std::string PathToFileURL(const std::string &pathIn)
 	{
 		// We need to convert this to a Unicode string, because we'll
 		// be iterating through it a character at a time. This might
@@ -199,11 +200,10 @@ namespace URLUtils
 		return url;
 	}
 
-#if defined(KROLL_API_EXPORT) || defined(_KROLL_H_)
 	static std::string NormalizeAppURL(const std::string& url)
 	{
-		size_t appLength = 6; // app://
-		std::string id(Host::GetInstance()->GetApplication()->getId());
+		const size_t appLength = 6; // app://
+		const std::string id(Host::GetInstance()->GetApplication()->getId());
 		size_t idLength = id.size();
 		std::string idPart(url.substr(appLength, idLength));
 
@@ -239,47 +239,6 @@ namespace URLUtils
 		}
 		return url;
 	}
-
-	std::string URLToPath(const std::string& url)
-	{
-		WTF::ParsedURL inURI(url);
-		try
-		{
-			if (url == BlankPageURL())
-			{
-				return BlankURLToFilePath();
-			}
-			if (inURI.scheme() == "ti")
-			{
-				return TiURLToPath(url);
-			}
-			else if (inURI.scheme() == "app")
-			{
-				return AppURLToPath(url);
-			}
-			else if (inURI.scheme().empty())
-			{
-				// There is no scheme for this URL, so we have to/ guess at this point if
-				// it's a path or a relative app:// URL. If a file can be found, assume thi
-				// is a file path.
-				if (FileUtils::IsFile(url))
-					return url;
-
-				// Otherwise treat this like an app:// URL relative to the root.
-				std::string newURL("app://");
-				newURL.append(url);
-				return AppURLToPath(newURL);
-			}
-		}
-		catch (ValueException& e)
-		{
-			SharedString ss = e.DisplayString();
-			Logger* log = Logger::Get("URLUtils");
-			log->Error("Could not convert %s to a path: %s", url.c_str(), ss->c_str());
-		}
-		return url;
-	}
-
 	std::string TiURLToPath(const std::string& tiURL)
 	{
 		try
@@ -291,8 +250,7 @@ namespace URLUtils
 			}
 
 			std::string host(inURI.host());
-			SharedApplication app = Host::GetInstance()->GetApplication();
-			std::string path(app->GetComponentPath(host));
+			std::string path(Host::GetInstance()->GetApplication()->GetComponentPath(host));
 
 			if (path.empty())
 			{
@@ -346,6 +304,50 @@ namespace URLUtils
 
 		return inURL;
 	}
-#endif
+
+	std::string URLToPath(const std::string& url)
+	{
+		WTF::ParsedURL inURI(url);
+		try
+		{
+			if (url == BlankPageURL())
+			{
+				return BlankURLToFilePath();
+			}
+			if (inURI.scheme() == "ti")
+			{
+				return TiURLToPath(url);
+			}
+			else if (inURI.scheme() == "app")
+			{
+				return AppURLToPath(url);
+			}
+			else if (inURI.scheme().empty())
+			{
+				// There is no scheme for this URL, so we have to/ guess at this point if
+				// it's a path or a relative app:// URL. If a file can be found, assume thi
+				// is a file path.
+				if (FileUtils::IsFile(url))
+					return url;
+
+				// Otherwise treat this like an app:// URL relative to the root.
+				std::string newURL("app://");
+				newURL.append(url);
+				return AppURLToPath(newURL);
+			}
+		}
+		catch (ValueException& e)
+		{
+			SharedString ss = e.DisplayString();
+			Logger* log = Logger::Get("URLUtils");
+			log->Error("Could not convert %s to a path: %s", url.c_str(), ss->c_str());
+		}
+		return url;
+	}
+	std::string getScheme(const std::string & url)
+	{
+		WTF::ParsedURL uri(url);
+		return uri.scheme();
+	}
 }
 }

@@ -10,7 +10,7 @@
 #include "http_client_binding.h"
 #include "../../common.h"
 #include <kroll/thread_manager.h>
-#include <kroll/utils/url/ParsedURL.h>
+#include <kroll/utils/url_utils.h>
 
 
 using Poco::Net::NameValueCollection;
@@ -104,7 +104,7 @@ namespace ti
 
 		// TODO(mrobinson): If the scheme is a app:// or ti:// we should just
 		// convert the URL to a file URL here.
-		const std::string scheme = WTF::ParsedURL(url).scheme();
+		const std::string scheme = URLUtils::getScheme(url);
 		if (scheme != "http" && scheme != "https" && scheme != "file")
 		{
 			throw ValueException::FromFormat("%s scheme is not supported by HTTPClient",

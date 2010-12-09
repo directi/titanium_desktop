@@ -685,8 +685,6 @@ void Win32UserWindow::Open()
 
 	UserWindow::Open();
 	this->SetupFrame();
-
-	FireEvent(Event::OPENED);
 }
 
 bool Win32UserWindow::Close()
