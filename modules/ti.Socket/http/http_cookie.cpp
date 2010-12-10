@@ -4,15 +4,64 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 #include "http_cookie.h"
+#include <boost/algorithm/string.hpp>
 
 namespace ti
-{
-	HTTPCookie::HTTPCookie(const std::map<std::string, std::string> & cookieParts) : 
+{	
+	void SplitParameters(const std::string::const_iterator& begin,
+		const std::string::const_iterator& end, std::map<std::string, std::string> & parameters)
+	{
+		std::string pname;
+		std::string pvalue;
+		pname.reserve(32);
+		pvalue.reserve(64);
+		std::string::const_iterator it = begin;
+		while (it != end)
+		{
+			pname.clear();
+			pvalue.clear();
+			while (it != end && std::isspace(*it)) ++it;
+			while (it != end && *it != '=' && *it != ';') pname += *it++;
+			boost::trim(pname);
+			if (it != end && *it != ';') ++it;
+			while (it != end && std::isspace(*it)) ++it;
+			while (it != end && *it != ';')
+			{
+				if (*it == '"')
+				{
+					++it;
+					while (it != end && *it != '"')
+					{
+						if (*it == '\\')
+						{
+							++it;
+							if (it != end) pvalue += *it++;
+						}
+						else pvalue += *it++;
+					}
+					if (it != end) ++it;
+				}
+				else if (*it == '\\')
+				{
+					++it;
+					if (it != end) pvalue += *it++;
+				}
+				else pvalue += *it++;
+			}
+			boost::trim(pvalue);
+			if (!pname.empty()) parameters[pname] = pvalue;
+			if (it != end) ++it;
+		}
+	}
+
+	HTTPCookie::HTTPCookie(const std::string& cookieLine) : 
 		KAccessorObject("Socket.HTTPCookie"),
 		version(0),
 		secure(false),
 		httpOnly(false)
 	{
+		std::map<std::string, std::string> cookieParts;
+		SplitParameters(cookieLine.begin(), cookieLine.end(), cookieParts);
 		this->parseCookieParts(cookieParts);
 		this->InitializeBinding();
 	}

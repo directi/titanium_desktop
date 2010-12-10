@@ -17,6 +17,7 @@ using std::vector;
 
 
 #include <kroll/utils/file_utils.h>
+#include <kroll/utils/url_utils.h>
 #include <kroll/utils/url/ParsedURL.h>
 #include <kroll/utils/environment_utils.h>
 
@@ -126,10 +127,8 @@ SharedProxy GetHTTPSProxyOverride()
 SharedProxy GetProxyForURL(string& url)
 {
 	static Logger* logger = GetLogger();
-	WTF::ParsedURL uri(url);
-
 	// Don't try to detect proxy settings for URLs we know are local
-	std::string scheme(uri.scheme());
+	std::string scheme(URLUtils::getScheme(url));
 	if (scheme == "app" || scheme == "ti" || scheme == "file")
 		return 0;
 
@@ -166,12 +165,12 @@ static inline bool EndsWith(string haystack, string needle)
 static bool ShouldBypassWithEntry(const std::string & url, SharedPtr<BypassEntry> entry)
 {
 	WTF::ParsedURL uri(url);
-	const std::string& uriHost = uri.host();
-	const std::string& uriScheme = uri.scheme();
-	const std::string& uriPort = uri.port();
+	const std::string uriHost = uri.host();
+	const std::string uriScheme = uri.scheme();
+	const std::string uriPort = uri.port();
 	int uri_port = ::atoi(uriPort.c_str());
-	const std::string& entryHost = entry->host;
-	const std::string& entryScheme = entry->scheme;
+	const std::string entryHost = entry->host;
+	const std::string entryScheme = entry->scheme;
 	unsigned short entryPort = entry->port;
 
 	GetLogger()->Debug("bypass entry: scheme='%s' host='%s' port='%i'", 

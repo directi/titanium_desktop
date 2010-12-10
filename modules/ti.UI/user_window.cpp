@@ -158,6 +158,8 @@ void UserWindow::Open()
 			 this->config->GetBaseURL());
 	else
 		this->SetURL(this->config->GetURL());
+
+	this->FireEvent(Event::OPENED);
 }
 
 bool UserWindow::Close()

@@ -100,7 +100,6 @@ namespace ti
 		[nativeWindow setExcludedFromWindowsMenu:config->IsToolWindow()];
 		[nativeWindow open];
 		UserWindow::Open();
-		this->FireEvent(Event::OPENED);
 	}
 
 	OSXUserWindow::~OSXUserWindow()

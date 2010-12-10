@@ -26,12 +26,12 @@ namespace UTILS_NS
 		/**
 		 * Convert a file URL to an absolute path
 		 */
-		KROLL_API std::string FileURLToPath(std::string url);
+		KROLL_API std::string FileURLToPath(const std::string &url);
 
 		/**
 		 * Convert an path to a file URL
 		 */
-		KROLL_API std::string PathToFileURL(std::string path);
+		KROLL_API std::string PathToFileURL(const std::string &path);
 
 		/**
 		 * Normalize a URL. If this url is an app:// URL, ensure that it
@@ -50,8 +50,10 @@ namespace UTILS_NS
 		 */
 		KROLL_API std::string BlankPageURL();
 
-		KROLL_API std::string TiURLToPath(const std::string& url);
-		KROLL_API std::string AppURLToPath(const std::string& url);
+		/**
+		 * getScheme() gives the scheme of the given url
+		 */
+		KROLL_API std::string getScheme(const std::string & url);
 	};
 }
 #endif

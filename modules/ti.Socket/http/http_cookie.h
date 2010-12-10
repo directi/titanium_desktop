@@ -14,7 +14,7 @@ namespace ti
 	class HTTPCookie : public KAccessorObject
 	{
 	public:
-		HTTPCookie(const std::map<std::string, std::string> & cookieParts);
+		HTTPCookie(const std::string& cookieLine);
 		void InitializeBinding();
 
 		void GetName(const ValueList& args, KValueRef result);
