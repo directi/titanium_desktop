@@ -63,6 +63,10 @@ namespace kroll
 		this->SetMethod("preventDefault", &Event::_PreventDefault);
 	}
 
+	Event::~Event()
+	{
+	}
+
 	void Event::_GetTarget(const ValueList&, KValueRef result)
 	{
 		result->SetObject(this->target);

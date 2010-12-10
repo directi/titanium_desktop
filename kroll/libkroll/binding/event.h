@@ -27,6 +27,7 @@ namespace kroll
 
 	public:
 		Event(AutoPtr<KEventObject> target, const std::string& eventName);
+		virtual ~Event();
 		void _GetTarget(const ValueList&, KValueRef result);
 		void _GetType(const ValueList&, KValueRef result);
 		void _GetTimestamp(const ValueList&, KValueRef result);
