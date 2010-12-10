@@ -4,6 +4,7 @@
 
 #include "Timer.h"
 #include <kroll/host.h>
+#include "../Assertion.h"
 
 namespace UTILS_NS
 {
@@ -18,16 +19,17 @@ namespace UTILS_NS
 	{
 	}
 
+#ifdef OS_WIN32
+
 	void Timer::callback()
 	{
-		Host::GetInstance()->RunOnMainThread(method, args);
-		if (this->recursive)
+		ASSERT_MAIN_THREAD
+		if (! this->recursive)
 		{
-			this->start();
+			this->stop();
 		}
+		method->Call(args);
 	}
-
-#ifdef OS_WIN32
 
 	std::map<unsigned, Timer *> timers;
 
@@ -57,7 +59,6 @@ namespace UTILS_NS
 			{
 				Timer * timer = oIter->second;
 				timer->callback();
-				timers.erase(oIter);
 			}
 	}
 
@@ -67,6 +68,7 @@ namespace UTILS_NS
 		this->loadTimeTimerID = SetTimer(NULL, this->id, this->duration, &TimerProc);
 		timers[this->loadTimeTimerID] = this;
 	}
+
 	bool Win32Timer::stop()
 	{
 		if (this->loadTimeTimerID)

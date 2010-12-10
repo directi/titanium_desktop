@@ -1593,6 +1593,26 @@ void UserWindow::LoadUIJavaScript(JSGlobalContextRef context)
 		Logger* logger = Logger::Get("UIModule");
 		logger->Error("Unexpected error loading %s", jsPath.c_str());
 	}
+
+	if(Host::GetInstance()->DebugModeEnabled()) 
+	{
+		const std::string debugJS = FileUtils::Join(modulePath.c_str(), "debug.js", NULL);
+		try
+		{
+			KJSUtil::EvaluateFile(context, debugJS.c_str());
+		}
+		catch (kroll::ValueException &e)
+		{
+			SharedString ss = e.DisplayString();
+			Logger* logger = Logger::Get("UIModule");
+			logger->Error("Error loading %s: %s", debugJS.c_str(), (*ss).c_str());
+		}
+		catch (...)
+		{
+			Logger* logger = Logger::Get("UIModule");
+			logger->Error("Unexpected error loading %s", debugJS.c_str());
+		}
+	}
 }
 
 void UserWindow::PageLoaded(

@@ -52,6 +52,7 @@ namespace kroll
 			else if (args.at(0)->IsString())
 			{
 				// TODO -- create a function from evaluatable code
+				throw ValueException::FromString("SetTimeout is not implemented for strings");
 			}
 			
 			long duration = (long)args.at(1)->ToDouble();
@@ -159,8 +160,7 @@ namespace kroll
 
 		KValueRef DebuggerResumed(const ValueList& args)
 		{
-			bool stepping = args.at(0)->ToBool();
-			Host::GetInstance()->ResumeMainThreadJobs(stepping);
+			Host::GetInstance()->ResumeMainThreadJobs();
 			return Value::Undefined;
 		}
 	}

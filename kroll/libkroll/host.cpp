@@ -735,13 +735,10 @@ namespace kroll
 		isExecutionSuspended = true;
 	}
 
-	void Host::ResumeMainThreadJobs(bool stepping)
+	void Host::ResumeMainThreadJobs()
 	{
 		ASSERT_MAIN_THREAD
-		if(stepping)
-			fprintf(stderr, "stepping");// TODO: Implement a timer to clear the suspended flag...
-		else
-			isExecutionSuspended = false;
+		isExecutionSuspended = false;
 		this->SignalNewMainThreadJob();
 	}
 

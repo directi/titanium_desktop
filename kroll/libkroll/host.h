@@ -87,7 +87,7 @@ namespace kroll
 		KValueRef RunOnMainThread(MainThreadJob * job);
 
 		void SuspendMainThreadJobs();
-		void ResumeMainThreadJobs(bool stepping = false);
+		void ResumeMainThreadJobs();
 
 
 		/**

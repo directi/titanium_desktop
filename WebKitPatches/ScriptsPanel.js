@@ -376,7 +376,7 @@ WebInspector.ScriptsPanel.prototype = {
 
     debuggerPaused: function(callFrames)
     {
-		InjectedScriptAccess.getDefault().evaluate('Titanium.debuggerPaused();', "window", function(a){});
+		InjectedScriptAccess.getDefault().evaluate('if(typeof(pauseDebugger) == "function") pauseDebugger();', "window", function(a){});
 
 		WebInspector.breakpointManager.removeOneTimeBreakpoint();
 
@@ -396,7 +396,7 @@ WebInspector.ScriptsPanel.prototype = {
 
     debuggerResumed: function()
     {
-		InjectedScriptAccess.getDefault().evaluate('Titanium.debuggerResumed(' + this._stepping + ');', "window", function(a){});
+		InjectedScriptAccess.getDefault().evaluate('if(typeof(resumeDebugger) == "function") resumeDebugger(' + this._stepping + ');', "window", function(a){});
 
         this._paused = false;
         this._waitingToPause = false;
