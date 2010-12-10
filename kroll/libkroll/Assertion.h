@@ -17,8 +17,8 @@ namespace kroll
     ((void(*)())0)(); /* More reliable, but doesn't say BBADBEEF */ \
 } while(false);
 
-#define ASSERT(a) if(!a) CRASH();
-#define ASSERT_MAIN_THREAD ASSERT(IsMainThread())
+#define ASSERT(str, a) if(!a) { fprintf(stderr, str); CRASH(); }
+#define ASSERT_MAIN_THREAD ASSERT("IsMainThread", IsMainThread())
 
 
 #endif

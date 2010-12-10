@@ -114,6 +114,11 @@ namespace KJSUtil
 
 	static inline JSObjectRef makeJSObject(JSGlobalContextRef jsContext, JSClassRef objectClass, KValueRef kValue)
 	{
+		ASSERT_MAIN_THREAD
+//		ASSERT("Creating while execution is suspended", ! Host::GetInstance()->IsExecutionSuspended());
+		if(Host::GetInstance()->IsExecutionSuspended())
+			fprintf(stderr, "Creating while execution is suspended\n");
+
 		if(jsObjectRefCounter.find(jsContext) == jsObjectRefCounter.end())
 		{
 			Logger::Get("KKJSUtil")->Warn("Cowardly refusing to create an object in a dead context");
@@ -131,6 +136,9 @@ namespace KJSUtil
 
 	static void FinalizeCallback(JSObjectRef jsObject)
 	{
+		if(Host::GetInstance()->IsExecutionSuspended())
+			fprintf(stderr, "Finalizing while execution is suspended");
+
 		JSObjectValueRef a = static_cast<JSObjectValue*>(JSObjectGetPrivate(jsObject));
 #if TROUBLE_SHOOT_GC
 		//std::map<JSObjectRef, Value*>::iterator i = objects.find(jsObject);
@@ -821,7 +829,7 @@ namespace KJSUtil
 	void UnprotectJSObject(JSGlobalContextRef globalContext, JSObjectRef value)
 	{
 		ASSERT_MAIN_THREAD
-		ASSERT(! Host::GetInstance()->IsExecutionSuspended());
+		ASSERT("Unprotecting while execution is suspended", ! Host::GetInstance()->IsExecutionSuspended());
 
 		JSObjectRefCounter::iterator ourCtx = jsObjectRefCounter.find(globalContext);
 		if(ourCtx == jsObjectRefCounter.end())
