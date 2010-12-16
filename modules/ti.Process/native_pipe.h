@@ -9,8 +9,7 @@
 
 #include "pipe.h"
 #include <kroll/kroll.h>
-#include <Poco/Thread.h>
-#include <Poco/RunnableAdapter.h>
+#include <kroll/utils/Thread.h>
 
 namespace ti
 {
@@ -34,14 +33,14 @@ namespace ti
 		bool closed;
 		bool isReader;
 		std::vector<KObjectRef> attachedObjects;
-		Poco::RunnableAdapter<NativePipe>* writeThreadAdapter;
-		Poco::RunnableAdapter<NativePipe>* readThreadAdapter;
-		Poco::Thread writeThread;
-		Poco::Thread readThread;
+		kroll::Thread writeThread;
+		kroll::Thread readThread;
 		KMethodRef readCallback;
 		Logger* logger;
-		Poco::Mutex buffersMutex;
+		boost::mutex buffersMutex;
 		std::queue<BytesRef> buffers;
+		bool readThreadRunning;
+		bool writeThreadRunning;
 
 		void PollForReads();
 		void PollForWrites();

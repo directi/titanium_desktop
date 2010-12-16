@@ -16,9 +16,8 @@
 
 #include <string>
 #include <vector>
-#include <Poco/Thread.h>
-#include <Poco/Exception.h>
 #include <Poco/Path.h>
+#include <Poco/Thread.h>
 #include "filesystem_binding.h"
 
 

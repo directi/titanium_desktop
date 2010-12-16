@@ -23,4 +23,18 @@ namespace kroll
 	{
 		t.reset(new boost::thread(boost::bind(&Runnable::run, runnable)));
 	}
+
+	void Thread::start(boost::function<void()> func)
+	{
+		t.reset(new boost::thread(func));
+	}
+
+	inline
+		void Thread::join()
+	{
+		if (t.get())
+		{
+			t->join();
+		}
+	}
 }

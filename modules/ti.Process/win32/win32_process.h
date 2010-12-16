@@ -8,6 +8,7 @@
 #define _WIN32_PROCESS_H_
 
 #include <sstream>
+#include <boost/thread/mutex.hpp>
 #include "win32_pipe.h"
 #include "../process.h"
 
@@ -36,20 +37,15 @@ namespace ti
 		virtual void RecreateNativePipes();
 		
 	protected:
-		std::string ArgListToString(KListRef argList);
-		
-		Poco::Thread exitMonitorThread;
-		Poco::RunnableAdapter<Win32Process>* exitMonitorAdapter;
 		AutoPtr<Win32Pipe> nativeIn, nativeOut, nativeErr;
-		Poco::Mutex mutex;
 		
-		Poco::Mutex processOutputMutex;
+		boost::mutex processOutputMutex;
 		std::vector<BytesRef> processOutput;
-		
 		int pid;
 		HANDLE process;
-		
 		Logger* logger;
+
+		std::string ArgListToString(KListRef argList);
 	};
 }
 

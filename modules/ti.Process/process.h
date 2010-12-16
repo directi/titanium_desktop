@@ -8,6 +8,7 @@
 #define _PROCESS_H_
 
 #include <kroll/kroll.h>
+#include <kroll/utils/Thread.h>
 #include <sstream>
 #include "pipe.h"
 #include "native_pipe.h"
@@ -97,8 +98,7 @@ namespace ti
 		KValueRef exitCode;
 		KValueRef onRead;
 		KValueRef onExit;
-		Poco::RunnableAdapter<Process>* exitMonitorAdapter;
-		Poco::Thread exitMonitorThread;
+		kroll::Thread exitMonitorThread;
 		KMethodRef exitCallback;
 		bool running;
 	};

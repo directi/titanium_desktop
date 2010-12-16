@@ -206,7 +206,7 @@ namespace ti
 
 		BytesRef output = 0;
 		{
-			Poco::Mutex::ScopedLock lock(processOutputMutex);
+			boost::mutex::scoped_lock lock(processOutputMutex);
 			output = Bytes::GlobBytes(processOutput);
 		}
 		return output;
@@ -250,7 +250,7 @@ namespace ti
 			BytesRef bytes = args.GetObject(0).cast<Bytes>();
 			if (!bytes.isNull() && bytes->Length() > 0)
 			{
-				Poco::Mutex::ScopedLock lock(processOutputMutex);
+				boost::mutex::scoped_lock lock(processOutputMutex);
 				processOutput.push_back(bytes);
 			}
 		}

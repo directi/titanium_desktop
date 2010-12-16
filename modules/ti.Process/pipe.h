@@ -9,8 +9,8 @@
 
 #include <kroll/kroll.h>
 #include <queue>
-#include <Poco/Thread.h>
-#include <Poco/ThreadTarget.h>
+#include <boost/thread/mutex.hpp>
+
 
 namespace ti
 {
@@ -43,7 +43,7 @@ namespace ti
 		void _IsAttached(const ValueList& args, KValueRef result);
 		void _Write(const ValueList& args, KValueRef result);
 		void _Flush(const ValueList& args, KValueRef result);
-		Poco::Mutex attachedMutex;
+		boost::mutex attachedMutex;
 		std::vector<KObjectRef> attachedObjects;
 		Logger *logger;
 	};

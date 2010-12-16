@@ -29,9 +29,7 @@ namespace ti
 		virtual int RawRead(char *buffer, int size);
 		virtual int RawWrite(const char *buffer, int size);
 		
-		Poco::Mutex mutex;
 		HANDLE readHandle, writeHandle;
-		Logger *logger;
 	};
 }
 

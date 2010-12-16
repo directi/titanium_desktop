@@ -13,11 +13,9 @@ namespace ti
 	NativePipe::NativePipe(bool isReader) :
 		Pipe("Process.NativePipe"),
 		closed(false),
+		readThreadRunning(false),
+		writeThreadRunning(false),
 		isReader(isReader),
-		writeThreadAdapter(new Poco::RunnableAdapter<NativePipe>(
-			*this, &NativePipe::PollForWrites)),
-		readThreadAdapter(new Poco::RunnableAdapter<NativePipe>(
-			*this, &NativePipe::PollForReads)),
 		readCallback(0),
 		logger(Logger::Get("Process.NativePipe"))
 	{
@@ -27,24 +25,20 @@ namespace ti
 	{
 		// Don't need to StopMonitors here, because the destructor
 		// should never be called until the monitors are shutdown
-		delete readThreadAdapter;
-		delete writeThreadAdapter;
 	}
 
 	void NativePipe::StopMonitors()
 	{
 		closed = true;
-		try
+		if (readThreadRunning)
 		{
-			if (readThread.isRunning())
-					this->readThread.join();
-			if (writeThread.isRunning())
-					this->writeThread.join();
+			readThreadRunning = false;
+			this->readThread.join();
 		}
-		catch (Poco::Exception& e)
+		if (writeThreadRunning)
 		{
-			logger->Error("Exception while try to join with Pipe thread: %s",
-				e.displayText().c_str());
+			writeThreadRunning = false;
+			this->writeThread.join();
 		}
 	}
 
@@ -81,7 +75,7 @@ namespace ti
 			// requests via the Write(...) method, like stdin), then queue the
 			// data to be written to the native pipe (blocking operation) by
 			// our writer thread.:
-			Poco::Mutex::ScopedLock lock(buffersMutex);
+			boost::mutex::scoped_lock lock(buffersMutex);
 			buffers.push(bytes);
 		}
 
@@ -92,16 +86,17 @@ namespace ti
 	{
 		if (isReader)
 		{
-			readThread.start(*readThreadAdapter);
+			readThread.start(boost::bind(&NativePipe::PollForReads, this));
 		}
 		else
 		{
-			writeThread.start(*writeThreadAdapter);
+			writeThread.start(boost::bind(&NativePipe::PollForWrites, this));
 		}
 	}
 
 	void NativePipe::PollForReads()
 	{
+		readThreadRunning = true;
 		KObjectRef save(this, true);
 
 		char buffer[MAX_BUFFER_SIZE];
@@ -121,13 +116,14 @@ namespace ti
 
 	void NativePipe::PollForWrites()
 	{
+		writeThreadRunning = true;
 		KObjectRef save(this, true);
 
 		BytesRef bytes = 0;
 		while (!closed || buffers.size() > 0)
 		{
 			PollForWriteIteration();
-			Poco::Thread::sleep(50);
+			boost::this_thread::sleep(boost::posix_time::seconds(50));
 		}
 
 		this->CloseNativeWrite();
@@ -139,7 +135,7 @@ namespace ti
 		while (buffers.size() > 0)
 		{
 			{
-				Poco::Mutex::ScopedLock lock(buffersMutex);
+				boost::mutex::scoped_lock lock(buffersMutex);
 				bytes = buffers.front();
 				buffers.pop();
 			}

@@ -12,7 +12,6 @@
 #else
 #include "posix/posix_process.h"
 #endif
-using Poco::RunnableAdapter;
 
 namespace ti
 {
@@ -37,8 +36,6 @@ namespace ti
 		exitCode(Value::Null),
 		onRead(0),
 		onExit(0),
-		exitMonitorAdapter(new RunnableAdapter<Process>(
-			*this, &Process::ExitMonitorAsync)),
 		running(false)
 	{
 		/**
@@ -152,7 +149,6 @@ namespace ti
 
 	Process::~Process()
 	{
-		delete exitMonitorAdapter;
 	}
 
 	void Process::Exited(bool async)
@@ -252,7 +248,7 @@ namespace ti
 
 		this->exitCallback = StaticBoundMethod::FromMethod<Process>(
 			this, &Process::ExitCallback);
-		this->exitMonitorThread.start(*exitMonitorAdapter);
+		this->exitMonitorThread.start(boost::bind(&Process::ExitMonitorAsync, this));
 	}
 
 	BytesRef Process::LaunchSync()

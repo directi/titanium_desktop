@@ -8,6 +8,7 @@
 #include "native_pipe.h"
 #include <vector>
 #include <cstring>
+#include <kroll/utils/Thread.h>
 
 #if defined(OS_WIN32)
 # include "win32/win32_pipe.h"
@@ -18,13 +19,13 @@
 namespace ti
 {
 	static void FireEvents();
-	static Poco::ThreadTarget eventsThreadTarget(&FireEvents);
-	static Poco::Thread eventsThread;
-	Poco::Mutex pipesNeedingReadEventsMutex;
+	static kroll::Thread eventsThread;
+	static bool eventsThreadRunning = false;
+	boost::mutex pipesNeedingReadEventsMutex;
 	std::queue<AutoPipe> pipesNeedingReadEvents;
-	Poco::Mutex pipesNeedingCloseEventsMutex;
+	boost::mutex pipesNeedingCloseEventsMutex;
 	std::queue<AutoPipe> pipesNeedingCloseEvents;
-	Poco::Mutex otherEventsMutex;
+	boost::mutex otherEventsMutex;
 	std::vector<AutoPtr<Event> > otherEvents;
 
 	Pipe::Pipe(const char *type) :
@@ -67,9 +68,9 @@ namespace ti
 		SetMethod("isAttached", &Pipe::_IsAttached);
 
 
-		if (!eventsThread.isRunning())
+		if (!eventsThreadRunning)
 		{
-			eventsThread.start(eventsThreadTarget);
+			eventsThread.start(boost::bind(&FireEvents));
 		}
 	}
 
@@ -79,13 +80,13 @@ namespace ti
 
 	void Pipe::Attach(KObjectRef object)
 	{
-		Poco::Mutex::ScopedLock lock(attachedMutex);
+		boost::mutex::scoped_lock lock(attachedMutex);
 		attachedObjects.push_back(object);
 	}
 
 	void Pipe::Detach(KObjectRef object)
 	{
-		Poco::Mutex::ScopedLock lock(attachedMutex);
+		boost::mutex::scoped_lock lock(attachedMutex);
 		std::vector<KObjectRef>::iterator i = attachedObjects.begin();
 		while (i != attachedObjects.end())
 		{
@@ -103,7 +104,7 @@ namespace ti
 
 	bool Pipe::IsAttached()
 	{
-		Poco::Mutex::ScopedLock lock(attachedMutex);
+		boost::mutex::scoped_lock lock(attachedMutex);
 		return attachedObjects.size() > 0;
 	}
 
@@ -191,7 +192,7 @@ namespace ti
 	int Pipe::Write(BytesRef bytes)
 	{
 		{ // Start the callbacks
-			Poco::Mutex::ScopedLock lock(pipesNeedingReadEventsMutex);
+			boost::mutex::scoped_lock lock(pipesNeedingReadEventsMutex);
 			readData.push_back(bytes);
 
 			this->duplicate();
@@ -202,7 +203,7 @@ namespace ti
 		// our writeable objects thread safe. This will allow data to
 		// flow through pipes more quickly.
 		{
-			Poco::Mutex::ScopedLock lock(attachedMutex);
+			boost::mutex::scoped_lock lock(attachedMutex);
 			for (size_t i = 0; i < attachedObjects.size(); i++)
 			{
 				this->CallWrite(attachedObjects.at(i), bytes);
@@ -240,14 +241,14 @@ namespace ti
 	void Pipe::Close()
 	{
 		{
-			Poco::Mutex::ScopedLock lock(pipesNeedingCloseEventsMutex);
+			boost::mutex::scoped_lock lock(pipesNeedingCloseEventsMutex);
 			this->duplicate();
 			pipesNeedingCloseEvents.push(this);
 		}
 
 		// Call the close method on our attached objects
 		{
-			Poco::Mutex::ScopedLock lock(attachedMutex);
+			boost::mutex::scoped_lock lock(attachedMutex);
 			for (size_t i = 0; i < attachedObjects.size(); i++)
 			{
 				this->CallClose(attachedObjects.at(i));
@@ -287,12 +288,13 @@ namespace ti
 	/*static*/
 	void Pipe::FireEventAsynchronously(AutoPtr<Event> event)
 	{
-		Poco::Mutex::ScopedLock lock(otherEventsMutex);
+		boost::mutex::scoped_lock lock(otherEventsMutex);
 		otherEvents.push_back(event);
 	}
 
 	static void FireEvents()
 	{
+		eventsThreadRunning = true;
 		while (true)
 		{
 
@@ -301,7 +303,7 @@ namespace ti
 			// a CLOSE or EXIT event happens before a READ event.
 			std::queue<AutoPtr<Event> > otherEventsCopy;
 			{
-				Poco::Mutex::ScopedLock lock(otherEventsMutex);
+				boost::mutex::scoped_lock lock(otherEventsMutex);
 				for (size_t i = 0; i < otherEvents.size(); i++)
 					otherEventsCopy.push(otherEvents[i]);
 
@@ -310,7 +312,7 @@ namespace ti
 
 			std::queue<AutoPtr<Event> > closeEvents;
 			{
-				Poco::Mutex::ScopedLock lock(pipesNeedingCloseEventsMutex);
+				boost::mutex::scoped_lock lock(pipesNeedingCloseEventsMutex);
 				while (pipesNeedingCloseEvents.size() > 0)
 				{
 					AutoPipe pipe = pipesNeedingCloseEvents.front();
@@ -325,7 +327,7 @@ namespace ti
 
 			std::queue<AutoPtr<Event> > readEvents;
 			{
-				Poco::Mutex::ScopedLock lock(pipesNeedingReadEventsMutex);
+				boost::mutex::scoped_lock lock(pipesNeedingReadEventsMutex);
 				while (pipesNeedingReadEvents.size() > 0)
 				{
 					AutoPipe pipe = pipesNeedingReadEvents.front();
@@ -362,7 +364,7 @@ namespace ti
 				otherEventsCopy.pop();
 			}
 
-			Poco::Thread::sleep(5);
+			boost::this_thread::sleep(boost::posix_time::seconds(5));
 		}
 	}
 }

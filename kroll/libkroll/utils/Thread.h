@@ -3,9 +3,9 @@
 
 #include <base.h>
 
+#include <boost/function.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/thread.hpp>
-
 
 namespace kroll
 {
@@ -24,6 +24,8 @@ namespace kroll
 		Thread();
 		~Thread();
 		void start(Runnable * runnable);
+		void start(boost::function<void()> func);
+		inline void join();
 	};
 }
 
