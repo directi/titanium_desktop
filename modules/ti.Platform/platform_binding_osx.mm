@@ -6,7 +6,6 @@
 #include <Cocoa/Cocoa.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <kroll/kroll.h>
-#include <Poco/Environment.h>
 #include <Foundation/Foundation.h>
 #include "platform_binding.h"
 
@@ -16,22 +15,6 @@
 
 namespace ti
 {
-std::string PlatformBinding::GetVersionImpl()
-{
-	// Do not use /System/Library/CoreServices/SystemVersion.plist.
-	// See http://www.cocoadev.com/index.pl?DeterminingOSVersion
-	SInt32 major, minor, bugfix;
-	if (Gestalt(gestaltSystemVersionMajor, &major) != noErr ||
-		Gestalt(gestaltSystemVersionMinor, &minor) != noErr ||
-		Gestalt(gestaltSystemVersionBugFix, &bugfix) != noErr)
-	{
-		logger()->Error("Failed to get OS version");
-		return "Unknown";
-	}
-
-	return [[NSString stringWithFormat:@"%d.%d.%d", major, minor, bugfix] UTF8String];
-}
-
 bool PlatformBinding::OpenApplicationImpl(const std::string& name)
 {
 	NSWorkspace* ws = [NSWorkspace sharedWorkspace];

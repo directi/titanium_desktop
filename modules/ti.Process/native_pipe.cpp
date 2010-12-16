@@ -153,10 +153,13 @@ namespace ti
 		{
 			this->RawWrite((char*) bytes->Get(), bytes->Length());
 		}
-		catch (Poco::Exception& e)
+		catch (std::exception& e)
 		{
-			logger->Error("Exception while try to write to pipe Pipe: %s",
-				e.displayText().c_str());
+			logger->Error("Exception while try to write to pipe Pipe: %s", e.what());
+		}
+		catch (...)
+		{
+			logger->Error("Unknown Exception while try to write to pipe Pipe.");
 		}
 	}
 

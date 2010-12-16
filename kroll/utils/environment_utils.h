@@ -35,12 +35,14 @@ namespace UTILS_NS
 		 */
 		KROLL_API void Unset(std::string name);
 
-#if defined(KROLL_API_EXPORT) || defined(_KROLL_H_)
 		/*
 		 * Get the environment
 		 */
 		KROLL_API std::map<std::string, std::string> GetEnvironment();
-#endif
+
+		KROLL_API std::string GetOSName();
+		KROLL_API std::string GetOSVersion();
+		KROLL_API std::string GetOSArchitecture();
 	};
 }
 #endif

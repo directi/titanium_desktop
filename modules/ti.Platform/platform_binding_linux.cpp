@@ -4,7 +4,6 @@
  * Copyright (c) 2010 Appcelerator, Inc. All Rights Reserved.
  */
 #include <kroll/kroll.h>
-#include <Poco/Environment.h>
 #include <Poco/Process.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
@@ -15,12 +14,6 @@
 
 namespace ti
 {
-
-std::string PlatformBinding::GetVersionImpl()
-{
-	return Poco::Environment::osVersion();
-}
-
 bool PlatformBinding::OpenApplicationImpl(const std::string& name)
 {
 	std::vector<std::string> args;

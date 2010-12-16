@@ -6,6 +6,7 @@
 #include "environment_utils.h"
 
 #include <cstdlib>
+#include <sstream>
 
 #ifdef OS_WIN32
 #include "win32/win32_utils.h"
@@ -101,7 +102,6 @@ namespace EnvironmentUtils
 #endif
 	}
 
-#if defined(KROLL_API_EXPORT) || defined(_KROLL_H_)
 	std::map<std::string, std::string> GetEnvironment()
 	{
 		std::map<std::string, std::string> environment;
@@ -129,6 +129,107 @@ namespace EnvironmentUtils
 #endif
 		return environment;
 	}
+
+	std::string GetOSVersion()
+	{
+#ifdef OS_WIN32
+		OSVERSIONINFOW vi;
+		vi.dwOSVersionInfoSize = sizeof(vi);
+		if (GetVersionExW(&vi) == 0)
+		{
+			return std::string("Unknown");
+		}
+		std::ostringstream str;
+		str << vi.dwMajorVersion << "." << vi.dwMinorVersion << " (Build " << (vi.dwBuildNumber & 0xFFFF);
+		std::string version = WideToUTF8(vi.szCSDVersion);
+		if (!version.empty()) str << ": " << version;
+		str << ")";
+		return str.str();
+#elif OS_OSX
+	// Do not use /System/Library/CoreServices/SystemVersion.plist.
+	// See http://www.cocoadev.com/index.pl?DeterminingOSVersion
+	SInt32 major, minor, bugfix;
+	if (Gestalt(gestaltSystemVersionMajor, &major) != noErr ||
+		Gestalt(gestaltSystemVersionMinor, &minor) != noErr ||
+		Gestalt(gestaltSystemVersionBugFix, &bugfix) != noErr)
+	{
+		logger()->Error("Failed to get OS version");
+		return "Unknown";
+	}
+
+	return [[NSString stringWithFormat:@"%d.%d.%d", major, minor, bugfix] UTF8String];
+#else
+	struct utsname uts;
+	uname(&uts);
+	return uts.release;
 #endif
+	}
+
+	std::string GetOSName()
+	{
+#ifdef OS_WIN32
+		OSVERSIONINFO vi;
+		vi.dwOSVersionInfoSize = sizeof(vi);
+		if (GetVersionEx(&vi) == 0)
+		{
+			return std::string("Unknown");
+		}
+		switch (vi.dwPlatformId)
+		{
+		case VER_PLATFORM_WIN32s:
+			return "Windows 3.x";
+		case VER_PLATFORM_WIN32_WINDOWS:
+			return vi.dwMinorVersion == 0 ? "Windows 95" : "Windows 98";
+		case VER_PLATFORM_WIN32_NT:
+			return "Windows NT";
+		default:
+			return "Unknown";
+		}
+#elif OS_OSX
+		// TODO: implement it for osx
+#else
+		struct utsname uts;
+		uname(&uts);
+		return uts.sysname;
+#endif
+	}
+
+	std::string GetOSArchitecture()
+	{
+#ifdef OS_WIN32
+		SYSTEM_INFO si;
+		GetSystemInfo(&si);
+		switch (si.wProcessorArchitecture)
+		{
+		case PROCESSOR_ARCHITECTURE_INTEL:
+			return "IA32";
+		case PROCESSOR_ARCHITECTURE_MIPS:
+			return "MIPS";
+		case PROCESSOR_ARCHITECTURE_ALPHA:
+			return "ALPHA";
+		case PROCESSOR_ARCHITECTURE_PPC:
+			return "PPC";
+		case PROCESSOR_ARCHITECTURE_IA64:
+			return "IA64";
+#ifdef PROCESSOR_ARCHITECTURE_IA32_ON_WIN64
+		case PROCESSOR_ARCHITECTURE_IA32_ON_WIN64:
+			return "IA64/32";
+#endif
+#ifdef PROCESSOR_ARCHITECTURE_AMD64
+		case PROCESSOR_ARCHITECTURE_AMD64:
+			return "AMD64";
+#endif
+		default:
+			return "Unknown";
+		}
+#elif OS_OSX
+		// TODO: implement it for osx
+#else
+		struct utsname uts;
+		uname(&uts);
+		return uts.machine;
+#endif
+	}
+
 }
 }

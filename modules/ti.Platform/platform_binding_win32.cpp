@@ -4,13 +4,10 @@
  * Copyright (c) 2010 Appcelerator, Inc. All Rights Reserved.
  */
 #include <kroll/kroll.h>
-#include <Poco/Environment.h>
 #include <windows.h>
 #include <commdlg.h>
 #include <shellapi.h>
 #include <shlobj.h>
-//#include <cairo/cairo.h>
-//#include <cairo/cairo-win32.h>
 #include "platform_binding.h"
 
 namespace ti
@@ -47,11 +44,6 @@ static std::string GetFailureReason(long code)
 			return "Sharing violation";
 	}
 	return "unknown";
-}
-
-std::string PlatformBinding::GetVersionImpl()
-{
-	return Poco::Environment::osVersion();
 }
 
 bool PlatformBinding::OpenApplicationImpl(const std::string& name)

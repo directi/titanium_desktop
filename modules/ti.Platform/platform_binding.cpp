@@ -5,7 +5,6 @@
  */
 
 #include <kroll/kroll.h>
-#include <Poco/Environment.h>
 #include "platform_binding.h"
 
 namespace ti
@@ -93,16 +92,12 @@ PlatformBinding::~PlatformBinding()
 
 void PlatformBinding::_GetName(const ValueList& args, KValueRef result)
 {
-	result->SetString(Poco::Environment::osName().c_str());
+	result->SetString(EnvironmentUtils::GetOSName().c_str());
 }
 
 void PlatformBinding::_GetVersion(const ValueList& args, KValueRef result)
 {
-	static std::string osVersion;
-	if (osVersion.empty())
-		osVersion = GetVersionImpl();
-
-	result->SetString(osVersion.c_str());
+	result->SetString(EnvironmentUtils::GetOSVersion().c_str());
 }
 
 void PlatformBinding::_GetType(const ValueList& args, KValueRef result)
@@ -117,7 +112,7 @@ void PlatformBinding::_GetProcessorCount(const ValueList& args, KValueRef result
 
 void PlatformBinding::_GetArchitecture(const ValueList& args, KValueRef result)
 {
-	result->SetString(Poco::Environment::osArchitecture().c_str());
+	result->SetString(EnvironmentUtils::GetOSArchitecture().c_str());
 }
 
 void PlatformBinding::_GetMachineId(const ValueList& args, KValueRef result)

@@ -3,7 +3,7 @@
 
 
 #include <list>
-
+#include <kroll/kroll.h>
 #include <kroll/utils/Thread.h>
 #include <boost/thread/condition_variable.hpp>
 

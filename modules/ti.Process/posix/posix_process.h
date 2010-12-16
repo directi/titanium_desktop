@@ -8,7 +8,7 @@
 #define _POSIX_PROCESS_H_
 
 #include <sstream>
-#include <Poco/Thread.h>
+#include <boost/thread/mutex.hpp>
 #include "posix_pipe.h"
 #include "../process.h"
 
@@ -45,7 +45,7 @@ namespace ti
 
 		// For synchronous process execution store
 		// process output as a vector of Bytes for speed.
-		Poco::Mutex processOutputMutex;
+		boost::mutex processOutputMutex;
 		std::vector<BytesRef> processOutput;
 		void StartProcess();
 	};

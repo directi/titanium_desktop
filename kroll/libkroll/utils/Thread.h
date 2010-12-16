@@ -4,7 +4,6 @@
 #include <base.h>
 
 #include <boost/function.hpp>
-#include <boost/thread/mutex.hpp>
 #include <boost/thread/thread.hpp>
 
 namespace kroll

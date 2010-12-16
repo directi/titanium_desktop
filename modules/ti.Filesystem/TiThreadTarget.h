@@ -1,14 +1,12 @@
 #ifndef _TI_FOUNDATION_THREADTARGET_H_
 #define _TI_FOUNDATION_THREADTARGET_H_
 
-
-#include <Poco/Runnable.h>
+#include <kroll/kroll.h>
 
 
 namespace ti
 {
 	class TiThreadTarget
-		: public Poco::Runnable
 	{
 	public:
 		typedef void (*Callback)(void *);
