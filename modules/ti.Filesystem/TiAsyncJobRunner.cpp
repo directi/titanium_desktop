@@ -7,26 +7,26 @@ namespace ti
 		: jobMutex(),
 		bRunning(false),
 		thread(),
-		pendingJobEvent(true)
+		waiting(false)
 	{
-		thread.setName("TiAsyncJobRunner Thread");
-		thread.start(*this);
+		//thread.setName("TiAsyncJobRunner Thread");
+		thread.start(this);
 	}
 
 	TiAsyncJobRunner::~TiAsyncJobRunner()
 	{
-		if(thread.isRunning())
+		if (this->bRunning)
 		{
 			this->bRunning = false;
-			this->pendingJobEvent.set();
+			this->notifyJobRunner();
 		}
 	}
 
 	void TiAsyncJobRunner::enqueue(TiThreadTarget * job)
 	{
-		Poco::Mutex::ScopedLock lock(jobMutex);
+		boost::mutex::scoped_lock lock(jobMutex);
 		jobQueue.push_back(job);
-		pendingJobEvent.set();
+		notifyJobRunner();
 	}
 
 	void TiAsyncJobRunner::doJobs()
@@ -35,7 +35,7 @@ namespace ti
 
 		if(!jobQueue.empty())
 		{
-			Poco::Mutex::ScopedLock lock(jobMutex);
+			boost::mutex::scoped_lock lock(jobMutex);
 			tempJobQueue = new std::list<TiThreadTarget *>(jobQueue.size());
 			std::copy(jobQueue.begin(), jobQueue.end(), tempJobQueue->begin()); 
 			jobQueue.clear();
@@ -57,16 +57,27 @@ namespace ti
 		while(bRunning)
 		{
 			doJobs();
-			pendingJobEvent.wait();
+			this->wait();
 		}
+	}
 
+	void TiAsyncJobRunner::notifyJobRunner()
+	{
+		boost::lock_guard<boost::mutex> lock(pendingJobLock);
+		pendingJob.notify_one();
+	}
+
+	void TiAsyncJobRunner::wait()
+	{
+		boost::unique_lock<boost::mutex> lock(pendingJobLock);
+		pendingJob.wait(lock);
 	}
 
 	TiAsyncJobRunnerSingleton * TiAsyncJobRunnerSingleton::singleton = NULL;
-	Poco::Mutex TiAsyncJobRunnerSingleton::singletonMutex;
+	boost::mutex TiAsyncJobRunnerSingleton::singletonMutex;
 	TiAsyncJobRunner * TiAsyncJobRunnerSingleton::Instance()
 	{
-		Poco::Mutex::ScopedLock lock(singletonMutex);
+		boost::mutex::scoped_lock lock(singletonMutex);
 		if(!singleton)
 		{
 			singleton = new TiAsyncJobRunnerSingleton();

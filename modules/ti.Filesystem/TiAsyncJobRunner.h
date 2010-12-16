@@ -3,37 +3,37 @@
 
 
 #include <list>
-#include <string>
 
-#include <Poco/Event.h>
-#include <Poco/Mutex.h>
-#include <Poco/Thread.h>
+#include <kroll/utils/Thread.h>
+#include <boost/thread/condition_variable.hpp>
 
 #include "TiThreadTarget.h"
 
-namespace ti {
-
-
+namespace ti
+{
 	class TiAsyncJobRunner
-		: public Poco::Runnable
+		: public kroll::Runnable
 	{
 	public:
 
 		TiAsyncJobRunner();
 		virtual ~TiAsyncJobRunner();
+		virtual void run();
 
 		void enqueue(TiThreadTarget * job);
 
 	private:
-
-		Poco::Mutex jobMutex;
+		boost::mutex jobMutex;
 		std::list<TiThreadTarget *> jobQueue;
 		bool bRunning;
-		Poco::Thread thread;
-		Poco::Event pendingJobEvent;
+		kroll::Thread thread;
 
-		virtual void run();
+		bool waiting;
+		boost::condition_variable pendingJob;
+		boost::mutex pendingJobLock;
 		void doJobs();
+		void notifyJobRunner();
+		void wait();
 	};
 
 	class TiAsyncJobRunnerSingleton
@@ -42,7 +42,7 @@ namespace ti {
 		TiAsyncJobRunner jobRunner;
 
 		static TiAsyncJobRunnerSingleton * singleton;
-		static Poco::Mutex singletonMutex;
+		static boost::mutex singletonMutex;
 		static TiAsyncJobRunner * Instance();
 
 	private:
