@@ -49,10 +49,6 @@ namespace kroll
 		{
 			this->exception = e;
 		}
-		catch (Poco::SystemException& e)
-		{
-			this->exception = ValueException::FromString(e.displayText());
-		}
 		catch (std::exception& e)
 		{
 			this->exception = ValueException::FromString(e.what());

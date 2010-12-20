@@ -85,7 +85,6 @@ namespace KJSUtil
 
 		virtual ~JSObjectValue()
 		{
-			
 		}
 	};
 
@@ -147,8 +146,6 @@ namespace KJSUtil
 #endif
 		a->release();
 	}
-
-
 
 	KValueRef ToKrollValue(JSValueRef value, JSGlobalContextRef jsContext,
 		JSObjectRef thisObject)

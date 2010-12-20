@@ -4,8 +4,6 @@
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include <Poco/Path.h>
-
 #include "javascript_module.h"
 #include "javascript_methods.h"
 
@@ -16,7 +14,7 @@ namespace kroll
 	{
 		JavaScriptModule::instance = this;
 		host->AddModuleProvider(this);
-		
+
 		KObjectRef global(Host::GetInstance()->GetGlobalObject());
 		JavaScriptMethods::Bind(global);
 	}
@@ -40,11 +38,50 @@ namespace kroll
 			return false;
 		}
 	}
+	std::string strip_path(const std::string &path)
+	{
+		std::string::size_type pos = path.rfind('/');
+		std::string::size_type pos1 = path.rfind('\\');
+		if (pos != std::string::npos || pos1 != std::string::npos)
+		{
+			if (pos != std::string::npos && pos1 != std::string::npos)
+			{
+				if (pos > pos1)
+				{
+					return path.substr(pos+1);
+				}
+				else
+				{
+					return path.substr(pos1+1);
+				}
+			}
+			else if (pos != std::string::npos)
+				return path.substr(pos+1);
+			return path.substr(pos1+1);
+		}
+		return path;
+	}
+
+	std::string strip_extension(const std::string &path)
+	{
+		std::string::size_type pos = path.rfind('.');
+		if (pos != std::string::npos)
+			return path.substr(0, pos);
+		else
+			return path;
+	}
+
+	std::string getbasename(const std::string &path)
+	{
+		std::string basename;
+
+		return strip_path(strip_extension(path));
+	}
+
 
 	Module* JavaScriptModule::CreateModule(const std::string& path)
 	{
-		Poco::Path p(path);
-		const std::string basename = p.getBaseName();
+		const std::string basename = getbasename(path);
 		const std::string name = basename.substr(0,basename.length()-jsSuffix.length()+3);
 		const std::string moduledir = path.substr(0,path.length()-basename.length()-3);
 
