@@ -18,7 +18,6 @@
 #include <string>
 #include <vector>
 #include <Poco/Path.h>
-#include <Poco/Thread.h>
 #include "filesystem_binding.h"
 
 
@@ -44,7 +43,7 @@ namespace ti
 
 		void ToString(const ValueList& args, KValueRef result);
 		void Cancel(const ValueList& args, KValueRef result);
-		void Copy(Poco::Path &src, Poco::Path &dest);
+		void Copy(const std::string& src, const std::string& dest);
 	};
 }
 

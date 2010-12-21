@@ -8,6 +8,7 @@
 #include "TiAsyncJobRunner.h"
 
 #include <kroll/thread_manager.h>
+#include <kroll/utils/file_utils.h>
 #include <iostream>
 #include <sstream>
 #include <Poco/File.h>
@@ -42,15 +43,13 @@ namespace ti
 	{
 	}
 
-	void AsyncCopy::Copy(Poco::Path &src, Poco::Path &dest)
+	void AsyncCopy::Copy(const std::string& src, const std::string& dest)
 	{
 		Logger* logger = GetLogger();
-		std::string srcString = src.toString();
-		std::string destString = dest.toString();
-		Poco::File from(srcString);
+		Poco::File from(src);
 		bool isLink = from.isLink();
 
-		logger->Debug("file=%s dest=%s link=%i", srcString.c_str(), destString.c_str(), isLink);
+		logger->Debug("file=%s dest=%s link=%i", src.c_str(), dest.c_str(), isLink);
 #ifndef OS_WIN32
 		if (isLink)
 		{
@@ -77,7 +76,7 @@ namespace ti
 #endif
 		if (!isLink && from.isDirectory())
 		{
-			Poco::File d(dest.toString());
+			Poco::File d(dest);
 			if (!d.exists())
 			{
 				d.createDirectories();
@@ -88,33 +87,29 @@ namespace ti
 			while(i!=files.end())
 			{
 				std::string fn = (*i++);
-				Poco::Path sp(kroll::FileUtils::Join(src.toString().c_str(),fn.c_str(),NULL));
-				Poco::Path dp(kroll::FileUtils::Join(dest.toString().c_str(),fn.c_str(),NULL));
-				this->Copy(sp,dp);
+				Poco::Path sp(kroll::FileUtils::Join(src.c_str(), fn.c_str(),NULL));
+				Poco::Path dp(kroll::FileUtils::Join(dest.c_str(), fn.c_str(),NULL));
+				this->Copy(sp.toString(), dp.toString());
 			}
 		}
 		else if (!isLink)
 		{
 			// in this case it's a regular file
-			Poco::File s(src.toString());
-			s.copyTo(dest.toString().c_str());
+			Poco::File s(src);
+			s.copyTo(dest.c_str());
 		}
 	}
 
 	void AsyncCopy::run()
 	{
 		Logger* logger = GetLogger();
+		logger->Debug("Job started: dest=%s, count=%i", this->destination.c_str(), this->files.size());
+		FileUtils::CreateDirectory(this->destination, /*recursive*/ true);
+		int c = 0;
+
+		Poco::Path to(this->destination);
 
 		std::vector<std::string>::const_iterator iter = this->files.begin();
-		Poco::Path to(this->destination);
-		Poco::File tof(to.toString());
-
-		logger->Debug("Job started: dest=%s, count=%i", this->destination.c_str(), this->files.size());
-		if (!tof.exists())
-		{
-			tof.createDirectory();
-		}
-		int c = 0;
 		while (!this->stopped && iter!=this->files.end())
 		{
 			bool err_copy = false;
@@ -128,12 +123,12 @@ namespace ti
 				Poco::File f(file);
 				if (f.isDirectory())
 				{
-					this->Copy(from,to);
+					this->Copy(from.toString(), to.toString());
 				}
 				else
 				{
 					Poco::Path dest(to,from.getFileName());
-					this->Copy(from,dest);
+					this->Copy(from.toString(), dest.toString());
 				}
 				logger->Debug("File copied");
 
