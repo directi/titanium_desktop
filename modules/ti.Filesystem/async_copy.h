@@ -30,6 +30,8 @@ namespace ti
 			const std::string destination, KMethodRef callback);
 		virtual ~AsyncCopy();
 
+		void run();
+
 	private:
 		const std::vector<std::string> files;
 		const std::string destination;

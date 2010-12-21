@@ -18,6 +18,12 @@
 
 namespace ti
 {
+
+	Logger* GetLogger()
+	{
+		return Logger::Get("Filesystem.AsyncCopy");
+	}
+
 	AsyncCopy::AsyncCopy(const std::vector<std::string> &files,
 		const std::string destination,
 		KMethodRef callback)
@@ -44,7 +50,7 @@ namespace ti
 
 	void AsyncCopy::Copy(Poco::Path &src, Poco::Path &dest)
 	{
-		Logger* logger = Logger::Get("Filesystem.AsyncCopy");
+		Logger* logger = GetLogger();
 		std::string srcString = src.toString();
 		std::string destString = dest.toString();
 		Poco::File from(srcString);
@@ -101,24 +107,21 @@ namespace ti
 		}
 	}
 
-	void AsyncCopy::Run(void* data)
+	void AsyncCopy::run()
 	{
-		START_KROLL_THREAD;
+		Logger* logger = GetLogger();
 
-		Logger* logger = Logger::Get("Filesystem.AsyncCopy");
-
-		AsyncCopy* ac = static_cast<AsyncCopy*>(data);
-		std::vector<std::string>::const_iterator iter = ac->files.begin();
-		Poco::Path to(ac->destination);
+		std::vector<std::string>::const_iterator iter = this->files.begin();
+		Poco::Path to(this->destination);
 		Poco::File tof(to.toString());
 
-		logger->Debug("Job started: dest=%s, count=%i", ac->destination.c_str(), ac->files.size());
+		logger->Debug("Job started: dest=%s, count=%i", this->destination.c_str(), this->files.size());
 		if (!tof.exists())
 		{
 			tof.createDirectory();
 		}
 		int c = 0;
-		while (!ac->stopped && iter!=ac->files.end())
+		while (!this->stopped && iter!=this->files.end())
 		{
 			bool err_copy = false;
 			std::string file = (*iter++);
@@ -131,12 +134,12 @@ namespace ti
 				Poco::File f(file);
 				if (f.isDirectory())
 				{
-					ac->Copy(from,to);
+					this->Copy(from,to);
 				}
 				else
 				{
 					Poco::Path dest(to,from.getFileName());
-					ac->Copy(from,dest);
+					this->Copy(from,dest);
 				}
 				logger->Debug("File copied");
 
@@ -144,9 +147,9 @@ namespace ti
 				ValueList args;
 				args.push_back(value);
 				args.push_back(Value::NewInt(c));
-				args.push_back(Value::NewInt(ac->files.size()));
+				args.push_back(Value::NewInt(this->files.size()));
 				args.push_back(Value::NewBool(true));
-				RunOnMainThread(ac->callback, args);
+				RunOnMainThread(this->callback, args);
 
 				logger->Debug("Callback executed");
 			}
@@ -179,9 +182,9 @@ namespace ti
 					ValueList args;
 					args.push_back(value);
 					args.push_back(Value::NewInt(c));
-					args.push_back(Value::NewInt(ac->files.size()));
+					args.push_back(Value::NewInt(this->files.size()));
 					args.push_back(Value::NewBool(false));
-					RunOnMainThread(ac->callback, args);
+					RunOnMainThread(this->callback, args);
 				}
 			}
 			catch(...)
@@ -191,10 +194,20 @@ namespace ti
 			}
 
 		}
-		ac->Set("running",Value::NewBool(false));
-		ac->stopped = true;
+		this->Set("running",Value::NewBool(false));
+		this->stopped = true;
 
 		logger->Debug(std::string("Job finished"));
+
+		END_KROLL_THREAD;
+	}
+
+	void AsyncCopy::Run(void* data)
+	{
+		START_KROLL_THREAD;
+
+		AsyncCopy* ac = static_cast<AsyncCopy*>(data);
+		ac->run();
 
 		END_KROLL_THREAD;
 	}
