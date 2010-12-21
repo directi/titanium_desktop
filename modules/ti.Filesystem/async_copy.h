@@ -7,6 +7,7 @@
 #define _TI_ASYNC_COPY_H
 
 #include <kroll/kroll.h>
+#include <kroll/utils/Thread.h>
 
 #ifdef OS_WIN32
 #include <windows.h>
@@ -23,23 +24,23 @@
 
 namespace ti
 {
-	class AsyncCopy : public StaticBoundObject
+	class AsyncCopy : public StaticBoundObject,
+		kroll::Runnable
 	{
 	public:
 		AsyncCopy(const std::vector<std::string> &files,
-			const std::string destination, KMethodRef callback);
+			const std::string destination,
+			KMethodRef callback);
 		virtual ~AsyncCopy();
+		virtual void run();
 
-		void run();
+		static void Run(void*);
 
 	private:
 		const std::vector<std::string> files;
 		const std::string destination;
 		KMethodRef callback;
-		Poco::Thread *thread;
 		bool stopped;
-
-		static void Run(void*);
 
 		void ToString(const ValueList& args, KValueRef result);
 		void Cancel(const ValueList& args, KValueRef result);
@@ -48,3 +49,4 @@ namespace ti
 }
 
 #endif
+

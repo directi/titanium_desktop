@@ -33,11 +33,8 @@
 
 namespace ti
 {
-	FilesystemBinding::FilesystemBinding(Host *host, KObjectRef global) :
-		StaticBoundObject("Filesystem"),
-		host(host),
-		global(global),
-		timer(0)
+	FilesystemBinding::FilesystemBinding(Host* _host)
+		: StaticBoundObject("Filesystem"), host(_host)
 	{
 		/**
 		 * @tiapi(method=True,name=Filesystem.createTempFile) Creates a temporary file
@@ -145,12 +142,6 @@ namespace ti
 
 	FilesystemBinding::~FilesystemBinding()
 	{
-		if (this->timer!=NULL)
-		{
-			this->timer->stop();
-			delete this->timer;
-			this->timer = NULL;
-		}
 	}
 
 	void FilesystemBinding::CreateTempFile(const ValueList& args, KValueRef result)
@@ -413,58 +404,5 @@ namespace ti
 		KMethodRef method = args.at(2)->ToMethod();
 		KObjectRef copier = new ti::AsyncCopy(files, destination, method);
 		result->SetObject(copier);
-		asyncOperations.push_back(copier);
-		// we need to create a timer thread that can cleanup operations
-		if (timer==NULL)
-		{
-			this->SetMethod("_invoke",&FilesystemBinding::DeletePendingOperations);
-			timer = new Poco::Timer(100,100);
-			Poco::TimerCallback<FilesystemBinding> cb(*this, &FilesystemBinding::OnAsyncOperationTimer);
-			timer->start(cb);
-		}
-		else
-		{
-			this->timer->restart(100);
-		}
-	}
-
-	void FilesystemBinding::DeletePendingOperations(const ValueList& args, KValueRef result)
-	{
-		if (asyncOperations.size()==0)
-		{
-			result->SetBool(true);
-			return;
-		}
-		std::vector<KObjectRef>::iterator iter = asyncOperations.begin();
-
-		while (iter!=asyncOperations.end())
-		{
-			KObjectRef c = (*iter);
-			KValueRef v = c->Get("running");
-			bool running = v->ToBool();
-			if (!running)
-			{
-				asyncOperations.erase(iter);
-				break;
-			}
-			iter++;
-		}
-
-		// return true to pause the timer
-		result->SetBool(asyncOperations.size()==0);
-	}
-
-	void FilesystemBinding::OnAsyncOperationTimer(Poco::Timer &timer)
-	{
-		START_KROLL_THREAD;
-
-		KMethodRef m = this->Get("_invoke")->ToMethod();
-		KValueRef result = RunOnMainThread(m);
-		if (result->ToBool())
-		{
-			timer.restart(0);
-		}
-
-		END_KROLL_THREAD;
 	}
 }

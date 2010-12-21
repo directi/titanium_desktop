@@ -7,9 +7,7 @@
 #ifndef _FILESYSTEM_BINDING_H_
 #define _FILESYSTEM_BINDING_H_
 
-#include <vector>
 #include <kroll/kroll.h>
-#include <Poco/Timer.h>
 
 
 namespace ti
@@ -17,14 +15,11 @@ namespace ti
 	class FilesystemBinding : public StaticBoundObject
 	{
 	public:
-		FilesystemBinding(Host*, KObjectRef);
+		FilesystemBinding(Host* _host);
 		virtual ~FilesystemBinding();
 
 	private:
 		Host *host;
-		KObjectRef global;
-		std::vector<KObjectRef> asyncOperations;
-		Poco::Timer *timer;
 
 		void CreateTempFile(const ValueList& args, KValueRef result);
 		void CreateTempDirectory(const ValueList& args, KValueRef result);
@@ -43,10 +38,6 @@ namespace ti
 		void GetSeparator(const ValueList& args, KValueRef result);
 		void GetRootDirectories(const ValueList& args, KValueRef result);
 		void ExecuteAsyncCopy(const ValueList& args, KValueRef result);
-
-		//INTERNAL ONLY
-		void OnAsyncOperationTimer(Poco::Timer &timer);
-		void DeletePendingOperations(const ValueList& args, KValueRef result);
 	};
 }
 

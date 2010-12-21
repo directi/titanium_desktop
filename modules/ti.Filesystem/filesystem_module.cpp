@@ -17,7 +17,7 @@ namespace ti
 	void FilesystemModule::Initialize()
 	{
 		// load our variables
-		this->binding= new FilesystemBinding(host,host->GetGlobalObject());
+		this->binding= new FilesystemBinding(host);
 
 		// set our ti.Filesystem
 		KValueRef value = Value::NewObject(this->binding);

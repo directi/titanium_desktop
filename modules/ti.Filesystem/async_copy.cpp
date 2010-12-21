@@ -5,6 +5,8 @@
  */
 #include "async_copy.h"
 #include "filesystem_binding.h"
+#include "TiAsyncJobRunner.h"
+
 #include <kroll/thread_manager.h>
 #include <iostream>
 #include <sstream>
@@ -33,19 +35,11 @@ namespace ti
 		callback(callback),
 		stopped(false)
 	{
-		this->Set("running",Value::NewBool(true));
-		this->thread = new Poco::Thread();
-		this->thread->start(&AsyncCopy::Run,this);
+		TiAsyncJobRunnerSingleton::Instance()->enqueue(new TiThreadTarget(&AsyncCopy::Run, this));
 	}
 
 	AsyncCopy::~AsyncCopy()
 	{
-		if (this->thread!=NULL)
-		{
-			this->thread->tryJoin(10); // precaution, should already be stopped
-			delete this->thread;
-			this->thread = NULL;
-		}
 	}
 
 	void AsyncCopy::Copy(Poco::Path &src, Poco::Path &dest)
@@ -194,12 +188,9 @@ namespace ti
 			}
 
 		}
-		this->Set("running",Value::NewBool(false));
 		this->stopped = true;
 
 		logger->Debug(std::string("Job finished"));
-
-		END_KROLL_THREAD;
 	}
 
 	void AsyncCopy::Run(void* data)
@@ -219,15 +210,11 @@ namespace ti
 
 	void AsyncCopy::Cancel(const ValueList& args, KValueRef result)
 	{
-		if (thread!=NULL && thread->isRunning())
+		if (!this->stopped)
 		{
 			this->stopped = true;
-			this->Set("running", Value::NewBool(false));
 			result->SetBool(true);
 		}
-		else
-		{
-			result->SetBool(false);
-		}
+		result->SetBool(!this->stopped);
 	}
 }
