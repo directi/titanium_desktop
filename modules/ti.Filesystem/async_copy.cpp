@@ -18,15 +18,14 @@
 
 namespace ti
 {
-	AsyncCopy::AsyncCopy(FilesystemBinding* parent, Host *host,
-		std::vector<std::string> files, std::string destination, KMethodRef callback) :
-			StaticBoundObject("Filesystem.AsyncCopy"),
-			parent(parent),
-			host(host),
-			files(files),
-			destination(destination),
-			callback(callback),
-			stopped(false)
+	AsyncCopy::AsyncCopy(const std::vector<std::string> &files,
+		const std::string destination,
+		KMethodRef callback)
+		: StaticBoundObject("Filesystem.AsyncCopy"),
+		files(files),
+		destination(destination),
+		callback(callback),
+		stopped(false)
 	{
 		this->Set("running",Value::NewBool(true));
 		this->thread = new Poco::Thread();
@@ -109,7 +108,7 @@ namespace ti
 		Logger* logger = Logger::Get("Filesystem.AsyncCopy");
 
 		AsyncCopy* ac = static_cast<AsyncCopy*>(data);
-		std::vector<std::string>::iterator iter = ac->files.begin();
+		std::vector<std::string>::const_iterator iter = ac->files.begin();
 		Poco::Path to(ac->destination);
 		Poco::File tof(to.toString());
 
@@ -210,7 +209,7 @@ namespace ti
 		if (thread!=NULL && thread->isRunning())
 		{
 			this->stopped = true;
-			this->Set("running",Value::NewBool(false));
+			this->Set("running", Value::NewBool(false));
 			result->SetBool(true);
 		}
 		else

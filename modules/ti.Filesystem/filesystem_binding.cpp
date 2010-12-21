@@ -411,7 +411,7 @@ namespace ti
 		KValueRef v = args.at(1);
 		std::string destination(FilesystemUtils::FilenameFromValue(v));
 		KMethodRef method = args.at(2)->ToMethod();
-		KObjectRef copier = new ti::AsyncCopy(this,host,files,destination,method);
+		KObjectRef copier = new ti::AsyncCopy(files, destination, method);
 		result->SetObject(copier);
 		asyncOperations.push_back(copier);
 		// we need to create a timer thread that can cleanup operations

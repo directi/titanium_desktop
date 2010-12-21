@@ -26,14 +26,13 @@ namespace ti
 	class AsyncCopy : public StaticBoundObject
 	{
 	public:
-		AsyncCopy(FilesystemBinding* parent,kroll::Host *host,std::vector<std::string> files, std::string destination, KMethodRef callback);
+		AsyncCopy(const std::vector<std::string> &files,
+			const std::string destination, KMethodRef callback);
 		virtual ~AsyncCopy();
 
 	private:
-		FilesystemBinding* parent;
-		Host *host;
-		std::vector<std::string> files;
-		std::string destination;
+		const std::vector<std::string> files;
+		const std::string destination;
 		KMethodRef callback;
 		Poco::Thread *thread;
 		bool stopped;
