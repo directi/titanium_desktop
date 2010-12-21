@@ -13,6 +13,10 @@ SConscript('boot/SConscript', variant_dir=path.join(build.dir, 'objs', 'boot'), 
 build.add_thirdparty(build.env, 'boost')
 build.add_thirdparty(build.env, 'poco')
 
+#TODO: boost 1.46 will have default filesystem version 3... right now its not that stable.
+#we have to migrate once its stable.
+build.env.Append(CPPDEFINES = ('BOOST_FILESYSTEM_VERSION', 2))
+
 SConscript('libkroll/SConscript', variant_dir=path.join(build.dir,'objs','libkroll'), duplicate=0)
 
 # Now that libkroll is built add it as a default for

@@ -6,6 +6,7 @@
 
 #include "javascript_module.h"
 #include "javascript_methods.h"
+#include <boost/filesystem.hpp>
 
 namespace kroll
 {
@@ -25,65 +26,27 @@ namespace kroll
 	}
 
 	const static std::string jsSuffix = "module.js";
-	bool JavaScriptModule::IsModule(const std::string& path) const
+
+	bool hasjsSuffix(const std::string& path)
 	{
-		int plength = path.length();
-		int slength = jsSuffix.length();
 		if (path.length() > jsSuffix.length())
 		{
-			return (path.substr(plength - slength) == jsSuffix);
+			return (path.substr(path.length() - jsSuffix.length()) == jsSuffix);
 		}
-		else
-		{
-			return false;
-		}
+		return false;
 	}
-	std::string strip_path(const std::string &path)
+
+	bool JavaScriptModule::IsModule(const std::string& path) const
 	{
-		std::string::size_type pos = path.rfind('/');
-		std::string::size_type pos1 = path.rfind('\\');
-		if (pos != std::string::npos || pos1 != std::string::npos)
-		{
-			if (pos != std::string::npos && pos1 != std::string::npos)
-			{
-				if (pos > pos1)
-				{
-					return path.substr(pos+1);
-				}
-				else
-				{
-					return path.substr(pos1+1);
-				}
-			}
-			else if (pos != std::string::npos)
-				return path.substr(pos+1);
-			return path.substr(pos1+1);
-		}
-		return path;
+		return hasjsSuffix(path);
 	}
-
-	std::string strip_extension(const std::string &path)
-	{
-		std::string::size_type pos = path.rfind('.');
-		if (pos != std::string::npos)
-			return path.substr(0, pos);
-		else
-			return path;
-	}
-
-	std::string getbasename(const std::string &path)
-	{
-		std::string basename;
-
-		return strip_path(strip_extension(path));
-	}
-
 
 	Module* JavaScriptModule::CreateModule(const std::string& path)
 	{
-		const std::string basename = getbasename(path);
+		const std::string basename = boost::filesystem::basename (path);
 		const std::string name = basename.substr(0,basename.length()-jsSuffix.length()+3);
-		const std::string moduledir = path.substr(0,path.length()-basename.length()-3);
+		boost::filesystem::path abspath(path);
+		const std::string moduledir = abspath.branch_path().string();
 
 		Logger *logger = Logger::Get("JavaScript");
 		logger->Info("Loading JS path=%s", path.c_str());
