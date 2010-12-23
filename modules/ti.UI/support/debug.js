@@ -1,9 +1,9 @@
-window._debugTimerId = 0;
-
 window.pauseDebugger = function() 
 	{
-		if(_debugTimerId != 0)
-			Titanium.clearTimeout(_debugTimerId);
+		if(typeof(Titanium._debugTimerId) != 'undefined' && Titanium._debugTimerId != null) {
+			Titanium.clearTimeout(Titanium._debugTimerId);
+			Titanium._debugTimerId = null;
+		}
 		Titanium.debuggerPaused();
 	}
 
@@ -11,8 +11,15 @@ window.resumeDebugger = function(stepping)
 	{
 		if(stepping)
 		{
-			_debugTimerId = Titanium.setTimeout(function() { Titanium.debuggerResumed(); _debugTimerId = 0 }, 1000);
+			Titanium._debugTimerId = Titanium.setTimeout(function() { 
+				Titanium.debuggerResumed();
+				Titanium._debugTimerId = null; 
+			}, 1000);
 		} else {
+			if(typeof(Titanium._debugTimerId) != 'undefined' && Titanium._debugTimerId != null) {
+				Titanium.clearTimeout(Titanium._debugTimerId);
+				Titanium._debugTimerId = null;
+			}
 			Titanium.debuggerResumed();
 		}
 	}

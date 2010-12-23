@@ -11,7 +11,7 @@ namespace UTILS_NS
 	unsigned Timer::timerid = 0;
 
 	Timer::Timer(long _duration, bool _recursive, KMethodRef _method, ValueList& _args)
-		: id(Timer::timerid++),
+		: id(++Timer::timerid),
 		duration(_duration),
 		recursive(_recursive),
 		method(_method),
@@ -78,8 +78,8 @@ namespace UTILS_NS
 			if(oIter != timers.end())
 			{
 				timers.erase(oIter);
+				return true;
 			}
-			return true;
 		}
 		return false;
 	}

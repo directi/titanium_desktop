@@ -175,9 +175,12 @@ WebInspector.ScriptsPanel = function()
 
     this._debuggerEnabled = Preferences.debuggerAlwaysEnabled;
 
-    WebInspector.breakpointManager.addEventListener("breakpoint-added", this._breakpointAdded, this);
-
     this.reset();
+
+    WebInspector.debuggerModel.addEventListener(WebInspector.DebuggerModel.Events.ParsedScriptSource, this._parsedScriptSource, this);
+    WebInspector.debuggerModel.addEventListener(WebInspector.DebuggerModel.Events.FailedToParseScriptSource, this._failedToParseScriptSource, this);
+    WebInspector.debuggerModel.addEventListener(WebInspector.DebuggerModel.Events.DebuggerPaused, this._debuggerPaused, this);
+    WebInspector.debuggerModel.addEventListener(WebInspector.DebuggerModel.Events.DebuggerResumed, this._debuggerResumed, this);
 }
 
 // Keep these in sync with WebCore::ScriptDebugServer
@@ -234,17 +237,28 @@ WebInspector.ScriptsPanel.prototype = {
         return this.toggleBreakpointsButton.toggled;
     },
 
-    addScript: function(sourceID, sourceURL, source, startingLine, errorLine, errorMessage, scriptWorldType)
+    _parsedScriptSource: function(event)
     {
-        var script = new WebInspector.Script(sourceID, sourceURL, source, startingLine, errorLine, errorMessage, scriptWorldType);
-        this._sourceIDMap[sourceID] = script;
+        var sourceID = event.data;
+        var script = WebInspector.debuggerModel.scriptForSourceID(sourceID);
+        this._addScript(script);
+    },
 
-        var resource = WebInspector.resourceForURL(sourceURL);
+    _failedToParseScriptSource: function(event)
+    {
+        this._addScript(event.data);
+    },
+
+    _addScript: function(script)
+    {
+        var resource = WebInspector.resourceForURL(script.sourceURL);
         if (resource) {
             if (resource.finished) {
                 // Resource is finished, bind the script right away.
-                resource.addScript(script);
-                this._sourceIDMap[sourceID] = resource;
+                script.resource = resource;
+                var view = WebInspector.ResourceManager.existingResourceViewForResource(resource);
+                if (view && view.sourceFrame)
+                    view.sourceFrame.addScript(script);
             } else {
                 // Resource is not finished, bind the script later.
                 if (!resource._scriptsPendingResourceLoad) {
@@ -257,21 +271,13 @@ WebInspector.ScriptsPanel.prototype = {
         this._addScriptToFilesMenu(script);
     },
 
-    continueToLine: function(sourceID, line)
-    {
-        WebInspector.breakpointManager.setOneTimeBreakpoint(sourceID, line);
-        if (this.paused)
-            this._togglePause();
-    },
-
     _resourceLoadingFinished: function(e)
     {
         var resource = e.target;
         for (var i = 0; i < resource._scriptsPendingResourceLoad.length; ++i) {
             // Bind script to resource.
             var script = resource._scriptsPendingResourceLoad[i];
-            resource.addScript(script);
-            this._sourceIDMap[script.sourceID] = resource;
+            script.resource = resource;
 
             // Remove script from the files list.
             script.filesSelectOption.parentElement.removeChild(script.filesSelectOption);
@@ -281,38 +287,18 @@ WebInspector.ScriptsPanel.prototype = {
         delete resource._scriptsPendingResourceLoad;
     },
 
-    _breakpointAdded: function(event)
-    {
-        var breakpoint = event.data;
-
-        var sourceFrame;
-        if (breakpoint.url) {
-            var resource = WebInspector.resourceForURL(breakpoint.url);
-            if (resource && resource.finished)
-                sourceFrame = this._sourceFrameForScriptOrResource(resource);
-        }
-
-        if (breakpoint.sourceID && !sourceFrame) {
-            var object = this._sourceIDMap[breakpoint.sourceID]
-            sourceFrame = this._sourceFrameForScriptOrResource(object);
-        }
-
-        if (sourceFrame)
-            sourceFrame.addBreakpoint(breakpoint);
-    },
-
     canEditScripts: function()
     {
         return Preferences.canEditScriptSource;
     },
 
-    editScriptSource: function(sourceID, newContent, line, linesCountToShift, commitEditingCallback, cancelEditingCallback)
+    editScriptSource: function(editData, commitEditingCallback, cancelEditingCallback)
     {
         if (!this.canEditScripts())
             return;
 
         // Need to clear breakpoints and re-create them later when editing source.
-        var breakpoints = WebInspector.breakpointManager.breakpointsForSourceID(sourceID);
+        var breakpoints = WebInspector.debuggerModel.queryBreakpoints(function(b) { return b.sourceID === editData.sourceID });
         for (var i = 0; i < breakpoints.length; ++i)
             breakpoints[i].remove();
 
@@ -321,20 +307,21 @@ WebInspector.ScriptsPanel.prototype = {
             if (success) {
                 commitEditingCallback(newBodyOrErrorMessage);
                 if (callFrames && callFrames.length)
-                    this.debuggerPaused(callFrames);
+                    this._debuggerPaused({ data: { callFrames: callFrames } });
             } else {
-                cancelEditingCallback();
+                if (cancelEditingCallback)
+                    cancelEditingCallback();
                 WebInspector.log(newBodyOrErrorMessage, WebInspector.ConsoleMessage.MessageLevel.Warning);
             }
             for (var i = 0; i < breakpoints.length; ++i) {
                 var breakpoint = breakpoints[i];
                 var newLine = breakpoint.line;
-                if (success && breakpoint.line >= line)
-                    newLine += linesCountToShift;
-                WebInspector.breakpointManager.setBreakpoint(sourceID, breakpoint.url, newLine, breakpoint.enabled, breakpoint.condition);
+                if (success && breakpoint.line >= editData.line)
+                    newLine += editData.linesCountToShift;
+                WebInspector.debuggerModel.setBreakpoint(editData.sourceID, newLine, breakpoint.enabled, breakpoint.condition);
             }
         };
-        InspectorBackend.editScriptSource(sourceID, newContent, mycallback.bind(this));
+        InspectorBackend.editScriptSource(editData.sourceID, editData.content, mycallback.bind(this));
     },
 
     selectedCallFrameId: function()
@@ -374,11 +361,11 @@ WebInspector.ScriptsPanel.prototype = {
         InjectedScriptAccess.get(callFrame.worldId).evaluateInCallFrame(callFrame.id, code, objectGroup, evalCallback);
     },
 
-    debuggerPaused: function(callFrames)
+    _debuggerPaused: function(event)
     {
 		InjectedScriptAccess.getDefault().evaluate('if(typeof(pauseDebugger) == "function") pauseDebugger();', "window", function(a){});
-
-		WebInspector.breakpointManager.removeOneTimeBreakpoint();
+        
+		var callFrames = event.data.callFrames;
 
         this._paused = true;
         this._waitingToPause = false;
@@ -388,16 +375,16 @@ WebInspector.ScriptsPanel.prototype = {
 
         WebInspector.currentPanel = this;
 
-        this.sidebarPanes.callstack.update(callFrames, this._sourceIDMap);
+        this.sidebarPanes.callstack.update(callFrames, event.data.eventType, event.data.eventData);
         this.sidebarPanes.callstack.selectedCallFrame = callFrames[0];
 
         window.focus();
+        InspectorFrontendHost.bringToFront();
     },
 
-    debuggerResumed: function()
+    _debuggerResumed: function()
     {
 		InjectedScriptAccess.getDefault().evaluate('if(typeof(resumeDebugger) == "function") resumeDebugger(' + this._stepping + ');', "window", function(a){});
-
         this._paused = false;
         this._waitingToPause = false;
         this._stepping = false;
@@ -439,7 +426,7 @@ WebInspector.ScriptsPanel.prototype = {
         delete this.currentQuery;
         this.searchCanceled();
 
-        this.debuggerResumed();
+        this._debuggerResumed();
 
         this._backForwardList = [];
         this._currentBackForwardIndex = -1;
@@ -450,26 +437,13 @@ WebInspector.ScriptsPanel.prototype = {
         this.functionsSelectElement.removeChildren();
         this.viewsContainerElement.removeChildren();
 
-        if (this._sourceIDMap) {
-            for (var sourceID in this._sourceIDMap) {
-                var object = this._sourceIDMap[sourceID];
-                if (object instanceof WebInspector.Resource)
-                    object.removeAllScripts();
-            }
-        }
-
-        this._sourceIDMap = {};
+        var scripts = WebInspector.debuggerModel.queryScripts(function(s) { return !!s.resource; });
+        for (var i = 0; i < scripts.length; ++i)
+            delete scripts[i].resource._resourcesView;
 
         this.sidebarPanes.watchExpressions.refreshExpressions();
-        if (!preserveItems) {
-            this.sidebarPanes.jsBreakpoints.reset();
-            if (Preferences.nativeInstrumentationEnabled) {
-                this.sidebarPanes.domBreakpoints.reset();
-                this.sidebarPanes.xhrBreakpoints.reset();
-                this.sidebarPanes.eventListenerBreakpoints.reset();
-            }
+        if (!preserveItems)
             this.sidebarPanes.workers.reset();
-        }
     },
 
     get visibleView()
@@ -512,22 +486,15 @@ WebInspector.ScriptsPanel.prototype = {
 
     _scriptOrResourceForURLAndLine: function(url, line)
     {
-        var scriptWithMatchingUrl = null;
-        for (var sourceID in this._sourceIDMap) {
-            var scriptOrResource = this._sourceIDMap[sourceID];
-            if (scriptOrResource instanceof WebInspector.Script) {
-                if (scriptOrResource.sourceURL !== url)
-                    continue;
-                scriptWithMatchingUrl = scriptOrResource;
-                if (scriptWithMatchingUrl.startingLine <= line && scriptWithMatchingUrl.startingLine + scriptWithMatchingUrl.linesCount > line)
-                    return scriptWithMatchingUrl;
-            } else {
-                var resource = scriptOrResource;
-                if (resource.url === url)
-                    return resource;
-            }
+        var scripts = WebInspector.debuggerModel.scriptsForURL(url);
+        for (var i = 0; i < scripts.length; ++i) {
+            var script = scripts[i];
+            if (script.resource)
+                return script.resource;
+            if (script.startingLine <= line && script.startingLine + script.linesCount > line)
+                return script;
         }
-        return scriptWithMatchingUrl;
+        return null;
     },
 
     showView: function(view)
@@ -746,7 +713,8 @@ WebInspector.ScriptsPanel.prototype = {
         this.sidebarPanes.scopechain.update(currentFrame);
         this.sidebarPanes.watchExpressions.refreshExpressions();
 
-        var scriptOrResource = this._sourceIDMap[currentFrame.sourceID];
+        var script = WebInspector.debuggerModel.scriptForSourceID(currentFrame.sourceID);
+        var scriptOrResource = script.resource || script;
         this._showScriptOrResource(scriptOrResource, {line: currentFrame.line});
 
         this._executionSourceFrame = this._sourceFrameForScriptOrResource(scriptOrResource);
@@ -1013,7 +981,11 @@ WebInspector.ScriptsPanel.prototype = {
         this._shortcuts[shortcut2.key] = handler;
         section.addAlternateKeys([ shortcut1.name, shortcut2.name ], WebInspector.UIString("Step out"));
 
-        shortcut1 = WebInspector.KeyboardShortcut.makeDescriptor("g", platformSpecificModifier);
+        var isMac = WebInspector.isMac();
+        if (isMac)
+            shortcut1 = WebInspector.KeyboardShortcut.makeDescriptor("l", WebInspector.KeyboardShortcut.Modifiers.Meta);
+        else
+            shortcut1 = WebInspector.KeyboardShortcut.makeDescriptor("g", WebInspector.KeyboardShortcut.Modifiers.Ctrl);
         this._shortcuts[shortcut1.key] = this.showGoToLineDialog.bind(this);
         section.addAlternateKeys([ shortcut1.name ], WebInspector.UIString("Go to Line"));
         this.sidebarPanes.callstack.registerShortcuts(section);
@@ -1096,4 +1068,3 @@ WebInspector.ScriptsPanel.prototype = {
 }
 
 WebInspector.ScriptsPanel.prototype.__proto__ = WebInspector.Panel.prototype;
-

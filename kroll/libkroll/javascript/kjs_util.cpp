@@ -826,7 +826,9 @@ namespace KJSUtil
 	void UnprotectJSObject(JSGlobalContextRef globalContext, JSObjectRef value)
 	{
 		ASSERT_MAIN_THREAD
-		ASSERT("Unprotecting while execution is suspended", ! Host::GetInstance()->IsExecutionSuspended());
+//		ASSERT("Unprotecting while execution is suspended", ! Host::GetInstance()->IsExecutionSuspended());
+		if(Host::GetInstance()->IsExecutionSuspended())
+			fprintf(stderr, "Unprotecting while execution is suspended\n");
 
 		JSObjectRefCounter::iterator ourCtx = jsObjectRefCounter.find(globalContext);
 		if(ourCtx == jsObjectRefCounter.end())

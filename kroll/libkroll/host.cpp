@@ -674,11 +674,13 @@ namespace kroll
 	{
 		if (this->IsMainThread())
 		{
-			if(isExecutionSuspended)
+			if(isExecutionSuspended) {
+				fprintf(stderr, "Supressing method call as execution is suspended\n");
 				return Value::Undefined; //TODO: This is usually the window.resized event - we need to stop triggering 
 										// the JS event if the window size has not changed. The inspector calls resize
 										// to make sure the components are properly aligned. Then replace this with an
 										// assertion.
+			}
 
 			job->Execute();
 		}
