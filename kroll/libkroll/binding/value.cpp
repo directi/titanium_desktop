@@ -157,6 +157,7 @@ namespace kroll
 	bool Value::ToBool() const { return boolValue; }
 	const char* Value::ToString() const
 	{
+		//TODO: FIXME: Fix this... it doesn't work at all...
 		if(!stringValue)
 			return "";
 		return stringValue;
