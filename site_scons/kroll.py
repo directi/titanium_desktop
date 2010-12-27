@@ -197,22 +197,17 @@ class BuildConfig(object):
 			libpath = [self.tp('poco', 'lib')]
 			libs = ['PocoFoundation', 'PocoNet']
 
-		if name is 'curl' and self.is_win32(): # Don't judge us!
-			cpppath = [self.tp('webkit', 'include')]
-			libpath = [self.tp('webkit', 'lib')]
-			libs = ['libcurl_imp']
-
 		elif name is 'curl':
 			cpppath = [self.tp('curl', 'include')]
 			libpath = [self.tp('curl', 'lib')]
-			libs = ['curl']
+			libs = ['libcurl_imp']
 
 		elif name is 'cairo' and self.is_win32():
 			cpppath = [self.tp('webkit', 'include')]
 			libpath = [self.tp('webkit', 'lib')]
 			libs = ['cairo']
 
-		if name is 'webkit':
+		elif name is 'webkit':
 			if self.is_win32() or self.is_linux():
 				cpppath = [self.tp('webkit', 'include')]
 				libpath = [self.tp('webkit', 'lib')]
@@ -226,6 +221,7 @@ class BuildConfig(object):
 					suffix = '_debug'
 				libs = ['WebKit', 'WebKitGUID', 'JavaScriptCore']
 				libs = [x + suffix for x in libs]
+				# libs += [ 'libcurl_imp' ]
 
 			if self.is_linux():
 				libs = ['webkittitanium-1.0']

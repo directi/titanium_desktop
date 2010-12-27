@@ -20,7 +20,7 @@ elif build.is_win32():
 	sources = sources + Glob('win32/*.cpp')
 	sources += Glob('binding/kjs*.cpp')
 	env.Append(LIBS=['shell32', 'comdlg32', 'comctl32',
-		'gdi32', 'libcurl_imp', 'comsuppw'])
+		'gdi32', 'comsuppw'])
 
 elif build.is_osx():
 	env.Append(FRAMEWORKPATH=[build.tp('growl')])
