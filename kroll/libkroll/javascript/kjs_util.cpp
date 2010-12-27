@@ -586,7 +586,9 @@ namespace KJSUtil
 			KValueRef v = Value::NewString("Unknown exception during Kroll method call");
 			*jsException = ToJSValue(v, jsContext);
 		}
-
+		// Exception case
+		if (jsValue == 0)
+			jsValue = JSValueMakeUndefined(jsContext);
 		return jsValue;
 	}
 
