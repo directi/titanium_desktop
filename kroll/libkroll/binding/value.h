@@ -301,7 +301,7 @@ namespace kroll
 		Type type;
 		double numberValue;
 		bool boolValue;
-		char* stringValue;
+		std::string stringValue;
 		KObjectRef objectValue;
 
 		void reset();

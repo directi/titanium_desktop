@@ -20,37 +20,33 @@ namespace kroll
 
 	void Value::reset()
 	{
-		if (this->IsString() && this->stringValue)
-		{
-			free(this->stringValue);
-			this->stringValue = 0;
-		}
 		this->type = UNDEFINED;
 		this->objectValue = 0;
-		this->stringValue = 0;
+		this->stringValue = "";
 		this->numberValue = 0;
 	}
 
-	Value::Value() :
-		type(UNDEFINED),
+	Value::Value()
+		: type(UNDEFINED),
 		numberValue(0),
-		stringValue(0),
+		stringValue(""),
 		objectValue(0)
 	{
 	}
 
-	Value::Value(KValueRef value) :
-		type(UNDEFINED),
+	Value::Value(KValueRef value)
+		: type(UNDEFINED),
 		numberValue(0),
-		stringValue(0),
+		stringValue(""),
 		objectValue(0)
 	{
 		this->SetValue(value);
 	}
 
-	Value::Value(const Value& value) : type(UNDEFINED),
+	Value::Value(const Value& value)
+		: type(UNDEFINED),
 		numberValue(0),
-		stringValue(0),
+		stringValue(""),
 		objectValue(0)
 	{
 		this->SetValue((Value*) &value);
@@ -155,12 +151,7 @@ namespace kroll
 	double Value::ToDouble() const { return numberValue; }
 	double Value::ToNumber() const { return numberValue; }
 	bool Value::ToBool() const { return boolValue; }
-	const char* Value::ToString() const
-	{
-		if(!stringValue)
-			return "";
-		return stringValue;
-	}
+	const char* Value::ToString() const { return stringValue.c_str(); }
 	KObjectRef Value::ToObject() const { return objectValue; }
 	KMethodRef Value::ToMethod() const { return objectValue.cast<KMethod>(); }
 	KListRef Value::ToList() const { return objectValue.cast<KList>(); }
@@ -227,7 +218,7 @@ namespace kroll
 	void Value::SetString(const char* value)
 	{
 		reset();
-		this->stringValue = strdup(value);
+		this->stringValue = value;
 		type = STRING;
 	}
 
