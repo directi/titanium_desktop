@@ -536,7 +536,7 @@ namespace ti
 		return client->WriteRequestDataToBuffer(static_cast<char*>(ptr), bufferSize);
 	}
 
-	void HTTPClientBinding::ParseHTTPStatus(std::string& header)
+	void HTTPClientBinding::ParseHTTPStatus(const std::string& header)
 	{
 		size_t numberOfSpaces = 0;
 		size_t position = 0;

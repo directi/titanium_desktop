@@ -12,6 +12,7 @@
 #include <iostream>
 #include <sstream>
 #include <Poco/File.h>
+#include <Poco/Path.h>
 
 #ifndef OS_WIN32
 #include <unistd.h>

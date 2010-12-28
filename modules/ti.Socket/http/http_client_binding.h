@@ -24,7 +24,7 @@ namespace ti
 		virtual ~HTTPClientBinding();
 
 		size_t WriteRequestDataToBuffer(char* buffer, size_t bufferSize);
-		void ParseHTTPStatus(std::string& header);
+		void ParseHTTPStatus(const std::string& header);
 		void GotHeader(std::string& header);
 		void DataReceived(char* buffer, size_t numberOfBytes);
 		inline bool IsAborted() { return aborted; }
