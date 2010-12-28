@@ -26,7 +26,7 @@ namespace ti
 
 	void SocketBinding::_CreateTCPSocket(const ValueList& args, KValueRef result)
 	{
-		args.VerifyException("createTCPSocket", "ss");
+		args.VerifyException("createTCPSocket", "sn");
 		result->SetObject(new TCPSocketBinding(host, args.GetString(0), args.GetString(1)));
 	}
 

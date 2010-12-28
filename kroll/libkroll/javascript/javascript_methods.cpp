@@ -21,8 +21,11 @@ namespace kroll
 			global->SetMethod("clearTimeout", new KFunctionPtrMethod(&ClearTimeout));
 			global->SetMethod("setInterval", new KFunctionPtrMethod(&SetInterval));
 			global->SetMethod("clearInterval", new KFunctionPtrMethod(&ClearInterval));
-			global->SetMethod("debuggerPaused", new KFunctionPtrMethod(&DebuggerPaused));
-			global->SetMethod("debuggerResumed", new KFunctionPtrMethod(&DebuggerResumed));
+			if(Host::GetInstance()->DebugModeEnabled()) 
+			{
+				global->SetMethod("debuggerPaused", new KFunctionPtrMethod(&DebuggerPaused));
+				global->SetMethod("debuggerResumed", new KFunctionPtrMethod(&DebuggerResumed));
+			}
 		}
 		
 		//class MainThreadCaller
@@ -143,13 +146,13 @@ namespace kroll
 		KValueRef ClearTimeout(const ValueList& args)
 		{
 			args.VerifyException("clearTimeout", "i");
-			return Host::GetInstance()->RunOnMainThread(new KFunctionPtrMethod(&StopTimer), args);
+			return StopTimer(args);
 		}
 		
 		KValueRef ClearInterval(const ValueList& args)
 		{
 			args.VerifyException("clearInterval", "i");
-			return Host::GetInstance()->RunOnMainThread(new KFunctionPtrMethod(&StopTimer), args);
+			return StopTimer(args);
 		}
 
 		KValueRef DebuggerPaused(const ValueList& args)

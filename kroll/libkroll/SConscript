@@ -65,6 +65,7 @@ if build.is_win32():
 	build.add_thirdparty(libkroll_env, 'icu')
 	build.add_thirdparty(libkroll_env, 'libproxy')
 	build.add_thirdparty(libkroll_env, 'pthread')
+	build.add_thirdparty(libkroll_env, 'curl')
 	libkroll_env.Append(LIBS=['Advapi32', 'icuuc',
 		'icuin', 'iphlpapi', 'ole32', 'shell32', 'user32'])
 
