@@ -32,7 +32,7 @@ namespace kroll
 			INT = 1, /**< int */
 			DOUBLE = 2, /**< double */
 			BOOL = 3, /**< boolean */
-			STRING = 4, /**< const char* */
+			STRING = 4, /**< std::string */
 			LIST = 5, /**< KListRef */
 			OBJECT = 6, /**< KObjectRef */
 			METHOD = 7, /**< KMethodRef */
@@ -186,7 +186,7 @@ namespace kroll
 		bool ToBool() const;
 
 		/**
-		 * @return the value as a \link #Value::Type::STRING string (const char *)\endlink
+		 * @return the value as a \link #Value::Type::STRING string\endlink
 		 */
 		std::string ToString() const;
 
@@ -251,12 +251,6 @@ namespace kroll
 		 * @param value the string value value
 		 */
 		void SetString(const std::string & value);
-
-		/**
-		 * Change the internal value of this Value to an \link #Value::Type::STRING string\endlink
-		 * @param value the string value
-		 */
-		void SetString(std::string& value);
 
 		/**
 		 * Change the internal value of this Value to an \link #Value::Type::STRING string\endlink

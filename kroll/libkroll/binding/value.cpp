@@ -101,14 +101,14 @@ namespace kroll
 	KValueRef Value::NewString(std::string value)
 	{
 		KValueRef v(new Value());
-		v->SetString(value.c_str());
+		v->SetString(value);
 		return v;
 	}
 
 	KValueRef Value::NewString(SharedString value)
 	{
 		KValueRef v(new Value());
-		v->SetString(value.get()->c_str());
+		v->SetString(value.get());
 		return v;
 	}
 
@@ -194,10 +194,19 @@ namespace kroll
 			throw "Error on set. Unknown type for other";
 	}
 
+	std::string toString(int value)
+	{
+		char buffer [33];
+		itoa (value, buffer, 10);
+		return string(buffer);
+	}
+
 	void Value::SetInt(int value)
 	{
 		reset();
 		this->numberValue = value;
+		this->boolValue = (this->numberValue)? true:false;
+		this->stringValue = toString(value);
 		type = INT;
 	}
 
@@ -205,6 +214,8 @@ namespace kroll
 	{
 		reset();
 		this->numberValue = value;
+		this->boolValue = (this->numberValue)? true:false;
+		this->stringValue = toString((int)value);
 		type = DOUBLE;
 	}
 
@@ -212,6 +223,8 @@ namespace kroll
 	{
 		reset();
 		this->boolValue = value;
+		this->numberValue = (this->boolValue)? 1:0;
+		this->stringValue = (this->boolValue)? "true":"false";
 		type = BOOL;
 	}
 
@@ -219,17 +232,15 @@ namespace kroll
 	{
 		reset();
 		this->stringValue = value;
+		this->boolValue = value.size()? true:false;
+		this->numberValue = value.size(); // not proper... but cant think anything else in my mind.
 		type = STRING;
-	}
-
-	void Value::SetString(std::string& value)
-	{
-		this->SetString(value.c_str());
 	}
 
 	void Value::SetString(SharedString value)
 	{
-		this->SetString(value.get()->c_str());
+		std::string str = value.get()->c_str();
+		this->SetString(str);
 	}
 
 	void Value::SetList(KListRef value)
