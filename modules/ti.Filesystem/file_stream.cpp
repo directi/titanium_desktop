@@ -167,7 +167,7 @@ namespace ti
 		}
 		else if (args.at(0)->IsString())
 		{
-			text = (char*)args.at(0)->ToString();
+			text = (char*)args.at(0)->ToString().c_str();
 		}
 		else if (args.at(0)->IsInt())
 		{
@@ -375,7 +375,7 @@ namespace ti
 		}
 		else if (args.at(0)->IsString())
 		{
-			text = (char*)args.at(0)->ToString();
+			text = (char*)args.at(0)->ToString().c_str();
 		}
 		else if (args.at(0)->IsInt())
 		{

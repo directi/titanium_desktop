@@ -219,8 +219,7 @@ namespace ti
 			KValueRef arg = args.at(c);
 			if (arg->IsString())
 			{
-				const char *s = arg->ToString();
-				std::cout << s;
+				std::cout << arg->ToString();
 			}
 			else
 			{
@@ -238,8 +237,7 @@ namespace ti
 			KValueRef arg = args.at(c);
 			if (arg->IsString())
 			{
-				const char *s = arg->ToString();
-				std::cerr << s;
+				std::cerr << arg->ToString();
 			}
 			else
 			{

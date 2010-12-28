@@ -188,7 +188,7 @@ namespace kroll
 		/**
 		 * @return the value as a \link #Value::Type::STRING string (const char *)\endlink
 		 */
-		const char* ToString() const;
+		std::string ToString() const;
 
 		/**
 		 * @return the value as a \link #Value::Type::LIST KListRef\endlink
@@ -250,7 +250,7 @@ namespace kroll
 		 * Change the internal value of this Value to a \link #Value::Type::STRING string\endlink
 		 * @param value the string value value
 		 */
-		void SetString(const char* value);
+		void SetString(const std::string & value);
 
 		/**
 		 * Change the internal value of this Value to an \link #Value::Type::STRING string\endlink

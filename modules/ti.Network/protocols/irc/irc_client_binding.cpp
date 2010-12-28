@@ -142,12 +142,12 @@ namespace ti
 	}
 	void IRCClientBinding::GetUsers(const ValueList& args, KValueRef result)
 	{
-		const char *channel = args.at(0)->ToString();
+		const std::string channel = args.at(0)->ToString();
 		KListRef list = new StaticBoundList();
 		channel_user* cu = irc.get_users();
 		while(cu)
 		{
-			if (!strcmp(cu->channel,(char*)channel) && cu->nick && strlen(cu->nick)>0)
+			if (!strcmp(cu->channel, channel.c_str()) && cu->nick && strlen(cu->nick)>0)
 			{
 				KObjectRef entry = new StaticBoundObject();
 				entry->Set("name",Value::NewString(cu->nick));
@@ -187,8 +187,8 @@ namespace ti
 		bool connected = this->Get("connected")->ToBool();
 		if (connected)
 		{
-			const char *msg = args.size()>0 ? args.at(0)->ToString() : "Leaving";
-			this->irc.quit((char*)msg); 
+			const std::string msg = args.size()>0 ? args.at(0)->ToString() : "Leaving";
+			this->irc.quit((char*)msg.c_str()); 
 			this->Set("connected",Value::NewBool(false));
 		}
 	}
@@ -197,8 +197,8 @@ namespace ti
 		bool connected = this->Get("connected")->ToBool();
 		if (connected)
 		{
-			const char *channel = args.at(0)->ToString();
-			const char *msg = args.at(1)->ToString();
+			const std::string channel = args.at(0)->ToString();
+			const std::string msg = args.at(1)->ToString();
 #ifdef DEBUG
 			PRINTD("sending IRC: " << channel << " => " << msg);
 #endif
@@ -212,17 +212,17 @@ namespace ti
 			}
 			else
 			{
-				this->irc.privmsg((char*)channel,(char*)msg);
+				this->irc.privmsg((char*)channel.c_str(),(char*)msg.c_str());
 			}
 		}
 	}
 	void IRCClientBinding::SetNick(const ValueList& args, KValueRef result)
 	{
-		const char *nick = args.at(0)->ToString();
+		const std::string nick = args.at(0)->ToString();
 #ifdef DEBUG
-		PRINTD("setNickname " << std::string(nick));
+		PRINTD("setNickname " << nick);
 #endif
-		this->irc.nick((char*)nick);
+		this->irc.nick((char*)nick.c_str());
 	}
 	void IRCClientBinding::GetNick(const ValueList& args, KValueRef result)
 	{
@@ -237,11 +237,11 @@ namespace ti
 		bool connected = this->Get("connected")->ToBool();
 		if (connected)
 		{
-			const char *channel = args.at(0)->ToString();
+			const std::string channel = args.at(0)->ToString();
 #ifdef DEBUG
 			PRINTD("JOIN " << channel);
 #endif
-			this->irc.join((char*)channel);
+			this->irc.join((char*)channel.c_str());
 		}
 	}
 	void IRCClientBinding::Unjoin(const ValueList& args, KValueRef result)
@@ -249,8 +249,8 @@ namespace ti
 		bool connected = this->Get("connected")->ToBool();
 		if (connected)
 		{
-			const char *channel = args.at(0)->ToString();
-			this->irc.part((char*)channel);
+			const std::string channel = args.at(0)->ToString();
+			this->irc.part((char*)channel.c_str());
 		}
 	}
 	void IRCClientBinding::IsOp(const ValueList& args, KValueRef result)

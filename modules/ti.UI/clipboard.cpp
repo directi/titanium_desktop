@@ -55,8 +55,8 @@ namespace ti
 		}
 		else if (value->IsString())
 		{
-			const char* data = value->ToString();
-			return new Bytes(data, strlen(data));
+			const std::string data = value->ToString();
+			return new Bytes(data.c_str(), data.size());
 		}
 		else
 		{
@@ -128,7 +128,7 @@ namespace ti
 		DataType type = MimeTypeToDataType(mimeType);
 
 		if (args.at(1)->IsNull() ||
-			(args.at(1)->IsString() && !strcmp(args.at(1)->ToString(), "")))
+			(args.at(1)->IsString() && args.at(1)->ToString() != ""))
 		{
 			this->ClearData(type);
 		}

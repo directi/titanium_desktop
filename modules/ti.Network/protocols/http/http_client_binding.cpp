@@ -822,9 +822,9 @@ namespace ti
 		}
 		else if (this->sendData->IsString())
 		{
-			const char* sendChars = this->sendData->ToString();
-			this->requestContentLength = strlen(sendChars); // Include NUL character.
-			this->requestBytes = new Bytes(sendChars, this->requestContentLength);
+			const std::string sendChars = this->sendData->ToString();
+			this->requestContentLength = sendChars.size(); // Include NUL character.
+			this->requestBytes = new Bytes(sendChars);
 		}
 		else // Sending no data
 		{

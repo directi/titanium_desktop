@@ -289,21 +289,20 @@ namespace kroll
 
 	void APIBinding::_Set(const ValueList& args, KValueRef result)
 	{
-		const char *key = args.at(0)->ToString();
-		string s = key;
+		string key = args.at(0)->ToString();
 		KValueRef value = args.at(1);
-		string::size_type pos = s.find_first_of(".");
+		string::size_type pos = key.find_first_of(".");
 
 		if (pos==string::npos)
 		{
-			this->Set(key, value);
+			this->Set(key.c_str(), value);
 		}
 		else
 		{
 			// if we have a period, make it relative to the
 			// global scope such that <module>.<key> would resolve
 			// to the 'module' with key named 'key'
-			global->SetNS(key, value);
+			global->SetNS(key.c_str(), value);
 		}
 	}
 
@@ -369,8 +368,7 @@ namespace kroll
 			KValueRef arg = args.at(c);
 			if (arg->IsString())
 			{
-				const char *s = arg->ToString();
-				std::cout << s;
+				std::cout << arg->ToString();
 			}
 			else
 			{

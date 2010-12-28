@@ -151,7 +151,7 @@ namespace kroll
 	double Value::ToDouble() const { return numberValue; }
 	double Value::ToNumber() const { return numberValue; }
 	bool Value::ToBool() const { return boolValue; }
-	const char* Value::ToString() const { return stringValue.c_str(); }
+	std::string Value::ToString() const { return stringValue.c_str(); }
 	KObjectRef Value::ToObject() const { return objectValue; }
 	KMethodRef Value::ToMethod() const { return objectValue.cast<KMethod>(); }
 	KListRef Value::ToList() const { return objectValue.cast<KList>(); }
@@ -215,7 +215,7 @@ namespace kroll
 		type = BOOL;
 	}
 
-	void Value::SetString(const char* value)
+	void Value::SetString(const std::string & value)
 	{
 		reset();
 		this->stringValue = value;

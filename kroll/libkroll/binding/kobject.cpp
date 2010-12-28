@@ -243,8 +243,7 @@ namespace kroll
 					KValueRef v = values->At(c);
 					if (v->IsString())
 					{
-						const char *s = v->ToString();
-						list.push_back(s);
+						list.push_back(v->ToString());
 					}
 				}
 			}

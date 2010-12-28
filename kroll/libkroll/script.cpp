@@ -150,7 +150,7 @@ namespace kroll
 						}
 						else if (objectData->IsString())
 						{
-							data->data = new Bytes(objectData->ToString(), strlen(objectData->ToString()));
+							data->data = new Bytes(objectData->ToString());
 						}
 					}
 					else

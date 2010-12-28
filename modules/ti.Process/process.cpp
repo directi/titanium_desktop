@@ -332,7 +332,7 @@ namespace ti
 	{
 		if (args.size() > 0 && args.at(0)->IsString())
 		{
-			KValueRef value = environment->Get(args.at(0)->ToString());
+			KValueRef value = environment->Get(args.at(0)->ToString().c_str());
 			result->SetValue(value);
 		}
 		else {
@@ -344,7 +344,7 @@ namespace ti
 	{
 		if (args.size() >= 2 && args.at(0)->IsString() && args.at(1)->IsString())
 		{
-			SetEnvironment(args.at(0)->ToString(), args.at(1)->ToString());
+			SetEnvironment(args.at(0)->ToString().c_str(), args.at(1)->ToString().c_str());
 		}
 	}
 	
