@@ -10,31 +10,19 @@ namespace UTILS_NS
 {
 	unsigned Timer::timerid = 0;
 
-	Timer::Timer(long _duration, bool _recursive, KMethodRef _method, ValueList& _args)
+	Timer::Timer(long _duration, bool _recursive)
 		: id(++Timer::timerid),
 		duration(_duration),
-		recursive(_recursive),
-		method(_method),
-		args(_args)
+		recursive(_recursive)
 	{
 	}
 
 #ifdef OS_WIN32
 
-	void Timer::callback()
-	{
-		ASSERT_MAIN_THREAD
-		if (! this->recursive)
-		{
-			this->stop();
-		}
-		method->Call(args);
-	}
-
 	std::map<unsigned, Timer *> timers;
 
-	Win32Timer::Win32Timer(long _duration, bool _recursive, KMethodRef _method, ValueList& _args)
-		: Timer(_duration, _recursive, _method, _args),
+	Win32Timer::Win32Timer(long _duration, bool _recursive)
+		: Timer(_duration, _recursive),
 		loadTimeTimerID(0)
 	{
 	}
@@ -82,6 +70,30 @@ namespace UTILS_NS
 			}
 		}
 		return false;
+	}
+
+	Win32KMethodCallerTimer::Win32KMethodCallerTimer(long _duration,
+		bool _recursive,
+		KMethodRef _method,
+		ValueList& _args)
+		: Win32Timer(_duration, _recursive),
+		method(_method),
+		args(_args)
+	{
+	}
+
+	Win32KMethodCallerTimer::~Win32KMethodCallerTimer()
+	{
+	}
+
+	void Win32KMethodCallerTimer::callback()
+	{
+		ASSERT_MAIN_THREAD
+		if (! this->recursive)
+		{
+			this->stop();
+		}
+		method->Call(args);
 	}
 
 #endif
