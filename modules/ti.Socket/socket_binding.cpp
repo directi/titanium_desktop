@@ -7,6 +7,7 @@
 
 #include "tcp_socket_binding.h"
 #include "ssl_tcp_socket_binding.h"
+#include "http/curl_http_client_binding.h"
 #include "socket_binding.h"
 
 namespace ti
@@ -18,6 +19,7 @@ namespace ti
 	{
 		this->SetMethod("createTCPSocket",&SocketBinding::_CreateTCPSocket);
 		this->SetMethod("getSSLTCPSocket",&SocketBinding::_getSSLTCPSocket);
+		this->SetMethod("getCURLHTTPClient",&SocketBinding::_getCURLHTTPClient);
 	}
 
 	SocketBinding::~SocketBinding()
@@ -34,6 +36,11 @@ namespace ti
 	{
 		TCPSocketBinding * socket = args.GetObject(0).cast<TCPSocketBinding>();
 		result->SetObject(new SecureTCPSocket(host, socket));
+	}
+
+	void SocketBinding::_getCURLHTTPClient(const ValueList& args, KValueRef result)
+	{
+		result->SetObject(new CURLHTTPClientBinding(host));
 	}
 
 	Host* SocketBinding::GetHost()
