@@ -108,6 +108,7 @@ namespace ti
 	}
 	void CURLEASYClient::setMaxRedirects(long maxRedirects)
 	{
+		SET_CURL_OPTION(curl_handle, CURLOPT_FOLLOWLOCATION, 1);
 		SET_CURL_OPTION(curl_handle, CURLOPT_MAXREDIRS, maxRedirects);
 	}
 
@@ -147,11 +148,12 @@ namespace ti
 			const char* effectiveURL;
 			curl_easy_getinfo(curl_handle, CURLINFO_EFFECTIVE_URL, &effectiveURL);
 
-			// Update the URL in the case that this is redirect
-			if (!isRedirect(httpStatus))
+			if (!isRedirect(httpStatus) && !this->onHeaderReceived.isNull())
 			{
 				RunOnMainThread(this->onHeaderReceived);
 			}
+
+			// Update the URL in the case that this is redirect
 			this->url = effectiveURL;
 		}
 		else // Normal header

@@ -62,7 +62,7 @@ namespace ti
 			this->readyState, _readyState, this->url.c_str());
 		this->FireEvent(Event::HTTP_STATE_CHANGED);
 
-		if (readyState == 4)
+		if (readyState == HTTP_DONE)
 		{
 			this->FireEvent(Event::HTTP_DONE);
 		}
@@ -92,6 +92,10 @@ namespace ti
 	void CURLHTTPClientBinding::Open(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("open", "s s");
+		if (easy)
+		{
+			throw ValueException::FromString("request already being processed");
+		}
 
 		this->httpMethod = getHTTPMethod(args.GetString(0));
 		this->url = getURL(args.GetString(1));
@@ -119,19 +123,30 @@ namespace ti
 
 	void CURLHTTPClientBinding::getReadyState(const ValueList& args, KValueRef result)
 	{
+		if (!easy)
+		{
+			throw ValueException::FromString("send() the request first :P");
+		}
 		result->SetInt(this->readyState);
 	}
 
 	void CURLHTTPClientBinding::getHTTPStatus(const ValueList& args, KValueRef result)
 	{
 		if (!easy)
+		{
 			throw ValueException::FromString("send() the request first :P");
+		}
 
 		result->SetInt(this->easy->getHTTPStatus());
 	}
 
 	void CURLHTTPClientBinding::Send(const ValueList& args, KValueRef result)
 	{
+		if (this->url == "")
+		{
+			throw ValueException::FromString("open() the request first :P.");
+		}
+
 		// Get send data if provided
 		args.VerifyException("send", "?s|0");
 		std::string requestData;
@@ -221,11 +236,12 @@ namespace ti
 
 	void CURLHTTPClientBinding::GetResponseHeaders(const ValueList& args, KValueRef result)
 	{
-		std::map<std::string, std::string> responseHeaders;
 		if(!easy)
 		{
 			throw ValueException::FromFormat("no request being processed");
 		}
+		
+		std::map<std::string, std::string> responseHeaders;
 		easy->getResponseHeaders(responseHeaders);
 		KListRef headers(new StaticBoundList());
 
