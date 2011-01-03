@@ -61,6 +61,7 @@ namespace UTILS_NS
 		KROLL_API void ListDir(const std::string& path, std::vector<std::string>& files);
 		KROLL_API bool IsDirectory(const std::string& dir);
 		KROLL_API bool IsFile(const std::string& file);
+		KROLL_API bool IsLink(const std::string& file);
 		KROLL_API void WriteFile(const std::string& path, const std::string& content);
 		KROLL_API std::string ReadFile(const std::string& path);
 		KROLL_API std::string Dirname(const std::string& path);

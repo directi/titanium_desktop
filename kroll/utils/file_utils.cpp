@@ -39,6 +39,18 @@ namespace UTILS_NS
 {
 namespace FileUtils
 {
+	bool IsLink(const std::string& file)
+	{
+#ifdef OS_WIN32
+		return false;
+#else
+	struct stat st;
+	if (lstat(_path.c_str(), &st) == 0)
+		return S_ISLNK(st.st_mode);
+	return false;
+#endif
+	}
+
 	std::string GetApplicationDataDirectory(const std::string &appid)
 	{
 		std::string dir(GetUserRuntimeHomeDirectory());
