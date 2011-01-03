@@ -43,6 +43,7 @@ namespace UTILS_NS
 		KROLL_API std::string GetOSName();
 		KROLL_API std::string GetOSVersion();
 		KROLL_API std::string GetOSArchitecture();
+		KROLL_API std::string GetHomePath();
 	};
 }
 #endif

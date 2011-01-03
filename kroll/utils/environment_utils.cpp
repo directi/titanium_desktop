@@ -231,5 +231,44 @@ namespace EnvironmentUtils
 #endif
 	}
 
+	std::string GetHomePath()
+	{
+#ifdef OS_WIN32
+		std::string result = Get("HOMEDRIVE");
+		result.append(Get("HOMEPATH"));
+		std::string::size_type n = result.size();
+		if (n > 0 && result[n - 1] != '\\')
+			result.append("\\");
+
+		// cygwin customization
+		if (result.size() == 3)
+		{
+			std::string odir = Get("USERPROFILE");
+			if (!odir.empty())
+			{
+				result = odir;
+			}
+		}
+
+		return result;
+#else
+	std::string path;
+	struct passwd* pwd = getpwuid(getuid());
+	if (pwd)
+		path = pwd->pw_dir;
+	else
+	{
+		pwd = getpwuid(geteuid());
+		if (pwd)
+			path = pwd->pw_dir;
+		else
+			path = EnvironmentImpl::getImpl("HOME");
+	}
+	std::string::size_type n = path.size();
+	if (n > 0 && path[n - 1] != '/') path.append("/");
+	return path;
+#endif
+	}
+
 }
 }
