@@ -9,27 +9,28 @@
 
 #include <kroll/kroll.h>
 #include <string>
+#include <fstream>
 
 #ifdef OS_OSX
 #import <Foundation/Foundation.h>
 #endif
 
-#include <Poco/FileStream.h>
 
 namespace ti 
 {
 	enum FileStreamMode
 	{
 		MODE_READ = 1,
-		MODE_APPEND = 2,
-		MODE_WRITE = 3
+		MODE_APPEND,
+		MODE_WRITE,
+		MODE_READ_WRITE
 	};
 
 
 	class FileStream : public StaticBoundObject 
 	{
 	public:
-		FileStream(std::string filename_);
+		FileStream(const std::string& filenameIn);
 		virtual ~FileStream();
 
 		// Used by File.open()
@@ -37,16 +38,15 @@ namespace ti
 
 	private:
 		std::string filename;
-
-		Poco::FileInputStream* istream;
-		Poco::FileOutputStream* ostream;
-		Poco::FileIOS* stream;
+		std::fstream stream;
+		FileStreamMode mode;
 
 		bool Open(FileStreamMode mode, bool binary = false, bool append = false);
-		void Close(const ValueList& args, KValueRef result);
-		bool Close();
-		void Write(const ValueList& args, KValueRef result);
 		void Write(char *,int);
+		bool Close();
+
+		void Close(const ValueList& args, KValueRef result);
+		void Write(const ValueList& args, KValueRef result);
 		void Read(const ValueList& args, KValueRef result);
 		void ReadLine(const ValueList& args, KValueRef result);
 		void WriteLine(const ValueList& args, KValueRef result);

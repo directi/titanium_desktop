@@ -27,9 +27,6 @@
 #include <fstream>
 
 #include <Poco/TemporaryFile.h>
-#include <Poco/File.h>
-#include <Poco/Path.h>
-#include <Poco/LineEndingConverter.h>
 #include <Poco/Exception.h>
 
 namespace ti
