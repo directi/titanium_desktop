@@ -1,7 +1,10 @@
-/** * @author Mital Vora <mital.d.vora@gmail.com> */
+/**
+ * @author Mital Vora <mital.d.vora@gmail.com>
+ */
 
 #ifndef _CURL_HTTP_CLIENT_H_
 #define _CURL_HTTP_CLIENT_H_
+
 #include <kroll/kroll.h>
 #include <kroll/utils/Thread.h>
 #include <curl/curl.h>
@@ -51,6 +54,7 @@ namespace ti
 		void setMaxRedirects(long maxRedirects);
 		void gotHeader(const std::string& header);
 		void gotData(char* buffer, size_t numberOfBytes);
+		void done();
 	};
 
 	class CURLMULTIClient

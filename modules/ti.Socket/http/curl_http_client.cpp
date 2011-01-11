@@ -68,6 +68,7 @@ namespace ti
 
 	CURLEASYClient::~CURLEASYClient()
 	{
+		done();
 		curl_easy_cleanup(curl_handle);
 	}
 
@@ -149,11 +150,14 @@ namespace ti
 			const char* effectiveURL;
 			curl_easy_getinfo(curl_handle, CURLINFO_EFFECTIVE_URL, &effectiveURL);
 
-			if (!isRedirect(httpStatus) && !this->onHeaderReceived.isNull())
+			if (!isRedirect(httpStatus))
 			{
 				binding->ChangeState(CURLHTTPClientBinding::HTTP_HEADERS_RECEIVED);
 				binding->ChangeState(CURLHTTPClientBinding::HTTP_LOADING);
-				RunOnMainThread(this->onHeaderReceived);
+				if (!this->onHeaderReceived.isNull())
+				{
+					RunOnMainThread(this->onHeaderReceived);
+				}
 			}
 
 			// Update the URL in the case that this is redirect
@@ -207,6 +211,14 @@ namespace ti
 			RunReadJobOnMainThread(this->onDataChunkReceived, buffer, bufferSize);
 		}
 		//this->FireEvent(Event::HTTP_DATA_RECEIVED);
+	}
+
+	void CURLEASYClient::done()
+	{
+		if (binding)
+		{
+			binding->ChangeState(CURLHTTPClientBinding::HTTP_DONE);
+		}
 	}
 
 	std::string CURLEASYClient::getResponseHeader(const std::string &name) const
