@@ -20,37 +20,33 @@ namespace kroll
 
 	void Value::reset()
 	{
-		if (this->IsString() && this->stringValue)
-		{
-			free(this->stringValue);
-			this->stringValue = 0;
-		}
 		this->type = UNDEFINED;
 		this->objectValue = 0;
-		this->stringValue = 0;
+		this->stringValue = "";
 		this->numberValue = 0;
 	}
 
-	Value::Value() :
-		type(UNDEFINED),
+	Value::Value()
+		: type(UNDEFINED),
 		numberValue(0),
-		stringValue(0),
+		stringValue(""),
 		objectValue(0)
 	{
 	}
 
-	Value::Value(KValueRef value) :
-		type(UNDEFINED),
+	Value::Value(KValueRef value)
+		: type(UNDEFINED),
 		numberValue(0),
-		stringValue(0),
+		stringValue(""),
 		objectValue(0)
 	{
 		this->SetValue(value);
 	}
 
-	Value::Value(const Value& value) : type(UNDEFINED),
+	Value::Value(const Value& value)
+		: type(UNDEFINED),
 		numberValue(0),
-		stringValue(0),
+		stringValue(""),
 		objectValue(0)
 	{
 		this->SetValue((Value*) &value);
@@ -105,14 +101,14 @@ namespace kroll
 	KValueRef Value::NewString(std::string value)
 	{
 		KValueRef v(new Value());
-		v->SetString(value.c_str());
+		v->SetString(value);
 		return v;
 	}
 
 	KValueRef Value::NewString(SharedString value)
 	{
 		KValueRef v(new Value());
-		v->SetString(value.get()->c_str());
+		v->SetString(value.get());
 		return v;
 	}
 
@@ -155,13 +151,7 @@ namespace kroll
 	double Value::ToDouble() const { return numberValue; }
 	double Value::ToNumber() const { return numberValue; }
 	bool Value::ToBool() const { return boolValue; }
-	const char* Value::ToString() const
-	{
-		//TODO: FIXME: Fix this... it doesn't work at all...
-		if(!stringValue)
-			return "";
-		return stringValue;
-	}
+	std::string Value::ToString() const { return stringValue.c_str(); }
 	KObjectRef Value::ToObject() const { return objectValue; }
 	KMethodRef Value::ToMethod() const { return objectValue.cast<KMethod>(); }
 	KListRef Value::ToList() const { return objectValue.cast<KList>(); }
@@ -204,10 +194,19 @@ namespace kroll
 			throw "Error on set. Unknown type for other";
 	}
 
+	std::string toString(int value)
+	{
+		char buffer [33];
+		itoa (value, buffer, 10);
+		return string(buffer);
+	}
+
 	void Value::SetInt(int value)
 	{
 		reset();
 		this->numberValue = value;
+		this->boolValue = (this->numberValue)? true:false;
+		this->stringValue = toString(value);
 		type = INT;
 	}
 
@@ -215,6 +214,8 @@ namespace kroll
 	{
 		reset();
 		this->numberValue = value;
+		this->boolValue = (this->numberValue)? true:false;
+		this->stringValue = toString((int)value);
 		type = DOUBLE;
 	}
 
@@ -222,24 +223,24 @@ namespace kroll
 	{
 		reset();
 		this->boolValue = value;
+		this->numberValue = (this->boolValue)? 1:0;
+		this->stringValue = (this->boolValue)? "true":"false";
 		type = BOOL;
 	}
 
-	void Value::SetString(const char* value)
+	void Value::SetString(const std::string & value)
 	{
 		reset();
-		this->stringValue = strdup(value);
+		this->stringValue = value;
+		this->boolValue = value.size()? true:false;
+		this->numberValue = value.size(); // not proper... but cant think anything else in my mind.
 		type = STRING;
-	}
-
-	void Value::SetString(std::string& value)
-	{
-		this->SetString(value.c_str());
 	}
 
 	void Value::SetString(SharedString value)
 	{
-		this->SetString(value.get()->c_str());
+		std::string str = value.get()->c_str();
+		this->SetString(str);
 	}
 
 	void Value::SetList(KListRef value)

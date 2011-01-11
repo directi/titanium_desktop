@@ -11,6 +11,7 @@
 #include "NamedMutex.h"
 #include "async_copy.h"
 #include "filesystem_utils.h"
+#include <boost/filesystem.hpp>
 
 #ifdef OS_OSX
 #include <Cocoa/Cocoa.h>
@@ -26,13 +27,29 @@
 #include <fstream>
 
 #include <Poco/TemporaryFile.h>
-#include <Poco/File.h>
-#include <Poco/Path.h>
-#include <Poco/LineEndingConverter.h>
 #include <Poco/Exception.h>
 
 namespace ti
 {
+	void listRoots(std::vector<std::string > & roots)
+	{
+#ifdef OS_WIN32
+		roots.clear();
+		char buffer[128];
+		DWORD n = GetLogicalDriveStringsA(sizeof(buffer) - 1, buffer);
+		char* it = buffer;
+		char* end = buffer + (n > sizeof(buffer) ? sizeof(buffer) : n);
+		while (it < end)
+		{
+			std::string dev;
+			while (it < end && *it) dev += *it++;
+			roots.push_back(dev);
+			++it;
+		}
+#else
+		roots.push_back("/");
+#endif
+	}
 	FilesystemBinding::FilesystemBinding(Host* _host)
 		: StaticBoundObject("Filesystem"), host(_host)
 	{
@@ -296,68 +313,28 @@ namespace ti
 	void FilesystemBinding::GetUserDirectory(const ValueList& args, KValueRef result)
 	{
 		std::string dir;
-		try
-		{
-			dir = Poco::Path::home().c_str();
-		}
-		catch (Poco::Exception& exc)
-		{
-			std::string error = "Could not determine home directory: ";
-			error.append(exc.displayText());
-			throw ValueException::FromString(error);
-		}
-
-#ifdef OS_WIN32
-		// If dir is equal to C:\ get the diretory in a different way.
-		// Poco uses %%HOMEPATH%% to get this directory which might be borked
-		// e.g. while running in Cygwin.
-		if (dir.size() == 3)
-		{
-			std::string odir = EnvironmentUtils::Get("USERPROFILE");
-			if (!odir.empty())
-			{
-				dir = odir;
-			}
-		}
-#endif
-
-		ti::File* file = new ti::File(dir);
-		result->SetObject(file);
+		dir = EnvironmentUtils::GetHomePath();
+		result->SetObject(new ti::File(dir));
 	}
 
 	void FilesystemBinding::GetLineEnding(const ValueList& args, KValueRef result)
 	{
-		try
-		{
-			result->SetString(Poco::LineEnding::NEWLINE_LF.c_str());
-		}
-		catch (Poco::Exception& exc)
-		{
-			throw ValueException::FromString(exc.displayText());
-		}
+		// TODO: fix with platform specific set line encoding.
+		// not breaking anything as its anyway returning same
+		result->SetString("\n");
 	}
 
 	void FilesystemBinding::GetSeparator(const ValueList& args, KValueRef result)
 	{
-		try
-		{
-			std::string sep;
-			sep += Poco::Path::separator();
-			result->SetString(sep.c_str());
-		}
-		catch (Poco::Exception& exc)
-		{
-			throw ValueException::FromString(exc.displayText());
-		}
+		result->SetString(KR_PATH_SEP);
 	}
 
 	void FilesystemBinding::GetRootDirectories(const ValueList& args, KValueRef result)
 	{
 		try
 		{
-			Poco::Path path;
 			std::vector<std::string> roots;
-			path.listRoots(roots);
+			listRoots(roots);
 
 			KListRef rootList = new StaticBoundList();
 			for(size_t i = 0; i < roots.size(); i++)
@@ -370,9 +347,9 @@ namespace ti
 			KListRef list = rootList;
 			result->SetList(list);
 		}
-		catch (Poco::Exception& exc)
+		catch (...)
 		{
-			throw ValueException::FromString(exc.displayText());
+			throw ValueException::FromString("Unknown Exception");
 		}
 	}
 

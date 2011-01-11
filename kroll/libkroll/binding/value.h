@@ -32,7 +32,7 @@ namespace kroll
 			INT = 1, /**< int */
 			DOUBLE = 2, /**< double */
 			BOOL = 3, /**< boolean */
-			STRING = 4, /**< const char* */
+			STRING = 4, /**< std::string */
 			LIST = 5, /**< KListRef */
 			OBJECT = 6, /**< KObjectRef */
 			METHOD = 7, /**< KMethodRef */
@@ -186,9 +186,9 @@ namespace kroll
 		bool ToBool() const;
 
 		/**
-		 * @return the value as a \link #Value::Type::STRING string (const char *)\endlink
+		 * @return the value as a \link #Value::Type::STRING string\endlink
 		 */
-		const char* ToString() const;
+		std::string ToString() const;
 
 		/**
 		 * @return the value as a \link #Value::Type::LIST KListRef\endlink
@@ -250,13 +250,7 @@ namespace kroll
 		 * Change the internal value of this Value to a \link #Value::Type::STRING string\endlink
 		 * @param value the string value value
 		 */
-		void SetString(const char* value);
-
-		/**
-		 * Change the internal value of this Value to an \link #Value::Type::STRING string\endlink
-		 * @param value the string value
-		 */
-		void SetString(std::string& value);
+		void SetString(const std::string & value);
 
 		/**
 		 * Change the internal value of this Value to an \link #Value::Type::STRING string\endlink
@@ -301,7 +295,7 @@ namespace kroll
 		Type type;
 		double numberValue;
 		bool boolValue;
-		char* stringValue;
+		std::string stringValue;
 		KObjectRef objectValue;
 
 		void reset();

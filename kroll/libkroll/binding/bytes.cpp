@@ -38,12 +38,7 @@ namespace kroll
 		CreateWithCopy(bufferIn, length);
 	}
 
-	Bytes::Bytes(std::string str) : StaticBoundObject("Bytes")
-	{
-		CreateWithCopy(str.c_str(), str.length());
-	}
-
-	Bytes::Bytes(std::string& str) : StaticBoundObject("Bytes")
+	Bytes::Bytes(const std::string& str) : StaticBoundObject("Bytes")
 	{
 		CreateWithCopy(str.c_str(), str.length());
 	}

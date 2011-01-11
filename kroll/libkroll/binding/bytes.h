@@ -34,8 +34,7 @@ namespace kroll
 		Bytes();
 		Bytes(char *buffer, long size, bool makeCopy=true);
 		Bytes(const char *buffer, long size, bool makeCopy=true);
-		Bytes(std::string);
-		Bytes(std::string&);
+		Bytes(const std::string&);
 		Bytes(long byte);
 		virtual ~Bytes();
 

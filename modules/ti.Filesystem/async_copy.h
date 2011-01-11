@@ -6,8 +6,6 @@
 #ifndef _TI_ASYNC_COPY_H
 #define _TI_ASYNC_COPY_H
 
-#include <kroll/kroll.h>
-#include <kroll/utils/Thread.h>
 
 #ifdef OS_WIN32
 #include <windows.h>
@@ -17,9 +15,8 @@
 
 #include <string>
 #include <vector>
-#include <Poco/Path.h>
-#include <Poco/Thread.h>
 #include "filesystem_binding.h"
+#include <kroll/utils/Thread.h>
 
 
 namespace ti
@@ -44,7 +41,7 @@ namespace ti
 
 		void ToString(const ValueList& args, KValueRef result);
 		void Cancel(const ValueList& args, KValueRef result);
-		void Copy(Poco::Path &src, Poco::Path &dest);
+		void Copy(const std::string& src, const std::string& dest);
 	};
 }
 

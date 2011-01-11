@@ -69,7 +69,7 @@ namespace kroll
 			{
 #ifdef WIN32
 				boost::recursive_mutex::scoped_lock lock(timersMutex);
-				Timer * timer = new Win32Timer(duration, recursive, method, methodArgs);
+				Timer * timer = new Win32KMethodCallerTimer(duration, recursive, method, methodArgs);
 				timers[timer->getID()] = timer;
 				timer->start();
 				return Value::NewInt(timer->getID());

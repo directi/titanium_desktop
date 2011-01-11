@@ -8,9 +8,11 @@
 #include "TiAsyncJobRunner.h"
 
 #include <kroll/thread_manager.h>
+#include <kroll/utils/file_utils.h>
 #include <iostream>
 #include <sstream>
 #include <Poco/File.h>
+#include <boost/filesystem.hpp>
 
 #ifndef OS_WIN32
 #include <unistd.h>
@@ -20,6 +22,12 @@
 
 namespace ti
 {
+	std::string getFileName(const std::string& path)
+	{
+		boost::filesystem::path boost_path(path.c_str());
+		return boost_path.leaf();
+	}
+
 
 	Logger* GetLogger()
 	{
@@ -42,20 +50,17 @@ namespace ti
 	{
 	}
 
-	void AsyncCopy::Copy(Poco::Path &src, Poco::Path &dest)
+	void AsyncCopy::Copy(const std::string& src, const std::string& dest)
 	{
 		Logger* logger = GetLogger();
-		std::string srcString = src.toString();
-		std::string destString = dest.toString();
-		Poco::File from(srcString);
-		bool isLink = from.isLink();
+		bool isLink = FileUtils::IsLink(src);
 
-		logger->Debug("file=%s dest=%s link=%i", srcString.c_str(), destString.c_str(), isLink);
+		logger->Debug("file=%s dest=%s link=%i", src.c_str(), dest.c_str(), isLink);
 #ifndef OS_WIN32
 		if (isLink)
 		{
 			char linkPath[PATH_MAX];
-			ssize_t length = readlink(from.path().c_str(), linkPath, PATH_MAX);
+			ssize_t length = readlink(src.c_str(), linkPath, PATH_MAX);
 			linkPath[length] = '\0';
 
 			std::string newPath (dest.toString());
@@ -75,46 +80,38 @@ namespace ti
 			}
 		}
 #endif
-		if (!isLink && from.isDirectory())
+		if (!isLink && FileUtils::IsDirectory(src))
 		{
-			Poco::File d(dest.toString());
-			if (!d.exists())
-			{
-				d.createDirectories();
-			}
+			bool recursive = true;
+			FileUtils::CreateDirectory(dest, recursive);
 			std::vector<std::string> files;
+			Poco::File from(src);
 			from.list(files);
 			std::vector<std::string>::iterator i = files.begin();
 			while(i!=files.end())
 			{
 				std::string fn = (*i++);
-				Poco::Path sp(kroll::FileUtils::Join(src.toString().c_str(),fn.c_str(),NULL));
-				Poco::Path dp(kroll::FileUtils::Join(dest.toString().c_str(),fn.c_str(),NULL));
-				this->Copy(sp,dp);
+				std::string sp = FileUtils::Join(src.c_str(), fn.c_str(),NULL);
+				std::string dp = FileUtils::Join(dest.c_str(), fn.c_str(),NULL);
+				this->Copy(sp, dp);
 			}
 		}
 		else if (!isLink)
 		{
 			// in this case it's a regular file
-			Poco::File s(src.toString());
-			s.copyTo(dest.toString().c_str());
+			Poco::File s(src);
+			s.copyTo(dest.c_str());
 		}
 	}
 
 	void AsyncCopy::run()
 	{
 		Logger* logger = GetLogger();
+		logger->Debug("Job started: dest=%s, count=%i", this->destination.c_str(), this->files.size());
+		FileUtils::CreateDirectory(this->destination, /*recursive*/ true);
+		int c = 0;
 
 		std::vector<std::string>::const_iterator iter = this->files.begin();
-		Poco::Path to(this->destination);
-		Poco::File tof(to.toString());
-
-		logger->Debug("Job started: dest=%s, count=%i", this->destination.c_str(), this->files.size());
-		if (!tof.exists())
-		{
-			tof.createDirectory();
-		}
-		int c = 0;
 		while (!this->stopped && iter!=this->files.end())
 		{
 			bool err_copy = false;
@@ -124,16 +121,14 @@ namespace ti
 			logger->Debug("File: path=%s, count=%i\n", file.c_str(), c);
 			try
 			{
-				Poco::Path from(file);
-				Poco::File f(file);
-				if (f.isDirectory())
+				if (FileUtils::IsDirectory(file))
 				{
-					this->Copy(from,to);
+					this->Copy(file, this->destination);
 				}
 				else
 				{
-					Poco::Path dest(to,from.getFileName());
-					this->Copy(from,dest);
+					std::string destPath = FileUtils::Join(this->destination.c_str(), getFileName(file).c_str(),NULL);
+					this->Copy(file, destPath);
 				}
 				logger->Debug("File copied");
 
@@ -152,11 +147,6 @@ namespace ti
 				err_copy = true;
 				SharedString ss = ex.DisplayString();
 				logger->Error(std::string("Error: ") + *ss + " for file: " + file);
-			}
-			catch (Poco::Exception &ex)
-			{
-				err_copy = true;
-				logger->Error(std::string("Error: ") + ex.displayText() + " for file: " + file);
 			}
 			catch (std::exception &ex)
 			{

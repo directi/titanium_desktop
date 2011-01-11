@@ -7,13 +7,16 @@
 #include <cstring>
 #include <sstream>
 
-#include <Poco/LineEndingConverter.h>
-
 namespace ti 
 {
-	FileStream::FileStream(std::string filenameIn) :
-		StaticBoundObject("Filesystem.FileStream"),
-		istream(0), ostream(0), stream(0)
+	Logger* getLogger()
+	{
+		return Logger::Get("Filesystem.FileStream");
+	}
+
+	FileStream::FileStream(const std::string& filenameIn)
+		: StaticBoundObject("Filesystem.FileStream"),
+		stream()
 	{
 #ifdef OS_OSX
 		// in OSX, we need to expand ~ in paths to their absolute path value
@@ -34,12 +37,6 @@ namespace ti
 		this->SetMethod("isOpen", &FileStream::IsOpen);
 		this->SetMethod("seek", &FileStream::Seek);
 		this->SetMethod("tell", &FileStream::Tell);
-
-		// These should be depricated and no longer used.
-		// All constants should be kept on Ti.Filesystem object.
-		this->Set("MODE_READ", Value::NewInt(MODE_READ));
-		this->Set("MODE_APPEND", Value::NewInt(MODE_APPEND));
-		this->Set("MODE_WRITE", Value::NewInt(MODE_WRITE));
 	}
 
 	FileStream::~FileStream()
@@ -51,12 +48,10 @@ namespace ti
 	{
 		args.VerifyException("open", "?ibb");
 
-		FileStreamMode mode = (FileStreamMode) args.GetInt(0, MODE_READ);
+		this->mode = (FileStreamMode) args.GetInt(0, MODE_READ);
 		bool binary = args.GetBool(1, false);
 		bool append = args.GetBool(2, false);
-
-		bool opened = this->Open(mode, binary, append);
-		result->SetBool(opened);
+		result->SetBool(this->Open(this->mode, binary, append));
 	}
 
 	bool FileStream::Open(FileStreamMode mode, bool binary, bool append)
@@ -88,29 +83,25 @@ namespace ti
 			{
 				flags |= std::ios::in;
 			}
+			else if (mode == MODE_READ_WRITE)
+			{
+				flags |= std::ios::in | std::ios::out;
+			}
 
+			this->stream.open(this->filename.c_str(), flags);
+#ifndef OS_WIN32
 			if (output)
 			{
-				this->ostream = new Poco::FileOutputStream(this->filename,flags);
-				this->stream = this->ostream;
-#ifndef OS_WIN32
 				chmod(this->filename.c_str(),S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
-#endif		
 			}
-			else
-			{
-				this->istream = new Poco::FileInputStream(this->filename,flags);
-				this->stream = this->istream;
-			}
-
-			return true;
+#endif
 		}
-		catch (Poco::Exception& exc)
+		catch (std::exception& e)
 		{
-			Logger* logger = Logger::Get("Filesystem.FileStream");
-			logger->Error("Error in open. Exception: %s",exc.displayText().c_str());
-			throw ValueException::FromString(exc.displayText());
+			getLogger()->Error("Error in open. Exception: %s", e.what());
+			throw ValueException::FromString(e.what());
 		}
+		return true;
 	}
 
 	void FileStream::Close(const ValueList& args, KValueRef result)
@@ -121,32 +112,21 @@ namespace ti
 
 	bool FileStream::Close()
 	{
+		bool bRet = false;
 		try
 		{
-			if (this->stream)
+			if (this->stream.is_open())
 			{
-				if (this->ostream)
-				{
-					this->ostream->flush();
-				}
-
-				this->stream->close();
-				delete this->stream;
-				this->stream = NULL;
-				this->istream = NULL;
-				this->ostream = NULL;
-
-				return true;
+				this->stream.close();
+				bRet = true;
 			}
 		}
-		catch (Poco::Exception& exc)
+		catch (std::exception& e)
 		{
-			Logger* logger = Logger::Get("Filesystem.FileStream");
-			logger->Error("Error in close. Exception: %s",exc.displayText().c_str());
-			throw ValueException::FromString(exc.displayText());
+			getLogger()->Error("Error in close. Exception: %s",e.what());
+			throw ValueException::FromString(e.what());
 		}
-
-		return false;
+		return bRet;
 	}
 
 	void FileStream::Write(const ValueList& args, KValueRef result)
@@ -155,6 +135,7 @@ namespace ti
 
 		char *text = NULL;
 		int size = 0;
+		std::string data;
 		if (args.at(0)->IsObject())
 		{
 			KObjectRef b = args.at(0)->ToObject();
@@ -167,7 +148,8 @@ namespace ti
 		}
 		else if (args.at(0)->IsString())
 		{
-			text = (char*)args.at(0)->ToString();
+			data = args.at(0)->ToString();
+			text = (char*)data.c_str();
 		}
 		else if (args.at(0)->IsInt())
 		{
@@ -185,10 +167,10 @@ namespace ti
 		}
 		else
 		{
-			throw ValueException::FromString("Could not write with type passed");
+			throw ValueException::FromString("Could not write given type");
 		}
 
-		if (size==0)
+		if (size == 0)
 		{
 			size = strlen(text);
 		}
@@ -199,7 +181,7 @@ namespace ti
 			return;
 		}
 
-		Write(text,size);
+		Write(text, size);
 		result->SetBool(true);
 	}
 
@@ -207,18 +189,12 @@ namespace ti
 	{
 		try
 		{
-			if(!this->ostream)
-			{
-				throw ValueException::FromString("FileStream must be opened for writing before calling write");
-			}
-
-			this->ostream->write(text, size);
+			this->stream.write(text, size);
 		}
-		catch (Poco::Exception& exc)
+		catch (std::exception& e)
 		{
-			Logger* logger = Logger::Get("Filesystem.FileStream");
-			logger->Error("Error in write. Exception: %s",exc.displayText().c_str());
-			throw ValueException::FromString(exc.displayText());
+			getLogger()->Error("Error in write. Exception: %s",e.what());
+			throw ValueException::FromString(e.what());
 		}
 	}
 
@@ -228,23 +204,18 @@ namespace ti
 
 		try
 		{
-			if (!this->istream)
-			{
-				Logger* logger = Logger::Get("Filesystem.FileStream");
-				logger->Error("Error in read. FileInputStream is null");
-				throw ValueException::FromString("FileStream must be opened for reading before calling read");
-			}
-
 			if (args.size() >= 1)
 			{
 				int size = args.GetInt(0);
 				if (size <= 0)
+				{
 					throw ValueException::FromString("File.read() size must be greater than zero");
+				}
 
 				char* buffer = new char[size + 1];
-				this->istream->read(buffer, size);
+				this->stream.read(buffer, size);
 
-				int readCount = this->istream->gcount();
+				int readCount = this->stream.gcount();
 				if (readCount > 0)
 				{
 					// Store read data into a byte blob
@@ -265,10 +236,10 @@ namespace ti
 				std::vector<char> buffer;
 				char data[4096];
 
-				while (!this->istream->eof())
+				while (!this->stream.eof())
 				{
-					this->istream->read((char*)&data, 4095);
-					int length = this->istream->gcount();
+					this->stream.read((char*)&data, 4095);
+					int length = this->stream.gcount();
 					if (length > 0)
 					{
 						buffer.insert(buffer.end(), data, data+length);
@@ -287,11 +258,10 @@ namespace ti
 				}
 			}
 		}
-		catch (Poco::Exception& exc)
+		catch (std::exception& e)
 		{
-			Logger* logger = Logger::Get("Filesystem.FileStream");
-			logger->Error("Error in read. Exception: %s",exc.displayText().c_str());
-			throw ValueException::FromString(exc.displayText());
+			getLogger()->Error("Error in read. Exception: %s",e.what());
+			throw ValueException::FromString(e.what());
 		}
 	}
 
@@ -299,14 +269,7 @@ namespace ti
 	{
 		try
 		{
-			if (!this->istream)
-			{
-				Logger* logger = Logger::Get("Filesystem.FileStream");
-				logger->Error("Error in readLine. FileInputStream is null");
-				throw ValueException::FromString("FileStream must be opened for reading before calling readLine");
-			}
-
-			if (this->istream->eof())
+			if (this->stream.eof())
 			{
 				// close the file
 				result->SetNull();
@@ -314,7 +277,7 @@ namespace ti
 			else
 			{
 				std::string line;
-				std::getline(*this->istream, line);
+				std::getline(this->stream, line);
 #ifdef OS_WIN32
 				// In some cases std::getline leaves a CR on the end of the line in win32 -- why God, why?
 				if (!line.empty())
@@ -325,9 +288,9 @@ namespace ti
 					}
 				}
 #endif
-				if (line.empty() || line.size()==0)
+				if (line.empty() || line.size() == 0)
 				{
-					if (this->istream->eof())
+					if (this->stream.eof())
 					{
 						// if this is EOF, return null
 						result->SetNull();
@@ -340,26 +303,20 @@ namespace ti
 				}
 				else
 				{
-					result->SetObject(new Bytes((std::string)line));
+					result->SetObject(new Bytes(line));
 				}
 			}
 		}
-		catch (Poco::Exception& exc)
+		catch (std::exception& e)
 		{
-			Logger* logger = Logger::Get("Filesystem.FileStream");
-			logger->Error("Error in readLine. Exception: %s",exc.displayText().c_str());
-			throw ValueException::FromString(exc.displayText());
+			getLogger()->Error("Error in readLine. Exception: %s",e.what());
+			throw ValueException::FromString(e.what());
 		}
 	}
 
 	void FileStream::WriteLine(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("writeLine", "s|o|n");
-
-		if(! this->stream)
-		{
-			throw ValueException::FromString("FileStream must be opened before calling readLine");
-		}
 
 		char *text = NULL;
 		int size = 0;
@@ -375,7 +332,7 @@ namespace ti
 		}
 		else if (args.at(0)->IsString())
 		{
-			text = (char*)args.at(0)->ToString();
+			text = (char*)args.at(0)->ToString().c_str();
 		}
 		else if (args.at(0)->IsInt())
 		{
@@ -393,7 +350,7 @@ namespace ti
 		}
 		else
 		{
-			throw ValueException::FromString("Could not write with type passed");
+			throw ValueException::FromString("Could not write given type");
 		}
 
 		if (size==0)
@@ -419,19 +376,13 @@ namespace ti
 
 	void FileStream::Ready(const ValueList& args, KValueRef result)
 	{
-		if(!this->stream)
-		{
-			result->SetBool(false);
-		}
-		else
-		{
-			result->SetBool(this->stream->eof()==false);
-		}
+		result->SetBool((this->stream.is_open() == true)
+			&& (this->stream.eof() == false));
 	}
 
 	void FileStream::IsOpen(const ValueList& args, KValueRef result)
 	{
-		result->SetBool(this->stream != NULL);
+		result->SetBool(this->stream.is_open());
 	}
 
 	void FileStream::Seek(const ValueList& args, KValueRef result)
@@ -441,13 +392,15 @@ namespace ti
 		int offset = args.GetInt(0);
 		std::ios::seekdir dir = (std::ios::seekdir)args.GetInt(1, std::ios::beg);
 
-		if (this->istream)
+		if (mode == MODE_READ)
 		{
-			this->istream->seekg(offset, dir);
+			this->stream.seekg(offset, dir);
 		}
-		else if (this->ostream)
+		else if (mode == MODE_APPEND
+			|| mode == MODE_WRITE
+			|| mode == MODE_READ_WRITE)
 		{
-			this->ostream->seekp(offset, dir);
+			this->stream.seekp(offset, dir);
 		}
 		else
 		{
@@ -457,13 +410,15 @@ namespace ti
 
 	void FileStream::Tell(const ValueList& args, KValueRef result)
 	{
-		if (this->istream)
+		if (mode == MODE_READ)
 		{
-			result->SetInt(this->istream->tellg());
+			result->SetInt(this->stream.tellg());
 		}
-		else if (this->ostream)
+		else if (mode == MODE_APPEND
+			|| mode == MODE_WRITE
+			|| mode == MODE_READ_WRITE)
 		{
-			result->SetInt(this->ostream->tellp());
+			result->SetInt(this->stream.tellp());
 		}
 		else
 		{

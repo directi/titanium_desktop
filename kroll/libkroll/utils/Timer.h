@@ -17,23 +17,20 @@ namespace UTILS_NS
 	{
 		static unsigned timerid;
 
-		KMethodRef method;
-		ValueList args;
-
 	protected:
 		const unsigned id;
 		const long duration;
 		const bool recursive;
 
 	public:
-		Timer(long _duration, bool _recursive, KMethodRef _method, ValueList& _args);
+		Timer(long _duration, bool _recursive);
 		virtual ~Timer() {}
 
 		virtual void start()=0;
 		virtual bool stop()=0;
+		virtual void callback() = 0;
 
 		unsigned getID() const { return id; }
-		void callback();
 	};
 
 #ifdef OS_WIN32
@@ -44,11 +41,24 @@ namespace UTILS_NS
 		unsigned loadTimeTimerID;
 
 	public:
-		Win32Timer(long _duration, bool _recursive, KMethodRef _method, ValueList& _args);
+		Win32Timer(long _duration, bool _recursive);
 		virtual ~Win32Timer();
 
 		virtual void start();
 		virtual bool stop();
+	};
+
+	class KROLL_API Win32KMethodCallerTimer
+		: public Win32Timer
+	{
+	private:
+		KMethodRef method;
+		ValueList args;
+
+	public:
+		Win32KMethodCallerTimer(long _duration, bool _recursive, KMethodRef _method, ValueList& _args);
+		virtual ~Win32KMethodCallerTimer();
+		virtual void callback();
 	};
 #endif
 }

@@ -278,7 +278,7 @@ namespace kroll
 
 	std::string ArgList::GetString(size_t index, std::string defaultValue) const
 	{
-		if (this->size() > index && this->at(index)->IsString())
+		if (this->size() > index)
 		{
 			return this->at(index)->ToString();
 		}

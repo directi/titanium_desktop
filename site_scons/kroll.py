@@ -221,7 +221,6 @@ class BuildConfig(object):
 					suffix = '_debug'
 				libs = ['WebKit', 'WebKitGUID', 'JavaScriptCore']
 				libs = [x + suffix for x in libs]
-				# libs += [ 'libcurl_imp' ]
 
 			if self.is_linux():
 				libs = ['webkittitanium-1.0']
