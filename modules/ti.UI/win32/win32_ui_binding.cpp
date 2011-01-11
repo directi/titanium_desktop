@@ -16,7 +16,9 @@
 #include <sstream>
 #include <windows.h>
 
+#ifdef USE_WEBKITHACK_PATCHES
 #include <webkit/QuickCurlSettingsExport.h>
+#endif
 
 using std::vector;
 namespace ti
@@ -47,6 +49,7 @@ namespace ti
 		std::wstring var = L"CURL_CA_BUNDLE_PATH=" + pemPath;
 		_wputenv(var.c_str());
 
+#ifdef USE_WEBKITHACK_PATCHES
 		setProxyCallback(ProxyForURLCallback);
 		// Hook app:// and ti:// URL support to WebKit
 		setTitaniumProtocolResolver(TitaniumProtocolResolver);
@@ -55,6 +58,7 @@ namespace ti
 			Host::GetInstance()->GetApplication()->GetDataPath().c_str(),
 			"cookies.dat", 0));
 		setCookieJarFileName(cookieJarFilename.c_str());
+#endif
 	}
 	
 	Win32UIBinding::~Win32UIBinding()
