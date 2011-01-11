@@ -41,11 +41,12 @@ namespace ti
 		//client->RequestDataSent(ulnow, ultotal);
 	}
 
-	CURLEASYClient::CURLEASYClient(const std::string & url)
+	CURLEASYClient::CURLEASYClient(const std::string & url, CURLHTTPClientBinding * _binding)
 		: curl_handle(curl_easy_init()),
 		url(url),
 		sawHTTPStatus(false),
-		httpStatus(0)
+		httpStatus(0),
+		binding(_binding)
 	{
 		SET_CURL_OPTION(curl_handle, CURLOPT_URL, url.c_str());
 		SET_CURL_OPTION(curl_handle, CURLOPT_PRIVATE, (void *) this);
@@ -150,6 +151,8 @@ namespace ti
 
 			if (!isRedirect(httpStatus) && !this->onHeaderReceived.isNull())
 			{
+				binding->ChangeState(CURLHTTPClientBinding::HTTP_HEADERS_RECEIVED);
+				binding->ChangeState(CURLHTTPClientBinding::HTTP_LOADING);
 				RunOnMainThread(this->onHeaderReceived);
 			}
 

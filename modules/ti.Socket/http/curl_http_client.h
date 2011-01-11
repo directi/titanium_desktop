@@ -1,15 +1,10 @@
-/**
- * @author Mital Vora <mital.d.vora@gmail.com>
- */
+/** * @author Mital Vora <mital.d.vora@gmail.com> */
 
 #ifndef _CURL_HTTP_CLIENT_H_
 #define _CURL_HTTP_CLIENT_H_
-
 #include <kroll/kroll.h>
 #include <kroll/utils/Thread.h>
-
 #include <curl/curl.h>
-
 #define SET_CURL_OPTION(handle, option, value) \
 	{\
 		CURLcode result = curl_easy_setopt(handle, option, value); \
@@ -20,9 +15,10 @@
 		} \
 	}
 
-
 namespace ti
 {
+	class CURLHTTPClientBinding;
+	
 	class CURLEASYClient
 	{
 	private:
@@ -31,17 +27,15 @@ namespace ti
 		bool sawHTTPStatus;
 		long httpStatus;
 		std::string statusText;
-
+		CURLHTTPClientBinding * binding;
 		KMethodRef onHeaderReceived;
 		KMethodRef onDataChunkReceived;
-
 		std::map<std::string, std::string> responseHeaders;
 		std::map<std::string, std::string> nextResponseHeaders;
-
 		void ParseHTTPStatus(const std::string& header);
 
 	public:
-		CURLEASYClient(const std::string & url);
+		CURLEASYClient(const std::string & url, CURLHTTPClientBinding * _binding);
 		~CURLEASYClient();
 		CURL *getCURLHandle() const { return curl_handle; }
 		bool getHTTPStatus() const { return httpStatus; }
@@ -72,7 +66,6 @@ namespace ti
 		void removeCompletedJobs();
 		void remove(CURLEASYClient * easy);
 
-
 	public:
 		CURLMULTIClient();
 		virtual ~CURLMULTIClient();
@@ -82,5 +75,4 @@ namespace ti
 		virtual void run();
 	};
 }
-
 #endif

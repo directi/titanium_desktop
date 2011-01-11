@@ -58,13 +58,16 @@ namespace ti
 	//}
 	void CURLHTTPClientBinding::ChangeState(HTTP_STATE_en _readyState)
 	{
-		GetLogger()->Debug("Changing readyState from %d to %d for url:%s",
-			this->readyState, _readyState, this->url.c_str());
-		this->FireEvent(Event::HTTP_STATE_CHANGED);
-
-		if (readyState == HTTP_DONE)
+		if(readyState != _readyState)
 		{
-			this->FireEvent(Event::HTTP_DONE);
+			GetLogger()->Debug("Changing readyState from %d to %d for url:%s",
+				this->readyState, _readyState, this->url.c_str());
+			this->FireEvent(Event::HTTP_STATE_CHANGED);
+
+			if (readyState == HTTP_DONE)
+			{
+				this->FireEvent(Event::HTTP_DONE);
+			}
 		}
 	}
 
@@ -165,7 +168,7 @@ namespace ti
 		{
 			throw ValueException::FromString("request already being processed");
 		}
-		easy = new CURLEASYClient(this->url);
+		easy = new CURLEASYClient(this->url, this);
 		easy->setOnHeaderReceived(this->onHeaderReceived);
 		easy->setOnDataChunkReceived(this->onDataChunkReceived);
 		easy->setRequestHeaders(this->requestHeaders);
