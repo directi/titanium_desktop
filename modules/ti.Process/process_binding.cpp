@@ -289,8 +289,7 @@ namespace ti
 			}
 			else if (!args->At(i)->IsString())
 			{
-				SharedString ss = args->At(i)->DisplayString();
-				std::string str = *ss;
+				std::string str = args->At(i)->DisplayString();
 				arg = Value::NewString(str);
 			}
 			else

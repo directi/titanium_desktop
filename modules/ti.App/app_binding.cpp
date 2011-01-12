@@ -223,8 +223,7 @@ namespace ti
 			}
 			else
 			{
-				SharedString ss = arg->DisplayString();
-				std::cout << *ss;
+				std::cout << arg->DisplayString();
 			}
 		}
 		std::cout << std::endl;
@@ -241,8 +240,7 @@ namespace ti
 			}
 			else
 			{
-				SharedString ss = arg->DisplayString();
-				std::cerr << *ss;
+				std::cerr << arg->DisplayString();
 			}
 		}
 		std::cerr << std::endl;

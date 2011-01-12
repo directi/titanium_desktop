@@ -573,7 +573,6 @@ namespace KJSUtil
 		}
 		catch (ValueException& exception)
 		 {
-			SharedString str = exception.DisplayString();
 			*jsException = ToJSValue(exception.GetValue(), jsContext);
 		} 
 		catch (std::exception &e)
@@ -690,8 +689,7 @@ namespace KJSUtil
 		if (value.isNull())
 			return JSValueMakeUndefined(jsContext);
 
-		SharedString ss = value->DisplayString(2);
-		std::string str = *ss;
+		std::string str = value->DisplayString(2);
 		KValueRef dsv = Value::NewString(str);
 		return ToJSValue(dsv, jsContext);
 	}

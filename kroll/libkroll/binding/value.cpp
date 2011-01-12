@@ -230,12 +230,6 @@ namespace kroll
 		type = STRING;
 	}
 
-	void Value::SetString(SharedString value)
-	{
-		std::string str = value.get()->c_str();
-		this->SetString(str);
-	}
-
 	void Value::SetList(KListRef value)
 	{
 		reset();
@@ -313,7 +307,7 @@ namespace kroll
 		return false;
 	}
 
-	SharedString Value::DisplayString(int levels)
+	std::string Value::DisplayString(int levels)
 	{
 		std::ostringstream oss;
 		switch (this->type)
@@ -360,7 +354,7 @@ namespace kroll
 				break;
 		}
 
-		return new std::string(oss.str());
+		return oss.str();
 	}
 
 	std::string& Value::GetType()

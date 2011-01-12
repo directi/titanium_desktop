@@ -42,8 +42,8 @@ namespace kroll
 		for (unsigned int i = 0; i < this->Size(); i++)
 		{
 			KValueRef list_val = this->At(i);
-			SharedString list_str = list_val->DisplayString(levels-1);
-			oss << " " << *list_str << ",";
+			const std::string list_str = list_val->DisplayString(levels-1);
+			oss << " " << list_str << ",";
 		}
 		//int before_last_comma = oss.tellp() - 1;
 		//oss.seekp(before_last_comma);

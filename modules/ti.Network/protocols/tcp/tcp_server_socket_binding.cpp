@@ -39,8 +39,7 @@ namespace ti
 		}
 		catch(ValueException& e)
 		{
-			SharedString ss = e.GetValue()->DisplayString();
-			logger->Error("onAccept callback failed: %s", ss->c_str());
+			logger->Error("onAccept callback failed: %s", e.ToString().c_str());
 		}
 	}
 	

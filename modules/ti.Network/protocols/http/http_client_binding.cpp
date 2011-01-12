@@ -375,10 +375,9 @@ namespace ti
 		{
 			// If we've gotten here we have not been able to convert this object
 			// through any normal means, so we just use the DisplayString of the value.
-			SharedString ss(value->DisplayString());
 			curl_formadd(&this->postData, last,
 				CURLFORM_COPYNAME, propertyName->c_str(),
-				CURLFORM_COPYCONTENTS, ss->c_str(),
+				CURLFORM_COPYCONTENTS, value->DisplayString().c_str(),
 				CURLFORM_END);
 		}
 	}

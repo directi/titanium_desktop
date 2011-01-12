@@ -44,10 +44,10 @@ namespace kroll
 		for (size_t i = 0; i < props->size(); i++)
 		{
 			KValueRef prop = this->Get(props->at(i));
-			SharedString disp_string = prop->DisplayString(levels);
+			const std::string disp_string = prop->DisplayString(levels);
 
 			ss << " " << *(props->at(i))
-			    << " : " << *disp_string << ",";
+			    << " : " << disp_string << ",";
 		}
 
 		if (props->size() > 0) // Erase last comma

@@ -363,7 +363,7 @@ namespace ti
 			}
 			catch(ValueException& e)
 			{
-				SharedString ss = e.GetValue()->DisplayString();
+				//const std::string ss = e.ToString();
 				//log->Error("Network.NetworkStatus callback failed: %s", ss->c_str());
 			}
 		}

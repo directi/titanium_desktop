@@ -1584,9 +1584,9 @@ void UserWindow::LoadUIJavaScript(JSGlobalContextRef context)
 	}
 	catch (kroll::ValueException &e)
 	{
-		SharedString ss = e.DisplayString();
+		const std::string ss = e.ToString();
 		Logger* logger = Logger::Get("UIModule");
-		logger->Error("Error loading %s: %s", jsPath.c_str(), (*ss).c_str());
+		logger->Error("Error loading %s: %s", jsPath.c_str(), ss.c_str());
 	}
 	catch (...)
 	{
@@ -1603,9 +1603,9 @@ void UserWindow::LoadUIJavaScript(JSGlobalContextRef context)
 		}
 		catch (kroll::ValueException &e)
 		{
-			SharedString ss = e.DisplayString();
+			const std::string ss = e.ToString();
 			Logger* logger = Logger::Get("UIModule");
-			logger->Error("Error loading %s: %s", debugJS.c_str(), (*ss).c_str());
+			logger->Error("Error loading %s: %s", debugJS.c_str(), ss.c_str());
 		}
 		catch (...)
 		{

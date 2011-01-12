@@ -34,12 +34,10 @@ namespace kroll
 		static ValueException FromFormat(const char* format, ...);
 		static ValueException FromObject(KObjectRef o);
 		KValueRef GetValue();
-		SharedString DisplayString();
-		std::string& ToString();
+		std::string ToString();
 
 		private:
 		KValueRef value;
-		std::string displayString;
 	};
 
 #ifndef OS_WIN32
