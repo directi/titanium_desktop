@@ -98,17 +98,10 @@ namespace kroll
 		return v;
 	}
 
-	KValueRef Value::NewString(std::string value)
+	KValueRef Value::NewString(const std::string &value)
 	{
 		KValueRef v(new Value());
 		v->SetString(value);
-		return v;
-	}
-
-	KValueRef Value::NewString(SharedString value)
-	{
-		KValueRef v(new Value());
-		v->SetString(value.get());
 		return v;
 	}
 

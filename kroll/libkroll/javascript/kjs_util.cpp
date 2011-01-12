@@ -691,7 +691,8 @@ namespace KJSUtil
 			return JSValueMakeUndefined(jsContext);
 
 		SharedString ss = value->DisplayString(2);
-		KValueRef dsv = Value::NewString(ss);
+		std::string str = *ss;
+		KValueRef dsv = Value::NewString(str);
 		return ToJSValue(dsv, jsContext);
 	}
 

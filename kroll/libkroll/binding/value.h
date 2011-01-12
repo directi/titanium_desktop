@@ -81,13 +81,7 @@ namespace kroll
 		 * Construct a new \link #Value::Type::STRING string\endlink value.
 		 * @param value The string value
 		 */
-		static KValueRef NewString(std::string value);
-
-		/**
-		 * Construct a new \link #Value::Type::STRING string\endlink value.
-		 * @param value The string value
-		 */
-		static KValueRef NewString(SharedString value);
+		static KValueRef NewString(const std::string &value);
 
 		/**
 		 * Construct a new \link #Value::Type::LIST list\endlink value.
