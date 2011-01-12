@@ -41,11 +41,12 @@ namespace ti
 		//client->RequestDataSent(ulnow, ultotal);
 	}
 
-	CURLEASYClient::CURLEASYClient(const std::string & url)
+	CURLEASYClient::CURLEASYClient(const std::string & url, CURLHTTPClientBinding * _binding)
 		: curl_handle(curl_easy_init()),
 		url(url),
 		sawHTTPStatus(false),
-		httpStatus(0)
+		httpStatus(0),
+		binding(_binding)
 	{
 		SET_CURL_OPTION(curl_handle, CURLOPT_URL, url.c_str());
 		SET_CURL_OPTION(curl_handle, CURLOPT_PRIVATE, (void *) this);
@@ -67,6 +68,7 @@ namespace ti
 
 	CURLEASYClient::~CURLEASYClient()
 	{
+		done();
 		curl_easy_cleanup(curl_handle);
 	}
 
@@ -148,9 +150,14 @@ namespace ti
 			const char* effectiveURL;
 			curl_easy_getinfo(curl_handle, CURLINFO_EFFECTIVE_URL, &effectiveURL);
 
-			if (!isRedirect(httpStatus) && !this->onHeaderReceived.isNull())
+			if (!isRedirect(httpStatus))
 			{
-				RunOnMainThread(this->onHeaderReceived);
+				binding->ChangeState(CURLHTTPClientBinding::HTTP_HEADERS_RECEIVED);
+				binding->ChangeState(CURLHTTPClientBinding::HTTP_LOADING);
+				if (!this->onHeaderReceived.isNull())
+				{
+					RunOnMainThread(this->onHeaderReceived);
+				}
 			}
 
 			// Update the URL in the case that this is redirect
@@ -204,6 +211,14 @@ namespace ti
 			RunReadJobOnMainThread(this->onDataChunkReceived, buffer, bufferSize);
 		}
 		//this->FireEvent(Event::HTTP_DATA_RECEIVED);
+	}
+
+	void CURLEASYClient::done()
+	{
+		if (binding)
+		{
+			binding->ChangeState(CURLHTTPClientBinding::HTTP_DONE);
+		}
 	}
 
 	std::string CURLEASYClient::getResponseHeader(const std::string &name) const

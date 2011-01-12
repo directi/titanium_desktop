@@ -30,9 +30,9 @@ namespace kroll
 		}
 		catch (ValueException& e)
 		{
-			SharedString ss = e.GetValue()->DisplayString();
+			const std::string ss = e.GetValue()->DisplayString();
 			Logger *logger = Logger::Get("JavaScript");
-			logger->Error("Could not execute %s because %s", path.c_str(), (*ss).c_str());
+			logger->Error("Could not execute %s because %s", path.c_str(), ss.c_str());
 		}
 	}
 

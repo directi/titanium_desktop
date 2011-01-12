@@ -12,9 +12,10 @@ namespace ti
 {
 	class CURLHTTPClientBinding : public KEventObject
 	{
-	private:
+	public:
+		CURLHTTPClientBinding(Host* host);
+		virtual ~CURLHTTPClientBinding();
 
-		Host* host;
 		enum HTTP_STATE_en
 		{
 			HTTP_UNSENT = 0,
@@ -23,6 +24,13 @@ namespace ti
 			HTTP_LOADING,
 			HTTP_DONE
 		}readyState;
+
+		void ChangeState(HTTP_STATE_en _readyState);
+
+		static CURLMULTIClient multiClient;
+
+	private:
+		Host* host;
 
 		std::string httpMethod;
 		std::string url;
@@ -34,7 +42,6 @@ namespace ti
 		long maxRedirects;
 		CURLEASYClient * easy;
 
-		void ChangeState(HTTP_STATE_en _readyState);
 		void ExecuteRequest(const std::string & data);
 
 		void Open(const ValueList& args, KValueRef result);
@@ -57,12 +64,6 @@ namespace ti
 		//void SetCookie(const ValueList& args, KValueRef result);
 		//void ClearCookies(const ValueList& args, KValueRef result);
 		//void GetCookie(const ValueList& args, KValueRef result);
-
-	public:
-		CURLHTTPClientBinding(Host* host);
-		virtual ~CURLHTTPClientBinding();
-
-		static CURLMULTIClient multiClient;
 	};
 }
 

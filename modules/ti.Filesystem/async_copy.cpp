@@ -145,8 +145,7 @@ namespace ti
 			catch (ValueException &ex)
 			{
 				err_copy = true;
-				SharedString ss = ex.DisplayString();
-				logger->Error(std::string("Error: ") + *ss + " for file: " + file);
+				logger->Error(std::string("Error: ") + ex.ToString() + " for file: " + file);
 			}
 			catch (std::exception &ex)
 			{

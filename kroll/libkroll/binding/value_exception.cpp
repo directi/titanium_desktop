@@ -51,23 +51,13 @@ namespace kroll
 		return this->value;
 	}
 
-	SharedString ValueException::DisplayString()
+	std::string ValueException::ToString()
 	{
 		if (!this->value.isNull())
 		{
 			return this->value->DisplayString();
 		}
-		else
-		{
-			SharedString s = new std::string("<no exception>");
-			return s;
-		}
-	}
-
-	std::string& ValueException::ToString()
-	{
-		this->displayString = *this->DisplayString();
-		return this->displayString;
+		return std::string("<no exception>");
 	}
 }
 

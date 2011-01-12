@@ -66,8 +66,8 @@ namespace ti
 		}
 		catch (ValueException& e)
 		{
-			SharedString ss = e.DisplayString();
-			Logger::Get("UI")->Error("Could not set default icon: %s", ss->c_str());
+			const std::string ss = e.ToString();
+			Logger::Get("UI")->Error("Could not set default icon: %s", ss.c_str());
 		}
 	}
 

@@ -260,9 +260,9 @@ namespace URLUtils
 		}
 		catch (ValueException& e)
 		{
-			SharedString ss = e.DisplayString();
+			const std::string ss = e.ToString();
 			Logger* log = Logger::Get("URLUtils");
-			log->Error("Could not convert %s to a path: %s", tiURL.c_str(), ss->c_str());
+			log->Error("Could not convert %s to a path: %s", tiURL.c_str(), ss.c_str());
 		}
 		catch (...)
 		{
@@ -292,9 +292,9 @@ namespace URLUtils
 		}
 		catch (ValueException& e)
 		{
-			SharedString ss = e.DisplayString();
+			const std::string ss = e.ToString();
 			Logger* log = Logger::Get("URLUtils");
-			log->Error("Could not convert %s to a path: %s", inURL.c_str(), ss->c_str());
+			log->Error("Could not convert %s to a path: %s", inURL.c_str(), ss.c_str());
 		}
 		catch (...)
 		{
@@ -338,9 +338,9 @@ namespace URLUtils
 		}
 		catch (ValueException& e)
 		{
-			SharedString ss = e.DisplayString();
+			const std::string ss = e.ToString();
 			Logger* log = Logger::Get("URLUtils");
-			log->Error("Could not convert %s to a path: %s", url.c_str(), ss->c_str());
+			log->Error("Could not convert %s to a path: %s", url.c_str(), ss.c_str());
 		}
 		return url;
 	}

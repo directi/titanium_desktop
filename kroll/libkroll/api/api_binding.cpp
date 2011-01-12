@@ -372,8 +372,7 @@ namespace kroll
 			}
 			else
 			{
-				SharedString ss = arg->DisplayString();
-				std::cout << *ss;
+				std::cout << arg->DisplayString();
 			}
 		}
 		std::cout.flush();
@@ -472,8 +471,8 @@ namespace kroll
 		}
 		else
 		{
-			SharedString message = value->DisplayString();
-			logger->Log((Logger::Level) severity, *message);
+			const std::string message = value->DisplayString();
+			logger->Log((Logger::Level) severity, message);
 		}
 	}
 

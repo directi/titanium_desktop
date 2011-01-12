@@ -81,13 +81,7 @@ namespace kroll
 		 * Construct a new \link #Value::Type::STRING string\endlink value.
 		 * @param value The string value
 		 */
-		static KValueRef NewString(std::string value);
-
-		/**
-		 * Construct a new \link #Value::Type::STRING string\endlink value.
-		 * @param value The string value
-		 */
-		static KValueRef NewString(SharedString value);
+		static KValueRef NewString(const std::string &value);
 
 		/**
 		 * Construct a new \link #Value::Type::LIST list\endlink value.
@@ -214,7 +208,7 @@ namespace kroll
 		 * @param levels the number of nested objects to include in this representation (default: 3)
 		 * @return a string representation for this Value
 		*/
-		SharedString DisplayString(int levels=1);
+		std::string DisplayString(int levels=1);
 
 		/**
 		 * Change the internal value of this Value from another Value object.
@@ -251,12 +245,6 @@ namespace kroll
 		 * @param value the string value value
 		 */
 		void SetString(const std::string & value);
-
-		/**
-		 * Change the internal value of this Value to an \link #Value::Type::STRING string\endlink
-		 * @param value the string value
-		 */
-		void SetString(SharedString value);
 
 		/**
 		 * Change the internal value of this Value to an \link #Value::Type::LIST list\endlink

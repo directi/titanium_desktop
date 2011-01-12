@@ -47,9 +47,9 @@ namespace ti
 		}
 		catch (ValueException& e)
 		{
-			SharedString ss = e.DisplayString();
+			const std::string ss = e.ToString();
 			Logger* log = Logger::Get("UI.URL");
-			log->Error("Could not convert %s to a path: %s", url, ss->c_str());
+			log->Error("Could not convert %s to a path: %s", url, ss.c_str());
 		}
 		catch (...)
 		{

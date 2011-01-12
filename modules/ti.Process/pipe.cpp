@@ -231,9 +231,8 @@ namespace ti
 			}
 			catch (ValueException &e)
 			{
-				SharedString ss = e.DisplayString();
 				logger->Error("Exception while trying to write to target: %s",
-					ss->c_str());
+					e.ToString().c_str());
 			}
 		}
 	}
@@ -273,9 +272,8 @@ namespace ti
 			}
 			catch (ValueException &e)
 			{
-				SharedString ss = e.DisplayString();
 				logger->Error("Exception while trying to write to target: %s",
-					ss->c_str());
+					e.ToString().c_str());
 			}
 		}
 	}

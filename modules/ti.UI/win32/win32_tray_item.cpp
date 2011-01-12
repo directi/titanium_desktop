@@ -170,8 +170,8 @@ namespace ti
 		catch (ValueException& e)
 		{
 			Logger* logger = Logger::Get("UI.Win32TrayItem");
-			SharedString ss = e.DisplayString();
-			logger->Error("Tray icon single click callback failed: %s", ss->c_str());
+			const std::string ss = e.ToString();
+			logger->Error("Tray icon single click callback failed: %s", ss.c_str());
 		}
 	}
 	
@@ -184,8 +184,8 @@ namespace ti
 		catch (ValueException& e)
 		{
 			Logger* logger = Logger::Get("UI.Win32TrayItem");
-			SharedString ss = e.DisplayString();
-			logger->Error("Tray icon double left click callback failed: %s", ss->c_str());
+			const std::string ss = e.ToString();
+			logger->Error("Tray icon double left click callback failed: %s", ss.c_str());
 		}
 	}
 	

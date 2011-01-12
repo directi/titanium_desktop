@@ -365,8 +365,8 @@ namespace kroll
 		}
 		catch (kroll::ValueException& e)
 		{
-			SharedString s = e.GetValue()->DisplayString();
-			logger->Error("Could not load module (%s): %s", path.c_str(), s->c_str());
+			std::string s = e.GetValue()->DisplayString();
+			logger->Error("Could not load module (%s): %s", path.c_str(), s.c_str());
 #ifdef OS_OSX
 			KrollDumpStackTrace();
 #endif
@@ -590,8 +590,7 @@ namespace kroll
 		}
 		catch (ValueException e)
 		{
-			SharedString ss = e.GetValue()->DisplayString();
-			logger->Error(*ss);
+			logger->Error(e.GetValue()->DisplayString());
 			return 1;
 		}
 
