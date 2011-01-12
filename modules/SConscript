@@ -23,7 +23,7 @@ def build_module_from_directory(dir):
 for dir in [
 	'ti.App',
 	'ti.UI',
-	'ti.Network',
+	# 'ti.Network',
 	'ti.Socket',
 	'ti.Filesystem',
 	'ti.Media',

@@ -12,6 +12,12 @@ function replaceMethod(obj, methodName, newMethod)
 
 replaceMethod(Titanium.Socket.createTCPSocket,  function() { 
 	var a = Titanium.Socket.createTCPSocket_orig();
-	a.onReadComplete = function(arg) { onClose(arg) }
+	a.onReadComplete = function(arg) { onClose(arg); }
 	return a;
 });
+
+Titanium.Socket.setHTTPProxy = function (a, b) {
+	Console.warn('Proxy really not set');
+}
+
+Titanium.Network = Titanium.Socket;
