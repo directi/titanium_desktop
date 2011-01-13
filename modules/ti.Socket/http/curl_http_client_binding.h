@@ -38,15 +38,18 @@ namespace ti
 		int timeout;
 		KMethodRef onHeaderReceived;
 		KMethodRef onDataChunkReceived;
+		KMethodRef onHTTPDone;
 		std::vector<std::string> requestHeaders;
 		long maxRedirects;
 		CURLEASYClient * easy;
 
 		void ExecuteRequest(const std::string & data);
 
-		void Open(const ValueList& args, KValueRef result);
 		void SetOnHeaderReceived(const ValueList& args, KValueRef result);
 		void SetOnDataChunkReceived(const ValueList& args, KValueRef result);
+		void SetOnHTTPDone(const ValueList& args, KValueRef result);
+
+		void Open(const ValueList& args, KValueRef result);
 		void saveToFile(const ValueList& args, KValueRef result);
 		void getReadyState(const ValueList& args, KValueRef result);
 		void getHTTPStatus(const ValueList& args, KValueRef result);

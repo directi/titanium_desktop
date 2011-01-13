@@ -278,6 +278,7 @@ namespace ti
 		{
 			if(*oIter == easy)
 			{
+				(*oIter)->done();
 				requestsBeingExecuted.erase(oIter);
 				break;
 			}

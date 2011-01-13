@@ -87,8 +87,7 @@ namespace ti
 			callback->Call(ValueList());
 		} catch (ValueException& e) {
 			Logger* logger = Logger::Get("UI.OSXTrayItem");
-			SharedString ss = e.DisplayString();
-			logger->Error("Tray icon callback failed: %s", ss->c_str());
+			logger->Error("Tray icon callback failed: %s", e.ToString().c_str());
 		}
 	}
 }
