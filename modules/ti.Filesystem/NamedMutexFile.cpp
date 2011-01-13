@@ -3,11 +3,6 @@
 * see LICENSE in the root folder for details on the license.
 * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
 */
-#include <fstream>
-#include <string>
-#include <iostream>
-
-#include <kroll/kroll.h>
 
 #include "NamedMutexFile.h"
 

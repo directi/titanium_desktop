@@ -6,15 +6,9 @@
 #ifndef _NAMEDMUTEXFILE_H_
 #define _NAMEDMUTEXFILE_H_
 
+#include <kroll/kroll.h>
+#include <kroll/utils/NamedMutex.h>
 
-#ifdef OS_OSX
-#import <Foundation/Foundation.h>
-#endif
-
-#include <list>
-#include <string>
-
-#include <Poco/NamedMutex.h>
 
 namespace ti
 {
@@ -28,7 +22,7 @@ namespace ti
 		void unlock();
 
 	protected:
-		Poco::NamedMutex namedMutex;
+		kroll::NamedMutex namedMutex;
 	};
 }
 
