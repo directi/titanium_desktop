@@ -8,8 +8,8 @@
 
 #include <map>
 #include <kroll/kroll.h>
+#include <boost/thread/mutex.hpp>
 
-#include <Poco/Mutex.h>
 #include "NamedMutexFile.h"
 
 namespace ti
@@ -17,7 +17,7 @@ namespace ti
 	class ReferenceCountedNamedMutex
 	{
 		public:
-			Poco::Mutex referencesMutex;
+			boost::mutex referencesMutex;
 			int references;
 			NamedMutexFile * mutexFile;
 
@@ -26,19 +26,19 @@ namespace ti
 
 			void addRef()
 			{
-				Poco::Mutex::ScopedLock lock(referencesMutex);
+				boost::mutex::scoped_lock lock(referencesMutex);
 				references++;
 			}
 
 			void release()
 			{
-				Poco::Mutex::ScopedLock lock(referencesMutex);
+				boost::mutex::scoped_lock lock(referencesMutex);
 				--references;
 			}
 
 			int getReferencesCount()
 			{
-				Poco::Mutex::ScopedLock lock(referencesMutex);
+				boost::mutex::scoped_lock lock(referencesMutex);
 				return references;
 			}
 	};
@@ -50,7 +50,7 @@ namespace ti
 			std::string mutexname;
 
 			static std::map<std::string, ReferenceCountedNamedMutex *> namedMutexes;
-			static Poco::Mutex filesMutex;
+			static boost::mutex filesMutex;
 
 		public:
 			NamedMutex(const std::string &mutexname);
