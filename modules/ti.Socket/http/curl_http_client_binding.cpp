@@ -32,9 +32,11 @@ namespace ti
 		maxRedirects(-1),
 		easy(NULL)
 	{
-		this->SetMethod("open", &CURLHTTPClientBinding::Open);
 		this->SetMethod("onHeaderReceived", &CURLHTTPClientBinding::SetOnHeaderReceived);
 		this->SetMethod("onDataChunkReceived", &CURLHTTPClientBinding::SetOnDataChunkReceived);
+		this->SetMethod("onHTTPDone", &CURLHTTPClientBinding::SetOnHTTPDone);
+
+		this->SetMethod("open", &CURLHTTPClientBinding::Open);
 		this->SetMethod("saveToFile", &CURLHTTPClientBinding::saveToFile);
 		this->SetMethod("getReadyState", &CURLHTTPClientBinding::getReadyState);
 		this->SetMethod("getHTTPStatus", &CURLHTTPClientBinding::getHTTPStatus);
@@ -46,6 +48,7 @@ namespace ti
 		this->SetMethod("setMaxRedirects", &CURLHTTPClientBinding::SetMaxRedirects);
 		this->SetMethod("getResponseHeader", &CURLHTTPClientBinding::GetResponseHeader);
 		this->SetMethod("getResponseHeaders", &CURLHTTPClientBinding::GetResponseHeaders);
+		this->SetMethod("abort", &CURLHTTPClientBinding::Abort);
 	}
 
 	CURLHTTPClientBinding::~CURLHTTPClientBinding()
@@ -62,11 +65,14 @@ namespace ti
 		{
 			GetLogger()->Debug("Changing readyState from %d to %d for url:%s",
 				this->readyState, _readyState, this->url.c_str());
-			this->FireEvent(Event::HTTP_STATE_CHANGED);
+			this->readyState = _readyState;
+			//this->FireEvent(Event::HTTP_STATE_CHANGED);
 
 			if (readyState == HTTP_DONE)
 			{
-				this->FireEvent(Event::HTTP_DONE);
+				RunOnMainThread(this->onHTTPDone);
+				this->easy = NULL; // deleted by CURLMultiClient
+				//this->FireEvent(Event::HTTP_DONE);
 			}
 		}
 	}
@@ -116,6 +122,12 @@ namespace ti
 	{
 		args.VerifyException("onDataChunkReceived", "m");
 		this->onDataChunkReceived = args.at(0)->ToMethod();
+	}
+
+	void CURLHTTPClientBinding::SetOnHTTPDone(const ValueList& args, KValueRef result)
+	{
+		args.VerifyException("onHTTPDone", "m");
+		this->onHTTPDone = args.at(0)->ToMethod();
 	}
 
 	void CURLHTTPClientBinding::saveToFile(const ValueList& args, KValueRef result)
@@ -261,6 +273,15 @@ namespace ti
 
 		result->SetList(headers);
 	}
+
+	void CURLHTTPClientBinding::Abort(const ValueList& args, KValueRef result)
+	{
+		if (easy)
+		{
+			easy->abort();
+		}
+	}
+
 
 }
 

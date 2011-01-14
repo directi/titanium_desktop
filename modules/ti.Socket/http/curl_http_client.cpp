@@ -33,12 +33,9 @@ namespace ti
 
 	int CurlProgressCallback(CURLEASYClient* client, double dltotal, double dlnow, double ultotal, double ulnow)
 	{
-		//if (client->IsAborted())
-		//	return CURLE_ABORTED_BY_CALLBACK;
-		//else
-			return 0;
-
-		//client->RequestDataSent(ulnow, ultotal);
+		if (client->isAborted())
+			return CURLE_ABORTED_BY_CALLBACK;
+		return 0;
 	}
 
 	CURLEASYClient::CURLEASYClient(const std::string & url, CURLHTTPClientBinding * _binding)
@@ -46,6 +43,7 @@ namespace ti
 		url(url),
 		sawHTTPStatus(false),
 		httpStatus(0),
+		aborted(false),
 		binding(_binding)
 	{
 		SET_CURL_OPTION(curl_handle, CURLOPT_URL, url.c_str());
@@ -278,6 +276,7 @@ namespace ti
 		{
 			if(*oIter == easy)
 			{
+				(*oIter)->done();
 				requestsBeingExecuted.erase(oIter);
 				break;
 			}
@@ -327,7 +326,7 @@ namespace ti
 			if(!job) { continue; }
 			if(job->getCURLHandle() != handle) { continue; }
 
-			if (job->isCancelled())
+			if (job->isAborted())
 			{
 				remove(job);
 				continue;

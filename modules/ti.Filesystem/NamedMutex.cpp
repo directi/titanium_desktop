@@ -25,13 +25,13 @@
 namespace ti
 {
 	std::map<std::string, ReferenceCountedNamedMutex *> NamedMutex::namedMutexes;
-	Poco::Mutex NamedMutex::filesMutex;
+	boost::mutex NamedMutex::filesMutex;
 
 	NamedMutex::NamedMutex(const std::string &mutexname)
 		: StaticBoundObject("Filesystem.NamedMutex"),
 		mutexname(mutexname)
 	{
-		Poco::Mutex::ScopedLock lock(filesMutex);
+		boost::mutex::scoped_lock lock(filesMutex);
 		std::map<std::string, ReferenceCountedNamedMutex *>::iterator oIter = namedMutexes.find(mutexname);
 		if(oIter == namedMutexes.end())
 		{
@@ -55,7 +55,7 @@ namespace ti
 
 	NamedMutex::~NamedMutex()
 	{
-		Poco::Mutex::ScopedLock lock(filesMutex);
+		boost::mutex::scoped_lock lock(filesMutex);
 		namedMutexes[mutexname]->release();
 		if(namedMutexes[mutexname]->getReferencesCount() == 0)
 		{

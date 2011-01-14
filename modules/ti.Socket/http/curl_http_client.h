@@ -29,6 +29,7 @@ namespace ti
 		std::string url;
 		bool sawHTTPStatus;
 		long httpStatus;
+		bool aborted;
 		std::string statusText;
 		CURLHTTPClientBinding * binding;
 		KMethodRef onHeaderReceived;
@@ -44,7 +45,8 @@ namespace ti
 		bool getHTTPStatus() const { return httpStatus; }
 		std::string getResponseHeader(const std::string &name) const;
 		void getResponseHeaders(std::map<std::string, std::string> &responseHeaders) const;
-		bool isCancelled() const { return false; } // TODO: implement it
+		bool isAborted() const { return this->aborted; }
+		void abort() { this->aborted = true; }
 
 		void setOnHeaderReceived(KMethodRef _onHeaderReceived);
 		void setOnDataChunkReceived(KMethodRef _onDataChunkReceived);
