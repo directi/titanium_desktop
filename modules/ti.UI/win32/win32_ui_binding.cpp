@@ -4,6 +4,8 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 
+#define USE_WEBKITHACK_PATCHES
+
 #include "win32_ui_binding.h"
 #include "win32_tray_item.h"
 #include "image_utils.h"
