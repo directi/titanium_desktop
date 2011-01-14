@@ -72,7 +72,10 @@ namespace ti
 
 			if (readyState == HTTP_DONE)
 			{
-				RunOnMainThread(this->onHTTPDone);
+				if (!this->onHTTPDone.isNull())
+				{
+					RunOnMainThread(this->onHTTPDone);
+				}
 				this->easy = NULL; // deleted by CURLMultiClient
 				//this->FireEvent(Event::HTTP_DONE);
 			}
