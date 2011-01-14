@@ -14,7 +14,6 @@
 #include <unistd.h>
 #if defined(OS_OSX)
 # include <crt_externs.h>
-# include <Poco/Path.h>
 #endif
 extern char **environ;
 
@@ -48,10 +47,11 @@ namespace ti
 		size_t found = cmd.rfind(".app");
 		if (found != std::string::npos)
 		{
-			Poco::Path p(cmd);
-			std::string fn = p.getFileName();
-			found = fn.find(".app");
-			fn = fn.substr(0,found);
+			//Poco::Path p(cmd);
+			// TODO: Verify... though it works :P
+			std::string fn = FileUtils::Basename(cmd);
+			//found = fn.find(".app");
+			//fn = fn.substr(0,found);
 			fn = kroll::FileUtils::Join(cmd.c_str(),"Contents","MacOS",fn.c_str(),NULL);
 			if (FileUtils::IsFile(fn))
 			{

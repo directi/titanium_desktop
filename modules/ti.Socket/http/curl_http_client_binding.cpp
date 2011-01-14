@@ -48,6 +48,7 @@ namespace ti
 		this->SetMethod("setMaxRedirects", &CURLHTTPClientBinding::SetMaxRedirects);
 		this->SetMethod("getResponseHeader", &CURLHTTPClientBinding::GetResponseHeader);
 		this->SetMethod("getResponseHeaders", &CURLHTTPClientBinding::GetResponseHeaders);
+		this->SetMethod("abort", &CURLHTTPClientBinding::Abort);
 	}
 
 	CURLHTTPClientBinding::~CURLHTTPClientBinding()
@@ -70,6 +71,7 @@ namespace ti
 			if (readyState == HTTP_DONE)
 			{
 				RunOnMainThread(this->onHTTPDone);
+				this->easy = NULL; // deleted by CURLMultiClient
 				//this->FireEvent(Event::HTTP_DONE);
 			}
 		}
@@ -271,6 +273,15 @@ namespace ti
 
 		result->SetList(headers);
 	}
+
+	void CURLHTTPClientBinding::Abort(const ValueList& args, KValueRef result)
+	{
+		if (easy)
+		{
+			easy->abort();
+		}
+	}
+
 
 }
 

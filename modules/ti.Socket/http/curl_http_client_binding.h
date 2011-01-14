@@ -61,8 +61,8 @@ namespace ti
 		void SetMaxRedirects(const ValueList& args, KValueRef result);
 		void GetResponseHeader(const ValueList& args, KValueRef result);
 		void GetResponseHeaders(const ValueList& args, KValueRef result);
-		
-		//void Abort(const ValueList& args, KValueRef result);
+		void Abort(const ValueList& args, KValueRef result);
+
 		//void Receive(const ValueList& args, KValueRef result);
 		//void SetCookie(const ValueList& args, KValueRef result);
 		//void ClearCookies(const ValueList& args, KValueRef result);
