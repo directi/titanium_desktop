@@ -5,10 +5,10 @@
  */
 #include <sstream>
 
+#include "http_cookie.h"
 #include "curl_http_client_binding.h"
 
 #include <kroll/utils/url/ParsedURL.h>
-
 #include <boost/algorithm/string.hpp>
 
 namespace ti
@@ -49,6 +49,7 @@ namespace ti
 		this->SetMethod("setMaxRedirects", &CURLHTTPClientBinding::SetMaxRedirects);
 		this->SetMethod("getResponseHeader", &CURLHTTPClientBinding::GetResponseHeader);
 		this->SetMethod("getResponseHeaders", &CURLHTTPClientBinding::GetResponseHeaders);
+		this->SetMethod("getResponseCookies", &CURLHTTPClientBinding::GetResponseCookies);
 		this->SetMethod("abort", &CURLHTTPClientBinding::Abort);
 	}
 
@@ -279,6 +280,30 @@ namespace ti
 		}
 
 		result->SetList(headers);
+	}
+
+	void CURLHTTPClientBinding::GetResponseCookies(const ValueList& args, KValueRef result)
+	{
+		if(!easy)
+		{
+			throw ValueException::FromFormat("no request being processed");
+		}
+
+		std::vector<std::string> responseCookies;
+		easy->getResponseCookies(responseCookies);
+		KListRef cookies(new StaticBoundList());
+
+		for(std::vector<std::string>::const_iterator
+			i = responseCookies.begin();
+			i != responseCookies.end();
+		i++)
+		{
+			// TODO:
+			//KObjectRef obj = new HTTPCookie(*i);
+			//cookies->Append(obj);
+		}
+
+		result->SetList(cookies);
 	}
 
 	void CURLHTTPClientBinding::Abort(const ValueList& args, KValueRef result)

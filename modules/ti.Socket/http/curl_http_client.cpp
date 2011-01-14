@@ -200,9 +200,10 @@ namespace ti
 			nextResponseHeaders[headerName] = headerValue;
 
 			boost::to_lower(headerName);
-			// TODO:
-			//if (headerName == "set-cookie")
-			//	this->GetResponseCookie(headerValue);
+			if (headerName == "set-cookie")
+			{
+				responseCookies.push_back(headerValue);
+			}
 		}
 	}
 
@@ -260,6 +261,17 @@ namespace ti
 		oIter++)
 		{
 			responseHeaders[oIter->first] = oIter->second;
+		}
+	}
+
+	void CURLEASYClient::getResponseCookies(std::vector<std::string> &_responseCookies) const
+	{
+		for (std::vector<std::string>::const_iterator
+			oIter = this->responseCookies.begin();
+			oIter != this->responseCookies.end();
+		oIter++)
+		{
+			_responseCookies.push_back(*oIter);
 		}
 	}
 

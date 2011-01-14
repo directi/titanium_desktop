@@ -36,7 +36,10 @@ namespace ti
 		KMethodRef onDataChunkReceived;
 		std::map<std::string, std::string> responseHeaders;
 		std::map<std::string, std::string> nextResponseHeaders;
+		std::vector<std::string> responseCookies;
+
 		void ParseHTTPStatus(const std::string& header);
+		void getResponseCookie(const std::string &cookieLine);
 
 	public:
 		CURLEASYClient(const std::string & url, CURLHTTPClientBinding * _binding);
@@ -45,6 +48,7 @@ namespace ti
 		bool getHTTPStatus() const { return httpStatus; }
 		std::string getResponseHeader(const std::string &name) const;
 		void getResponseHeaders(std::map<std::string, std::string> &responseHeaders) const;
+		void getResponseCookies(std::vector<std::string> &responseCookies) const;
 		bool isAborted() const { return this->aborted; }
 		void abort() { this->aborted = true; }
 
