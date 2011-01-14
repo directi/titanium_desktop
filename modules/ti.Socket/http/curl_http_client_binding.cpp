@@ -301,9 +301,8 @@ namespace ti
 			i != responseCookies.end();
 		i++)
 		{
-			// TODO:
-			//KObjectRef obj = new HTTPCookie(*i);
-			//cookies->Append(obj);
+			KValueRef obj = Value::NewObject(new HTTPCookie(*i));
+			cookies->Append(obj);
 		}
 
 		result->SetList(cookies);
