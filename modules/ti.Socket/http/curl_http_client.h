@@ -52,6 +52,7 @@ namespace ti
 		void setOnDataChunkReceived(KMethodRef _onDataChunkReceived);
 		void setProxyUsernamePassword(const std::string & userpwd);
 		void setRequestHeaders(const std::vector<std::string> & requestHeaders);
+		void setRequestCookies(const std::map<std::string, std::string> & cookies);
 		void setTimeout(int timeout);
 		void setMaxRedirects(long maxRedirects);
 		void gotHeader(const std::string& header);

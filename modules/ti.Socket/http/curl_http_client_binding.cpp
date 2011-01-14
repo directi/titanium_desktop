@@ -37,12 +37,13 @@ namespace ti
 		this->SetMethod("onHTTPDone", &CURLHTTPClientBinding::SetOnHTTPDone);
 
 		this->SetMethod("open", &CURLHTTPClientBinding::Open);
-		this->SetMethod("saveToFile", &CURLHTTPClientBinding::saveToFile);
 		this->SetMethod("getReadyState", &CURLHTTPClientBinding::getReadyState);
 		this->SetMethod("getHTTPStatus", &CURLHTTPClientBinding::getHTTPStatus);
 		this->SetMethod("send", &CURLHTTPClientBinding::Send);
 		this->SetMethod("setRequestHeader", &CURLHTTPClientBinding::SetRequestHeader);
 		this->SetMethod("setTimeout", &CURLHTTPClientBinding::SetTimeout);
+		this->SetMethod("setCookie", &CURLHTTPClientBinding::SetCookie);
+		this->SetMethod("clearCookies", &CURLHTTPClientBinding::ClearCookies);
 		this->SetMethod("getTimeout", &CURLHTTPClientBinding::GetTimeout);
 		this->SetMethod("getMaxRedirects", &CURLHTTPClientBinding::GetMaxRedirects);
 		this->SetMethod("setMaxRedirects", &CURLHTTPClientBinding::SetMaxRedirects);
@@ -130,10 +131,15 @@ namespace ti
 		this->onHTTPDone = args.at(0)->ToMethod();
 	}
 
-	void CURLHTTPClientBinding::saveToFile(const ValueList& args, KValueRef result)
+	void CURLHTTPClientBinding::SetCookie(const ValueList& args, KValueRef result)
 	{
-		args.VerifyException("saveToFile", "s");
-		this->filename = args.at(0)->ToString();
+		args.VerifyException("setCookie", "ss");
+		this->requestCookies[args.GetString(0)] = args.GetString(1);
+	}
+
+	void CURLHTTPClientBinding::ClearCookies(const ValueList& args, KValueRef result)
+	{
+		this->requestCookies.clear();
 	}
 
 	void CURLHTTPClientBinding::getReadyState(const ValueList& args, KValueRef result)
@@ -184,6 +190,7 @@ namespace ti
 		easy->setOnHeaderReceived(this->onHeaderReceived);
 		easy->setOnDataChunkReceived(this->onDataChunkReceived);
 		easy->setRequestHeaders(this->requestHeaders);
+		easy->setRequestCookies(this->requestCookies);
 		easy->setTimeout(this->timeout);
 		easy->setMaxRedirects(this->maxRedirects);
 		CURLHTTPClientBinding::multiClient.add(easy);

@@ -39,8 +39,10 @@ namespace ti
 		KMethodRef onHeaderReceived;
 		KMethodRef onDataChunkReceived;
 		KMethodRef onHTTPDone;
-		std::vector<std::string> requestHeaders;
 		long maxRedirects;
+
+		std::vector<std::string> requestHeaders;
+		std::map<std::string, std::string> requestCookies;
 		CURLEASYClient * easy;
 
 		void ExecuteRequest(const std::string & data);
@@ -50,12 +52,13 @@ namespace ti
 		void SetOnHTTPDone(const ValueList& args, KValueRef result);
 
 		void Open(const ValueList& args, KValueRef result);
-		void saveToFile(const ValueList& args, KValueRef result);
 		void getReadyState(const ValueList& args, KValueRef result);
 		void getHTTPStatus(const ValueList& args, KValueRef result);
 		void Send(const ValueList& args, KValueRef result);
 		void SetRequestHeader(const ValueList& args, KValueRef result);
 		void SetTimeout(const ValueList& args, KValueRef result);
+		void SetCookie(const ValueList& args, KValueRef result);
+		void ClearCookies(const ValueList& args, KValueRef result);
 		void GetTimeout(const ValueList& args, KValueRef result);
 		void GetMaxRedirects(const ValueList& args, KValueRef result);
 		void SetMaxRedirects(const ValueList& args, KValueRef result);
@@ -64,8 +67,6 @@ namespace ti
 		void Abort(const ValueList& args, KValueRef result);
 
 		//void Receive(const ValueList& args, KValueRef result);
-		//void SetCookie(const ValueList& args, KValueRef result);
-		//void ClearCookies(const ValueList& args, KValueRef result);
 		//void GetCookie(const ValueList& args, KValueRef result);
 	};
 }

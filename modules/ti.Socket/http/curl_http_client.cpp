@@ -98,6 +98,27 @@ namespace ti
 		}
 	}
 
+	void CURLEASYClient::setRequestCookies(const std::map<std::string, std::string> & cookies)
+	{
+		std::string cookieString;
+		for(std::map<std::string, std::string>::const_iterator
+			i = cookies.begin();
+			i!= cookies.end();
+		i++)
+		{
+			cookieString.append(i->first);
+			cookieString.append("=");
+			cookieString.append(i->second);
+			cookieString.append(";");
+		}
+
+		if (!cookieString.empty())
+		{
+			SET_CURL_OPTION(curl_handle, CURLOPT_COOKIE, cookieString.c_str());
+		}
+	}
+
+
 	void CURLEASYClient::setTimeout(int timeout)
 	{
 		if (timeout > 0)
