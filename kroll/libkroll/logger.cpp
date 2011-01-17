@@ -254,7 +254,7 @@ namespace kroll
 				stream.flush();
 			}
 
-			boost::recursive_mutex::scoped_lock lock(mutex);
+			ReadLock lock(mutex);
 			for (size_t i = 0; i < callbacks.size(); i++)
 			{
 				callbacks[i](level, line);
@@ -264,13 +264,13 @@ namespace kroll
 
 	void RootLogger::AddLoggerCallback(Logger::LoggerCallback callback)
 	{
-		boost::recursive_mutex::scoped_lock lock(mutex);
+		WriteLock lock(mutex);
 		callbacks.push_back(callback);
 	}
 
 	void RootLogger::RemoveLoggerCallback(Logger::LoggerCallback callback)
 	{
-		boost::recursive_mutex::scoped_lock lock(mutex);
+		WriteLock lock(mutex);
 		for(std::vector<Logger::LoggerCallback>::iterator
 			oIter = callbacks.begin();
 			oIter != callbacks.end();

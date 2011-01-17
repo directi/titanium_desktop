@@ -11,8 +11,13 @@
 #include <cstdarg>
 #include <fstream>
 
+#include <boost/thread/locks.hpp>
 #include <boost/thread/mutex.hpp>
-#include <boost/thread/recursive_mutex.hpp>
+#include <boost/thread/shared_mutex.hpp>
+
+typedef boost::shared_mutex ReadWriteMutex;
+typedef boost::shared_lock<boost::shared_mutex> ReadLock;
+typedef boost::unique_lock<boost::shared_mutex> WriteLock;
 
 #define LOGGER_MAX_ENTRY_SIZE 2048
 
@@ -140,7 +145,7 @@ namespace kroll
 		RootLoggerConfig config;
 		std::ofstream stream;
 
-		boost::recursive_mutex mutex;
+		ReadWriteMutex mutex;
 		std::vector<Logger::LoggerCallback> callbacks;
 	};
 }
