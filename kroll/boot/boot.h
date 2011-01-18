@@ -79,6 +79,7 @@ protected:
 	static string applicationHome;
 	static string dumpFilePath;
 	static string executable_name;
+	static string app_name;
 
 	static string GetCrashDetectionTitle();
 	static string GetCrashDetectionHeader();

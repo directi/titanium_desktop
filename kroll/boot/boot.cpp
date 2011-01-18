@@ -101,6 +101,20 @@ int BootLoader::Bootstrap()
 			string dumpId = string(_argv[3]) + ".dmp";
 			dumpFilePath = FileUtils::Join(_argv[2], dumpId.c_str(), NULL);
 		}
+
+		const string app_path = FileUtils::GetExecutableDirectory();
+
+		if(!ManifestHandler::doesManifestFileExistsAtDirectory(app_path))
+		{
+			CrashHandler::app_name = PRODUCT_NAME;
+		}
+		else
+		{
+			const string manifest_path = ManifestHandler::getManifestPathAtDirectory(app_path);
+			ManifestHandler manifestHandler(manifest_path);
+			CrashHandler::app_name = manifestHandler.getName();
+		}
+
 	}
 
 	CrashHandler::~CrashHandler()
@@ -110,6 +124,7 @@ int BootLoader::Bootstrap()
 	string CrashHandler::applicationHome;
 	string CrashHandler::dumpFilePath;
 	string CrashHandler::executable_name;
+	string CrashHandler::app_name;
 
 	void CrashHandler::InitCrashDetection()
 	{
@@ -189,7 +204,7 @@ int BootLoader::Bootstrap()
 	}
 	string CrashHandler::GetApplicationName()
 	{
-		return PRODUCT_NAME;
+		return CrashHandler::app_name;
 	}
 
 #endif

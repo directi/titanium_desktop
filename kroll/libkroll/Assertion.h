@@ -20,5 +20,4 @@ namespace kroll
 #define ASSERT(str, a) if(!a) { fprintf(stderr, str); CRASH(); }
 #define ASSERT_MAIN_THREAD ASSERT("IsMainThread", IsMainThread())
 
-
 #endif
