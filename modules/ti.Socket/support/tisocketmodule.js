@@ -1,18 +1,22 @@
+(function(){
 function replaceMethod(obj, methodName, newMethod)
 {
 	var originalMethodName = methodName + "_orig";
 	obj[originalMethodName] = obj[methodName];
-	var fn = function()
-	{
-		newMethod.apply(window, arguments);
-		obj[originalMethodName].apply(obj, arguments);
+	var fn = function(){
+		return newMethod.apply(obj, arguments);
 	};
 	obj[methodName] = fn;
 }
 
-replaceMethod(Titanium.Socket.createTCPSocket,  function() { 
-	var a = Titanium.Socket.createTCPSocket_orig();
-	a.onReadComplete = function(arg) { onClose(arg); }
+replaceMethod(Titanium.Socket, "createTCPSocket",  function(server, port) { 
+	var a = Titanium.Socket.createTCPSocket_orig(server, port);
+	a.onReadComplete = function(arg) { a.onClose(arg); }
+	a.connectNB_orig = a.connectNB;
+	a.connectNB = function(){
+		a.connectNB_orig();
+		return true;
+	}
 	return a;
 });
 
@@ -21,3 +25,4 @@ Titanium.Socket.setHTTPProxy = function (a, b) {
 }
 
 Titanium.Network = Titanium.Socket;
+}());
