@@ -89,11 +89,6 @@ namespace ti
 		std::string iconURL;
 
 		static AutoPtr<UIBinding> instance;
-
-		static void Log(Logger::Level level, const std::string& message);
-
-	private:
-         static KValueRef PrivateLog(const ValueList& args);
 	};
 }
 
