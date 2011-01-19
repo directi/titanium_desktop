@@ -108,6 +108,7 @@ namespace kroll
 		RootLogger::UnInitialize();
 	}
 
+#ifdef LOGGER_HAVE_CALLBACKS
 	void Logger::AddLoggerCallback(LoggerCallback callback)
 	{
 		RootLogger::Instance()->AddLoggerCallback(callback);
@@ -117,6 +118,7 @@ namespace kroll
 	{
 		RootLogger::Instance()->RemoveLoggerCallback(callback);
 	}
+#endif
 
 	Logger::Logger(const std::string &name)
 		: name(name),
@@ -254,14 +256,17 @@ namespace kroll
 				stream.flush();
 			}
 
+#ifdef LOGGER_HAVE_CALLBACKS
 			ReadLock lock(mutex);
 			for (size_t i = 0; i < callbacks.size(); i++)
 			{
 				callbacks[i](level, line);
 			}
+#endif
 		}
 	}
 
+#ifdef LOGGER_HAVE_CALLBACKS
 	void RootLogger::AddLoggerCallback(Logger::LoggerCallback callback)
 	{
 		WriteLock lock(mutex);
@@ -283,4 +288,5 @@ namespace kroll
 			}
 		}
 	}
+#endif
 }

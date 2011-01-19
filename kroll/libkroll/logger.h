@@ -59,7 +59,10 @@ namespace kroll
 		} Level;
 
 		static std::string getStringForLevel(Level level);
+
+#ifdef LOGGER_HAVE_CALLBACKS
 		typedef void (*LoggerCallback)(Level, const std::string&);
+#endif
 
 	protected:
 		Logger(const std::string &name);
@@ -80,8 +83,11 @@ namespace kroll
 		static Logger* Get(const std::string &name);
 		static void Initialize(bool console, const std::string &logFilePath, Level level);
 		static void Shutdown();
+
+#ifdef LOGGER_HAVE_CALLBACKS
 		static void AddLoggerCallback(LoggerCallback callback);
 		static void RemoveLoggerCallback(LoggerCallback callback);
+#endif
 		static Logger::Level GetLevel(const std::string& level, bool debugEnabled = false);
 		static std::string Format(const char*, va_list);
 
@@ -132,8 +138,11 @@ namespace kroll
 		Logger::Level getLevel() const { return config.level; }
 		void setLevel(Logger::Level level) { config.level = level; }
 		void LogImpl(const std::string& name, const std::string& message, Logger::Level level);
+
+#ifdef LOGGER_HAVE_CALLBACKS
 		void AddLoggerCallback(Logger::LoggerCallback callback);
 		void RemoveLoggerCallback(Logger::LoggerCallback callback);
+#endif
 
 	private:
 		static RootLogger* instance;
@@ -145,8 +154,10 @@ namespace kroll
 		RootLoggerConfig config;
 		std::ofstream stream;
 
+#ifdef LOGGER_HAVE_CALLBACKS
 		ReadWriteMutex mutex;
 		std::vector<Logger::LoggerCallback> callbacks;
+#endif
 	};
 }
 
