@@ -6,7 +6,9 @@
 
 #include <iomanip>
 #include <sstream>
+#include <fstream>
 using namespace std;
+#include <boost/array.hpp>
 #include <openssl/evp.h>
 
 
@@ -38,10 +40,36 @@ namespace UTILS_NS
 			EVP_MD_CTX_cleanup(&mdctx);
 			return GetHexRepresentation(md_value, md_len);
 		}
-		
+
 		std::string calculate_md5_of(const std::string & data)
 		{
 			return calculate_md5_of(data.c_str(), data.size());
+		}
+
+		std::string calculate_md5_of_file(const std::string & filename)
+		{
+			std::ifstream file(filename.c_str(), std::ios::binary);
+			if (!file.is_open())
+			{
+				const std::string err("cannot open input file: " + filename);
+				throw std::exception(err.c_str());
+			}
+
+			EVP_MD_CTX mdctx;
+			EVP_DigestInit(&mdctx, EVP_md5());
+
+			while ( !file.eof() && file.good() )
+			{
+				boost::array< char, 4096 > buffer;
+				file.read(buffer.c_array(), buffer.size());
+				EVP_DigestUpdate(&mdctx, buffer.data(), file.gcount());
+			}
+
+			unsigned char md_value[EVP_MAX_MD_SIZE];
+			unsigned int md_len;
+			EVP_DigestFinal_ex(&mdctx, md_value, &md_len);
+			EVP_MD_CTX_cleanup(&mdctx);
+			return GetHexRepresentation(md_value, md_len);
 		}
 	}
 }

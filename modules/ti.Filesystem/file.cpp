@@ -12,12 +12,10 @@
 #include <Poco/File.h>
 #include <Poco/Path.h>
 #include <Poco/Exception.h>
-#include <Poco/MD5Engine.h>
-#include <Poco/DigestStream.h>
-#include <Poco/StreamCopier.h>
 
 #include <kroll/utils/zip_utils.h>
 #include <kroll/utils/file_utils.h>
+#include <kroll/utils/md5_utils.h>
 
 #ifndef OS_WIN32
 #include <sys/types.h>
@@ -823,37 +821,22 @@ namespace ti
 
 	void File::getMD5Digest(KMethodRef onCompleteCallback) const
 	{
-		std::ifstream istr(this->filename.c_str(), std::ios::binary);
-		bool ret = false;
-		std::string err;
-		std::string md5_string;
-		if (!istr)
+		if (onCompleteCallback)
 		{
-			err = "cannot open input file: " + this->filename;
-		}
-		else
-		{
-			Poco::MD5Engine md5;
-			Poco::DigestOutputStream dos(md5);
-			Poco::StreamCopier::copyStream(istr, dos);
-			dos.close();
-			md5_string = Poco::DigestEngine::digestToHex(md5.digest());
-			ret = true;
-		}
+			ValueList args;
+			try
+			{
+				std::string md5_string = MD5Utils::calculate_md5_of_file(this->filename);
+				args.push_back(Value::NewBool(true));
+				args.push_back(Value::NewString(md5_string));
+			}
+			catch (std::exception & e)
+			{
+				args.push_back(Value::NewBool(false));
+				args.push_back(Value::NewString(e.what()));
+			}
 
-		if (!onCompleteCallback)
-			return;
-
-		ValueList cb_args;
-		cb_args.push_back(Value::NewBool(ret));
-		if (ret)
-		{
-			cb_args.push_back(Value::NewString(md5_string));
+			RunOnMainThread(onCompleteCallback, args);
 		}
-		else
-		{
-			cb_args.push_back(Value::NewString(err));
-		}
-		RunOnMainThread(onCompleteCallback, cb_args);
 	}
 }

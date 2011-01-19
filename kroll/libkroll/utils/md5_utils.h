@@ -14,6 +14,7 @@ namespace UTILS_NS
 		KROLL_API std::string GetHexRepresentation(const unsigned char * data, size_t length);
 		KROLL_API std::string calculate_md5_of(const void *content, size_t len);
 		KROLL_API std::string calculate_md5_of(const std::string & data);
+		KROLL_API std::string calculate_md5_of_file(const std::string & filename);
 	}
 }
 #endif

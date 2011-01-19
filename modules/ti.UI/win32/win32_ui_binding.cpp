@@ -22,7 +22,6 @@
 #include <webkit/QuickCurlSettingsExport.h>
 #endif
 
-using std::vector;
 namespace ti
 {
 	UINT Win32UIBinding::nextItemId = NEXT_ITEM_ID_BEGIN;
