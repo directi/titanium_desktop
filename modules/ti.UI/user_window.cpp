@@ -142,7 +142,7 @@ void UserWindow::Open()
 	this->FireEvent(Event::OPEN);
 
 	// We are now in the UI binding's open window list
-	UIBinding::GetInstance()->AddToOpenWindows(AutoUserWindow(this, true));
+	UIModule::GetBinding()->AddToOpenWindows(AutoUserWindow(this, true));
 
 	// Tell the parent window that we are open for business
 	if (!parent.isNull())
@@ -204,10 +204,10 @@ void UserWindow::Closed()
 	}
 
 	// Tell the UIBinding that we are closed
-	UIBinding::GetInstance()->RemoveFromOpenWindows(AutoUserWindow(this, true));
+	UIModule::GetBinding()->RemoveFromOpenWindows(AutoUserWindow(this, true));
 
 	// When we have no more open windows, we exit...
-	std::vector<AutoUserWindow> windows = UIBinding::GetInstance()->GetOpenWindows();
+	std::vector<AutoUserWindow> windows = UIModule::GetBinding()->GetOpenWindows();
 	if (windows.size() == 0) 
 	{
 		this->host->Exit(0);
@@ -1528,7 +1528,7 @@ void UserWindow::InsertAPI(KObjectRef frameGlobal)
 	// found in binding, KDelegatingObject will search for it in
 	// the base. When developers modify this object, it will be modified
 	// globally.
-	KObjectRef delegateUIAPI = new KDelegatingObject(UIBinding::GetInstance(), windowUIObject);
+	KObjectRef delegateUIAPI = new KDelegatingObject(UIModule::GetBinding(), windowUIObject);
 	windowTiObject->Set("UI", Value::NewObject(delegateUIAPI));
 
 	// Place the Titanium object into the window's global object

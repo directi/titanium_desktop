@@ -454,7 +454,7 @@ namespace ti
 		std::string iconPath = this->iconPath;
 
 		if (iconPath.empty()) {
-			GtkUIBinding* b = static_cast<GtkUIBinding*>(UIBinding::GetInstance());
+			GtkUIBinding* b = static_cast<GtkUIBinding*>(UIModule::GetBinding());
 			iconPath = b->GetIcon();
 		}
 	
@@ -705,7 +705,7 @@ namespace ti
 		AutoPtr<GtkMenu> m = userWindow->GetContextMenu().cast<GtkMenu>();
 	
 		if (m.isNull()) {
-			GtkUIBinding* b = static_cast<GtkUIBinding*>(UIBinding::GetInstance());
+			GtkUIBinding* b = static_cast<GtkUIBinding*>(UIModule::GetBinding());
 			m = b->GetContextMenu().cast<GtkMenu>();
 		}
 	
@@ -1202,7 +1202,7 @@ namespace ti
 		// No window menu, try to use the application menu.
 		if (menu.isNull())
 		{
-			GtkUIBinding* b = static_cast<GtkUIBinding*>(UIBinding::GetInstance());
+			GtkUIBinding* b = static_cast<GtkUIBinding*>(UIModule::GetBinding());
 			menu = b->GetMenu().cast<GtkMenu>();
 		}
 	

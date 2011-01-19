@@ -79,7 +79,6 @@ namespace ti
 		virtual void SetBadgeImage(std::string& badgeImagePath) {}
 
 		static void ErrorDialog(std::string);
-		static inline AutoPtr<UIBinding> GetInstance() { return instance; }
 
 	protected:
 		Host* host;
@@ -87,8 +86,6 @@ namespace ti
 		std::vector<AutoUserWindow> openWindows;
 		std::vector<TrayItem *> trayItems;
 		std::string iconURL;
-
-		static AutoPtr<UIBinding> instance;
 	};
 }
 

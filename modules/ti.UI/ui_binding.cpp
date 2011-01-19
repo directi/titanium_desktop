@@ -12,14 +12,10 @@
 
 namespace ti
 {
-	AutoPtr<UIBinding> UIBinding::instance = NULL;
-
 	UIBinding::UIBinding(Host* host) :
 		KAccessorObject("UI"),
 		host(host)
 	{
-		instance = this;
-
 		this->Set("CENTERED", Value::NewInt(DEFAULT_POSITION));
 
 		this->SetMethod("createNotification", &UIBinding::_CreateNotification);
@@ -107,7 +103,7 @@ namespace ti
 
 	UIBinding::~UIBinding()
 	{
-//		this->ClearTray();
+		this->ClearTray();
 
 		// Shutdown notifications
 		Notification::ShutdownImpl();

@@ -4,6 +4,7 @@
  */
 #include "win32_user_window.h"
 #include "win32_ui_binding.h"
+#include "../ui_module.h"
 
 #include <WebKit/WebKitCOMAPI.h>
 
@@ -225,7 +226,7 @@ Win32UserWindow* Win32UserWindow::FromWindow(HWND hWnd)
 /*static*/
 AutoPtr<Win32UserWindow> Win32UserWindow::FromWebView(IWebView* webView)
 {
-	std::vector<AutoUserWindow>& openWindows(UIBinding::GetInstance()->GetOpenWindows());
+	std::vector<AutoUserWindow>& openWindows(UIModule::GetBinding()->GetOpenWindows());
 	for (size_t i = 0; i < openWindows.size(); i++)
 	{
 		AutoPtr<Win32UserWindow> userWindow(openWindows.at(i).cast<Win32UserWindow>());
@@ -1039,7 +1040,7 @@ void Win32UserWindow::SetupIcon()
 	std::string iconPath(this->iconPath);
 	if (iconPath.empty())
 	{
-		AutoPtr<Win32UIBinding> b = UIBinding::GetInstance().cast<Win32UIBinding>();
+		Win32UIBinding *b = static_cast<Win32UIBinding *>(UIModule::GetBinding());
 		iconPath = b->GetIcon();
 	}
 
@@ -1156,7 +1157,7 @@ void Win32UserWindow::SetupMenu()
 	// No window menu, try to use the application menu.
 	if (menu.isNull())
 	{
-		AutoPtr<Win32UIBinding> b = UIBinding::GetInstance().cast<Win32UIBinding>();
+		Win32UIBinding *b = static_cast<Win32UIBinding *>(UIModule::GetBinding());
 		menu = b->GetMenu().cast<Win32Menu>();
 	}
 
@@ -1498,7 +1499,7 @@ void Win32UserWindow::RedrawMenu()
 void Win32UserWindow::RedrawAllMenus()
 {
 	// Notify all windows that the app menu has changed.
-	std::vector<AutoUserWindow>& windows = UIBinding::GetInstance()->GetOpenWindows();
+	std::vector<AutoUserWindow>& windows = UIModule::GetBinding()->GetOpenWindows();
 	std::vector<AutoUserWindow>::iterator i = windows.begin();
 	while (i != windows.end())
 	{

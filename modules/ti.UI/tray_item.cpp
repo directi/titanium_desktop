@@ -6,7 +6,7 @@
 #include <kroll/kroll.h>
 
 #include "tray_item.h"
-#include "ui_binding.h"
+#include "ui_module.h"
 
 namespace ti
 {
@@ -108,7 +108,7 @@ namespace ti
 			return;
 
 		this->Remove();
-		UIBinding::GetInstance()->UnregisterTrayItem(this);
+		UIModule::GetBinding()->UnregisterTrayItem(this);
 		removed = true;
 	}
 #ifdef WIN32

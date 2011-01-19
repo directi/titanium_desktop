@@ -7,7 +7,7 @@
 #include <kroll/kroll.h>
 
 #include "menu.h"
-#include "ui_binding.h"
+#include "ui_module.h"
 
 namespace ti
 {
@@ -33,7 +33,7 @@ namespace ti
 	void Menu::_AddItem(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("addItem", "?s m|0 s|0");
-		UIBinding* binding = UIBinding::GetInstance();
+		UIBinding* binding = UIModule::GetBinding();
 
 		// Create a menu item object and add it to this item's submenu
 		AutoMenuItem newItem = binding->__CreateMenuItem(args);
@@ -43,7 +43,7 @@ namespace ti
 
 	void Menu::_AddSeparatorItem(const ValueList& args, KValueRef result)
 	{
-		UIBinding* binding = UIBinding::GetInstance();
+		UIBinding* binding = UIModule::GetBinding();
 		AutoMenuItem newItem = binding->__CreateSeparatorMenuItem(args);
 		this->AppendItem(newItem);
 		result->SetObject(newItem);
@@ -51,7 +51,7 @@ namespace ti
 
 	void Menu::_AddCheckItem(const ValueList& args, KValueRef result)
 	{
-		UIBinding* binding = UIBinding::GetInstance();
+		UIBinding* binding = UIModule::GetBinding();
 		AutoMenuItem newItem = binding->__CreateCheckMenuItem(args);
 		this->AppendItem(newItem);
 		result->SetObject(newItem);

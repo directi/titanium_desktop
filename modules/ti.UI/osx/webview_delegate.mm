@@ -570,7 +570,7 @@
 	UserWindow* uw = [window userWindow];
 	AutoPtr<OSXMenu> menu = uw->GetContextMenu().cast<OSXMenu>();
 	if (menu.isNull())
-		menu = UIBinding::GetInstance()->GetContextMenu().cast<OSXMenu>();
+		menu = UIModule::GetBinding()->GetContextMenu().cast<OSXMenu>();
 
 	NSMutableArray* menuItems = [[[NSMutableArray alloc] init] autorelease];
 	if (!menu.isNull())

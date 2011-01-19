@@ -193,7 +193,7 @@ namespace ti
 			NSMenuItem* nativeItem = (*i++);
 			if ([nativeItem menu] == [NSApp mainMenu]) {
 				OSXUIBinding* binding =
-					dynamic_cast<OSXUIBinding*>(UIBinding::GetInstance());
+					dynamic_cast<OSXUIBinding*>(UIModule::GetBinding());
 				binding->SetupMainMenu(true);
 				break;
 			}

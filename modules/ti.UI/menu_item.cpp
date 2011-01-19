@@ -6,7 +6,7 @@
 
 #include "menu.h"
 #include "menu_item.h"
-#include "ui_binding.h"
+#include "ui_module.h"
 
 namespace ti
 {
@@ -177,7 +177,7 @@ namespace ti
 	void MenuItem::_AddItem(const ValueList& args, KValueRef result)
 	{
 		args.VerifyException("addItem", "?s m|0 s|0");
-		UIBinding* binding = UIBinding::GetInstance();
+		UIBinding* binding = UIModule::GetBinding();
 
 		// Create a menu item object and add it to this item's submenu
 		AutoMenuItem newItem = binding->__CreateMenuItem(args);
@@ -189,7 +189,7 @@ namespace ti
 
 	void MenuItem::_AddSeparatorItem(const ValueList& args, KValueRef result)
 	{
-		UIBinding* binding = UIBinding::GetInstance();
+		UIBinding* binding = UIModule::GetBinding();
 		AutoMenuItem newItem = binding->__CreateSeparatorMenuItem(args);
 		this->EnsureHasSubmenu();
 		this->submenu->AppendItem(newItem);
@@ -199,7 +199,7 @@ namespace ti
 
 	void MenuItem::_AddCheckItem(const ValueList& args, KValueRef result)
 	{
-		UIBinding* binding = UIBinding::GetInstance();
+		UIBinding* binding = UIModule::GetBinding();
 
 		// Create a menu item object
 		AutoMenuItem newItem = binding->__CreateCheckMenuItem(args);
@@ -270,7 +270,7 @@ namespace ti
 	{
 		if (this->submenu.isNull())
 		{
-			UIBinding* binding = UIBinding::GetInstance();
+			UIBinding* binding = UIModule::GetBinding();
 			AutoMenu newSubmenu = binding->CreateMenu();
 			this->SetSubmenuImpl(newSubmenu);
 			this->submenu = newSubmenu;

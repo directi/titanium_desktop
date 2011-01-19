@@ -100,7 +100,7 @@ namespace ti
 
 		// If this native menu is the application's current main menu,
 		// we want to force the main menu to reload.
-		OSXUIBinding* binding = dynamic_cast<OSXUIBinding*>(UIBinding::GetInstance());
+		OSXUIBinding* binding = dynamic_cast<OSXUIBinding*>(UIModule::GetBinding());
 		if (binding->GetActiveMenu().get() == this) {
 			binding->SetupMainMenu(true);
 		}

@@ -18,6 +18,7 @@ namespace ti {
 
 	public:
 		static UIModule* GetInstance() { return instance_; }
+		static UIBinding* GetBinding() { return instance_->uiBinding; }
 
 	private:
 		DISALLOW_EVIL_CONSTRUCTORS(UIModule);

@@ -7,6 +7,7 @@
 #include "win32_user_window.h"
 #include "popup_dialog.h"
 #include "win32_ui_binding.h"
+#include "../ui_module.h"
 
 #include <tchar.h>
 #include <commdlg.h>
@@ -282,7 +283,7 @@ HRESULT STDMETHODCALLTYPE Win32WebKitUIDelegate::trackCustomPopupMenu(
 	// No window menu, try to use the application menu.
 	if (menu.isNull())
 	{
-		AutoPtr<Win32UIBinding> b = UIBinding::GetInstance().cast<Win32UIBinding>();
+		Win32UIBinding *b = static_cast<Win32UIBinding *>(UIModule::GetBinding());
 		menu = b->GetContextMenu().cast<Win32Menu>();
 	}
 
