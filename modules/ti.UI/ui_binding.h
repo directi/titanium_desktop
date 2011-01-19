@@ -25,6 +25,7 @@ namespace ti
 
 		void CreateMainWindow(AutoPtr<WindowConfig> config);
 		UserWindow *GetMainWindow();
+		void Unload();
 		std::vector<AutoUserWindow>& GetOpenWindows();
 		void AddToOpenWindows(AutoUserWindow);
 		void RemoveFromOpenWindows(AutoUserWindow);
@@ -86,6 +87,11 @@ namespace ti
 		std::vector<AutoUserWindow> openWindows;
 		std::vector<TrayItem *> trayItems;
 		std::string iconURL;
+
+		static void Log(Logger::Level level, const std::string& message);
+
+	private:
+         static KValueRef PrivateLog(const ValueList& args);
 	};
 }
 

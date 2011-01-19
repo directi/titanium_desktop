@@ -257,10 +257,13 @@ namespace kroll
 			}
 
 #ifdef LOGGER_HAVE_CALLBACKS
-			ReadLock lock(mutex);
-			for (size_t i = 0; i < callbacks.size(); i++)
+			if(config.level >= Logger::LDEBUG)
 			{
-				callbacks[i](level, line);
+				ReadLock lock(mutex);
+				for (size_t i = 0; i < callbacks.size(); i++)
+				{
+					callbacks[i](level, line);
+				}
 			}
 #endif
 		}

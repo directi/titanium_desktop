@@ -20,6 +20,7 @@ typedef boost::shared_lock<boost::shared_mutex> ReadLock;
 typedef boost::unique_lock<boost::shared_mutex> WriteLock;
 
 #define LOGGER_MAX_ENTRY_SIZE 2048
+#define LOGGER_HAVE_CALLBACKS
 
 #define LOG_METHOD(METHOD,LEVEL) \
 	void METHOD(const std::string &message) \

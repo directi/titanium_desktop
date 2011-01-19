@@ -6,6 +6,7 @@
 #include "menu.h"
 #include "clipboard.h"
 #include "ui_binding.h"
+#include "ui_module.h"
 #include "notification.h"
 
 #include <string>
@@ -46,6 +47,7 @@ namespace ti
 		this->SetBool("nativeNotifications", Notification::InitializeImpl());
 
 		this->SetObject("Clipboard", new Clipboard());
+		Logger::AddLoggerCallback(&UIBinding::Log);
 	}
 
 	void UIBinding::CreateMainWindow(AutoPtr<WindowConfig> config)
@@ -101,9 +103,14 @@ namespace ti
 		std::cerr << msg << std::endl;
 	}
 
+	void UIBinding::Unload()
+	{
+		Logger::RemoveLoggerCallback(&UIBinding::Log);
+	}
+
 	UIBinding::~UIBinding()
 	{
-		this->ClearTray();
+//		this->ClearTray();
 
 		// Shutdown notifications
 		Notification::ShutdownImpl();
@@ -386,6 +393,83 @@ namespace ti
 		KValueRef result)
 	{
 		result->SetDouble(this->GetIdleTime());
+	}
+
+    void UIBinding::Log(Logger::Level level, const std::string& message)
+	{
+		std::string methodName("debug_orig");
+		switch(level) 
+		{
+		case Logger::LFATAL:
+		case Logger::LCRITICAL:
+		case Logger::LERROR:
+			methodName = "error_orig";
+			break;
+		case Logger::LWARN:
+			methodName = "warn_orig";
+			break;
+		}
+
+		std::string script("window.console.");
+		script.append(methodName);
+		script.append("('");
+		std::string escapedMessage(message);
+		static const std::string delimiters("'\\");
+		size_t pos = 0;
+		while(true)
+		{
+			pos = escapedMessage.find_first_of(delimiters, pos);
+			if(pos == string::npos) break;
+			escapedMessage.insert(pos, "\\");
+			pos += 2;
+		} 
+
+		script.append(escapedMessage);
+		script.append("')");
+
+		ValueList args = ValueList(Value::NewString(script));
+		if(IsMainThread())
+		{
+			PrivateLog(args);
+		}
+		else
+		{
+			KMethodRef function = new KFunctionPtrMethod(&UIBinding::PrivateLog);
+			RunOnMainThread(function, args);
+		}
+	}
+
+    KValueRef UIBinding::PrivateLog(const ValueList& args)
+	{
+		ASSERT_MAIN_THREAD
+		std::string script = args.at(0)->ToString();
+		std::vector<AutoUserWindow>& openWindows = UIModule::GetBinding()->GetOpenWindows();
+		for (size_t i = 0; i < openWindows.size(); i++)
+		{
+			if(! openWindows[i]->HasTitaniumObject()) continue;
+			KObjectRef domWindow = openWindows[i]->GetDOMWindow();
+			AutoPtr<KKJSObject> kobj = domWindow.cast<KKJSObject>();
+			if(kobj.isNull()) continue;
+
+			try 
+			{
+				KJSUtil::Evaluate(kobj->GetContext(), script.c_str(), NULL);
+			} 
+			catch (ValueException& exception)
+			{
+				fprintf(stderr, "Error logging: JSException: %s\n", exception.ToString().c_str()); 
+			}
+			catch (std::exception &e)
+			{
+				fprintf(stderr, "Error logging: std::exception: %s\n", e.what());
+			}
+			catch(...) 
+			{
+				// Ignore for now atleast.
+				fprintf(stderr, "Yikes, lost a log message\n");
+			}
+		}
+		return Value::Undefined;
 	}
 }
 

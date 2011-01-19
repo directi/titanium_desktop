@@ -56,6 +56,7 @@ namespace ti
 	{
 		if(this->uiBinding)
 		{
+			this->uiBinding->Unload();
 			this->uiBinding = NULL;
 		}
 	}
