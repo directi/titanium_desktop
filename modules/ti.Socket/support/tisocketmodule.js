@@ -20,9 +20,5 @@ replaceMethod(Titanium.Socket, "createTCPSocket",  function(server, port) {
 	return a;
 });
 
-Titanium.Socket.setHTTPProxy = function (a, b) {
-	Titanium.API.warn('Proxy really not set');
-}
-
 Titanium.Network = Titanium.Socket;
 }());

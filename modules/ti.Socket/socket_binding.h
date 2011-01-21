@@ -27,6 +27,12 @@ namespace ti
 		void _CreateTCPSocket(const ValueList& args, KValueRef result);
 		void _getSSLTCPSocket(const ValueList& args, KValueRef result);
 		void _getCURLHTTPClient(const ValueList& args, KValueRef result);
+
+		void _SetHTTPProxy(const ValueList& args, KValueRef result);
+		void _SetHTTPSProxy(const ValueList& args, KValueRef result);
+		void _GetHTTPProxy(const ValueList& args, KValueRef result);
+		void _GetHTTPSProxy(const ValueList& args, KValueRef result);
+
 	};
 }
 
