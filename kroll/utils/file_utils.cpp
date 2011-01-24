@@ -45,7 +45,7 @@ namespace FileUtils
 		return false;
 #else
 	struct stat st;
-	if (lstat(_path.c_str(), &st) == 0)
+	if (lstat(file.c_str(), &st) == 0)
 		return S_ISLNK(st.st_mode);
 	return false;
 #endif

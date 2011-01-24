@@ -14,6 +14,9 @@
 #define MAX_ENV_VALUE_SIZE 32767 
 #define REASONABLE_MAX_ENV_VALUE_SIZE 1024
 #elif OS_OSX
+#import <Foundation/Foundation.h>
+#include <pwd.h>
+#include <sys/utsname.h>
 #include <crt_externs.h>
 #define environ (*_NSGetEnviron())
 #else
@@ -153,7 +156,6 @@ namespace EnvironmentUtils
 		Gestalt(gestaltSystemVersionMinor, &minor) != noErr ||
 		Gestalt(gestaltSystemVersionBugFix, &bugfix) != noErr)
 	{
-		logger()->Error("Failed to get OS version");
 		return "Unknown";
 	}
 
@@ -185,8 +187,6 @@ namespace EnvironmentUtils
 		default:
 			return "Unknown";
 		}
-#elif OS_OSX
-		// TODO: implement it for osx
 #else
 		struct utsname uts;
 		uname(&uts);
@@ -222,8 +222,6 @@ namespace EnvironmentUtils
 		default:
 			return "Unknown";
 		}
-#elif OS_OSX
-		// TODO: implement it for osx
 #else
 		struct utsname uts;
 		uname(&uts);
@@ -262,7 +260,7 @@ namespace EnvironmentUtils
 		if (pwd)
 			path = pwd->pw_dir;
 		else
-			path = EnvironmentImpl::getImpl("HOME");
+			path = Get("HOME");
 	}
 	std::string::size_type n = path.size();
 	if (n > 0 && path[n - 1] != '/') path.append("/");

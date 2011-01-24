@@ -9,6 +9,23 @@
 #include <windows.h>
 #endif
 
+#ifdef OS_OSX
+#import <Foundation/Foundation.h>
+#import <semaphore.h>
+
+class NamedMutexException : public std::exception
+{
+	const std::string text;
+	public:
+		NamedMutexException(const char * _text) : text(_text) {}
+		virtual ~NamedMutexException() throw() {}
+		virtual const char * what() const throw()
+		{
+			return text.c_str();
+		}
+};
+#endif
+
 namespace UTILS_NS
 {
 	class KROLL_API NamedMutex
@@ -30,6 +47,9 @@ namespace UTILS_NS
 		int _lockfd; // lock file descriptor
 		int _semfd;  // file used to identify semaphore
 		int _semid;  // semaphore id
+#endif
+#ifndef OS_WIN32
+		std::string getFileName();
 #endif
 	};
 }

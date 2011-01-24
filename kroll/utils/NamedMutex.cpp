@@ -1,6 +1,7 @@
 
 #include "NamedMutex.h"
 
+
 namespace UTILS_NS
 {
 #if defined(linux) || defined(__CYGWIN__)
@@ -21,7 +22,7 @@ namespace UTILS_NS
 #endif
 
 #ifndef OS_WIN32
-std::string NamedMutexImpl::getFileName()
+std::string NamedMutex::getFileName()
 {
 #if defined(sun) || defined(__APPLE__) || defined(__QNX__)
 	std::string fn = "/";
@@ -52,7 +53,7 @@ NamedMutex::NamedMutex(const std::string& name)
 	if ((long) _sem == (long) SEM_FAILED) 
 	{
 		std::string err("cannot create named mutex (sem_open() failed)" + _name);
-		throw std::exception(err.c_str());
+		throw NamedMutexException(err.c_str());
 	}
 #else
 	int fd = open(fileName.c_str(), O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
@@ -126,7 +127,7 @@ void NamedMutex::lock()
 	if (err)
 	{
 		std::string errstr("cannot lock named mutex" + _name);
-		throw std::exception(errstr.c_str());
+		throw NamedMutexException(errstr.c_str());
 	}
 #else
 	struct sembuf op;
@@ -185,7 +186,7 @@ void NamedMutex::unlock()
 	if (sem_post(_sem) != 0)
 	{
 		std::string err("cannot unlock named mutex" + _name);
-		throw std::exception(err.c_str());
+		throw NamedMutexException(err.c_str());
 	}
 #else
 	struct sembuf op;
