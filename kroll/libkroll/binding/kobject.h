@@ -76,10 +76,10 @@ namespace kroll
 		virtual SharedStringList GetPropertyNames() = 0;
 
 		/**
-		 * @param levels The number of levels of children to display in this string (default: 3)
+		 * @param levels The number of levels of children to display in this string
 		 * @return a string representation of this object
 		 */
-		virtual SharedString DisplayString(int levels=1);
+		virtual SharedString DisplayString(int levels=0);
 
 		/**
 		 * @param name The property name

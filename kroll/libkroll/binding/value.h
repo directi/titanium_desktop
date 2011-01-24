@@ -205,10 +205,10 @@ namespace kroll
 		std::string& GetType();
 
 		/**
-		 * @param levels the number of nested objects to include in this representation (default: 3)
+		 * @param levels the number of nested objects to include in this representation
 		 * @return a string representation for this Value
 		*/
-		std::string DisplayString(int levels=1);
+		std::string DisplayString(int levels=0);
 
 		/**
 		 * Change the internal value of this Value from another Value object.
