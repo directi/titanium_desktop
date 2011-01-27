@@ -111,7 +111,7 @@ namespace kroll
 		KValueRef Get(const char *name);
 		bool HasProperty(const char *name);
 		SharedStringList GetPropertyNames();
-		SharedString DisplayString(int levels=3);
+		SharedString DisplayString(int levels=0);
 		bool Equals(KObjectRef other);
 	private:
 		KListRef list;

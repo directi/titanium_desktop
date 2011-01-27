@@ -74,11 +74,11 @@
 	//
 	var Logger = {
 		init: function(){
-			this.log = this._createLogger("log", 1);
-			this.debug = this._createLogger("debug", 2);
-			this.warn = this._createLogger("warn", 1);
-			this.info = this._createLogger("info", 1);
-			this.error = this._createLogger("error", 2);
+			this.log = this._createLogger("log", 0);
+			this.debug = this._createLogger("debug", 1);
+			this.warn = this._createLogger("warn", 0);
+			this.info = this._createLogger("info", 0);
+			this.error = this._createLogger("error", 1);
 		},
 		_createLogger: function(level, depth){
 			var self = this;

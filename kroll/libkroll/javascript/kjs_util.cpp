@@ -689,7 +689,7 @@ namespace KJSUtil
 		if (value.isNull())
 			return JSValueMakeUndefined(jsContext);
 
-		std::string str = value->DisplayString(2);
+		std::string str = value->DisplayString(0);
 		KValueRef dsv = Value::NewString(str);
 		return ToJSValue(dsv, jsContext);
 	}
