@@ -49,11 +49,11 @@ namespace kroll
 
 	Event::Event(AutoPtr<KEventObject> target, const std::string& eventName) :
 		KAccessorObject("Event"),
-		target(target),
 		eventName(eventName),
 		timestamp(TimeUtils::getCurrentTimeInMiliSeconds()),
 		stopped(false),
-		preventedDefault(false)
+		preventedDefault(false),
+		target(target)
 	{
 		Event::SetEventConstants(this);
 		this->SetMethod("getTarget", &Event::_GetTarget);

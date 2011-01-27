@@ -74,6 +74,9 @@ namespace kroll
 				timer->start();
 				return Value::NewInt(timer->getID());
 #else
+				// TODO:
+				if (duration)
+					duration = 5;
 				//boost::recursive_mutex::scoped_lock lock(timersMutex);
 				//timers[id] = new Poco::Timer(duration, interval ? duration : 0);
 				//callers[id] = new MainThreadCaller();

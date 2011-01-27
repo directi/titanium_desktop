@@ -15,22 +15,22 @@ namespace kroll
 
 	MainThreadJob::MainThreadJob(KMethodRef method, const ValueList& args) :
 		method(method),
-		args(args),
 		returnValue(NULL),
 		exception(NULL),
 		executed(false),
-		waiting(false)
+		waiting(false),
+		args(args)
 	{
 		
 	}
 
 	MainThreadJob::MainThreadJob(KMethodRef method) :
 		method(method),
-		args(ValueList()),
 		returnValue(NULL),
 		exception(NULL),
 		executed(false),
-		waiting(false)
+		waiting(false),
+		args(ValueList())
 	{
 		
 	}

@@ -22,7 +22,7 @@ namespace kroll
 {
 	std::ofstream * ProfiledBoundObject::stream = NULL;
 
-	ProfiledBoundObject::ProfiledBoundObject(KObjectRef delegate, std::string& parentType) :
+	ProfiledBoundObject::ProfiledBoundObject(KObjectRef delegate, const std::string& parentType) :
 		KObject(delegate->GetType()),
 		delegate(delegate),
 		parentType(parentType)

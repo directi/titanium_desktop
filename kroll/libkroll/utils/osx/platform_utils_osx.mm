@@ -4,14 +4,14 @@
  * Copyright (c) 2009-2010 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include <Foundation/Foundation.h>
+#import <Foundation/Foundation.h>
 #include <IOKit/IOKitLib.h>
 #include <IOKit/network/IOEthernetInterface.h>
 #include <IOKit/network/IONetworkInterface.h>
 #include <IOKit/network/IOEthernetController.h>
 
 #include "../platform_utils.h"
-#include "../osx/osx_utils.h"
+#include "osx_utils.h"
 
 namespace UTILS_NS
 {

@@ -155,8 +155,8 @@ namespace kroll
 	void Logger::SetLevel(Logger::Level level)
 	{
 		this->Log(Logger::LWARN, "Logger Level changed from %s to %s",
-			getStringForLevel(this->level),
-			getStringForLevel(level));
+			Logger::getStringForLevel(this->level).c_str(),
+			Logger::getStringForLevel(level).c_str());
 		this->level = level;
 	}
 

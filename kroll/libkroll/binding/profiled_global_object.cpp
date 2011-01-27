@@ -10,8 +10,8 @@
 
 namespace kroll
 {
-	ProfiledGlobalObject::ProfiledGlobalObject(KObjectRef global) :
-ProfiledBoundObject(global, std::string("GlobalObject"))
+	ProfiledGlobalObject::ProfiledGlobalObject(KObjectRef global)
+	       	: ProfiledBoundObject(global, std::string("GlobalObject"))
 	{
 	}
 

@@ -38,7 +38,7 @@ namespace kroll
 		void _RemoveAllEventListeners(const ValueList&, KValueRef result);
 
 	private:
-		void ReportDispatchError(std::string& reason);
+		void ReportDispatchError(const std::string& reason);
 
 		EventListenerList listeners;
 	};

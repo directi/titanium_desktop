@@ -407,7 +407,7 @@ SharedProxy TryCFNetworkCopyProxiesForURL(const string& queryURL)
 SharedProxy GetProxyForURLImpl(const std::string & url)
 {
 	InitializeOSXProxyConfig();
-	ParsedURL uri(url);
+	WTF::ParsedURL uri(url);
 
 	// If the URL matches global bypass conditions, use a direct connection.
 	if (bypassLocalNames && uri.host().find(".") == string::npos)

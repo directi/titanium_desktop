@@ -109,13 +109,13 @@ namespace kroll
 		debug(false),
 		waitForDebugger(false),
 		autoScan(false),
+		isExecutionSuspended(false),
 		profile(false),
 		profileStream(0),
 		fileLogging(true),
 		logFilePath(""),
 		consoleLogging(true),
-		logger(0),
-		isExecutionSuspended(false)
+		logger(0)
 	{
 #ifdef DEBUG
 		this->debug = true;

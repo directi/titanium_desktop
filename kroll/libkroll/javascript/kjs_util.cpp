@@ -80,7 +80,7 @@ namespace KJSUtil
 			return refCount;
 		}
 
-		JSObjectValue(KValueRef value) : objectValue(value), refCount(0) { }
+		JSObjectValue(KValueRef value) : refCount(0), objectValue(value) { }
 		KValueRef ToValue() { return objectValue; }
 
 		virtual ~JSObjectValue()
@@ -124,9 +124,9 @@ namespace KJSUtil
 			return 0;
 		}
 
-		JSObjectValueRef or = pointerToJS(kValue);
-		or->duplicate();
-		JSObjectRef r = JSObjectMake(jsContext, objectClass, or);
+		JSObjectValueRef or_val = pointerToJS(kValue);
+		or_val->duplicate();
+		JSObjectRef r = JSObjectMake(jsContext, objectClass, or_val);
 #if TROUBLE_SHOOT_GC
 		objects[r] = kValue.get();
 #endif

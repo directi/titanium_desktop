@@ -21,7 +21,7 @@ namespace kroll
 	class KROLL_API ProfiledBoundObject : public KObject
 	{
 		public:
-			ProfiledBoundObject(KObjectRef delegate, std::string& parentType);
+		ProfiledBoundObject(KObjectRef delegate, const std::string& parentType);
 		virtual ~ProfiledBoundObject();
 		static void SetStream(std::ofstream*);
 

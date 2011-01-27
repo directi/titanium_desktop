@@ -2,10 +2,10 @@
 * @author: Mital Vora <mital.d.vora@gmail.com>
 */
 
-#include <time.h>
 #include "time_utils.h"
 
 #ifdef OS_WIN32
+#include <time.h>
 
 // define gettimeofday for windows
 #include <Winsock2.h>
@@ -15,7 +15,6 @@
 #else
 #define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
 #endif
-
 struct timezone
 {
 	int  tz_minuteswest; /* minutes W of Greenwich */
@@ -70,6 +69,8 @@ int gettimeofday(struct timeval *tv, struct timezone *tz)
 
 	return 0;
 }
+#else
+#include <sys/time.h>
 #endif
 
 

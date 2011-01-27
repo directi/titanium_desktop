@@ -97,7 +97,8 @@ namespace kroll
 				}
 				catch (ValueException& e)
 				{
-					this->ReportDispatchError(e.ToString());
+					const std::string err = e.ToString();
+					this->ReportDispatchError(err);
 					break;
 				}
 			}
@@ -134,7 +135,8 @@ namespace kroll
 				}
 				catch (ValueException& e)
 				{
-					this->ReportDispatchError(e.ToString());
+					const std::string err = e.ToString();
+					this->ReportDispatchError(err);
 				}
 
 				if (event->isStopped() || !result)
@@ -180,7 +182,7 @@ namespace kroll
 		this->RemoveEventListener(event, args.GetValue(1));
 	}
 
-	void KEventObject::ReportDispatchError(std::string& reason)
+	void KEventObject::ReportDispatchError(const std::string& reason)
 	{
 		this->logger()->Error("Failed to fire event: target=%s reason=%s",
 			this->GetType().c_str(), reason.c_str());

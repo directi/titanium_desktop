@@ -190,7 +190,7 @@ namespace kroll
 	std::string toString(int value)
 	{
 		char buffer [33];
-		itoa (value, buffer, 10);
+		sprintf(buffer, "%d", value);
 		return string(buffer);
 	}
 

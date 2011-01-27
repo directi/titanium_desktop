@@ -5,12 +5,22 @@
 #include "md5_utils.h"
 
 #include <iomanip>
+#include <string>
 #include <sstream>
 #include <fstream>
 using namespace std;
 #include <boost/array.hpp>
 #include <openssl/evp.h>
 
+class MD5Exception : public std::exception
+{
+	private:
+		const std::string description;
+	public:
+		MD5Exception(const std::string & desc) : description(desc) {}
+		virtual ~MD5Exception() throw() {}
+		virtual std::string what() throw() { return description; }
+};
 
 namespace UTILS_NS
 {
@@ -52,7 +62,7 @@ namespace UTILS_NS
 			if (!file.is_open())
 			{
 				const std::string err("cannot open input file: " + filename);
-				throw std::exception(err.c_str());
+				throw MD5Exception(err);
 			}
 
 			EVP_MD_CTX mdctx;
