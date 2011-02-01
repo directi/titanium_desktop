@@ -408,6 +408,11 @@ namespace ti
 		case Logger::LWARN:
 			methodName = "warn_orig";
 			break;
+		case Logger::LNOTICE:
+		case Logger::LINFO:
+		case Logger::LDEBUG:
+		case Logger::LTRACE:
+			break;
 		}
 
 		std::string script("window.console.");

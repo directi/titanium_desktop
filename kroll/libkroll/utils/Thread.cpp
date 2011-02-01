@@ -29,8 +29,7 @@ namespace kroll
 		t.reset(new boost::thread(func));
 	}
 
-	inline
-		void Thread::join()
+	void Thread::join()
 	{
 		if (t.get())
 		{

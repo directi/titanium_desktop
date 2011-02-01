@@ -4,7 +4,7 @@
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
 #import <WebKit/WebKit.h>
-#include "../ui_module.h"
+#include "titanium_protocols.h"
 
 static NSString* GetRegisteredMimeTypeFromExtension(NSString* ext)
 {

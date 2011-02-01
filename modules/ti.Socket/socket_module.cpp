@@ -52,11 +52,13 @@ namespace ti
 		this->socketBinding = new SocketBinding(host);
 		GlobalObject::GetInstance()->SetObject("Socket", this->socketBinding);
 
+#ifdef OS_WIN32
 		curlShareHandle = curl_share_init();
 		curl_share_setopt(curlShareHandle, CURLSHOPT_SHARE, CURL_LOCK_DATA_COOKIE);
 		curl_share_setopt(curlShareHandle, CURLSHOPT_SHARE, CURL_LOCK_DATA_DNS);
 		curl_share_setopt(curlShareHandle, CURLSHOPT_LOCKFUNC, CurlLockCallback);
 		curl_share_setopt(curlShareHandle, CURLSHOPT_UNLOCKFUNC, CurlUnlockCallback);
+#endif
 
 	}
 

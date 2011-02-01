@@ -7,7 +7,7 @@
 namespace ti
 {
 	SecureTCPSocket::SecureTCPSocket(Host *host, TCPSocketBinding * tcp_socket_binding)
-		: Socket(host, string("Socket.SecureTCPSocket")),
+		: Socket<boost::asio::ssl::stream<tcp::socket&> >(host, string("Socket.SecureTCPSocket")),
 		ctx(*SocketService::getIOService(), boost::asio::ssl::context::sslv23),
 		tcp_socket(NULL)
 	{

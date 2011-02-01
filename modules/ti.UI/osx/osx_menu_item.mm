@@ -4,6 +4,11 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 #include "../ui_module.h"
+#include "osx_menu.h"
+#include "osx_menu_item.h"
+#include "osx_menu_item_delegate.h"
+#include "osx_ui_binding.h"
+
 namespace ti
 {
 	OSXMenuItem::OSXMenuItem(MenuItemType type) : MenuItem(type)
@@ -14,14 +19,14 @@ namespace ti
 	{
 	}
 
-	void OSXMenuItem::SetLabelImpl(std::string newLabel)
+	void OSXMenuItem::SetLabelImpl(const std::string &newLabel)
 	{
 		if (this->type == SEPARATOR)
 			return;
 		this->UpdateNativeMenuItems();
 	}
 
-	void OSXMenuItem::SetIconImpl(std::string newIconPath)
+	void OSXMenuItem::SetIconImpl(const std::string &newIconPath)
 	{
 		if (this->type == SEPARATOR || this->type == CHECK)
 			return;
@@ -50,7 +55,7 @@ namespace ti
 	}
 
 	/*static*/
-	void OSXMenuItem::SetNSMenuItemTitle(NSMenuItem* item, std::string& title)
+	void OSXMenuItem::SetNSMenuItemTitle(NSMenuItem* item, const std::string& title)
 	{
 		NSString* nstitle = [NSString stringWithUTF8String:title.c_str()];
 		[item setTitle:nstitle];

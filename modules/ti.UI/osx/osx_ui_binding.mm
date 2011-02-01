@@ -4,7 +4,14 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 
-#include "../ui_module.h"
+#include "osx_ui_binding.h"
+#include "osx_menu.h"
+#include "osx_menu_item.h"
+#include "osx_tray_item.h"
+#include "ti_application_delegate.h"
+#include "titanium_protocols.h"
+#include "webview_delegate.h"
+
 
 @interface NSApplication (LegacyWarningSurpression)
 - (id) dockTile;
@@ -283,7 +290,7 @@ namespace ti
 
 	TrayItem *OSXUIBinding::AddTray(const std::string& iconPath, KValueRef eventListener)
 	{
-		return new OSXTrayItem(iconPath, eventListener);
+		return new OSXTrayItem(iconPath, eventListener->ToMethod());
 	}
 
 	long OSXUIBinding::GetIdleTime()

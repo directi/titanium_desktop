@@ -67,8 +67,18 @@ namespace ti
 		virtual AutoPtr<NativePipe> GetNativeStderr() = 0;
 		void AttachPipes(bool async);
 
-		void duplicate() { ReferenceCounted::duplicate(); }
-		void release() { ReferenceCounted::release(); }
+		void duplicate()
+		{
+			++count;
+		}
+
+		void release()
+		{
+			--count;
+			if (count == 0)
+				delete this;
+		}
+
 	protected:
 		void _GetPID(const ValueList& args, KValueRef result);
 		void _GetExitCode(const ValueList& args, KValueRef result);
@@ -101,6 +111,7 @@ namespace ti
 		kroll::Thread exitMonitorThread;
 		KMethodRef exitCallback;
 		bool running;
+		Poco::AtomicCounter count;
 	};
 }
 

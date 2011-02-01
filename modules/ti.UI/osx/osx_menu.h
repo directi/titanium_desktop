@@ -5,6 +5,12 @@
  */
 #ifndef _OSX_MENU_H_
 #define _OSX_MENU_H_
+
+
+#include "../menu.h"
+#import <Cocoa/Cocoa.h>
+
+
 namespace ti
 {
 	class OSXMenu : public Menu

@@ -5,6 +5,11 @@
  */
 #ifndef _OSX_MENU_ITEM_H_
 #define _OSX_MENU_ITEM_H_
+
+#include <kroll/kroll.h>
+#include "../menu_item.h"
+#include <Cocoa/Cocoa.h>
+
 namespace ti
 {
 	class OSXMenuItem : public MenuItem
@@ -25,7 +30,7 @@ namespace ti
 		virtual void HandleClickEvent(KObjectRef source);
 
 	private:
-		static void SetNSMenuItemTitle(NSMenuItem* item, std::string& title);
+		static void SetNSMenuItemTitle(NSMenuItem* item, const std::string& title);
 		static void SetNSMenuItemState(NSMenuItem* item, bool state);
 		static void SetNSMenuItemIconPath(
 			NSMenuItem* item, std::string& iconPath, NSImage* image = nil);

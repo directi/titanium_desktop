@@ -3,7 +3,14 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
-#include "../ui_module.h"
+#include "window_config.h"
+
+#include "osx_user_window.h"
+#include "webview_delegate.h"
+#include "native_window.h"
+
+#include <Carbon/Carbon.h>
+using namespace ti;
 
 @implementation NativeWindow
 - (BOOL)canBecomeKeyWindow
@@ -21,7 +28,7 @@
 	return YES;
 }
 
-- (void)setUserWindow:(AutoPtr<OSXUserWindow>*)inUserWindow
+- (void)setUserWindow:(OSXUserWindow*)inUserWindow
 {
 	userWindow = inUserWindow;
 }
@@ -100,7 +107,7 @@
 
 - (OSXUserWindow*)userWindow
 {
-	return userWindow->get();
+	return userWindow;
 }
 - (void)showInspector:(BOOL)console
 {
@@ -137,18 +144,18 @@
 
 - (void)windowDidResize:(NSNotification*)notification
 {
-	(*userWindow)->FireEvent(Event::RESIZED);
+	userWindow->FireEvent(Event::RESIZED);
 }
 
 - (void)windowDidMove:(NSNotification*)notification
 {
-	(*userWindow)->FireEvent(Event::MOVED);
+	userWindow->FireEvent(Event::MOVED);
 }
 
 - (void)windowDidBecomeKey:(NSNotification*)notification
 {
-	(*userWindow)->FireEvent(Event::FOCUSED);
-	(*userWindow)->Focused();
+	userWindow->FireEvent(Event::FOCUSED);
+	userWindow->Focused();
 	if (!focused && fullscreen)
 	{
 		SetSystemUIMode(kUIModeAllHidden, kUIOptionAutoShowMenuBar);
@@ -158,8 +165,8 @@
 
 - (void)windowDidResignKey:(NSNotification*)notification
 {
-	(*userWindow)->FireEvent(Event::UNFOCUSED);
-	(*userWindow)->Unfocused();
+	userWindow->FireEvent(Event::UNFOCUSED);
+	userWindow->Unfocused();
 	if (fullscreen && focused)
 	{
 		SetSystemUIMode(kUIModeNormal, 0);
@@ -169,12 +176,12 @@
 
 - (void)windowDidMiniaturize:(NSNotification*)notification
 {
-	(*userWindow)->FireEvent(Event::MINIMIZED);
+	userWindow->FireEvent(Event::MINIMIZED);
 }
 
 - (BOOL)windowShouldZoom:(NSWindow*)window toFrame:(NSRect)proposedFrame
 {
-	(*userWindow)->FireEvent(Event::MAXIMIZED);
+	userWindow->FireEvent(Event::MAXIMIZED);
 	return YES;
 }
 
@@ -212,7 +219,7 @@
 	// if we're not already visible, don't cause setfullscreen to necessarily
 	// cause us to become visible -- this gives us more fine grain control that 
 	// separates hide/show from fullscreen/unfullscreened
-	BOOL display = (*userWindow)->IsVisible() && [self isVisible]; 
+	BOOL display = userWindow->IsVisible() && [self isVisible]; 
 	if (yn)
 	{
 		fullscreen = YES;
@@ -229,7 +236,7 @@
 
 		SetSystemUIMode(kUIModeAllHidden,kUIOptionAutoShowMenuBar);
 		[self setFrame:frame display:display animate:display];
-		(*userWindow)->FireEvent(Event::FULLSCREENED);
+		userWindow->FireEvent(Event::FULLSCREENED);
 		[self setShowsResizeIndicator:NO];
 	}
 	else
@@ -237,8 +244,8 @@
 		fullscreen = NO;
 		[self setFrame:savedFrame display:display animate:display];
 		SetSystemUIMode(kUIModeNormal,0);
-		[self setShowsResizeIndicator:(*userWindow)->IsResizable()];
-		(*userWindow)->FireEvent(Event::UNFULLSCREENED);
+		[self setShowsResizeIndicator:userWindow->IsResizable()];
+		userWindow->FireEvent(Event::UNFULLSCREENED);
 	}
 	if (display)
 	{
@@ -252,19 +259,38 @@
 	return webView;
 }
 
+- (NSString*)webViewMainWindowURL
+{
+	return [webView mainFrameURL];
+}
+
+- (void) SetURL: (const std::string&) url
+{
+	std::string nurl = kroll::URLUtils::NormalizeURL(url);
+	NSURL* nsurl = [NSURL URLWithString: [NSString stringWithUTF8String:nurl.c_str()]];
+	[[webView mainFrame] loadRequest:[NSURLRequest requestWithURL:nsurl]];
+}
+
+- (void) SetContents: (const std::string&) content :(const std::string&) baseURL
+{
+	[[webView mainFrame]
+		loadHTMLString: [NSString stringWithUTF8String:content.c_str()]
+		baseURL: [NSURL URLWithString:
+			[NSString stringWithUTF8String:baseURL.c_str()]]];
+}
 - (void)open
 {
 	// Wait until the frame has loaded to show the window. This prevents
 	// showing an unloaded WebView (a white screen).
 	requiresDisplay = YES;
 
-	if ((*userWindow)->IsFullscreen())
+	if (userWindow->IsFullscreen())
 		[self setFullscreen:YES];
 }
 
 - (void)close
 {
-	(*userWindow)->Close();
+	userWindow->Close();
 }
 
 - (void)finishClose
@@ -275,10 +301,10 @@
 
 - (void)frameLoaded
 {
-	if (requiresDisplay && (*userWindow)->IsVisible())
+	if (requiresDisplay && userWindow->IsVisible())
 	{
 		requiresDisplay = NO;
-		(*userWindow)->Show();
+		userWindow->Show();
 	}
 	[self invalidateShadow];
 }

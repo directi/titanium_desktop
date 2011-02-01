@@ -291,7 +291,7 @@ namespace ti
 
 	void CURLMULTIClient::add(CURLEASYClient * easy)
 	{
-		size_t size = requests.size();
+		//size_t size = requests.size();
 		requests.push_back(easy);
 		if(!started)
 		{

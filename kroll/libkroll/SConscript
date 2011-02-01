@@ -71,7 +71,6 @@ if build.is_win32():
 
 elif build.is_osx():
 	libkroll_env.Append(LINKFLAGS='-install_name lib' + libkroll_name + '.dylib')
-	libkroll_env.Append(LIBS=['ssl', 'crypto'])
 	libkroll_env.Append(FRAMEWORKS=['Cocoa', 'SystemConfiguration', 'CoreServices'])
 
 build.add_thirdparty(libkroll_env, 'webkit')

@@ -14,7 +14,6 @@
 
 namespace ti
 {
-	class PosixProcess;
 	class PosixProcess : public Process
 	{
 	public:

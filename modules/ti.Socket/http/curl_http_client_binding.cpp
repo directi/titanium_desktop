@@ -23,8 +23,8 @@ namespace ti
 
 	CURLHTTPClientBinding::CURLHTTPClientBinding(Host* host) :
 		KEventObject("Socket.HTTPClient"),
-		host(host),
 		readyState(HTTP_UNSENT),
+		host(host),
 		httpMethod("GET"),
 		url(""),
 		filename(""),

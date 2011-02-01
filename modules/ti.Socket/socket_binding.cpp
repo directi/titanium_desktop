@@ -7,7 +7,10 @@
 
 #include "tcp_socket_binding.h"
 #include "ssl_tcp_socket_binding.h"
+
+#ifdef OS_WIN32
 #include "http/curl_http_client_binding.h"
+#endif
 #include "socket_binding.h"
 
 namespace ti
@@ -48,7 +51,9 @@ namespace ti
 
 	void SocketBinding::_getCURLHTTPClient(const ValueList& args, KValueRef result)
 	{
+#ifdef OS_WIN32
 		result->SetObject(new CURLHTTPClientBinding(host));
+#endif
 	}
 
 	Host* SocketBinding::GetHost()

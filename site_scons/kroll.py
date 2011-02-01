@@ -155,8 +155,9 @@ class BuildConfig(object):
 
 		if name is 'boost':
 			cpppath = [self.tp('boost', 'include')]
-			if self.is_win32():
-				libpath = [self.tp('boost', 'lib')]
+			libpath = [self.tp('boost', 'lib')]
+			if self.is_osx():
+				libs = ['libboost_thread', 'libboost_system']
 
 		if name is 'openssl':
 			if self.is_win32():
@@ -200,7 +201,10 @@ class BuildConfig(object):
 		elif name is 'curl':
 			cpppath = [self.tp('curl', 'include')]
 			libpath = [self.tp('curl', 'lib')]
-			libs = ['libcurl_imp']
+			if self.is_win32():
+				libs = ['libcurl_imp']
+#			else:
+#			 	libs = ['libcurl']
 
 		elif name is 'cairo' and self.is_win32():
 			cpppath = [self.tp('webkit', 'include')]

@@ -4,6 +4,7 @@
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
 #import "../ui_module.h"
+#import "osx_menu_delegate.h"
 
 @implementation OSXMenuDelegate
 
@@ -24,7 +25,7 @@
 	}
 
 	dirty = NO;
-	OSXMenu::ClearNativeMenu(nativeMenu);
+	ti::OSXMenu::ClearNativeMenu(nativeMenu);
 	menu->AddChildrenToNativeMenu(nativeMenu, registerNative ? true : false);
 }
 

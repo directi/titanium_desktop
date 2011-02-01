@@ -2,9 +2,14 @@
 from os import path
 Import('build env module')
 
-sources = Glob('*.cpp') + Glob('http/*.cpp')
+sources = Glob('*.cpp')
+if not build.is_osx():
+	sources += Glob('http/*.cpp')
 
 env.Append(CPPDEFINES = ('TITANIUM_SOCKET_API_EXPORT', 1))
+
+if 'CPPFLAGS' in env and '-Werror' in env['CPPFLAGS']:
+	env['CPPFLAGS'].remove('-Werror')
 
 build.add_thirdparty(env, 'openssl')
 
@@ -15,9 +20,9 @@ if build.is_linux():
 	env.ParseConfig('pkg-config --libs --cflags gdk-2.0 dbus-glib-1')
 
 if build.is_win32():
-	build.add_thirdparty(env, 'curl')
 	env.Append(CPPDEFINES = ('BOOST_ASIO_DISABLE_IOCP'))
 
+build.add_thirdparty(env, 'curl')
 # Copy the support files the module build directory
 build.utils.LightWeightCopy(path.join(build.cwd(), 'support'), module.dir)
 build.mark_build_target(env.SharedLibrary(

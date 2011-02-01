@@ -5,7 +5,9 @@
  */
 #ifndef TI_APP_H
 #define TI_APP_H
-#import "../ui_module.h"
+
+#import "osx_ui_binding.h"
+
 @interface TiApplicationDelegate : NSObject
 {
 	ti::OSXUIBinding *binding;

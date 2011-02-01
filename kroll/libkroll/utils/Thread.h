@@ -24,7 +24,7 @@ namespace kroll
 		~Thread();
 		void start(Runnable * runnable);
 		void start(boost::function<void()> func);
-		inline void join();
+		void join();
 	};
 }
 

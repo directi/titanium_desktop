@@ -5,15 +5,22 @@
  */
 #ifndef OSX_USER_WINDOW_H
 #define OSX_USER_WINDOW_H
+
+#include "../user_window.h"
+
+#import <Cocoa/Cocoa.h>
+
+@class NativeWindow;
 namespace ti
 {
 	class OSXUIBinding;
+	class OSXMenu;
 	class OSXMenuItem;
 
 	class OSXUserWindow : public UserWindow
 	{
 		public:
-			OSXUserWindow(AutoPtr<WindowConfig> config, AutoUserWindow& parent);
+			OSXUserWindow(AutoPtr<WindowConfig> config, UserWindow* parent);
 			virtual ~OSXUserWindow();
 
 			void OpenChooserDialog(bool files, KMethodRef callback, bool multiple,
@@ -81,9 +88,7 @@ namespace ti
 			void SetFullscreen(bool fullscreen);
 			bool IsTopMost();
 			void SetTopMost(bool topmost);
-
-            void Flash(int timesToFlash);
-
+			void Flash(int timesToFlash);
 			void SetMenu(AutoMenu menu);
 			AutoMenu GetMenu();
 			void SetContextMenu(AutoMenu menu);
@@ -103,7 +108,7 @@ namespace ti
 			bool focused;
 			AutoPtr<OSXMenu> menu;
 			AutoPtr<OSXMenu> contextMenu;
-			AutoPtr<OSXUIBinding> osxBinding;
+			OSXUIBinding * osxBinding;
 			static bool initial;
 			std::string iconPath;
 

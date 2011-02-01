@@ -7,7 +7,7 @@
 namespace ti
 {
 	TCPSocketBinding::TCPSocketBinding(Host* host, const std::string& hostname, const std::string& port) :
-		Socket(host, string("Socket.TCPSocketBinding")),
+		Socket<tcp::socket>(host, string("Socket.TCPSocketBinding")),
 		onConnect(0),
 		hostname(hostname),
 		port(port),

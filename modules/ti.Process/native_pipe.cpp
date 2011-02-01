@@ -13,11 +13,11 @@ namespace ti
 	NativePipe::NativePipe(bool isReader) :
 		Pipe("Process.NativePipe"),
 		closed(false),
-		readThreadRunning(false),
-		writeThreadRunning(false),
 		isReader(isReader),
 		readCallback(0),
-		logger(Logger::Get("Process.NativePipe"))
+		logger(Logger::Get("Process.NativePipe")),
+		readThreadRunning(false),
+		writeThreadRunning(false)
 	{
 	}
 

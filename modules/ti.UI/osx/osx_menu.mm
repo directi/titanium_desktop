@@ -5,6 +5,12 @@
  */
 #include <kroll/kroll.h>
 #include "../ui_module.h" 
+#include "osx_menu.h"
+#include "osx_menu_item.h" 
+#include "osx_ui_binding.h" 
+#include "osx_user_window.h"
+#include "osx_menu_delegate.h"
+
 
 // The front offset accounts for the appplication and edit menus:w
 // The rear offset accounts for the window and help menus

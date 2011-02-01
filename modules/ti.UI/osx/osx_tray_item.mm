@@ -3,10 +3,13 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
-#include "../ui_module.h"
+#include "osx_ui_binding.h"
+#include "osx_tray_item.h"
+#include "osx_tray_item_delegate.h"
+
 namespace ti
 {
-	OSXTrayItem::OSXTrayItem(std::string& iconURL, KMethodRef cb) :
+	OSXTrayItem::OSXTrayItem(const std::string& iconURL, KMethodRef cb) :
 		TrayItem(iconURL),
 		nativeMenu(0),
 		menu(0),
@@ -31,9 +34,10 @@ namespace ti
 		}
 	}
 
-	void OSXTrayItem::SetIcon(std::string& iconPath)
+	void OSXTrayItem::SetIcon(const std::string& iconPath)
 	{
-		NSImage* image = ti::OSXUIBinding::MakeImage(iconPath);
+		std::string iconPathCopy = iconPath;
+		NSImage* image = ti::OSXUIBinding::MakeImage(iconPathCopy);
 		[nativeItem setImage:image];
 	}
 
@@ -57,7 +61,7 @@ namespace ti
 		this->nativeMenu = newNativeMenu;
 	}
 
-	void OSXTrayItem::SetHint(std::string& hint)
+	void OSXTrayItem::SetHint(const std::string& hint)
 	{
 		if (hint.empty()) {
 			[nativeItem setToolTip:@""];

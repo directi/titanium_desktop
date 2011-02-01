@@ -6,6 +6,7 @@
 #define _SOCKET_UTILS_H_
 
 #include "SocketService.h"
+#include "SocketExceptions.h"
 
 #include <string>
 #include <deque>

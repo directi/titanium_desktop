@@ -63,7 +63,7 @@ namespace ti
 			ssize_t length = readlink(src.c_str(), linkPath, PATH_MAX);
 			linkPath[length] = '\0';
 
-			std::string newPath (dest.toString());
+			std::string newPath (dest);
 			const char *destPath = newPath.c_str();
 			unlink(destPath); // unlink it first, fails in some OS if already there
 			int result = symlink(linkPath, destPath);

@@ -38,7 +38,7 @@ namespace FilesystemUtils
 			for (size_t c = 0; c < list->Size(); c++)
 			{
 				filename = kroll::FileUtils::Join(
-					filename.c_str(), list->At(c)->ToString(), NULL);
+					filename.c_str(), list->At(c)->ToString().c_str(), NULL);
 			}
 		}
 		else

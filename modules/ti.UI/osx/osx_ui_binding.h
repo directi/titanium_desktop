@@ -7,6 +7,8 @@
 #define _OSX_UI_BINDING_H_
 #include <kroll/kroll.h>
 #include "../ui_module.h"
+#include "osx_user_window.h"
+
 namespace ti
 {
 	class OSXMenuItem;
@@ -17,20 +19,20 @@ namespace ti
 		OSXUIBinding(Host *host);
 		virtual ~OSXUIBinding();
 
-		AutoMenu CreateMenu();
-		AutoMenuItem CreateMenuItem();
-		AutoMenuItem CreateCheckMenuItem();
-		AutoMenuItem CreateSeparatorMenuItem();
-		AutoMenu GetMenu();
-		AutoMenu GetContextMenu();
+		virtual AutoMenu CreateMenu();
+		virtual AutoMenuItem CreateMenuItem();
+		virtual AutoMenuItem CreateCheckMenuItem();
+		virtual AutoMenuItem CreateSeparatorMenuItem();
+		virtual void SetMenu(AutoMenu);
+		virtual void SetContextMenu(AutoMenu);
+		virtual void SetDockMenu(AutoMenu);
+		virtual void SetIcon(std::string& iconPath);
+		virtual TrayItem *AddTray(const std::string& icon_path, KValueRef cbSingleClick);
+		virtual AutoMenu GetMenu();
+		virtual AutoMenu GetContextMenu();
 		AutoMenu GetDockMenu();
 		NSMenu* GetNativeDockMenu();
-		void SetMenu(AutoMenu);
-		void SetContextMenu(AutoMenu);
-		void SetDockMenu(AutoMenu);
 
-		TrayItem *AddTray(std::string& icon_path, KValueRef cb);
-		void SetIcon(std::string& iconPath);
 		virtual void BounceDockIcon();
 		virtual void SetDockIcon(std::string& iconPath);
 		virtual void SetBadge(std::string& badgeLabel);

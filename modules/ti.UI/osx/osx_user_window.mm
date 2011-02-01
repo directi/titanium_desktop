@@ -4,6 +4,10 @@
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
 #import "../ui_module.h"
+#import "osx_menu.h"
+#import "osx_user_window.h"
+#import "osx_ui_binding.h"
+#import "native_window.h"
 
 namespace ti
 {
@@ -26,20 +30,20 @@ namespace ti
 		return mask;
 	}
 
-	OSXUserWindow::OSXUserWindow(AutoPtr<WindowConfig> config, AutoUserWindow& parent) :
+	OSXUserWindow::OSXUserWindow(AutoPtr<WindowConfig> config, UserWindow* parent) :
 		UserWindow(config, parent),
 		nativeWindow(nil),
 		nativeWindowMask(toWindowMask(config)),
 		menu(0),
 		contextMenu(0),
-		osxBinding(binding.cast<OSXUIBinding>())
+		osxBinding((OSXUIBinding *)UIModule::GetBinding())
 	{
 		// Initialization of the native window and its properties now happen in Open(),
 		// so that developers can tweak window properties before comitting to them
 		// by calling Open(...)
 	}
 
-	AutoUserWindow UserWindow::createWindow(AutoPtr<WindowConfig> config, AutoUserWindow parent)
+	UserWindow * UserWindow::createWindow(AutoPtr<WindowConfig> config, UserWindow *parent)
 	{
 		return new OSXUserWindow(config, parent);
 	}
@@ -64,7 +68,7 @@ namespace ti
 			styleMask:nativeWindowMask
 			backing:NSBackingStoreBuffered
 			defer:NO];
-		[nativeWindow setUserWindow:new AutoPtr<OSXUserWindow>(this, true)];
+		[nativeWindow setUserWindow:this];
 
 		if (!config->IsFullscreen())
 		{
@@ -532,9 +536,11 @@ namespace ti
 
 	std::string OSXUserWindow::GetURL()
 	{
-		if (nativeWindow) {
-			NSString* url = [[nativeWindow webView] mainFrameURL];
-			if (url) {
+		if (nativeWindow)
+	       	{
+			NSString* url = [nativeWindow webViewMainWindowURL];
+			if (url)
+		       	{
 				return [url UTF8String];
 			}
 		}
@@ -545,9 +551,7 @@ namespace ti
 	{
 		if (nativeWindow != nil)
 		{
-			std::string nurl = kroll::URLUtils::NormalizeURL(url);
-			NSURL* nsurl = [NSURL URLWithString: [NSString stringWithUTF8String:nurl.c_str()]];
-			[[[nativeWindow webView] mainFrame] loadRequest:[NSURLRequest requestWithURL:nsurl]];
+			[nativeWindow SetURL:url];
 		}
 	}
 
@@ -645,7 +649,7 @@ namespace ti
 
 	void OSXUserWindow::SetMenu(AutoMenu menu)
 	{	
-		if (this->menu.get() == menu.get())
+		if (this->menu.get() == (OSXMenu *)menu.get())
 		{
 			return;
 		}
@@ -828,9 +832,6 @@ namespace ti
 
 	void OSXUserWindow::SetContentsImpl(const std::string& content, const std::string& baseURL)
 	{
-		[[[nativeWindow webView] mainFrame]
-			loadHTMLString: [NSString stringWithUTF8String:content.c_str()]
-			baseURL: [NSURL URLWithString:
-				[NSString stringWithUTF8String:baseURL.c_str()]]];
+		[nativeWindow SetContents: content :baseURL];
 	}
 }

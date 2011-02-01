@@ -3,9 +3,17 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2008 Appcelerator, Inc. All Rights Reserved.
  */
-#include <kroll/kroll.h>
+#include "window_config.h"
+
 #include "../ui_module.h"
+#include "osx_user_window.h"
+#include "native_window.h"
+
+#include "webview_delegate.h"
+#include "osx_menu.h"
 #include "osx_menu_item.h"
+#include <WebKit/WebKit.h>
+#import <WebKit/WebInspector.h>
 #include <WebKit/WebFramePrivate.h>
 #include <WebKit/WebPreferenceKeysPrivate.h>
 
@@ -322,8 +330,8 @@
 		config->SetHeight([(NSNumber*)height intValue]);
 	}
 
-	AutoPtr<OSXUserWindow> newOSXWindow(UserWindow::CreateWindow(
-		config, AutoUserWindow([window userWindow], true)).cast<OSXUserWindow>());
+	OSXUserWindow * newOSXWindow = (OSXUserWindow*) UserWindow::createWindow(
+		config, (OSXUserWindow *)[window userWindow]);
 	newOSXWindow->Open();
 
 	return [newOSXWindow->GetNative() webView];

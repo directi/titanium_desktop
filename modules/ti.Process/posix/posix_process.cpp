@@ -73,7 +73,7 @@ namespace ti
 		if (pid < 0)
 		{
 			throw ValueException::FromFormat("Cannot fork process for %s", 
-				args->At(0)->ToString());
+				args->At(0)->ToString().c_str());
 		}
 		else if (pid == 0)
 		{
@@ -94,7 +94,7 @@ namespace ti
 			//argv[i++] = const_cast<char*>(command.c_str());
 			for (;i < args->Size(); i++)
 			{
-				argv[i] = const_cast<char*>(args->At(i)->ToString());
+				argv[i] = const_cast<char*>(args->At(i)->ToString().c_str());
 			}
 			argv[i] = NULL;
 
@@ -106,7 +106,7 @@ namespace ti
 				setenv(key, value.c_str(), 1);
 			}
 
-			const char *command = args->At(0)->ToString();
+			const char *command = args->At(0)->ToString().c_str();
 			execvp(command, argv);
 			_exit(72);
 		}

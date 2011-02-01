@@ -5,9 +5,12 @@
  */
 #import <Cocoa/Cocoa.h>
 #import <AppKit/AppKit.h>
-#import "../ui_module.h"
-#import "osx_ui_binding.h"
-#import "osx_menu_item.h"
+
+#include "ti_application_delegate.h"
+#include "osx_menu.h"
+#include "osx_menu_item.h"
+
+using namespace ti;
 
 @implementation TiApplicationDelegate
 

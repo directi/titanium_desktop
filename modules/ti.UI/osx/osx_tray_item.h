@@ -5,18 +5,24 @@
  */
 #ifndef TI_OSX_TRAY_ITEM_H_
 #define TI_OSX_TRAY_ITEM_H_
+
+#include "../tray_item.h"
+#include "osx_menu.h"
+
+#include <Cocoa/Cocoa.h>
+
 namespace ti
 {
 	class OSXTrayItem: public TrayItem
 	{
 	public:
-		OSXTrayItem(std::string& iconURL, KMethodRef cb);
+		OSXTrayItem(const std::string& iconURL, KMethodRef cb);
 		virtual ~OSXTrayItem();
 
-		void SetIcon(std::string& iconPath);
-		void SetMenu(AutoMenu menu);
-		void SetHint(std::string& hint);
-		void Remove();
+		virtual void SetIcon(const std::string& iconPath);
+		virtual void SetMenu(AutoMenu menu);
+		virtual void SetHint(const std::string& hint);
+		virtual void Remove();
 		void InvokeCallback();
 
 	private:

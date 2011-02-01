@@ -3,7 +3,11 @@
  * see LICENSE in the root folder for details on the license.
  * Copyright (c) 2009 Appcelerator, Inc. All Rights Reserved.
  */
-#import "../ui_module.h"
+
+#include "osx_tray_item.h"
+#import "osx_tray_item_delegate.h"
+
+using namespace ti;
 
 @implementation OSXTrayItemDelegate
 -(id)initWithTray:(OSXTrayItem*)inTrayItem

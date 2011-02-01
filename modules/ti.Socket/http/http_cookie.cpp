@@ -81,27 +81,27 @@ namespace ti
 			{
 				domain = value;
 			}
-			else if (name, "path")
+			else if (name == "path")
 			{
 				path =value;
 			}
-			else if (name, "max-age")
+			else if (name == "max-age")
 			{
 				expires = value;
 			}
-			else if (name, "secure")
+			else if (name == "secure")
 			{
 				secure = true;
 			}
-			else if (name, "expires")
+			else if (name == "expires")
 			{
 				expires = value;
 			}
-			else if (name, "version")
+			else if (name == "version")
 			{
 					version = atoi(value.c_str());
 			}
-			else if (name, "HttpOnly")
+			else if (name == "HttpOnly")
 			{
 				httpOnly = true;
 			}
